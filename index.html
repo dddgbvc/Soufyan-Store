@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مركز سفيان للهواتف | سامراء</title>
+<meta name="description" content="أحدث الهواتف الذكية والإكسسوارات وباقات الإنترنت في سامراء — اطلب عبر واتساب.">
+<!-- Open Graph -->
+<meta property="og:title" content="مركز سفيان للهواتف">
+<meta property="og:description" content="هواتف ذكية، إكسسوارات، وباقات إنترنت — سامراء، الحويش. اطلب عبر واتساب.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og-cover.png">
+<meta property="og:locale" content="ar_IQ">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============ 1. نظام التصميم ============ */
+:root{
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: .45s;
+  --radius: 18px;
+  --primary: #5B6EFF;
+  --cta: #FFA94D;
+  --best: #3DDC84;
+  --font-display: "El Messiri", sans-serif;
+  --font-body: "IBM Plex Sans Arabic", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+html[data-theme="dark"]{
+  --bg:#14161C; --surface:#1E212B; --surface-2:#262A37;
+  --text:#EDEFF7; --text-2:#9AA0B4; --border:#2E3342;
+  --shadow: 0 4px 14px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.28);
+  --glow: 0 0 0 1px rgba(91,110,255,.35), 0 8px 30px rgba(91,110,255,.18);
+}
+html[data-theme="light"]{
+  --bg:#F6F5F2; --surface:#FFFFFF; --surface-2:#F0EFEA;
+  --text:#1B1E28; --text-2:#5D6373; --border:#E3E1DA;
+  --shadow: 0 2px 8px rgba(20,22,28,.06), 0 12px 32px rgba(20,22,28,.10);
+  --glow: 0 0 0 1px rgba(91,110,255,.30), 0 8px 26px rgba(91,110,255,.16);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:var(--font-body); line-height:1.65;
+  transition: background .4s var(--ease), color .4s var(--ease);
+}
+h1,h2,h3{font-family:var(--font-display); line-height:1.3}
+img{max-width:100%; display:block}
+button{font-family:inherit; cursor:pointer}
+input,select,textarea{font-family:inherit; font-size:1rem}
+a{color:var(--primary)}
+:focus-visible{outline:3px solid var(--primary); outline-offset:2px; border-radius:6px}
+.mono{font-family:var(--font-mono); direction:ltr; unicode-bidi:embed}
+.container{max-width:1100px; margin-inline:auto; padding-inline:16px}
+section{padding-block:48px}
+.section-title{font-size:clamp(1.5rem,4vw,2.1rem); margin-bottom:6px}
+.section-sub{color:var(--text-2); margin-bottom:24px; font-size:.95rem}
+
+/* ============ حركات الظهور ============ */
+.reveal{opacity:0; transform:translateY(22px); transition:opacity .6s var(--ease), transform .6s var(--ease)}
+.reveal.in{opacity:1; transform:none}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important; transition-duration:.01ms!important}
+  .reveal{opacity:1; transform:none}
+  html{scroll-behavior:auto}
+}
+
+/* ============ الهيدر + البحث ============ */
+header.site{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.header-row{display:flex; align-items:center; gap:12px; padding-block:10px}
+.brand{font-family:var(--font-display); font-weight:700; font-size:1.15rem; white-space:nowrap}
+.brand span{color:var(--primary)}
+.search-wrap{flex:1; position:relative}
+.search-wrap input{
+  width:100%; padding:10px 42px 10px 14px;
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--border); border-radius:14px;
+  transition:border-color .3s var(--ease), box-shadow .3s var(--ease);
+}
+.search-wrap input:focus{border-color:var(--primary); box-shadow:var(--glow); outline:none}
+.search-wrap .icon{position:absolute; right:14px; top:50%; translate:0 -50%; color:var(--text-2); pointer-events:none}
+.theme-btn{
+  width:42px; height:42px; border-radius:12px; flex:none;
+  background:var(--surface); border:1px solid var(--border); color:var(--text);
+  display:grid; place-items:center; font-size:1.1rem;
+  transition:transform .4s var(--ease);
+}
+.theme-btn:active{transform:rotate(180deg) scale(.9)}
+.filters{display:flex; gap:8px; overflow-x:auto; padding-block:8px 12px; scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters select,.filters input[type=number]{
+  background:var(--surface); color:var(--text); border:1px solid var(--border);
+  border-radius:10px; padding:6px 10px; font-size:.85rem; min-width:110px;
+}
+
+/* ============ Hero ============ */
+.hero{padding-block:56px 32px; text-align:center; position:relative; overflow:hidden}
+.hero::before{
+  content:""; position:absolute; inset:auto 0 -40% 0; height:80%;
+  background:radial-gradient(ellipse at center, rgba(91,110,255,.20), transparent 65%);
+  pointer-events:none;
+}
+.hero h1{font-size:clamp(1.9rem,6vw,3.2rem)}
+.hero p{color:var(--text-2); max-width:520px; margin:10px auto 22px}
+.hero .cta{
+  display:inline-block; background:var(--cta); color:#20160A; text-decoration:none;
+  font-weight:700; padding:12px 30px; border-radius:14px;
+  box-shadow:0 6px 24px rgba(255,169,77,.30);
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+.hero .cta:hover{transform:translateY(-3px); box-shadow:0 10px 32px rgba(255,169,77,.42)}
+
+/* ============ شبكات البطاقات ============ */
+.grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+@media (min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:18px}}
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; box-shadow:var(--shadow); text-align:right; color:var(--text);
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s var(--ease);
+  display:flex; flex-direction:column; padding:0; width:100%;
+}
+.card:hover{transform:translateY(-6px); box-shadow:var(--shadow), var(--glow); border-color:var(--primary)}
+.card img{aspect-ratio:3/4; object-fit:cover; width:100%; background:var(--surface-2)}
+.card .body{padding:12px 14px 14px; display:flex; flex-direction:column; gap:4px; flex:1}
+.card .name{font-weight:700; font-size:.95rem}
+.card .spec{color:var(--text-2); font-size:.78rem}
+.card .price{color:var(--cta); font-family:var(--font-mono); font-weight:600; margin-top:auto}
+.badge-out{font-size:.72rem; color:#ff7676}
+
+/* ============ شاشة التفاصيل (FLIP) ============ */
+.detail-overlay{
+  position:fixed; z-index:100; background:var(--surface);
+  border-radius:var(--radius); overflow:hidden auto; box-shadow:var(--shadow);
+  inset:0; display:none; flex-direction:column;
+}
+.detail-overlay.open{display:flex}
+.detail-scrim{position:fixed; inset:0; z-index:99; background:rgba(10,12,18,.55); opacity:0;
+  transition:opacity .4s var(--ease); pointer-events:none}
+.detail-scrim.show{opacity:1; pointer-events:auto}
+.detail-head{display:flex; justify-content:space-between; align-items:center; padding:14px 16px; position:sticky; top:0; background:inherit; z-index:2}
+.close-x{width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:1rem}
+.detail-body{padding:0 16px 24px; max-width:760px; margin-inline:auto; width:100%}
+.gallery{display:flex; gap:10px; overflow-x:auto; border-radius:14px; scroll-snap-type:x mandatory}
+.gallery img{width:78%; flex:none; aspect-ratio:3/4; object-fit:cover; border-radius:14px; scroll-snap-align:center}
+.detail-title{font-size:1.5rem; margin-top:16px}
+.detail-price{color:var(--cta); font-family:var(--font-mono); font-size:1.25rem; font-weight:600; margin-block:4px 14px}
+.spec-list{display:grid; gap:8px}
+.spec-row{
+  display:flex; justify-content:space-between; gap:12px; padding:10px 14px;
+  background:var(--surface-2); border-radius:12px; font-size:.88rem;
+  opacity:0; transform:translateY(14px);
+}
+.spec-row.in{opacity:1; transform:none; transition:opacity .5s var(--ease), transform .5s var(--ease)}
+.spec-row .k{color:var(--text-2)}
+.spec-row .v{font-family:var(--font-mono); font-weight:600; text-align:left}
+.colors{display:flex; gap:10px; margin-block:14px}
+.color-dot{width:30px; height:30px; border-radius:50%; border:2px solid var(--border); transition:transform .3s var(--ease)}
+.color-dot[aria-pressed="true"]{border-color:var(--primary); transform:scale(1.15); box-shadow:var(--glow)}
+.detail-actions{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap}
+.btn{border:none; border-radius:14px; padding:12px 20px; font-weight:700; font-size:.95rem;
+  transition:transform .3s var(--ease), box-shadow .3s var(--ease)}
+.btn:hover{transform:translateY(-2px)}
+.btn-wa{background:#25D366; color:#08240F; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border-radius:14px; padding:12px 20px; font-weight:700}
+.btn-compare{background:var(--surface-2); color:var(--text); border:1px solid var(--border)}
+.btn-compare.added{border-color:var(--best); color:var(--best)}
+
+/* ============ تبويبات الإكسسوارات ============ */
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+.chip{background:var(--surface); border:1px solid var(--border); color:var(--text-2);
+  border-radius:999px; padding:6px 16px; font-size:.85rem; transition:all .3s var(--ease)}
+.chip[aria-pressed="true"]{background:var(--primary); border-color:var(--primary); color:#fff}
+
+/* ============ باقات الإنترنت ============ */
+.plans{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.plan{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; box-shadow:var(--shadow); transition:transform .35s var(--ease), box-shadow .35s var(--ease)}
+.plan:hover{transform:translateY(-6px); box-shadow:var(--shadow), var(--glow)}
+.plan .size{font-family:var(--font-mono); font-size:1.6rem; font-weight:600; color:var(--primary)}
+.plan ul{list-style:none; margin-block:10px; color:var(--text-2); font-size:.88rem}
+.plan .p-price{color:var(--cta); font-family:var(--font-mono); font-weight:600; font-size:1.1rem}
+.form{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:22px; margin-top:24px; box-shadow:var(--shadow); max-width:520px}
+.form .field{margin-bottom:14px}
+.form label{display:block; font-size:.85rem; color:var(--text-2); margin-bottom:5px}
+.form input,.form select{width:100%; padding:10px 14px; background:var(--surface-2); color:var(--text);
+  border:1px solid var(--border); border-radius:12px}
+.form input:focus,.form select:focus{border-color:var(--primary); outline:none; box-shadow:var(--glow)}
+
+/* ============ المقارنة ============ */
+.compare-bar{
+  position:fixed; bottom:16px; right:50%; translate:50% 0; z-index:60;
+  background:var(--surface); border:1px solid var(--primary); border-radius:999px;
+  box-shadow:var(--shadow), var(--glow);
+  padding:8px 18px; display:none; align-items:center; gap:12px; font-size:.88rem;
+}
+.compare-bar.show{display:flex}
+.compare-table-wrap{overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border)}
+table.compare{border-collapse:collapse; width:100%; min-width:600px; background:var(--surface); font-size:.85rem}
+table.compare th, table.compare td{padding:12px 14px; border-bottom:1px solid var(--border); text-align:right}
+table.compare td{font-family:var(--font-mono)}
+table.compare td.best{color:var(--best); font-weight:600; background:color-mix(in srgb, var(--best) 10%, transparent)}
+.rm-one{background:none; border:none; color:#ff7676; font-size:.8rem}
+
+/* ============ الاقتراحات ============ */
+.sugg-form{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:22px; box-shadow:var(--shadow); margin-bottom:24px}
+input[type=range]{width:100%; accent-color:var(--primary)}
+.priorities{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.why{font-size:.75rem; color:var(--best); padding:0 14px 12px}
+
+/* ============ المساعد الذكي ============ */
+.ai-fab{
+  position:fixed; bottom:16px; left:16px; z-index:70;
+  width:64px; height:64px; border-radius:50%; border:2px solid var(--primary);
+  background:color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter:blur(10px); overflow:hidden; padding:0;
+  animation:breath 3.2s ease-in-out infinite;
+}
+.ai-fab img{width:100%; height:100%; object-fit:cover}
+@keyframes breath{
+  0%,100%{box-shadow:0 0 0 0 rgba(91,110,255,.45)}
+  50%{box-shadow:0 0 0 12px rgba(91,110,255,0)}
+}
+.chat-panel{
+  position:fixed; bottom:90px; left:16px; z-index:70;
+  width:min(360px, calc(100vw - 32px)); height:min(520px, 70vh);
+  background:var(--surface); border:1px solid var(--border); border-radius:20px;
+  box-shadow:var(--shadow); display:none; flex-direction:column; overflow:hidden;
+  transform-origin:bottom left;
+}
+.chat-panel.open{display:flex; animation:pop .4s var(--ease)}
+@keyframes pop{from{opacity:0; transform:scale(.9) translateY(10px)} to{opacity:1; transform:none}}
+.chat-head{display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface-2)}
+.chat-avatar{width:44px; height:44px; border-radius:50%; overflow:hidden; flex:none; border:2px solid var(--primary); position:relative}
+.chat-avatar img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .25s var(--ease)}
+.chat-avatar img.on{opacity:1; animation:idleBreath 4s ease-in-out infinite}
+@keyframes idleBreath{0%,100%{transform:scale(1)} 50%{transform:scale(1.04)}}
+.chat-msgs{flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
+.msg{max-width:85%; padding:9px 13px; border-radius:14px; font-size:.88rem; white-space:pre-wrap}
+.msg.user{align-self:flex-start; background:var(--primary); color:#fff; border-bottom-left-radius:4px}
+.msg.bot{align-self:flex-end; background:var(--surface-2); border-bottom-right-radius:4px}
+.chat-input{display:flex; gap:8px; padding:10px; border-top:1px solid var(--border)}
+.chat-input input{flex:1; padding:10px 14px; border-radius:12px; background:var(--surface-2); color:var(--text); border:1px solid var(--border)}
+.chat-input button{background:var(--primary); color:#fff; border:none; border-radius:12px; padding:0 18px; font-weight:700}
+
+/* ============ لا نتائج / فوتر ============ */
+.no-results{text-align:center; color:var(--text-2); padding:32px; display:none}
+.no-results.show{display:block}
+footer{border-top:1px solid var(--border); padding-block:36px; color:var(--text-2); font-size:.9rem}
+footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+</style>
+</head>
+<body>
+
+<!-- ======= الهيدر + البحث ======= -->
+<header class="site">
+  <div class="container">
+    <div class="header-row">
+      <div class="brand">مركز <span>سفيان</span> للهواتف</div>
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="ابحث عن هاتف أو إكسسوار…" aria-label="بحث">
+        <span class="icon" aria-hidden="true">🔍</span>
+      </div>
+      <button class="theme-btn" id="themeBtn" aria-label="تبديل المظهر">🌙</button>
+    </div>
+    <div class="filters">
+      <select id="fBrand" aria-label="الماركة"><option value="">كل الماركات</option></select>
+      <input id="fMin" type="number" placeholder="سعر من (IQD)" aria-label="أقل سعر">
+      <input id="fMax" type="number" placeholder="سعر إلى (IQD)" aria-label="أعلى سعر">
+      <select id="fStock" aria-label="التوفر">
+        <option value="">الكل</option><option value="in">متوفر</option><option value="out">غير متوفر</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<!-- ======= Hero ======= -->
+<section class="hero">
+  <div class="container">
+    <h1 class="reveal">شاشتك الجاية تبدأ من هنا</h1>
+    <p class="reveal">أحدث الهواتف والإكسسوارات وباقات الإنترنت في سامراء — والطلب بضغطة واتساب.</p>
+    <a class="cta reveal" href="#phones">تصفّح الهواتف</a>
+  </div>
+</section>
+
+<!-- ======= الهواتف ======= -->
+<section id="phones">
+  <div class="container">
+    <h2 class="section-title reveal">📱 الهواتف</h2>
+    <p class="section-sub reveal">اضغط على أي هاتف لعرض المواصفات الكاملة</p>
+    <div class="grid" id="phonesGrid"></div>
+    <div class="no-results" id="noPhones">لا توجد نتائج مطابقة 😅 — جرّب تعديل الفلاتر أو ابحث بماركة ثانية مثل <b>Samsung</b> أو <b>Xiaomi</b>.</div>
+  </div>
+</section>
+
+<!-- ======= الإكسسوارات ======= -->
+<section id="accessories">
+  <div class="container">
+    <h2 class="section-title reveal">🎧 الإكسسوارات</h2>
+    <div class="chips reveal" id="accChips"></div>
+    <div class="grid" id="accGrid"></div>
+    <div class="no-results" id="noAcc">لا توجد إكسسوارات مطابقة — جرّب تصنيفًا آخر.</div>
+  </div>
+</section>
+
+<!-- ======= الإنترنت ======= -->
+<section id="internet">
+  <div class="container">
+    <h2 class="section-title reveal">🌐 باقات الإنترنت</h2>
+    <div class="plans" id="plansGrid"></div>
+    <form class="form reveal" id="netForm">
+      <h3 style="margin-bottom:14px">نموذج الاشتراك</h3>
+      <div class="field"><label for="nfName">الاسم</label><input id="nfName" required></div>
+      <div class="field"><label for="nfPhone">رقم الهاتف</label><input id="nfPhone" type="tel" required dir="ltr"></div>
+      <div class="field"><label for="nfPlan">الباقة</label><select id="nfPlan" required></select></div>
+      <div class="field"><label for="nfAddr">العنوان</label><input id="nfAddr" required></div>
+      <button class="btn" style="background:var(--cta); color:#20160A; width:100%" type="submit">📲 أرسل الطلب عبر واتساب</button>
+    </form>
+  </div>
+</section>
+
+<!-- ======= المقارنات ======= -->
+<section id="compare">
+  <div class="container">
+    <h2 class="section-title reveal">⚖️ المقارنات</h2>
+    <p class="section-sub reveal">أضف حتى 4 هواتف من شاشة التفاصيل — القيمة الأفضل بكل صف تتميز بالأخضر تلقائيًا</p>
+    <div id="compareArea"><p class="section-sub">لم تضف أي هاتف للمقارنة بعد.</p></div>
+  </div>
+</section>
+
+<!-- ======= الاقتراحات الذكية ======= -->
+<section id="suggest">
+  <div class="container">
+    <h2 class="section-title reveal">🎯 الاقتراحات الذكية</h2>
+    <div class="sugg-form reveal">
+      <label for="budget">ميزانيتك: <b class="mono" id="budgetVal">600,000</b> IQD</label>
+      <input type="range" id="budget" min="150000" max="2500000" step="50000" value="600000">
+      <div class="priorities" id="prioChips">
+        <button class="chip" type="button" data-prio="gaming" aria-pressed="false">🎮 أداء ألعاب</button>
+        <button class="chip" type="button" data-prio="camera" aria-pressed="false">📸 كاميرا</button>
+        <button class="chip" type="button" data-prio="battery" aria-pressed="false">🔋 بطارية</button>
+        <button class="chip" type="button" data-prio="storage" aria-pressed="false">💾 تخزين</button>
+      </div>
+    </div>
+    <div class="grid" id="suggGrid"></div>
+  </div>
+</section>
+
+<!-- ======= شاشة التفاصيل ======= -->
+<div class="detail-scrim" id="scrim"></div>
+<div class="detail-overlay" id="detail" role="dialog" aria-modal="true" aria-label="تفاصيل المنتج">
+  <div class="detail-head">
+    <strong id="dTitleSm"></strong>
+    <button class="close-x" id="dClose" aria-label="إغلاق">✕</button>
+  </div>
+  <div class="detail-body" id="dBody"></div>
+</div>
+
+<!-- ======= شريط المقارنة العائم ======= -->
+<div class="compare-bar" id="compareBar">
+  <span id="compareCount"></span>
+  <a href="#compare" style="text-decoration:none; font-weight:700">عرض المقارنة ←</a>
+  <button class="rm-one" id="clearCompare">مسح الكل</button>
+</div>
+
+<!-- ======= المساعد الذكي ======= -->
+<button class="ai-fab" id="aiFab" aria-label="افتح المساعد الذكي">
+  <img src="assistant-idle.png" alt="شخصية مساعد مركز سفيان">
+</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-label="المساعد الذكي">
+  <div class="chat-head">
+    <div class="chat-avatar" id="chatAvatar">
+      <img data-state="idle"      class="on" src="assistant-idle.png"      alt="المساعد في وضع الاستعداد">
+      <img data-state="thinking"  src="assistant-thinking.png"  alt="المساعد يفكر بإجابتك">
+      <img data-state="answering" src="assistant-answering.png" alt="المساعد يجيب">
+    </div>
+    <div><strong>مساعد سفيان</strong><div style="font-size:.75rem; color:var(--text-2)">اسألني عن أي هاتف 👋</div></div>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="msg bot">هلا بيك بمركز سفيان! 👋 شنو تدوّر عليه اليوم — هاتف، إكسسوار، لو باقة نت؟</div>
+  </div>
+  <form class="chat-input" id="chatForm">
+    <input id="chatText" placeholder="اكتب سؤالك…" autocomplete="off" aria-label="رسالتك">
+    <button type="submit">إرسال</button>
+  </form>
+</div>
+
+<!-- ======= الفوتر ======= -->
+<footer>
+  <div class="container cols">
+    <div>
+      <h3 style="color:var(--text)">مركز سفيان للهواتف</h3>
+      <p>صلاح الدين - سامراء - الحويش - الشارع الرئيسي</p>
+    </div>
+    <div>
+      <h3 style="color:var(--text)">تواصل واتساب</h3>
+      <p dir="ltr" style="text-align:right">
+        <a href="https://wa.me/9647731644450">+964 773 164 4450</a><br>
+        <a href="https://wa.me/9647744485771">+964 774 448 5771</a>
+      </p>
+    </div>
+    <div>
+      <h3 style="color:var(--text)">الدوام</h3>
+      <p>يوميًا 9 صباحًا – 10 مساءً</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+"use strict";
+const WA = ["https://wa.me/9647731644450","https://wa.me/9647744485771"];
+const IQD = n => n.toLocaleString("en-US") + " IQD";
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ============ 6) البيانات ============ */
+const PHONES = [
+ {id:"p001",name:"Samsung Galaxy S24 Ultra",brand:"Samsung",price:1750000,images:["https://placehold.co/600x800/1E212B/5B6EFF?text=S24+Ultra"],specs:{screen:"6.8 إنش AMOLED 120Hz QHD+",processor:"Snapdragon 8 Gen 3",ram:"12GB",storage:["256GB","512GB"],battery:"5000mAh + شحن 45W",camera:"200MP خلفية / 12MP أمامية",os:"Android 14 (One UI)",colors:["أسود","رمادي","بنفسجي"]},inStock:true,score:{gaming:10,camera:10,battery:8,storage:9}},
+ {id:"p002",name:"iPhone 15 Pro Max",brand:"Apple",price:2100000,images:["https://placehold.co/600x800/1E212B/FFA94D?text=iPhone+15+Pro+Max"],specs:{screen:"6.7 إنش OLED 120Hz",processor:"A17 Pro",ram:"8GB",storage:["256GB","512GB","1TB"],battery:"4441mAh + شحن 27W",camera:"48MP خلفية / 12MP أمامية",os:"iOS 17",colors:["تيتانيوم طبيعي","أزرق","أسود"]},inStock:true,score:{gaming:10,camera:10,battery:7,storage:10}},
+ {id:"p003",name:"iPhone 13",brand:"Apple",price:900000,images:["https://placehold.co/600x800/1E212B/EDEFF7?text=iPhone+13"],specs:{screen:"6.1 إنش OLED 60Hz",processor:"A15 Bionic",ram:"4GB",storage:["128GB","256GB"],battery:"3240mAh + شحن 20W",camera:"12MP خلفية / 12MP أمامية",os:"iOS 17",colors:["أسود","أبيض","وردي"]},inStock:true,score:{gaming:8,camera:8,battery:5,storage:6}},
+ {id:"p004",name:"Samsung Galaxy A55",brand:"Samsung",price:520000,images:["https://placehold.co/600x800/1E212B/5B6EFF?text=Galaxy+A55"],specs:{screen:"6.6 إنش Super AMOLED 120Hz",processor:"Exynos 1480",ram:"8GB",storage:["128GB","256GB"],battery:"5000mAh + شحن 25W",camera:"50MP خلفية / 32MP أمامية",os:"Android 14",colors:["أزرق","ليموني","أسود"]},inStock:true,score:{gaming:6,camera:7,battery:8,storage:7}},
+ {id:"p005",name:"Xiaomi Redmi Note 13 Pro",brand:"Xiaomi",price:420000,images:["https://placehold.co/600x800/1E212B/3DDC84?text=Note+13+Pro"],specs:{screen:"6.67 إنش AMOLED 120Hz",processor:"Snapdragon 7s Gen 2",ram:"8GB",storage:["256GB"],battery:"5100mAh + شحن 67W",camera:"200MP خلفية / 16MP أمامية",os:"Android 13 (MIUI)",colors:["أسود","بنفسجي","أخضر"]},inStock:true,score:{gaming:6,camera:8,battery:9,storage:8}},
+ {id:"p006",name:"Xiaomi Poco X6 Pro",brand:"Xiaomi",price:480000,images:["https://placehold.co/600x800/1E212B/FFA94D?text=Poco+X6+Pro"],specs:{screen:"6.67 إنش AMOLED 120Hz",processor:"Dimensity 8300 Ultra",ram:"12GB",storage:["256GB","512GB"],battery:"5000mAh + شحن 67W",camera:"64MP خلفية / 16MP أمامية",os:"Android 14 (HyperOS)",colors:["أصفر","أسود","رمادي"]},inStock:true,score:{gaming:9,camera:6,battery:8,storage:9}},
+ {id:"p007",name:"Infinix Note 40 Pro",brand:"Infinix",price:310000,images:["https://placehold.co/600x800/1E212B/5B6EFF?text=Note+40+Pro"],specs:{screen:"6.78 إنش AMOLED 120Hz",processor:"Helio G99 Ultimate",ram:"8GB",storage:["256GB"],battery:"5000mAh + شحن 70W",camera:"108MP خلفية / 32MP أمامية",os:"Android 14 (XOS)",colors:["ذهبي","أخضر","أسود"]},inStock:true,score:{gaming:5,camera:6,battery:9,storage:8}},
+ {id:"p008",name:"Infinix Hot 40i",brand:"Infinix",price:165000,images:["https://placehold.co/600x800/1E212B/9AA0B4?text=Hot+40i"],specs:{screen:"6.56 إنش IPS 90Hz",processor:"Unisoc T606",ram:"8GB",storage:["128GB","256GB"],battery:"5000mAh + شحن 18W",camera:"50MP خلفية / 32MP أمامية",os:"Android 13 (XOS)",colors:["أزرق","ذهبي","أسود"]},inStock:true,score:{gaming:3,camera:4,battery:8,storage:7}},
+ {id:"p009",name:"Samsung Galaxy S23 FE",brand:"Samsung",price:780000,images:["https://placehold.co/600x800/1E212B/3DDC84?text=S23+FE"],specs:{screen:"6.4 إنش AMOLED 120Hz",processor:"Exynos 2200",ram:"8GB",storage:["128GB","256GB"],battery:"4500mAh + شحن 25W",camera:"50MP خلفية / 10MP أمامية",os:"Android 14",colors:["نعناعي","بنفسجي","أسود"]},inStock:false,score:{gaming:8,camera:8,battery:6,storage:7}},
+ {id:"p010",name:"Xiaomi Redmi 13C",brand:"Xiaomi",price:145000,images:["https://placehold.co/600x800/1E212B/EDEFF7?text=Redmi+13C"],specs:{screen:"6.74 إنش IPS 90Hz",processor:"Helio G85",ram:"6GB",storage:["128GB"],battery:"5000mAh + شحن 18W",camera:"50MP خلفية / 8MP أمامية",os:"Android 13 (MIUI)",colors:["أسود","أزرق","أخضر"]},inStock:true,score:{gaming:3,camera:4,battery:8,storage:5}},
+ {id:"p011",name:"iPhone 15",brand:"Apple",price:1250000,images:["https://placehold.co/600x800/1E212B/FFA94D?text=iPhone+15"],specs:{screen:"6.1 إنش OLED 60Hz",processor:"A16 Bionic",ram:"6GB",storage:["128GB","256GB"],battery:"3349mAh + شحن 20W",camera:"48MP خلفية / 12MP أمامية",os:"iOS 17",colors:["أزرق","وردي","أسود"]},inStock:true,score:{gaming:9,camera:9,battery:6,storage:6}},
+ {id:"p012",name:"Samsung Galaxy A15",brand:"Samsung",price:185000,images:["https://placehold.co/600x800/1E212B/5B6EFF?text=Galaxy+A15"],specs:{screen:"6.5 إنش Super AMOLED 90Hz",processor:"Helio G99",ram:"6GB",storage:["128GB"],battery:"5000mAh + شحن 25W",camera:"50MP خلفية / 13MP أمامية",os:"Android 14",colors:["أزرق","أصفر","أسود"]},inStock:true,score:{gaming:4,camera:5,battery:8,storage:5}}
+];
+const ACCESSORIES = [
+ {id:"a001",name:"شاحن Anker 65W GaN",cat:"شواحن",price:45000,inStock:true,images:["https://placehold.co/600x800/1E212B/5B6EFF?text=Anker+65W"],spec:"3 منافذ • شحن سريع PD"},
+ {id:"a002",name:"شاحن سيارة Baseus",cat:"شواحن",price:20000,inStock:true,images:["https://placehold.co/600x800/1E212B/9AA0B4?text=Car+Charger"],spec:"USB-C + USB-A"},
+ {id:"a003",name:"جراب iPhone 15 Pro سيليكون",cat:"جرابات",price:12000,inStock:true,images:["https://placehold.co/600x800/1E212B/FFA94D?text=Case"],spec:"حماية كاملة + ألوان متعددة"},
+ {id:"a004",name:"جراب Galaxy S24 شفاف مضاد للصدمات",cat:"جرابات",price:10000,inStock:true,images:["https://placehold.co/600x800/1E212B/3DDC84?text=Clear+Case"],spec:"زوايا معززة"},
+ {id:"a005",name:"سماعة AirPods Pro 2",cat:"سماعات",price:340000,inStock:true,images:["https://placehold.co/600x800/1E212B/EDEFF7?text=AirPods"],spec:"عزل ضوضاء فعّال ANC"},
+ {id:"a006",name:"سماعة Redmi Buds 5",cat:"سماعات",price:38000,inStock:true,images:["https://placehold.co/600x800/1E212B/5B6EFF?text=Buds+5"],spec:"ANC • بطارية 40 ساعة"},
+ {id:"a007",name:"واقي شاشة زجاجي 9H",cat:"واقيات شاشة",price:7000,inStock:true,images:["https://placehold.co/600x800/1E212B/9AA0B4?text=Glass"],spec:"لأغلب الموديلات"},
+ {id:"a008",name:"واقي خصوصية Privacy",cat:"واقيات شاشة",price:12000,inStock:false,images:["https://placehold.co/600x800/1E212B/FFA94D?text=Privacy"],spec:"يمنع الرؤية الجانبية"}
+];
+const PLANS = [
+ {id:"n1",size:"40GB",speed:"حتى 20 Mbps",period:"شهر",price:15000},
+ {id:"n2",size:"100GB",speed:"حتى 40 Mbps",period:"شهر",price:25000},
+ {id:"n3",size:"200GB",speed:"حتى 60 Mbps",period:"شهر",price:40000},
+ {id:"n4",size:"لا محدود",speed:"حتى 100 Mbps",period:"شهر",price:60000}
+];
+
+/* ============ الثيم ============ */
+const themeBtn = document.getElementById("themeBtn");
+const modes = ["dark","light","auto"], icons = {dark:"🌙", light:"☀️", auto:"🌓"};
+let mode = localStorage.getItem("theme") || "dark";
+function applyTheme(){
+  const real = mode === "auto" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : mode;
+  document.documentElement.dataset.theme = real;
+  themeBtn.textContent = icons[mode];
+  localStorage.setItem("theme", mode);
+}
+themeBtn.onclick = () => { mode = modes[(modes.indexOf(mode)+1)%3]; applyTheme(); };
+matchMedia("(prefers-color-scheme: light)").addEventListener("change", applyTheme);
+applyTheme();
+
+/* ============ Intersection Observer + Stagger ============ */
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+}), {threshold:.12});
+function observeReveals(scope=document){
+  let i = 0;
+  scope.querySelectorAll(".reveal:not(.in)").forEach(el => {
+    el.style.transitionDelay = reduced ? "0ms" : `${(i++ % 8) * 70}ms`;
+    io.observe(el);
+  });
+}
+
+/* ============ رسم البطاقات ============ */
+function phoneCard(p){
+  return `<button class="card reveal" data-id="${p.id}" aria-haspopup="dialog">
+    <img loading="lazy" src="${p.images[0]}" alt="${p.name}">
+    <div class="body">
+      <div class="name">${p.name}</div>
+      <div class="spec mono">${p.specs.ram} • ${p.specs.storage[0]} • ${p.specs.battery.split(" ")[0]}</div>
+      <div class="price">${IQD(p.price)}</div>
+      ${p.inStock ? "" : `<div class="badge-out">غير متوفر حاليًا</div>`}
+    </div></button>`;
+}
+function accCard(a){
+  return `<button class="card reveal" data-acc="${a.id}" aria-haspopup="dialog">
+    <img loading="lazy" src="${a.images[0]}" alt="${a.name}">
+    <div class="body">
+      <div class="name">${a.name}</div>
+      <div class="spec">${a.spec}</div>
+      <div class="price">${IQD(a.price)}</div>
+      ${a.inStock ? "" : `<div class="badge-out">غير متوفر حاليًا</div>`}
+    </div></button>`;
+}
+
+/* ============ البحث والفلترة ============ */
+const $ = id => document.getElementById(id);
+[...new Set(PHONES.map(p=>p.brand))].forEach(b => $("fBrand").insertAdjacentHTML("beforeend", `<option>${b}</option>`));
+let accCat = "";
+function renderCatalog(){
+  const q = $("search").value.trim().toLowerCase();
+  const brand = $("fBrand").value, min = +$("fMin").value||0, max = +$("fMax").value||Infinity, stock = $("fStock").value;
+  const ph = PHONES.filter(p =>
+    (!q || (p.name+p.brand).toLowerCase().includes(q)) &&
+    (!brand || p.brand===brand) && p.price>=min && p.price<=max &&
+    (!stock || (stock==="in")===p.inStock));
+  const ac = ACCESSORIES.filter(a =>
+    (!q || a.name.toLowerCase().includes(q) || a.cat.includes(q)) &&
+    (!accCat || a.cat===accCat) && a.price>=min && a.price<=max &&
+    (!stock || (stock==="in")===a.inStock));
+  $("phonesGrid").innerHTML = ph.map(phoneCard).join("");
+  $("accGrid").innerHTML = ac.map(accCard).join("");
+  $("noPhones").classList.toggle("show", !ph.length);
+  $("noAcc").classList.toggle("show", !ac.length);
+  observeReveals();
+}
+["search","fBrand","fMin","fMax","fStock"].forEach(id => $(id).addEventListener("input", renderCatalog));
+
+/* تصنيفات الإكسسوارات */
+const cats = ["", ...new Set(ACCESSORIES.map(a=>a.cat))];
+$("accChips").innerHTML = cats.map(c =>
+  `<button class="chip" data-cat="${c}" aria-pressed="${c===accCat}">${c||"الكل"}</button>`).join("");
+$("accChips").onclick = e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  accCat = b.dataset.cat;
+  $("accChips").querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  renderCatalog();
+};
+
+/* ============ شاشة التفاصيل + FLIP ============ */
+const detail = $("detail"), scrim = $("scrim");
+let lastCard = null;
+function waText(txt){ return `${WA[0]}?text=${encodeURIComponent(txt)}`; }
+
+function openDetail(card, html, title){
+  lastCard = card;
+  $("dTitleSm").textContent = title;
+  $("dBody").innerHTML = html;
+  scrim.classList.add("show");
+  detail.classList.add("open");
+  document.body.style.overflow = "hidden";
+  if(!reduced){
+    const r = card.getBoundingClientRect();
+    const sx = r.width/innerWidth, sy = r.height/innerHeight;
+    detail.animate([
+      {transformOrigin:"0 0", transform:`translate(${r.left}px,${r.top}px) scale(${sx},${sy})`, borderRadius:"18px", opacity:.6},
+      {transform:"none", borderRadius:"0px", opacity:1}
+    ], {duration:450, easing:"cubic-bezier(0.22,1,0.36,1)"});
+  }
+  // ظهور المواصفات المتتابع — إحساس إقلاع شاشة الهاتف
+  detail.querySelectorAll(".spec-row").forEach((row,i) =>
+    setTimeout(()=>row.classList.add("in"), reduced ? 0 : 300 + i*70));
+  $("dClose").focus();
+}
+function closeDetail(){
+  const finish = () => {
+    detail.classList.remove("open"); scrim.classList.remove("show");
+    document.body.style.overflow = ""; lastCard?.focus();
+  };
+  if(!reduced && lastCard){
+    const r = lastCard.getBoundingClientRect();
+    const sx = r.width/innerWidth, sy = r.height/innerHeight;
+    detail.animate([
+      {transform:"none", opacity:1},
+      {transformOrigin:"0 0", transform:`translate(${r.left}px,${r.top}px) scale(${sx},${sy})`, opacity:0}
+    ], {duration:380, easing:"cubic-bezier(0.22,1,0.36,1)"}).onfinish = finish;
+  } else finish();
+}
+$("dClose").onclick = closeDetail;
+scrim.onclick = closeDetail;
+addEventListener("keydown", e => { if(e.key==="Escape" && detail.classList.contains("open")) closeDetail(); });
+
+function phoneDetailHTML(p){
+  const rows = [
+    ["الشاشة", p.specs.screen], ["المعالج", p.specs.processor], ["الرام", p.specs.ram],
+    ["التخزين", p.specs.storage.join(" / ")], ["الكاميرا", p.specs.camera],
+    ["البطارية والشحن", p.specs.battery], ["نظام التشغيل", p.specs.os]
+  ].map(([k,v]) => `<div class="spec-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+  const colorMap = {"أسود":"#222","أبيض":"#eee","أزرق":"#3b6fd4","ذهبي":"#d4af6a","رمادي":"#8a8f99","بنفسجي":"#8b6fd4","وردي":"#e8a0bf","أخضر":"#4caf7d","أصفر":"#e8c84a","ليموني":"#cde84a","نعناعي":"#7de8c3","تيتانيوم طبيعي":"#b8b4ad"};
+  const dots = p.specs.colors.map((c,i) =>
+    `<button class="color-dot" style="background:${colorMap[c]||"#777"}" aria-label="اللون ${c}" aria-pressed="${i===0}" title="${c}"></button>`).join("");
+  const inCmp = compareSet.has(p.id);
+  return `
+    <div class="gallery">${p.images.map(u=>`<img loading="lazy" src="${u}" alt="${p.name}">`).join("")}</div>
+    <h3 class="detail-title">${p.name}</h3>
+    <div class="detail-price">${IQD(p.price)}</div>
+    ${p.inStock ? "" : `<p class="badge-out" style="margin-bottom:10px">غير متوفر حاليًا — اسألنا عن موعد التوفر</p>`}
+    <div class="spec-list">${rows}</div>
+    <p style="margin-top:14px; font-size:.85rem; color:var(--text-2)">الألوان المتوفرة:</p>
+    <div class="colors" data-colors>${dots}</div>
+    <div class="detail-actions">
+      <a class="btn-wa" href="${waText(`مرحبًا، أرغب بطلب: ${p.name} — السعر ${IQD(p.price)}`)}" target="_blank" rel="noopener">🟢 اطلب عبر واتساب</a>
+      <button class="btn btn-compare ${inCmp?"added":""}" data-cmp="${p.id}">${inCmp?"✓ بالمقارنة":"⚖️ أضف للمقارنة"}</button>
+    </div>`;
+}
+function accDetailHTML(a){
+  return `
+    <div class="gallery"><img loading="lazy" src="${a.images[0]}" alt="${a.name}"></div>
+    <h3 class="detail-title">${a.name}</h3>
+    <div class="detail-price">${IQD(a.price)}</div>
+    <div class="spec-list">
+      <div class="spec-row"><span class="k">التصنيف</span><span class="v">${a.cat}</span></div>
+      <div class="spec-row"><span class="k">الوصف</span><span class="v">${a.spec}</span></div>
+    </div>
+    <div class="detail-actions">
+      <a class="btn-wa" href="${waText(`مرحبًا، أرغب بطلب: ${a.name} — السعر ${IQD(a.price)}`)}" target="_blank" rel="noopener">🟢 اطلب عبر واتساب</a>
+    </div>`;
+}
+document.addEventListener("click", e => {
+  const pc = e.target.closest("[data-id]");
+  if(pc){ const p = PHONES.find(x=>x.id===pc.dataset.id); openDetail(pc, phoneDetailHTML(p), p.name); return; }
+  const ac = e.target.closest("[data-acc]");
+  if(ac){ const a = ACCESSORIES.find(x=>x.id===ac.dataset.acc); openDetail(ac, accDetailHTML(a), a.name); return; }
+  const dot = e.target.closest(".color-dot");
+  if(dot){ dot.parentElement.querySelectorAll(".color-dot").forEach(d=>d.setAttribute("aria-pressed", d===dot)); }
+  const cmp = e.target.closest("[data-cmp]");
+  if(cmp){ toggleCompare(cmp.dataset.cmp, cmp); }
+});
+
+/* ============ المقارنة ============ */
+const compareSet = new Set(JSON.parse(localStorage.getItem("compare")||"[]"));
+function toggleCompare(id, btn){
+  if(compareSet.has(id)) compareSet.delete(id);
+  else if(compareSet.size >= 4){ alert("الحد الأقصى 4 هواتف للمقارنة"); return; }
+  else compareSet.add(id);
+  localStorage.setItem("compare", JSON.stringify([...compareSet]));
+  if(btn){ const on = compareSet.has(id); btn.classList.toggle("added",on); btn.textContent = on?"✓ بالمقارنة":"⚖️ أضف للمقارنة"; }
+  renderCompare();
+}
+$("clearCompare").onclick = () => { compareSet.clear(); localStorage.setItem("compare","[]"); renderCompare(); };
+function bestIdx(vals, higherBetter=true){
+  const nums = vals.map(v => parseFloat(String(v).replace(/[^\d.]/g,""))||0);
+  const target = higherBetter ? Math.max(...nums) : Math.min(...nums);
+  return nums.map(n => n===target);
+}
+function renderCompare(){
+  const list = [...compareSet].map(id => PHONES.find(p=>p.id===id)).filter(Boolean);
+  $("compareBar").classList.toggle("show", list.length>0);
+  $("compareCount").textContent = `⚖️ ${list.length} هواتف`;
+  if(!list.length){ $("compareArea").innerHTML = `<p class="section-sub">لم تضف أي هاتف للمقارنة بعد.</p>`; return; }
+  const rows = [
+    ["السعر", list.map(p=>IQD(p.price)), false],
+    ["الشاشة", list.map(p=>p.specs.screen), null],
+    ["المعالج", list.map(p=>p.specs.processor), null],
+    ["الرام", list.map(p=>p.specs.ram), true],
+    ["التخزين", list.map(p=>p.specs.storage.join("/")), true],
+    ["البطارية", list.map(p=>p.specs.battery), true],
+    ["الكاميرا", list.map(p=>p.specs.camera), true]
+  ];
+  $("compareArea").innerHTML = `<div class="compare-table-wrap"><table class="compare">
+    <tr><th></th>${list.map(p=>`<th>${p.name}<br><button class="rm-one" data-rm="${p.id}">إزالة ✕</button></th>`).join("")}</tr>
+    ${rows.map(([label, vals, hb]) => {
+      const best = hb===null ? vals.map(()=>false) : bestIdx(vals, hb);
+      return `<tr><th>${label}</th>${vals.map((v,i)=>`<td class="${best[i]&&vals.length>1?"best":""}">${v}</td>`).join("")}</tr>`;
+    }).join("")}
+  </table></div>`;
+  $("compareArea").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => toggleCompare(b.dataset.rm));
+}
+
+/* ============ الاقتراحات الذكية ============ */
+const prios = new Set();
+$("prioChips").onclick = e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  const p = b.dataset.prio;
+  prios.has(p) ? prios.delete(p) : prios.add(p);
+  b.setAttribute("aria-pressed", prios.has(p));
+  renderSuggest();
+};
+$("budget").addEventListener("input", () => {
+  $("budgetVal").textContent = (+$("budget").value).toLocaleString("en-US");
+  renderSuggest();
+});
+const prioLabel = {gaming:"أداء ألعاب قوي", camera:"كاميرا ممتازة", battery:"بطارية تدوم", storage:"تخزين واسع"};
+function renderSuggest(){
+  const budget = +$("budget").value;
+  const scored = PHONES.filter(p => p.inStock && p.price <= budget)
+    .map(p => {
+      const keys = prios.size ? [...prios] : Object.keys(p.score);
+      const s = keys.reduce((t,k)=>t+p.score[k],0)/keys.length;
+      const bestKey = keys.sort((a,b)=>p.score[b]-p.score[a])[0];
+      return {...p, s, why: `مناسب لك: ${prioLabel[bestKey]} ضمن ميزانيتك 👌`};
+    })
+    .sort((a,b)=>b.s-a.s).slice(0,4);
+  $("suggGrid").innerHTML = scored.length
+    ? scored.map(p => phoneCard(p).replace("</button>", `<div class="why">${p.why}</div></button>`)).join("")
+    : `<p class="section-sub">ما في هاتف متوفر ضمن هذه الميزانية — جرّب رفعها شوية.</p>`;
+  observeReveals();
+}
+
+/* ============ نموذج الإنترنت ============ */
+$("plansGrid").innerHTML = PLANS.map(p => `
+  <div class="plan reveal">
+    <div class="size">${p.size}</div>
+    <ul><li>⚡ ${p.speed}</li><li>🗓️ المدة: ${p.period}</li></ul>
+    <div class="p-price">${IQD(p.price)}</div>
+  </div>`).join("");
+$("nfPlan").innerHTML = PLANS.map(p=>`<option>${p.size} — ${IQD(p.price)}</option>`).join("");
+$("netForm").onsubmit = e => {
+  e.preventDefault();
+  const msg = `طلب اشتراك إنترنت 🌐\nالاسم: ${$("nfName").value}\nالهاتف: ${$("nfPhone").value}\nالباقة: ${$("nfPlan").value}\nالعنوان: ${$("nfAddr").value}`;
+  open(waText(msg), "_blank");
+};
+
+/* ============ المساعد الذكي ============ */
+const chatPanel = $("chatPanel"), chatMsgs = $("chatMsgs");
+$("aiFab").onclick = () => {
+  chatPanel.classList.toggle("open");
+  if(chatPanel.classList.contains("open")) $("chatText").focus();
+};
+function setAvatar(state){
+  const imgs = [...$("chatAvatar").querySelectorAll("img")];
+  // مرونة: لو صورة الحالة غير موجودة/فشل تحميلها نبقى على idle
+  const target = imgs.find(i=>i.dataset.state===state && !i.dataset.failed) || imgs[0];
+  imgs.forEach(i=>i.classList.toggle("on", i===target));
+}
+$("chatAvatar").querySelectorAll("img").forEach(i => i.onerror = () => { i.dataset.failed = "1"; });
+function addMsg(text, who){
+  const d = document.createElement("div");
+  d.className = `msg ${who}`; d.textContent = text;
+  chatMsgs.appendChild(d); chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  return d;
+}
+$("chatForm").onsubmit = async e => {
+  e.preventDefault();
+  const text = $("chatText").value.trim(); if(!text) return;
+  $("chatText").value = "";
+  addMsg(text, "user");
+  setAvatar("thinking");
+  try{
+    // الواجهة تتصل بدالتنا الخلفية فقط — المفتاح لا يظهر هنا إطلاقًا
+    const res = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ message: text })
+    });
+    if(!res.ok) throw 0;
+    const data = await res.json();
+    setAvatar("answering");
+    addMsg(data.reply || "…", "bot");
+  }catch{
+    setAvatar("answering");
+    addMsg("عذرًا، صار خلل مؤقت بالاتصال 🙏 تقدر تراسلنا مباشرة واتساب: 0773 164 4450", "bot");
+  }
+  setTimeout(()=>setAvatar("idle"), 1200);
+};
+
+/* ============ تشغيل ============ */
+renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
+</script>
+</body>
+</html>
