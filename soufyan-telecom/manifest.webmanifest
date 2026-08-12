@@ -1,0 +1,26 @@
+{
+  "name": "مكتب سفيان للاتصالات",
+  "short_name": "سفيان للاتصالات",
+  "description": "شحن رصيد، باقات إنترنت، هواتف وإكسسوارات وصيانة — سامراء.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#04060d",
+  "theme_color": "#04060d",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
