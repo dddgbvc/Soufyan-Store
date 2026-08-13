@@ -372,7 +372,7 @@ window.STORE = {
       stock: true,
       hue: ["#64d2ff", "#0e2233"],
       spec: "3 منافذ • شحن سريع PD",
-      emoji: "⚡",
+      icon: "bolt",
     },
     {
       id: "a002",
@@ -383,7 +383,7 @@ window.STORE = {
       stock: true,
       hue: ["#8e8e93", "#1a1c22"],
       spec: "USB-C + USB-A",
-      emoji: "🚗",
+      icon: "car",
     },
     {
       id: "a003",
@@ -394,7 +394,7 @@ window.STORE = {
       stock: true,
       hue: ["#ff9f0a", "#2b1c05"],
       spec: "حماية كاملة • ألوان متعددة",
-      emoji: "🛡️",
+      icon: "shield",
     },
     {
       id: "a004",
@@ -405,7 +405,7 @@ window.STORE = {
       stock: true,
       hue: ["#30d158", "#0d2416"],
       spec: "مضاد للصدمات • زوايا معزّزة",
-      emoji: "🛡️",
+      icon: "shield",
     },
     {
       id: "a005",
@@ -417,7 +417,7 @@ window.STORE = {
       hot: true,
       hue: ["#f5f5f7", "#2a2a2e"],
       spec: "عزل ضوضاء فعّال ANC",
-      emoji: "🎧",
+      icon: "headphones",
     },
     {
       id: "a006",
@@ -428,7 +428,7 @@ window.STORE = {
       stock: true,
       hue: ["#5e5ce6", "#141233"],
       spec: "ANC • بطارية 40 ساعة",
-      emoji: "🎧",
+      icon: "headphones",
     },
     {
       id: "a007",
@@ -439,7 +439,7 @@ window.STORE = {
       stock: true,
       hue: ["#64d2ff", "#0e2233"],
       spec: "يناسب أغلب الموديلات",
-      emoji: "🔷",
+      icon: "screen",
     },
     {
       id: "a008",
@@ -450,7 +450,7 @@ window.STORE = {
       stock: false,
       hue: ["#bf5af2", "#22103a"],
       spec: "يمنع الرؤية الجانبية",
-      emoji: "🔒",
+      icon: "lock",
     },
     {
       id: "a009",
@@ -461,7 +461,7 @@ window.STORE = {
       stock: true,
       hue: ["#ffd60a", "#2a2205"],
       spec: "شحن سريع 22.5W • شاشة رقمية",
-      emoji: "🔋",
+      icon: "battery",
     },
     {
       id: "a010",
@@ -472,7 +472,7 @@ window.STORE = {
       stock: true,
       hue: ["#40cbe0", "#0d2429"],
       spec: "AMOLED • بطارية 20 يوم",
-      emoji: "⌚",
+      icon: "watch",
     },
   ],
 

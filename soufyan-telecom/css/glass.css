@@ -1,35 +1,41 @@
 /* ============================================================
-   نظام Liquid Glass
-   طبقات: انكسار (Refraction) → تشبّع (Saturation) → بريق (Specular)
+   Liquid Glass — سطح حيّ لا يقف ساكنًا
+   ثلاث طبقات: انكسار متحرّك → حافة تلتقط الضوء → بريق يجري
    ============================================================ */
 
-.glass {
-  --glass-radius: var(--r-lg);
-  --sheen: 118deg;
+.lg {
+  --r: var(--r-lg);
+  --blur: 22px;
   --mx: 50%;
   --my: 0%;
+  --spec: 0;
   position: relative;
   isolation: isolate;
-  border-radius: var(--glass-radius);
+  border-radius: var(--r);
   background: transparent;
   box-shadow: var(--glass-shadow), var(--glass-inner);
-  transform: translateZ(0);
 }
 
-/* الطبقة الزجاجية: تشويش + تشبّع + صبغة */
-.glass::before {
+/* الطبقة الحاملة: تشويش + تشبّع + انكسار متحرّك */
+.lg::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -2;
   border-radius: inherit;
-  background: var(--glass-tint);
-  backdrop-filter: blur(var(--lens-blur)) saturate(var(--lens-sat));
-  -webkit-backdrop-filter: blur(var(--lens-blur)) saturate(var(--lens-sat));
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
 }
 
-/* حافة البريق: حلقة ضوء زاويّة تلتف حول الحدود */
-.glass::after {
+@supports (backdrop-filter: url(#lgDisplace)) {
+  .lg--live::before {
+    backdrop-filter: blur(var(--blur)) saturate(180%) url(#lgDisplace);
+  }
+}
+
+/* الحافة: حلقة ضوء تدور ببطء دائم ثم تلاحق المؤشّر */
+.lg::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -38,304 +44,274 @@
   padding: 1px;
   pointer-events: none;
   background: conic-gradient(
-    from var(--sheen) at 50% 50%,
+    from var(--rim, 0deg) at 50% 50%,
     transparent 0deg,
-    var(--glass-spec) 22deg,
-    transparent 62deg,
-    color-mix(in srgb, var(--glass-spec) 42%, transparent) 128deg,
-    transparent 176deg,
-    var(--glass-spec) 208deg,
-    transparent 252deg,
-    color-mix(in srgb, var(--glass-spec) 30%, transparent) 320deg,
+    var(--glass-spec) 24deg,
+    transparent 68deg,
+    color-mix(in srgb, var(--glass-spec) 38%, transparent) 132deg,
+    transparent 180deg,
+    var(--glass-spec) 214deg,
+    transparent 258deg,
+    color-mix(in srgb, var(--glass-spec) 26%, transparent) 322deg,
     transparent 360deg
   );
-  opacity: 0.55;
+  opacity: 0.42;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  transition: opacity var(--dur-3) var(--ease-standard);
+  animation: rimDrift 14s linear infinite;
+  transition: opacity var(--d3) var(--e-apple);
 }
 
-/* وميض يتبع المؤشر — يُغذّى من محرّك النوابض */
-.glass__lens {
+@keyframes rimDrift {
+  to {
+    --rim: 360deg;
+  }
+}
+@property --rim {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* البريق: خصلة ضوء تعبر السطح، وتتكثّف تحت المؤشّر */
+.lg__spec {
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
   pointer-events: none;
-  opacity: var(--lens-alpha, 0);
+  overflow: hidden;
+  opacity: var(--spec, 0);
+  transition: opacity var(--d3) var(--e-apple);
+}
+.lg__spec::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
   background: radial-gradient(
-      160px 160px at var(--mx) var(--my),
-      color-mix(in srgb, var(--glass-spec) 26%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      420px 320px at var(--mx) var(--my),
-      color-mix(in srgb, var(--accent) 16%, transparent),
-      transparent 70%
-    );
-  transition: opacity var(--dur-3) var(--ease-standard);
+    38% 38% at var(--mx) var(--my),
+    color-mix(in srgb, var(--glass-spec) 30%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: plus-lighter;
+}
+.lg__spec::after {
+  content: "";
+  position: absolute;
+  inset-block: -60%;
+  inset-inline-start: -30%;
+  width: 22%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--glass-spec) 46%, transparent),
+    transparent
+  );
+  filter: blur(6px);
+  transform: rotate(14deg) translateX(var(--sweep, -140%));
   mix-blend-mode: plus-lighter;
 }
 
-/* انكسار حقيقي: تشويه ما خلف الزجاج بخريطة إزاحة SVG */
-@supports (backdrop-filter: url(#liquid-refraction)) {
-  .glass--refract::before {
-    backdrop-filter: blur(var(--lens-blur)) saturate(var(--lens-sat))
-      url(#liquid-refraction);
-    -webkit-backdrop-filter: blur(var(--lens-blur)) saturate(var(--lens-sat));
-  }
+/* السطح يستيقظ عند اللمس */
+.lg--tap {
+  transition: transform var(--d3) var(--e-soft), box-shadow var(--d3) var(--e-apple);
+  cursor: pointer;
+}
+.lg--tap:hover {
+  --spec: 1;
+}
+.lg--tap:hover::after {
+  opacity: 0.9;
+}
+.lg--tap:active {
+  transform: scale(0.988);
 }
 
-/* زوايا آبل المستمرة عند توفّر الدعم */
+.lg--pill {
+  --r: var(--r-btn);
+}
+.lg--thin {
+  --blur: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 6px 20px rgba(0, 0, 0, 0.14),
+    var(--glass-inner);
+}
+.lg--deep {
+  --blur: 40px;
+}
+.lg--solid::before {
+  background: var(--glass-fill-2);
+}
+
 @supports (corner-shape: squircle) {
-  .glass,
+  .lg,
   .btn,
-  .chip,
-  .tile {
+  .pill,
+  .cell {
     corner-shape: squircle;
   }
 }
 
-/* --- تنويعات --- */
-.glass--thin {
-  --lens-blur: 14px;
-  box-shadow: var(--glass-shadow-sm), var(--glass-inner);
-}
-.glass--thick {
-  --lens-blur: 40px;
-}
-.glass--solid::before {
-  background: var(--glass-tint-strong);
-}
-.glass--pill {
-  --glass-radius: var(--r-pill);
-}
-.glass--flat {
-  box-shadow: 0 0 0 1px var(--glass-line-soft), var(--glass-inner);
-}
-
-/* تفاعل: الزجاج يرتفع ويشتدّ بريقه */
-.glass--interactive {
-  transition: transform var(--dur-3) var(--ease-spring-soft),
-    box-shadow var(--dur-3) var(--ease-standard);
-  will-change: transform;
-}
-.glass--interactive:hover {
-  box-shadow: var(--glass-shadow), var(--glass-inner),
-    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-.glass--interactive:hover::after {
-  opacity: 1;
-}
-.glass--interactive:hover .glass__lens {
-  --lens-alpha: 1;
-}
-.glass--interactive:active {
-  transform: scale(0.985);
-}
-
 /* ============================================================
-   الأزرار
+   الأزرار — مقاسات آبل الحرفية
    ============================================================ */
 .btn {
-  --btn-bg: var(--glass-tint-strong);
   position: relative;
-  isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-2);
-  padding: 0.72rem 1.3rem;
-  border-radius: var(--r-pill);
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
+  gap: 0.45rem;
+  padding: 0.72rem 1.4rem;
+  border-radius: var(--r-btn);
+  font-family: var(--font-ar);
+  font-size: var(--t-body);
   font-weight: 500;
+  line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--ink-1);
-  background: var(--btn-bg);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 0 0 1px var(--glass-line-soft), var(--glass-shadow-sm);
-  transition: transform var(--dur-2) var(--ease-spring-soft),
-    box-shadow var(--dur-2) var(--ease-standard),
-    background var(--dur-2) var(--ease-standard);
+  background: var(--blue);
+  color: var(--blue-ink);
+  cursor: pointer;
+  transition: background var(--d1) var(--e-apple),
+    transform var(--d2) var(--e-soft), opacity var(--d1) linear;
   white-space: nowrap;
 }
 .btn:hover {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    inset 0 0 0 1px var(--glass-line), var(--glass-shadow-sm),
-    0 0 26px color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--blue) 88%, #fff);
 }
 .btn:active {
-  transform: scale(0.955);
+  transform: scale(0.965);
 }
 
-.btn--primary {
-  color: #03060f;
-  background: var(--grad-iris);
-  background-size: 220% 220%;
-  animation: irisDrift 9s ease-in-out infinite;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 30px color-mix(in srgb, var(--accent-2) 42%, transparent),
-    0 2px 8px rgba(0, 0, 0, 0.3);
-  font-weight: 600;
+.btn--quiet {
+  background: var(--glass-fill-2);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-soft), var(--glass-inner);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
-.btn--primary:hover {
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset,
-    0 14px 42px color-mix(in srgb, var(--accent-2) 58%, transparent),
-    0 2px 8px rgba(0, 0, 0, 0.34);
+.btn--quiet:hover {
+  background: var(--glass-fill-2);
+  box-shadow: inset 0 0 0 1px var(--line), var(--glass-inner);
 }
 
 .btn--wa {
+  background: #25d366;
   color: #04120a;
-  background: linear-gradient(135deg, #5ef08d, #25d366 60%, #12a150);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 28px rgba(37, 211, 102, 0.34);
   font-weight: 600;
 }
-
-.btn--ghost {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px var(--glass-line-soft);
-  color: var(--ink-2);
+.btn--wa:hover {
+  background: #2ee06f;
 }
 
-.btn--lg {
-  padding: 0.95rem 1.7rem;
-  font-size: var(--fs-sm);
-}
 .btn--sm {
-  padding: 0.5rem 0.95rem;
-  font-size: var(--fs-2xs);
+  padding: 0.48rem 1rem;
+  font-size: var(--t-small);
+}
+.btn--lg {
+  padding: 0.88rem 1.75rem;
+  font-size: var(--t-lead);
+}
+.btn--block {
+  width: 100%;
+}
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.42;
+  pointer-events: none;
 }
 
-.btn--icon {
-  padding: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  flex: 0 0 auto;
+/* رابط آبل: أزرق + سهم يتقدّم */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--blue);
+  font-size: var(--t-body);
+  cursor: pointer;
 }
-
-/* لمعة تمر على الزر عند التحويم */
-.btn::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: linear-gradient(
-    100deg,
-    transparent 34%,
-    rgba(255, 255, 255, 0.5) 50%,
-    transparent 66%
-  );
-  background-size: 260% 100%;
-  background-position: 160% 0;
-  opacity: 0;
-  transition: opacity var(--dur-2) linear;
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
-.btn:hover::after {
-  opacity: 0.7;
-  animation: btnSweep 0.9s var(--ease-out-expo);
+.link svg {
+  width: 0.62em;
+  height: 0.62em;
+  transition: transform var(--d2) var(--e-out);
 }
-
-@keyframes btnSweep {
-  from {
-    background-position: 160% 0;
-  }
-  to {
-    background-position: -60% 0;
-  }
-}
-
-@keyframes irisDrift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+.link:hover svg {
+  transform: translateX(-4px);
 }
 
 /* ============================================================
-   الشرائح (Chips) والوسوم
+   الشرائح
    ============================================================ */
-.chip {
+.pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.42rem 0.9rem;
-  border-radius: var(--r-pill);
-  font-size: var(--fs-2xs);
-  font-weight: 500;
+  padding: 0.42rem 0.95rem;
+  border-radius: var(--r-btn);
+  font-size: var(--t-small);
   color: var(--ink-2);
-  background: var(--glass-tint);
-  box-shadow: inset 0 0 0 1px var(--glass-line-soft);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  transition: transform var(--dur-2) var(--ease-spring-soft),
-    color var(--dur-2) var(--ease-standard),
-    box-shadow var(--dur-2) var(--ease-standard);
+  background: var(--glass-fill);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  cursor: pointer;
+  transition: color var(--d1) var(--e-apple),
+    background var(--d1) var(--e-apple), box-shadow var(--d1) var(--e-apple);
 }
-.chip:hover {
-  color: var(--ink-1);
-  transform: translateY(-1px);
+.pill:hover {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
-.chip[aria-pressed="true"],
-.chip.is-on {
-  color: #03060f;
-  background: var(--grad-iris);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent-2) 34%, transparent);
-  font-weight: 600;
+.pill[aria-pressed="true"],
+.pill.on {
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: none;
+  font-weight: 500;
+}
+.pill svg {
+  width: 1em;
+  height: 1em;
 }
 
-.tag {
+.badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.22rem 0.62rem;
-  border-radius: var(--r-pill);
-  font-size: var(--fs-3xs);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  gap: 0.32rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--r-btn);
+  font-size: var(--t-caption);
+  font-weight: 500;
+  letter-spacing: 0;
 }
-.tag--live {
-  color: var(--sys-green);
-  background: color-mix(in srgb, var(--sys-green) 14%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sys-green) 30%, transparent);
+.badge--live {
+  color: #30d158;
+  background: color-mix(in srgb, #30d158 14%, transparent);
 }
-.tag--out {
-  color: var(--sys-pink);
-  background: color-mix(in srgb, var(--sys-pink) 13%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sys-pink) 28%, transparent);
+.badge--out {
+  color: #ff453a;
+  background: color-mix(in srgb, #ff453a 14%, transparent);
 }
-.tag--hot {
-  color: var(--sys-orange);
-  background: color-mix(in srgb, var(--sys-orange) 14%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sys-orange) 30%, transparent);
+.badge--new {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
 }
 
-/* نقطة نابضة */
-.pulse-dot {
-  width: 7px;
-  height: 7px;
+.dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 0 currentColor;
-  animation: pulseRing 2.4s var(--ease-out-expo) infinite;
+  animation: dotPulse 2.2s var(--e-out) infinite;
 }
-@keyframes pulseRing {
+@keyframes dotPulse {
   0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent);
   }
   70% {
-    box-shadow: 0 0 0 8px transparent;
+    box-shadow: 0 0 0 7px transparent;
   }
   100% {
     box-shadow: 0 0 0 0 transparent;
@@ -343,52 +319,51 @@
 }
 
 /* ============================================================
-   حقول الإدخال الزجاجية
+   الحقول
    ============================================================ */
 .field {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 .field > label {
-  font-size: var(--fs-2xs);
+  font-size: var(--t-small);
   color: var(--ink-3);
-  font-weight: 500;
-  padding-inline-start: 0.4rem;
+  padding-inline-start: 0.15rem;
 }
 .input {
   width: 100%;
-  padding: 0.8rem 1.05rem;
+  padding: 0.78rem 1rem;
   border-radius: var(--r-sm);
-  font-size: var(--fs-xs);
-  color: var(--ink-1);
-  background: var(--glass-tint);
-  box-shadow: inset 0 0 0 1px var(--glass-line-soft),
-    inset 0 2px 6px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: box-shadow var(--dur-2) var(--ease-standard),
-    background var(--dur-2) var(--ease-standard);
+  font-size: var(--t-body);
+  color: var(--ink);
+  background: var(--glass-fill);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  transition: box-shadow var(--d2) var(--e-apple);
 }
 .input::placeholder {
   color: var(--ink-4);
 }
 .input:focus {
   outline: none;
-  background: var(--glass-tint-strong);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
-    0 0 0 4px var(--accent-soft);
+  animation: none;
+  box-shadow: inset 0 0 0 1px var(--blue),
+    0 0 0 4px color-mix(in srgb, var(--blue) 22%, transparent);
 }
 select.input {
   appearance: none;
+  padding-inline-start: 2.2rem;
   background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
     linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
-  background-position: calc(0% + 18px) calc(50% + 2px),
-    calc(0% + 23px) calc(50% + 2px);
+  background-position: 16px calc(50% + 1px), 21px calc(50% + 1px);
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
-  padding-inline-start: 2.4rem;
+  cursor: pointer;
 }
 select.input option {
-  background: var(--bg-1);
-  color: var(--ink-1);
+  background: var(--paper-2);
+  color: var(--ink);
+}
+textarea.input {
+  resize: vertical;
+  min-height: 5rem;
 }
