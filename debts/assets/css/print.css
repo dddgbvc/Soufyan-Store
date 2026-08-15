@@ -1,0 +1,174 @@
+/* ============================================================
+   print.css — تنسيق الطباعة والحفظ PDF
+   مقاسان: A4 (فاتورة كاملة)  و  80mm (وصل حراري)
+   ملاحظة: قاعدة @page تُحقن من JS لأنها لا تقبل المحدّدات
+   ============================================================ */
+
+@media print{
+
+  /* نخفي الواجهة كلها ونُظهر منطقة الطباعة فقط */
+  body > *:not(#printRoot){ display: none !important }
+
+  html, body{
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #printRoot{
+    display: block !important;
+    background: #fff;
+    color: #000;
+    /* الورق دائمًا فاتح مهما كان وضع الشاشة */
+    font-family: "Segoe UI", "Noto Sans Arabic", Tahoma, sans-serif;
+  }
+
+  /* نطبع الألوان كما هي (الخطوط الفاصلة والحالات) */
+  *{
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .no-print{ display: none !important }
+  tr, .inv-row, .inv-tot-row{ break-inside: avoid; page-break-inside: avoid }
+  thead{ display: table-header-group }   /* ترويسة الجدول تتكرر بكل صفحة */
+}
+
+/* ============================================================
+   الهيكل المشترك للفاتورة
+   ============================================================ */
+.inv{ color: #000; line-height: 1.5 }
+.inv .num{ font-family: "Consolas", "DejaVu Sans Mono", monospace; direction: ltr; unicode-bidi: isolate }
+
+.inv-head{ display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm }
+.inv-title{ font-weight: 700 }
+.inv-store{ font-weight: 700 }
+.inv-contact{ color: #333 }
+
+.inv-meta{ text-align: start }
+.inv-meta div{ white-space: nowrap }
+.inv-meta .k{ color: #555 }
+
+.inv-party{ border: 1px solid #000; border-radius: 3mm }
+.inv-party .k{ color: #555 }
+
+.inv-table{ width: 100%; border-collapse: collapse }
+.inv-table th{ text-align: start; font-weight: 700 }
+.inv-table td{ vertical-align: top }
+.inv-table .ta-end{ text-align: end }
+
+.inv-tot-row{ display: flex; justify-content: space-between; gap: 6mm }
+.inv-tot-row.grand{ font-weight: 700 }
+
+.inv-foot{ color: #333; text-align: center }
+.inv-sign{ display: flex; justify-content: space-between; gap: 12mm }
+.inv-sign div{ flex: 1; text-align: center }
+.inv-sign .line{ border-top: 1px solid #000 }
+
+/* حالة الرصيد داخل الورق (بدون ألوان صارخة) */
+.inv-badge{
+  display: inline-block;
+  border: 1px solid #000;
+  border-radius: 99px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   1) مقاس A4 — فاتورة رسمية
+   ============================================================ */
+html[data-paper="a4"] .inv{ font-size: 11pt; padding: 0 }
+html[data-paper="a4"] .inv-head{ border-bottom: 0.6mm solid #000; padding-bottom: 4mm; margin-bottom: 5mm }
+html[data-paper="a4"] .inv-logo{
+  width: 16mm; height: 16mm; border-radius: 4mm;
+  background: #5B6EFF; color: #fff;
+  display: grid; place-items: center; font-size: 16pt; font-weight: 700;
+}
+html[data-paper="a4"] .inv-brand{ display: flex; gap: 4mm; align-items: center }
+html[data-paper="a4"] .inv-store{ font-size: 15pt }
+html[data-paper="a4"] .inv-contact{ font-size: 9pt }
+html[data-paper="a4"] .inv-title{ font-size: 13pt; margin-bottom: 1.5mm }
+html[data-paper="a4"] .inv-meta{ font-size: 9.5pt }
+
+html[data-paper="a4"] .inv-party{ padding: 3.5mm 4mm; margin-bottom: 5mm; font-size: 10.5pt }
+html[data-paper="a4"] .inv-party .nm{ font-size: 12.5pt; font-weight: 700 }
+
+html[data-paper="a4"] .inv-table{ font-size: 10pt; margin-bottom: 5mm }
+html[data-paper="a4"] .inv-table th{
+  background: #EFEFEF; border-bottom: 0.5mm solid #000;
+  padding: 2.5mm 3mm; font-size: 9.5pt;
+}
+html[data-paper="a4"] .inv-table td{ padding: 2.5mm 3mm; border-bottom: 0.2mm solid #CCC }
+html[data-paper="a4"] .inv-table tr:nth-child(even) td{ background: #FAFAFA }
+
+html[data-paper="a4"] .inv-totals{
+  margin-inline-start: auto; width: 82mm;
+  border: 0.5mm solid #000; border-radius: 3mm; padding: 3.5mm 4mm;
+  font-size: 10.5pt;
+}
+html[data-paper="a4"] .inv-tot-row{ padding: 1.2mm 0 }
+html[data-paper="a4"] .inv-tot-row.grand{
+  font-size: 13pt; border-top: 0.5mm solid #000;
+  margin-top: 2mm; padding-top: 2.5mm;
+}
+html[data-paper="a4"] .inv-badge{ padding: 1mm 4mm; font-size: 9.5pt }
+html[data-paper="a4"] .inv-sign{ margin-top: 18mm }
+html[data-paper="a4"] .inv-sign .line{ margin-top: 14mm; padding-top: 2mm; font-size: 9.5pt }
+html[data-paper="a4"] .inv-foot{ margin-top: 8mm; font-size: 8.5pt; border-top: 0.2mm solid #CCC; padding-top: 3mm }
+
+/* ============================================================
+   2) مقاس 80mm — وصل طابعة حرارية
+   عرض الطباعة الفعلي ≈ 72mm بعد الهوامش
+   ============================================================ */
+html[data-paper="mm80"] .inv{
+  width: 72mm;
+  font-size: 8.6pt;
+  line-height: 1.42;
+}
+html[data-paper="mm80"] .inv-head{
+  display: block; text-align: center;
+  border-bottom: 1px dashed #000; padding-bottom: 2mm; margin-bottom: 2mm;
+}
+html[data-paper="mm80"] .inv-logo{ display: none }        /* لا تُطبع الخلفيات الصلبة جيدًا حراريًا */
+html[data-paper="mm80"] .inv-brand{ display: block }
+html[data-paper="mm80"] .inv-store{ font-size: 11.5pt }
+html[data-paper="mm80"] .inv-contact{ font-size: 7.4pt }
+html[data-paper="mm80"] .inv-title{ font-size: 9.5pt; margin-top: 1.5mm }
+html[data-paper="mm80"] .inv-meta{ text-align: center; font-size: 7.6pt; margin-top: 1mm }
+html[data-paper="mm80"] .inv-meta div{ display: inline; margin-inline: 1mm }
+
+html[data-paper="mm80"] .inv-party{
+  border: none; border-bottom: 1px dashed #000;
+  border-radius: 0; padding: 0 0 2mm; margin-bottom: 2mm; font-size: 8.4pt;
+}
+html[data-paper="mm80"] .inv-party .nm{ font-size: 10pt; font-weight: 700 }
+
+html[data-paper="mm80"] .inv-table{ font-size: 7.9pt; margin-bottom: 2mm }
+html[data-paper="mm80"] .inv-table th{
+  border-bottom: 1px solid #000; padding: 1mm 0; font-size: 7.4pt;
+}
+html[data-paper="mm80"] .inv-table td{ padding: 1.1mm 0; border-bottom: 1px dotted #BBB }
+html[data-paper="mm80"] .inv-table .col-note{ display: none }  /* لا مساحة للملاحظات */
+
+html[data-paper="mm80"] .inv-totals{
+  width: 100%; border: none; border-top: 1px dashed #000;
+  border-radius: 0; padding: 2mm 0 0; font-size: 8.6pt;
+}
+html[data-paper="mm80"] .inv-tot-row{ padding: .7mm 0 }
+html[data-paper="mm80"] .inv-tot-row.grand{
+  font-size: 10.5pt; border-top: 1px solid #000;
+  margin-top: 1.5mm; padding-top: 1.5mm;
+}
+html[data-paper="mm80"] .inv-badge{ padding: .5mm 3mm; font-size: 7.8pt }
+html[data-paper="mm80"] .inv-sign{ display: none }       /* الوصل الحراري لا يحمل توقيعات */
+html[data-paper="mm80"] .inv-foot{
+  margin-top: 2.5mm; font-size: 7.2pt;
+  border-top: 1px dashed #000; padding-top: 2mm;
+}
+/* مساحة قصّ في نهاية الورق */
+html[data-paper="mm80"] .inv::after{ content: ""; display: block; height: 8mm }

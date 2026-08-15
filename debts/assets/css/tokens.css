@@ -1,0 +1,162 @@
+/* ============================================================
+   tokens.css — نظام التصميم (ألوان، مسافات، خطوط، حركة)
+   متوافق مع هوية "مركز سفيان للهواتف"
+   ============================================================ */
+
+:root{
+  /* ---- الهوية ---- */
+  --primary: #5B6EFF;
+  --cta:     #FFA94D;
+  --good:    #3DDC84;
+  --danger:  #FF6B6B;
+  --warn:    #FFC53D;
+
+  /* ---- الحركة (نمط Apple: response + damping) ---- */
+  --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out:  cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast:  .18s;
+  --dur:       .34s;
+  --dur-slow:  .52s;
+
+  /* ---- الأنصاف ---- */
+  --r-sm: 12px;
+  --r:    18px;
+  --r-lg: 26px;
+  --r-xl: 34px;
+
+  /* ---- المسافات (بـ rem حتى تكبر مع حجم الخط) ---- */
+  --sp-1: .35rem;
+  --sp-2: .6rem;
+  --sp-3: .9rem;
+  --sp-4: 1.3rem;
+  --sp-5: 1.9rem;
+  --sp-6: 2.6rem;
+
+  /* ---- الخطوط: خطوط النظام أولًا حتى يشتغل البرنامج أوفلاين ---- */
+  --font-ui: "SF Arabic", "Segoe UI", "Noto Sans Arabic", "Dubai",
+             "Tahoma", system-ui, -apple-system, sans-serif;
+  --font-num: "SF Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", monospace;
+
+  /* ---- طبقات ---- */
+  --z-bg: 0;
+  --z-content: 1;
+  --z-bar: 40;
+  --z-scrim: 90;
+  --z-sheet: 100;
+  --z-toast: 200;
+}
+
+/* ============ الوضع الداكن (الافتراضي) ============ */
+html[data-theme="dark"]{
+  --bg-0: #0B0D14;
+  --bg-1: #12151F;
+
+  /* ألوان الزجاج: طبقات شفافة فوق خلفية متحركة */
+  --glass-bg:      rgba(255,255,255,.055);
+  --glass-bg-2:    rgba(255,255,255,.085);
+  --glass-stroke:  rgba(255,255,255,.14);
+  --glass-spec:    rgba(255,255,255,.42);   /* لمعة الحافة العلوية */
+  --glass-blur:    26px;
+
+  --text:   #F2F4FD;
+  --text-2: #A6ADC4;
+  --text-3: #6E7690;
+
+  --shadow-sm: 0 2px 10px rgba(0,0,0,.34);
+  --shadow:    0 10px 34px rgba(0,0,0,.44);
+  --shadow-lg: 0 26px 70px rgba(0,0,0,.56);
+
+  --tint-primary: rgba(91,110,255,.20);
+  --tint-good:    rgba(61,220,132,.16);
+  --tint-danger:  rgba(255,107,107,.16);
+  --tint-cta:     rgba(255,169,77,.16);
+
+  color-scheme: dark;
+}
+
+/* ============ الوضع الفاتح ============ */
+html[data-theme="light"]{
+  --bg-0: #EDF0F7;
+  --bg-1: #F7F8FC;
+
+  --glass-bg:      rgba(255,255,255,.58);
+  --glass-bg-2:    rgba(255,255,255,.75);
+  --glass-stroke:  rgba(255,255,255,.85);
+  --glass-spec:    rgba(255,255,255,.95);
+  --glass-blur:    22px;
+
+  --text:   #131725;
+  --text-2: #545C74;
+  --text-3: #8C93A8;
+
+  --shadow-sm: 0 2px 8px rgba(20,25,45,.07);
+  --shadow:    0 12px 34px rgba(20,25,45,.13);
+  --shadow-lg: 0 28px 70px rgba(20,25,45,.20);
+
+  --tint-primary: rgba(91,110,255,.13);
+  --tint-good:    rgba(45,180,105,.14);
+  --tint-danger:  rgba(224,70,70,.13);
+  --tint-cta:     rgba(230,140,40,.15);
+
+  color-scheme: light;
+}
+
+/* ============ إعادة ضبط ============ */
+*, *::before, *::after{ box-sizing: border-box; margin: 0; padding: 0 }
+
+html{
+  /* الخط يتبع إعداد المستخدم — والمسافات بـ rem تكبر معه */
+  font: 100%/1.6 var(--font-ui);
+  -webkit-text-size-adjust: 100%;
+}
+
+body{
+  min-height: 100vh;
+  background: var(--bg-0);
+  color: var(--text);
+  font-family: var(--font-ui);
+  overflow-x: hidden;
+  /* نعومة الانتقال بين الوضعين — بدون قفزة سطوع مفاجئة */
+  transition: background-color .5s var(--ease), color .5s var(--ease);
+}
+
+button, input, select, textarea{
+  font-family: inherit;
+  font-size: 1rem;
+  color: inherit;
+}
+button{ cursor: pointer; border: none; background: none }
+
+/* الأرقام دائمًا LTR حتى داخل نص عربي */
+.num{
+  font-family: var(--font-num);
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
+}
+
+:focus-visible{
+  outline: 2.5px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+::selection{ background: var(--primary); color: #fff }
+
+/* شريط تمرير رفيع يليق بالزجاج */
+*::-webkit-scrollbar{ width: 10px; height: 10px }
+*::-webkit-scrollbar-thumb{
+  background: var(--glass-stroke);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track{ background: transparent }
+
+/* ============ التيبوغرافيا: التتبّع والارتفاع حسب الحجم ============ */
+h1,h2,h3{ font-weight: 700 }
+h1{ font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.15; letter-spacing: -.022em }
+h2{ font-size: clamp(1.15rem, 2.2vw, 1.4rem); line-height: 1.25; letter-spacing: -.015em }
+h3{ font-size: 1.03rem; line-height: 1.35; letter-spacing: -.008em }
+small{ font-size: .8rem; letter-spacing: .008em }  /* النص الصغير يحتاج تتبّعًا موجبًا */
