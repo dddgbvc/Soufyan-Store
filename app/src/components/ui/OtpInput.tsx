@@ -34,6 +34,15 @@ export function OtpInput({
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const digits = Array.from({ length }, (_, index) => value[index] ?? '');
 
+  /**
+   * أحدث قيمة معروفة، تُحدَّث فورًا داخل `commit`.
+   * نقل التركيز يحدث تزامنيًا قبل إعادة رسم React، فلو قرأ معالج التركيز
+   * `value` من الإغلاق لقرأ قيمة قديمة وأعاد التركيز إلى الخانة الأولى —
+   * فتضيع الأرقام عند الكتابة السريعة.
+   */
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
   // التركيز التلقائي على أول خانة فارغة عند ظهور الشاشة.
   useEffect(() => {
     const firstEmpty = Math.min(value.length, length - 1);
@@ -43,6 +52,7 @@ export function OtpInput({
   }, []);
 
   const commit = (next: string) => {
+    valueRef.current = next;
     onValueChange(next);
     if (next.length === length) {
       onComplete?.(next);
@@ -133,8 +143,9 @@ export function OtpInput({
               onPaste={handlePaste}
               onFocus={(event) => {
                 // لا يمكن ترك فجوات: التركيز يقفز إلى أول خانة فارغة.
-                if (index > value.length) {
-                  inputsRef.current[value.length]?.focus();
+                const current = valueRef.current;
+                if (index > current.length) {
+                  inputsRef.current[current.length]?.focus();
                   return;
                 }
                 event.target.select();

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:single": "vite build --config vite.single.config.ts && node scripts/build-single.mjs",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
