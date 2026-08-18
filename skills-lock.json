@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "better-accessibility": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-accessibility/SKILL.md",
+      "computedHash": "e1579d183fa46ef822ee126b3dbdb2602587bda5c710ec87b5f323f37da591b4"
+    },
     "better-ui": {
       "source": "jakubkrehel/skills",
       "sourceType": "github",
