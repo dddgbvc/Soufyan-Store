@@ -7,6 +7,12 @@
       "skillPath": "skills/better-accessibility/SKILL.md",
       "computedHash": "e1579d183fa46ef822ee126b3dbdb2602587bda5c710ec87b5f323f37da591b4"
     },
+    "better-typography": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-typography/SKILL.md",
+      "computedHash": "4c57c2586713bf4803a5f365d244069f57c0af5a61d0e8ffd7eaa254e027755d"
+    },
     "better-ui": {
       "source": "jakubkrehel/skills",
       "sourceType": "github",
