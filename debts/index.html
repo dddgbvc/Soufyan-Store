@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>دفتر الديون | مركز سفيان للهواتف</title>
+<meta name="description" content="نظام إدارة ديون بسيط: إضافة دين، تسديد، مساواة الأرقام، طباعة A4 و80mm، وحفظ الفاتورة PDF.">
+<meta name="color-scheme" content="dark light">
+
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/glass.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/print.css">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>">
+</head>
+<body>
+
+<!-- ======= الخلفية الحيّة: ما ينكسر عليه الزجاج ======= -->
+<div class="bg-field" aria-hidden="true">
+  <span class="blob b1"></span>
+  <span class="blob b2"></span>
+  <span class="blob b3"></span>
+</div>
+
+<div class="wrap">
+
+  <!-- ======= الشريط العلوي ======= -->
+  <header class="topbar glass glass--thick">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">📒</span>
+      <div>
+        <h1>دفتر الديون</h1>
+        <small>مركز سفيان للهواتف</small>
+      </div>
+    </div>
+
+    <button class="btn btn--glass btn--icon" id="backupBtn" title="نسخة احتياطية وإعدادات" aria-label="نسخة احتياطية وإعدادات">⋯</button>
+    <button class="btn btn--glass btn--icon" id="themeBtn" title="تبديل المظهر" aria-label="تبديل المظهر">🌙</button>
+    <button class="btn btn--primary" id="addPerson">➕ شخص جديد</button>
+  </header>
+
+  <!-- ======= الملخّص ======= -->
+  <section class="stats" id="stats" aria-label="ملخّص الحسابات"></section>
+
+  <!-- ======= أدوات البحث والتصفية ======= -->
+  <section class="toolbar">
+    <div class="search">
+      <label class="sr-only" for="search">بحث</label>
+      <input id="search" type="search" placeholder="ابحث بالاسم أو الرقم…  (اضغط / )" autocomplete="off">
+      <span class="ico" aria-hidden="true">🔍</span>
+    </div>
+
+    <div class="seg" id="filterSeg" role="group" aria-label="تصفية">
+      <button data-filter="all"   aria-pressed="true">الكل</button>
+      <button data-filter="owing" aria-pressed="false">عليه دين</button>
+      <button data-filter="clear" aria-pressed="false">مساوى</button>
+    </div>
+
+    <div class="seg" id="sortSeg" role="group" aria-label="ترتيب">
+      <button data-sort="amount" aria-pressed="true">الأعلى دينًا</button>
+      <button data-sort="recent" aria-pressed="false">الأحدث</button>
+      <button data-sort="name"   aria-pressed="false">الاسم</button>
+    </div>
+  </section>
+
+  <!-- ======= البطاقات ======= -->
+  <main>
+    <div class="cards" id="cards"></div>
+    <div class="empty glass hidden" id="empty"></div>
+  </main>
+</div>
+
+<!-- ======= شاشة التفاصيل ======= -->
+<div class="scrim" id="scrim"></div>
+<section class="sheet glass glass--thick" id="sheet" role="dialog" aria-modal="true" aria-label="تفاصيل الحساب">
+  <div class="grabber" id="grabber" aria-hidden="true"><i></i></div>
+  <div class="sheet-head" id="sheetHead"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</section>
+
+<!-- ======= النوافذ ======= -->
+<div class="scrim" id="scrim2"></div>
+<section class="modal glass glass--thick" id="modal" role="dialog" aria-modal="true"></section>
+
+<!-- ======= القوائم المنسدلة ======= -->
+<div class="menu glass glass--thick" id="menu" role="menu"></div>
+
+<!-- ======= التنبيهات ======= -->
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<!-- ======= استيراد النسخة ======= -->
+<input type="file" id="fileInput" accept=".json,application/json" class="sr-only" aria-hidden="true">
+
+<!-- ======= منطقة الطباعة (مخفية على الشاشة) ======= -->
+<div id="printRoot" aria-hidden="true"></div>
+
+<script src="assets/js/spring.js"></script>
+<script src="assets/js/format.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/invoice.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
