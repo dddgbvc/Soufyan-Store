@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "better-ui": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-ui/SKILL.md",
+      "computedHash": "794e72db60934a500cdcfee39550f1964f5b45fe56aae7d66fa84cf6f421233e"
+    }
+  }
+}
