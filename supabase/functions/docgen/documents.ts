@@ -49,6 +49,14 @@ const PAYMENT_LABELS: Record<string, string> = {
   TRANSFER: "تحويل",
 };
 
+/** نسخة مختصرة تُستعمل في التقارير الضيّقة. */
+const PAYMENT_SHORT: Record<string, string> = {
+  CASH: "نقدي",
+  DEBT: "دين",
+  CARD: "بطاقة",
+  TRANSFER: "تحويل",
+};
+
 const REFUND_LABELS: Record<string, string> = {
   CASH: "نقد",
   DEBT: "من الدين",
@@ -93,6 +101,8 @@ export type ReportColumn = {
   type?: CellType;
   map?: Record<string, string>;
   sheetWidth?: number;
+  /** رقم العمود في السطر الخام، حين لا تقابل الأعمدة المعروضة المصدر واحداً بواحد. */
+  source?: number;
   /** يعرض «—» بدل 0 في PDF (يبقى 0 رقماً في Excel). */
   dashWhenZero?: boolean;
   /** يشتقّ قيمة الخلية من السطر الخام كاملاً بدل أخذ عمود واحد. */
@@ -105,6 +115,7 @@ export type ReportInput = {
   sheetName: string;
   fileBase: string;
   orientation?: "portrait" | "landscape";
+  dense?: boolean;
   columns: ReportColumn[];
   rows: unknown[][];
   info: { label: string; value: string }[];
@@ -161,8 +172,15 @@ function isNumeric(column: ReportColumn): boolean {
 export function buildReport(input: ReportInput): BuiltDocument {
   // الأعمدة المشتقّة لا تستهلك خانة من السطر الخام، فلا يجوز استعمال ترتيب
   // العمود كمؤشّر على المصدر — وإلا انزاحت كل الأعمدة التي بعده.
-  let source = 0;
-  const sourceIndex = input.columns.map((c) => (c.derive ? -1 : source++));
+  let next = 0;
+  const sourceIndex = input.columns.map((c) => {
+    if (c.derive) return -1;
+    if (typeof c.source === "number") {
+      next = c.source + 1;
+      return c.source;
+    }
+    return next++;
+  });
 
   const value = (column: ReportColumn, row: unknown[], index: number) =>
     column.derive ? column.derive(row) : row[sourceIndex[index]];
@@ -172,6 +190,7 @@ export function buildReport(input: ReportInput): BuiltDocument {
     reference: input.reference,
     info: input.info,
     orientation: input.orientation,
+    dense: input.dense,
     columns: input.columns.map((c) => ({ label: c.label, width: c.width, align: c.align })),
     rows: input.rows.map((row) => input.columns.map((c, i) => cellForPdf(c, value(c, row, i)))),
     summary: input.summary,
@@ -333,12 +352,18 @@ export function buildInvoice(data: any): BuiltDocument {
 
 export function buildStatement(data: any): BuiltDocument {
   const customer = data?.customer ?? {};
-  const txs: any[] = Array.isArray(data?.transactions) ? data.transactions : [];
+  const totals = data?.totals ?? {};
+
+  // دفتر أستاذ: كل حركة سطر بمدين ودائن ورصيد متحرّك بعدها.
+  // السطر الافتتاحي (إن وُجد) يتصدّر الجدول حتى يقفل الكشف على الرصيد المسجّل.
+  const ledger: unknown[][] = Array.isArray(data?.rows) ? data.rows : [];
+  const opening = toNumber(totals.opening);
+  const rows = data?.opening_row ? [data.opening_row as unknown[], ...ledger] : ledger;
 
   const balance = toNumber(customer.balance);
-  const debits = txs.filter((t) => toNumber(t.amount) > 0).reduce((s, t) => s + toNumber(t.amount), 0);
-  const credits = txs.filter((t) => toNumber(t.amount) < 0)
-    .reduce((s, t) => s + Math.abs(toNumber(t.amount)), 0);
+  const debits = toNumber(totals.debits);
+  const credits = toNumber(totals.credits);
+  const limit = toNumber(customer.credit_limit);
 
   const name = clean(customer.name) || "—";
 
@@ -349,43 +374,57 @@ export function buildStatement(data: any): BuiltDocument {
     : "الحساب مسدّد بالكامل";
   const tone: Tone = balance > 0 ? "bad" : balance < 0 ? "warn" : "good";
 
+  const info = [
+    { label: "الزبون", value: name },
+    { label: "الهاتف", value: clean(customer.phone) || "—" },
+    { label: "العنوان", value: clean(customer.address) || "—" },
+    { label: "تاريخ الكشف", value: dateIQ(data?.meta?.generated_at) },
+    { label: "وقت الكشف", value: timeIQ(data?.meta?.generated_time) },
+    { label: "عدد الحركات", value: String(Math.round(toNumber(totals.count))) },
+  ];
+  if (limit > 0) info.push({ label: "سقف الدين", value: amount(limit) });
+
+  const summary: SummaryLine[] = [];
+  if (Math.round(opening) !== 0) {
+    summary.push({ label: "رصيد افتتاحي", value: amount(opening) });
+  }
+  summary.push({ label: "إجمالي المدين (عليه)", value: amount(debits), tone: "bad" });
+  summary.push({ label: "إجمالي الدائن (له)", value: amount(credits), tone: "good" });
+  summary.push({ label: "الرصيد الحالي", value: amount(balance), strong: true, tone });
+
   return buildReport({
     documentTitle: "كشف حساب",
     reference: name,
     sheetName: "كشف حساب",
     fileBase: `كشف_حساب_${name}`,
     columns: [
-      { label: "التاريخ", width: 0.17, align: "center", type: "date", sheetWidth: 14 },
-      { label: "النوع", width: 0.20, align: "right", sheetWidth: 18 },
-      { label: "التفاصيل", width: 0.41, align: "right", sheetWidth: 36 },
-      { label: "المبلغ", width: 0.22, align: "right", type: "signed", sheetWidth: 18 },
+      { label: "التاريخ", width: 0.12, align: "center", sheetWidth: 13 },
+      { label: "البيان", width: 0.18, align: "right", sheetWidth: 18 },
+      { label: "التفاصيل", width: 0.26, align: "right", sheetWidth: 30 },
+      { label: "مدين", width: 0.15, align: "right", type: "money", dashWhenZero: true, sheetWidth: 15 },
+      { label: "دائن", width: 0.15, align: "right", type: "money", dashWhenZero: true, sheetWidth: 15 },
+      { label: "الرصيد", width: 0.14, align: "right", type: "signed", sheetWidth: 16 },
     ],
-    rows: txs.map((t) => [t.dt ?? t.at ?? t.created_at, t.kind, t.details, t.amount]),
-    info: [
-      { label: "الزبون", value: name },
-      { label: "الهاتف", value: clean(customer.phone) || "—" },
-      { label: "العنوان", value: clean(customer.address) || "—" },
-      { label: "تاريخ الكشف", value: dateIQ(data?.meta?.generated_at) },
-      { label: "وقت الكشف", value: timeIQ(data?.meta?.generated_time) },
-      { label: "عدد الحركات", value: String(txs.length) },
-    ],
-    summary: [
-      { label: "إجمالي المترتّب (دين)", value: amount(debits), tone: "bad" },
-      { label: "إجمالي التسديد والسماح", value: amount(credits), tone: "good" },
-      { label: "الرصيد الحالي", value: amount(balance), strong: true, tone },
-    ],
+    rows,
+    info,
+    summary,
     sheetSummary: [
-      { label: "إجمالي المترتّب (دين)", value: Math.round(debits), money: true },
-      { label: "إجمالي التسديد والسماح", value: Math.round(credits), money: true },
+      ...(Math.round(opening) !== 0
+        ? [{ label: "رصيد افتتاحي", value: Math.round(opening), money: true }]
+        : []),
+      { label: "إجمالي المدين (عليه)", value: Math.round(debits), money: true },
+      { label: "إجمالي الدائن (له)", value: Math.round(credits), money: true },
       { label: "الرصيد الحالي", value: Math.round(balance), money: true, strong: true },
     ],
     statusText,
     statusTone: tone,
     actor: actorOf(data),
-    note: "المبالغ الموجبة مترتّبة على الزبون، والسالبة تسديدات أو سماح.",
+    note: totals.truncated
+      ? `معروض ${rows.length} حركة من أصل ${Math.round(toNumber(totals.count))}.`
+      : "«مدين» ما ترتّب على الزبون · «دائن» ما دفعه أو رجّعه أو سومح به · «الرصيد» ما بقي بذمّته بعد كل حركة.",
     emptyNote: "لا توجد حركات مسجّلة على هذا الحساب.",
     caption: `📄 <b>كشف حساب</b> — ${escapeHtml(name)}\n` +
-      `عدد الحركات: ${txs.length}\n` +
+      `عدد الحركات: ${Math.round(toNumber(totals.count))}\n` +
       `الرصيد: ${money(balance)} د.ع ${balance > 0 ? "(بذمّته)" : balance < 0 ? "(دائن)" : "(مسدّد)"}`,
   });
 }
@@ -548,17 +587,16 @@ export function buildSalesReport(data: any): BuiltDocument {
     reference: period,
     sheetName: "المبيعات",
     fileBase: `مبيعات_${from || "الكل"}_${to || ""}`,
-    orientation: "landscape",
+    dense: true,
     columns: [
-      { label: "التاريخ", width: 0.09, align: "center", type: "date", sheetWidth: 13 },
-      { label: "الفاتورة", width: 0.09, align: "center", sheetWidth: 13 },
-      { label: "الزبون", width: 0.14, align: "right", sheetWidth: 22 },
-      { label: "المنتج", width: 0.18, align: "right", sheetWidth: 28 },
-      { label: "IMEI / السيريال", width: 0.13, align: "center", sheetWidth: 22 },
-      { label: "الكمية", width: 0.07, align: "center", type: "int", sheetWidth: 9 },
-      { label: "سعر الوحدة", width: 0.10, align: "right", type: "money", sheetWidth: 15 },
-      { label: "المجموع", width: 0.11, align: "right", type: "money", sheetWidth: 16 },
-      { label: "الدفع", width: 0.09, align: "center", type: "map", map: PAYMENT_LABELS, sheetWidth: 12 },
+      { label: "التاريخ", width: 0.10, align: "center", type: "date", sheetWidth: 13 },
+      { label: "الفاتورة", width: 0.10, align: "center", sheetWidth: 13 },
+      { label: "الزبون", width: 0.12, align: "right", sheetWidth: 22 },
+      { label: "المنتج", width: 0.19, align: "right", sheetWidth: 28 },
+      { label: "IMEI", width: 0.16, align: "center", sheetWidth: 22 },
+      { label: "الكمية", width: 0.08, align: "center", type: "int", sheetWidth: 9 },
+      { label: "المجموع", width: 0.16, align: "right", type: "money", source: 7, sheetWidth: 16 },
+      { label: "الدفع", width: 0.09, align: "center", type: "map", map: PAYMENT_SHORT, source: 8, sheetWidth: 12 },
     ],
     rows,
     info: [
@@ -580,11 +618,11 @@ export function buildSalesReport(data: any): BuiltDocument {
       { label: "المحصّل نقداً", value: Math.round(toNumber(totals.cash)), money: true },
       { label: "مبيعات بالدين", value: Math.round(toNumber(totals.debt)), money: true },
     ],
-    statusText: `مبيعات ${period}: ${amount(sales)}`,
+    statusText: `إجمالي المبيعات ${amount(sales)}`,
     statusTone: "good",
     actor: actorOf(data),
     note: truncated
-      ? `عُرض ${rows.length} سطر من أصل ${Math.round(lines)} — المجاميع محسوبة على الكل.`
+      ? `معروض ${rows.length} سطر من أصل ${Math.round(lines)} — المجاميع محسوبة على الكل.`
       : "عمود IMEI يظهر للأجهزة التي تحمل رقماً تسلسلياً فقط.",
     emptyNote: "ماكو مبيعات بهذه الفترة.",
     caption: `📈 <b>تقرير المبيعات</b> — ${escapeHtml(period)}\n` +
@@ -762,16 +800,16 @@ export function buildReturnsReport(data: any): BuiltDocument {
     reference: `${rows.length} عملية استرجاع`,
     sheetName: "المسترجعات",
     fileBase: `المسترجعات_${clean(data?.meta?.generated_at) || ""}`,
-    orientation: "landscape",
+    dense: true,
     columns: [
-      { label: "التاريخ", width: 0.10, align: "center", type: "date", sheetWidth: 13 },
-      { label: "رقم الاسترجاع", width: 0.11, align: "center", sheetWidth: 16 },
+      { label: "التاريخ", width: 0.11, align: "center", type: "date", sheetWidth: 13 },
+      { label: "رقم الاسترجاع", width: 0.13, align: "center", sheetWidth: 16 },
       { label: "فاتورة البيع", width: 0.11, align: "center", sheetWidth: 16 },
-      { label: "الزبون", width: 0.16, align: "right", sheetWidth: 22 },
-      { label: "المواد المسترجعة", width: 0.22, align: "right", sheetWidth: 32 },
-      { label: "المبلغ", width: 0.12, align: "right", type: "money", sheetWidth: 16 },
-      { label: "طريقة الإرجاع", width: 0.09, align: "center", type: "map", map: REFUND_LABELS, sheetWidth: 14 },
-      { label: "السبب", width: 0.09, align: "right", sheetWidth: 18 },
+      { label: "الزبون", width: 0.14, align: "right", sheetWidth: 22 },
+      { label: "المواد المسترجعة", width: 0.19, align: "right", sheetWidth: 32 },
+      { label: "المبلغ", width: 0.13, align: "right", type: "money", sheetWidth: 16 },
+      { label: "الإرجاع", width: 0.08, align: "center", type: "map", map: REFUND_LABELS, sheetWidth: 14 },
+      { label: "السبب", width: 0.11, align: "right", sheetWidth: 18 },
     ],
     rows,
     info: reportMeta(data, rows.length),

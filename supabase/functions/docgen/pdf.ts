@@ -55,6 +55,8 @@ export type DocSpec = {
   note?: string;
   /** التقارير العريضة (المبيعات مثلاً) تحتاج صفحة أفقية. */
   orientation?: "portrait" | "landscape";
+  /** جدول مضغوط: خط أصغر وسطر أقصر، ليتّسع عمود IMEI على الصفحة الطولية. */
+  dense?: boolean;
 };
 
 export type StoreInfo = {
@@ -312,6 +314,11 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
   }
 
   // -------------------------------- الجدول --------------------------------
+  const bodySize = spec.dense ? 8 : 9;
+  const headSize = spec.dense ? 8.5 : 9;
+  const lineStep = spec.dense ? 10.5 : 12;
+  const rowH = spec.dense ? 19 : ROW_H;
+
   const widths = normalizeWidths(spec.columns);
   // نملأ الصفحة حتى آخرها؛ صندوق المجاميع له حارس صفحة خاص به بعد الجدول،
   // فلا داعي لحجز مساحته على كل صفحة وترك فراغ في الوسط.
@@ -329,7 +336,7 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
     spec.columns.forEach((col, i) => {
       const w = widths[i] * CONTENT_W;
       paint.line(page, col.label, cellAnchor(x, w, col.align ?? "right"), y - TABLE_HEAD_H + 8.5, {
-        size: 9,
+        size: headSize,
         bold: true,
         color: WHITE,
         align: col.align ?? "right",
@@ -346,10 +353,10 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
     // ارتفاع السطر يعتمد على أطول خلية بعد اللف
     const wrapped = spec.columns.map((col, i) => {
       const w = widths[i] * CONTENT_W - 12;
-      return paint.wrap(row[i] ?? "", 9, w, false, 2);
+      return paint.wrap(row[i] ?? "", bodySize, w, false, 2);
     });
     const lines = Math.max(1, ...wrapped.map((l) => l.length));
-    const height = Math.max(ROW_H, lines * 12 + 9);
+    const height = Math.max(rowH, lines * lineStep + 9);
 
     if (y - height < bottomLimit) {
       page = newPage();
@@ -372,8 +379,8 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
       const w = widths[i] * CONTENT_W;
       const align = col.align ?? "right";
       wrapped[i].forEach((lineText, li) => {
-        paint.line(page, lineText, cellAnchor(x, w, align), y - 15 - li * 12, {
-          size: 9,
+        paint.line(page, lineText, cellAnchor(x, w, align), y - 14 - li * lineStep, {
+          size: bodySize,
           color: INK,
           align,
         });

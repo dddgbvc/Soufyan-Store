@@ -51,17 +51,25 @@ export function dateIQ(v: unknown): string {
   return parts.replaceAll("-", "/");
 }
 
-/** "08:47 PM" بتوقيت بغداد. */
+/**
+ * "08:47 م" بتوقيت بغداد.
+ * AM/PM بالعربية عمداً: «PM 08:47» هو الترتيب البصري الصحيح لـ AM/PM اللاتينية
+ * داخل سطر عربي (خوارزمية BiDi)، لكنه يُربك القارئ. «ص/م» تقرأ طبيعياً.
+ */
 export function timeIQ(v: unknown): string {
-  if (typeof v === "string" && /^\d{2}:\d{2}\s?(AM|PM)$/i.test(v.trim())) return v.trim().toUpperCase();
+  const mark = (h24: number) => (h24 < 12 ? "ص" : "م");
+  if (typeof v === "string") {
+    const m = v.trim().match(/^(\d{2}):(\d{2})\s?(AM|PM)$/i);
+    if (m) return `${m[1]}:${m[2]} ${m[3].toUpperCase() === "AM" ? "ص" : "م"}`;
+    if (/^\d{2}:\d{2}\s[صم]$/.test(v.trim())) return v.trim();
+  }
   const d = new Date(v as string);
   if (Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: BAGHDAD,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  }).format(d).toUpperCase();
+  const fmt = (opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-GB", { timeZone: BAGHDAD, ...opts }).format(d);
+  const h24 = Number(fmt({ hour: "2-digit", hour12: false }).slice(0, 2)) % 24;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${String(h12).padStart(2, "0")}:${fmt({ minute: "2-digit" }).padStart(2, "0")} ${mark(h24)}`;
 }
 
 /** اسم ملف آمن (تلغرام لا يحب المسافات والرموز في أسماء الملفات). */
