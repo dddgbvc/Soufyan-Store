@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مكتب سفيان للاتصالات — سامراء</title>
+<meta name="description" content="مكتب سفيان للاتصالات في سامراء: شحن رصيد فوري لكل الشبكات، باقات إنترنت، هواتف أصلية بكفالة، إكسسوارات وصيانة. اطلب مباشرة عبر واتساب.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark light">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_IQ">
+<meta property="og:site_name" content="مكتب سفيان للاتصالات">
+<meta property="og:title" content="مكتب سفيان للاتصالات — كل خدمات الاتصالات بمكان واحد">
+<meta property="og:description" content="رصيد، إنترنت، هواتف أصلية بكفالة، إكسسوارات وصيانة — سامراء، الحويش.">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+
+<!-- خط SF متوفّر أصلًا على أجهزة آبل؛ هذا البديل للأنظمة الأخرى -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/glass.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/motion.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MobilePhoneStore",
+  "name": "مكتب سفيان للاتصالات",
+  "description": "شحن رصيد، باقات إنترنت، هواتف وإكسسوارات وصيانة في سامراء.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "الحويش — الشارع الرئيسي",
+    "addressLocality": "سامراء",
+    "addressRegion": "صلاح الدين",
+    "addressCountry": "IQ"
+  },
+  "telephone": "+9647731644450",
+  "openingHours": "Mo-Su 09:00-22:00",
+  "priceRange": "IQD"
+}
+</script>
+</head>
+
+<body>
+
+<div class="boot" aria-hidden="true"><img class="boot__mark" src="assets/logo.svg" alt=""></div>
+<div class="filmgrain" aria-hidden="true"></div>
+<div class="rail-progress" aria-hidden="true"></div>
+
+<!-- ============ التنقّل ============ -->
+<header class="nav" id="nav">
+  <div class="nav__bar lg lg--live lg--pill">
+    <a class="brand" href="#home" aria-label="مكتب سفيان للاتصالات">
+      <img class="brand__mark" src="assets/logo.svg" alt="">
+      <span>
+        <span class="brand__name">مكتب سفيان</span>
+        <span class="brand__sub">للاتصالات — سامراء</span>
+      </span>
+    </a>
+
+    <nav class="nav__links" aria-label="التنقّل الرئيسي">
+      <span class="nav__pill" id="navPill" aria-hidden="true"></span>
+      <a class="nav__link on" href="#home">الرئيسية</a>
+      <a class="nav__link" href="#services">الخدمات</a>
+      <a class="nav__link" href="#plans">الباقات</a>
+      <a class="nav__link" href="#shop">المتجر</a>
+      <a class="nav__link" href="#voices">الآراء</a>
+      <a class="nav__link" href="#contact">تواصل</a>
+    </nav>
+
+    <div class="nav__acts">
+      <button class="ico" id="themeBtn" aria-label="تبديل الوضع"></button>
+      <button class="ico" id="cartBtn" aria-label="سلة الطلب">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 6h15l-1.5 8.6a2 2 0 0 1-2 1.6H9.4a2 2 0 0 1-2-1.6L5.4 3.9A1 1 0 0 0 4.4 3H2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>
+        <span class="count" aria-live="polite">0</span>
+      </button>
+      <a class="btn btn--sm wide-only" href="#shop" data-magnetic="0.22">اطلب الآن</a>
+      <button class="ico burger" id="burger" aria-label="القائمة" aria-expanded="false" aria-controls="menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h11"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="menu lg lg--live lg--solid" id="menu" aria-label="قائمة الجوال">
+  <a href="#home"><span>الرئيسية</span><span class="n">01</span></a>
+  <a href="#services"><span>الخدمات</span><span class="n">02</span></a>
+  <a href="#plans"><span>باقات الإنترنت</span><span class="n">03</span></a>
+  <a href="#shop"><span>المتجر</span><span class="n">04</span></a>
+  <a href="#advisor"><span>مرشد الاختيار</span><span class="n">05</span></a>
+  <a href="#voices"><span>آراء الزبائن</span><span class="n">06</span></a>
+  <a href="#faq"><span>الأسئلة الشائعة</span><span class="n">07</span></a>
+  <a href="#contact"><span>تواصل معنا</span><span class="n">08</span></a>
+</nav>
+
+<main>
+
+<!-- ============ المشهد الافتتاحي ============ -->
+<section class="hero" id="home">
+  <canvas id="lgCanvas" aria-hidden="true"></canvas>
+
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <span class="hero__eyebrow">
+        <span class="badge badge--live"><span class="dot"></span>مفتوح الآن</span>
+        يوميًا 9:00 ص — 10:00 م
+      </span>
+
+      <h1 class="hero__title">
+        <span class="row rise"><span>كل خدمات</span></span>
+        <span class="row rise"><span>الاتصالات.</span></span>
+        <span class="row rise"><span><em>بمكان واحد.</em></span></span>
+      </h1>
+
+      <p class="hero__lead">
+        رصيد يوصل بثوانٍ. إنترنت يُركَّب بنفس اليوم. وجهاز أصلي بكفالة الوكيل —
+        كلّه من مكتب واحد بقلب سامراء.
+      </p>
+
+      <div class="hero__acts">
+        <button class="btn btn--lg" id="topupBtn" data-magnetic="0.24" data-ripple>اشحن رصيدك</button>
+        <a class="btn btn--quiet btn--lg" href="#shop">تصفّح المتجر</a>
+      </div>
+
+      <div class="hero__facts">
+        <div class="fact"><b class="n" data-count="8" data-suffix="+">0</b><span>سنوات خبرة</span></div>
+        <div class="fact"><b class="n" data-count="12000" data-suffix="+">0</b><span>زبون خدمناه</span></div>
+        <div class="fact"><b class="n">4.9</b><span>تقييم الزبائن</span></div>
+        <div class="fact"><b class="n">60s</b><span>زمن الشحن</span></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="phone" data-tilt="9" data-tilt-lift="12">
+        <div class="phone__screen">
+          <span class="island"></span>
+          <div class="tile-hero">
+            <small>رصيدك بعد الشحن</small>
+            <strong class="n">25,000 IQD</strong>
+          </div>
+          <div class="tile-row"><i data-ico="bolt"></i> شحن آسياسيل <b>تم</b></div>
+          <div class="tile-row"><i data-ico="wifi"></i> باقة 100GB <b>فعّالة</b></div>
+          <div class="tile-row"><i data-ico="shield"></i> كفالة الجهاز <b>سنة</b></div>
+          <div class="tile-row"><i data-ico="truck"></i> توصيل داخل سامراء <b>اليوم</b></div>
+          <div class="tile-row"><i data-ico="tools"></i> صيانة وبرمجة <b>بالموعد</b></div>
+          <div class="tile-row"><i data-ico="game"></i> بطاقات ألعاب <b>فوري</b></div>
+        </div>
+      </div>
+
+      <span class="chip-float chip-float--a lg lg--thin" data-ico="bolt">شحن خلال ثوانٍ</span>
+      <span class="chip-float chip-float--b lg lg--thin" data-ico="shield">كفالة الوكيل</span>
+      <span class="chip-float chip-float--c lg lg--thin" data-ico="pin">الحويش — الشارع الرئيسي</span>
+    </div>
+  </div>
+
+  <div class="scroll-cue" aria-hidden="true">
+    <span></span>
+    مرّر للأسفل
+  </div>
+</section>
+
+<!-- ============ شريط العلامات ============ -->
+<div class="scene scene--flush">
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track" id="marqTrack">
+      <span>Apple</span><span>Samsung</span><span>Xiaomi</span><span>Infinix</span>
+      <span>Anker</span><span>آسياسيل</span><span>زين العراق</span><span>كورك تيليكوم</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ الخدمات ============ -->
+<section class="scene scene--alt" id="services">
+  <div class="wrap">
+    <div class="head" data-anim="up">
+      <span class="kicker">الخدمات</span>
+      <h2 class="display">كل شي تحتاجه من مكتب اتصالات.<br><span class="dim">وبخطوة وحدة.</span></h2>
+      <p class="sub">اختر الخدمة، وتنفتح لك نافذة الطلب مباشرة — والرسالة تنكتب جاهزة على واتساب.</p>
+    </div>
+    <div class="bento" id="bento" data-stagger></div>
+  </div>
+</section>
+
+<!-- ============ الباقات ============ -->
+<section class="scene" id="plans">
+  <div class="wrap">
+    <div class="head head--mid" data-anim="up" >
+      <span class="kicker">الإنترنت</span>
+      <h2 class="display">باقات تناسب البيت والمحل.</h2>
+      <p class="sub" style="text-align:center">أسعار واضحة بلا مفاجآت، وتركيب ومتابعة من فريق المكتب.</p>
+      <div class="seg" id="seg" style="margin-top:.7rem">
+        <span class="seg__thumb" aria-hidden="true"></span>
+        <button data-mode="monthly" class="on">اشتراك شهري</button>
+        <button data-mode="yearly">اشتراك سنوي</button>
+      </div>
+    </div>
+    <div class="plans" id="plansGrid" data-stagger></div>
+  </div>
+</section>
+
+<!-- ============ المتجر ============ -->
+<section class="scene scene--invert" id="shop">
+  <div class="wrap">
+    <div class="head head--split" data-anim="up">
+      <div style="display:grid;gap:.6rem">
+        <span class="kicker">المتجر</span>
+        <h2 class="display"><span class="n" id="shopCount">0</span> منتج جاهز عندنا.</h2>
+      </div>
+      <div class="rowbtns">
+        <button class="ico" data-line="-1" aria-label="السابق">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+        </button>
+        <button class="ico" data-line="1" aria-label="التالي">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="shopbar" data-anim="fade">
+      <label class="search">
+        <span class="sr-only">ابحث عن منتج</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <input class="input" id="shopSearch" type="search" placeholder="ابحث: iPhone، شاحن، سمّاعة…">
+      </label>
+      <div class="pills" id="shopCats" role="group" aria-label="تصنيفات"></div>
+      <select class="input" id="shopSort" style="width:auto" aria-label="ترتيب">
+        <option value="featured">الأكثر طلبًا</option>
+        <option value="low">السعر: من الأقل</option>
+        <option value="high">السعر: من الأعلى</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="lineup" id="line">
+      <div class="lineup__track" id="lineTrack"></div>
+    </div>
+    <p style="font-size:var(--t-caption);color:var(--ink-4);margin-top:.4rem">
+      اسحب الصفّ بإصبعك أو بالماوس — ينزلق بالقصور الذاتي ويرتدّ عند الحافة.
+    </p>
+  </div>
+</section>
+
+<!-- ============ المرشد ============ -->
+<section class="scene scene--alt" id="advisor">
+  <div class="wrap advisor">
+    <div class="advisor__panel">
+      <div data-anim="up">
+        <span class="kicker">مرشد الاختيار</span>
+        <h2 class="display">محتار شنو تختار؟</h2>
+        <p class="sub">حدّد ميزانيتك وشنو يهمّك بالجهاز — ونكلك أفضل خيار متوفر عدنا هسّه.</p>
+      </div>
+
+      <div class="field" data-anim="fade">
+        <label for="budget">الميزانية حتى <span class="n" id="budgetOut">700,000</span> IQD</label>
+        <input class="range" id="budget" type="range" min="145000" max="2100000" step="5000" value="700000">
+      </div>
+
+      <div class="field" data-anim="fade">
+        <label>شنو يهمّك أكثر؟</label>
+        <div class="pills" id="prios" role="group">
+          <button class="pill" data-p="gaming" aria-pressed="false">الألعاب</button>
+          <button class="pill" data-p="camera" aria-pressed="false">الكاميرا</button>
+          <button class="pill" data-p="battery" aria-pressed="false">البطارية</button>
+          <button class="pill" data-p="storage" aria-pressed="false">التخزين</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict" id="verdict" data-anim="scale"></div>
+  </div>
+</section>
+
+<!-- ============ الآراء ============ -->
+<section class="scene" id="voices">
+  <div class="wrap">
+    <div class="head head--split" data-anim="up">
+      <div style="display:grid;gap:.6rem">
+        <span class="kicker">آراء الزبائن</span>
+        <h2 class="display">شنو يكولون زبائننا.</h2>
+      </div>
+      <div class="rowbtns">
+        <button class="ico" data-voice="-1" aria-label="السابق">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+        </button>
+        <button class="ico" data-voice="1" aria-label="التالي">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="voices" id="voicesRail"><div class="voices__track"></div></div>
+  </div>
+</section>
+
+<!-- ============ الأسئلة ============ -->
+<section class="scene scene--alt" id="faq">
+  <div class="wrap wrap--tight">
+    <div class="head" data-anim="up">
+      <span class="kicker">الأسئلة الشائعة</span>
+      <h2 class="display">أسئلة تتكرر علينا.</h2>
+    </div>
+    <div class="faq" id="faqList" data-anim="fade"></div>
+  </div>
+</section>
+
+<!-- ============ التواصل ============ -->
+<section class="scene" id="contact">
+  <div class="wrap">
+    <div class="head" data-anim="up">
+      <span class="kicker">تواصل</span>
+      <h2 class="display">تعال المكتب، أو راسلنا.</h2>
+      <p class="sub">موقعنا بقلب الحويش على الشارع الرئيسي — وإذا تستعجل، واتساب أسرع طريق.</p>
+    </div>
+
+    <div class="contact" data-stagger>
+      <div class="panel">
+        <div class="row">
+          <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></i>
+          <div><b>العنوان</b><p>صلاح الدين — سامراء — الحويش — الشارع الرئيسي</p></div>
+        </div>
+        <div class="row">
+          <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 1.9"/></svg></i>
+          <div><b>أوقات الدوام</b><p>يوميًا من 9:00 صباحًا حتى 10:00 مساءً</p></div>
+        </div>
+        <div class="row">
+          <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h4l2 5-2.5 1.5a12 12 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2.2 2A17 17 0 0 1 3 5.2 2 2 0 0 1 5 3z"/></svg></i>
+          <div><b>اتصال مباشر</b>
+            <p><a class="n" href="tel:+9647731644450">0773 164 4450</a></p>
+            <p><a class="n" href="tel:+9647744485771">0774 448 5771</a></p>
+          </div>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <a class="btn btn--wa" data-wa="السلام عليكم، أرغب بالاستفسار عن خدماتكم." href="#" target="_blank" rel="noopener">راسلنا واتساب</a>
+          <a class="btn btn--quiet" href="https://maps.google.com/?q=Samarra+Al+Huwaysh" target="_blank" rel="noopener">افتح الخريطة</a>
+        </div>
+      </div>
+
+      <div class="map">
+        <div class="map__mesh" aria-hidden="true"></div>
+        <div class="map__pin">
+          <span class="map__dot"></span>
+          <span class="lg lg--thin lg--pill" style="padding:.45rem 1rem;font-size:var(--t-caption)">مكتب سفيان — الحويش</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ التذييل ============ -->
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__note">
+      الأسعار بالدينار العراقي وقابلة للتغيّر حسب السوق. الكفالة تشمل عيوب التصنيع فقط ولا تشمل الكسر أو سوء الاستخدام.
+      التوصيل داخل سامراء وضواحيها، والطلبات فوق 250,000 دينار توصيلها مجاني.
+    </p>
+
+    <div class="foot__cols">
+      <div>
+        <h4>المكتب</h4>
+        <ul>
+          <li>الحويش — الشارع الرئيسي</li>
+          <li>سامراء — صلاح الدين</li>
+          <li>يوميًا 9:00 ص — 10:00 م</li>
+        </ul>
+      </div>
+      <div>
+        <h4>الخدمات</h4>
+        <ul>
+          <li><a href="#services">شحن الرصيد</a></li>
+          <li><a href="#plans">باقات الإنترنت</a></li>
+          <li><a href="#shop">الهواتف والإكسسوارات</a></li>
+          <li><a href="#services">الصيانة والبرمجة</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>روابط</h4>
+        <ul>
+          <li><a href="#advisor">مرشد الاختيار</a></li>
+          <li><a href="#voices">آراء الزبائن</a></li>
+          <li><a href="#faq">الأسئلة الشائعة</a></li>
+          <li><a href="#contact">تواصل معنا</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>تواصل</h4>
+        <ul>
+          <li><a class="n" href="tel:+9647731644450">0773 164 4450</a></li>
+          <li><a class="n" href="tel:+9647744485771">0774 448 5771</a></li>
+          <li><a data-wa="السلام عليكم 👋" href="#" target="_blank" rel="noopener">واتساب المكتب</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot__end">
+      <span>© <span id="year">2026</span> مكتب سفيان للاتصالات. جميع الحقوق محفوظة.</span>
+      <span>سامراء — العراق</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ رصيف الجوال ============ -->
+<nav class="dock" aria-label="تنقّل سريع">
+  <div class="dock__bar lg lg--live lg--pill">
+    <a class="on" href="#home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>الرئيسية
+    </a>
+    <a href="#services">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>الخدمات
+    </a>
+    <a href="#shop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2" width="11" height="20" rx="3"/><path d="M10.6 18.6h2.8"/></svg>المتجر
+    </a>
+    <a href="#cart" id="dockCart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 6h15l-1.5 8.6a2 2 0 0 1-2 1.6H9.4a2 2 0 0 1-2-1.6L5.4 3.9A1 1 0 0 0 4.4 3H2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>السلة
+      <span class="count">0</span>
+    </a>
+    <a href="#contact">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>تواصل
+    </a>
+  </div>
+</nav>
+
+<a class="wa" data-wa="السلام عليكم، جاي من الموقع وأرغب بالاستفسار 👋" href="#" target="_blank" rel="noopener" aria-label="راسلنا على واتساب">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.6 2 2.2 6.4 2.2 11.84c0 1.9.52 3.68 1.44 5.2L2 22l5.1-1.6a9.8 9.8 0 0 0 4.94 1.32h.01c5.44 0 9.85-4.4 9.85-9.84C21.9 6.4 17.48 2 12.04 2zm0 17.9h-.01a8.2 8.2 0 0 1-4.16-1.14l-.3-.18-3.03.95.96-2.95-.2-.3a8.1 8.1 0 0 1-1.25-4.34c0-4.5 3.68-8.16 8.2-8.16 2.19 0 4.24.86 5.79 2.4a8.08 8.08 0 0 1 2.4 5.77c0 4.5-3.68 8.16-8.2 8.16zm4.5-6.1c-.25-.13-1.46-.72-1.68-.8-.23-.08-.4-.12-.56.12-.16.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.23-1.46-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.41-.56-.42h-.48c-.16 0-.43.06-.65.3-.22.25-.85.83-.85 2.02s.87 2.34.99 2.5c.12.17 1.71 2.6 4.15 3.65.58.25 1.03.4 1.39.51.58.19 1.11.16 1.53.1.47-.07 1.46-.6 1.66-1.17.2-.58.2-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>
+</a>
+
+<!-- ============ اللوح السفلي ============ -->
+<div class="scrim" id="scrim"></div>
+<section class="sheet lg lg--live lg--solid" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" data-no-spec>
+  <div>
+    <div class="sheet__grab" id="sheetGrab" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h3 id="sheetTitle">—</h3>
+      <button class="ico" id="sheetClose" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet__body" id="sheetBody"></div>
+  <div class="sheet__foot" id="sheetFoot"></div>
+</section>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="js/vendor/gsap.min.js"></script>
+<script src="js/vendor/ScrollTrigger.min.js"></script>
+<script src="js/spring.js"></script>
+<script src="js/liquid.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+/* ============================================================
+   Liquid Glass — سطح حيّ لا يقف ساكنًا
+   ثلاث طبقات: انكسار متحرّك → حافة تلتقط الضوء → بريق يجري
+   ============================================================ */
+
+.lg {
+  --r: var(--r-lg);
+  --blur: 22px;
+  --mx: 50%;
+  --my: 0%;
+  --spec: 0;
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--r);
+  background: transparent;
+  box-shadow: var(--glass-shadow), var(--glass-inner);
+}
+
+/* الطبقة الحاملة: تشويش + تشبّع + انكسار متحرّك */
+.lg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: inherit;
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+}
+
+@supports (backdrop-filter: url(#lgDisplace)) {
+  .lg--live::before {
+    backdrop-filter: blur(var(--blur)) saturate(180%) url(#lgDisplace);
+  }
+}
+
+/* الحافة: حلقة ضوء تدور ببطء دائم ثم تلاحق المؤشّر */
+.lg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--rim, 0deg) at 50% 50%,
+    transparent 0deg,
+    var(--glass-spec) 24deg,
+    transparent 68deg,
+    color-mix(in srgb, var(--glass-spec) 38%, transparent) 132deg,
+    transparent 180deg,
+    var(--glass-spec) 214deg,
+    transparent 258deg,
+    color-mix(in srgb, var(--glass-spec) 26%, transparent) 322deg,
+    transparent 360deg
+  );
+  opacity: 0.42;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: rimDrift 14s linear infinite;
+  transition: opacity var(--d3) var(--e-apple);
+}
+
+@keyframes rimDrift {
+  to {
+    --rim: 360deg;
+  }
+}
+@property --rim {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* البريق: خصلة ضوء تعبر السطح، وتتكثّف تحت المؤشّر */
+.lg__spec {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: var(--spec, 0);
+  transition: opacity var(--d3) var(--e-apple);
+}
+.lg__spec::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+    38% 38% at var(--mx) var(--my),
+    color-mix(in srgb, var(--glass-spec) 30%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: plus-lighter;
+}
+.lg__spec::after {
+  content: "";
+  position: absolute;
+  inset-block: -60%;
+  inset-inline-start: -30%;
+  width: 22%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--glass-spec) 46%, transparent),
+    transparent
+  );
+  filter: blur(6px);
+  transform: rotate(14deg) translateX(var(--sweep, -140%));
+  mix-blend-mode: plus-lighter;
+}
+
+/* السطح يستيقظ عند اللمس */
+.lg--tap {
+  transition: transform var(--d3) var(--e-soft), box-shadow var(--d3) var(--e-apple);
+  cursor: pointer;
+}
+.lg--tap:hover {
+  --spec: 1;
+}
+.lg--tap:hover::after {
+  opacity: 0.9;
+}
+.lg--tap:active {
+  transform: scale(0.988);
+}
+
+.lg--pill {
+  --r: var(--r-btn);
+}
+.lg--thin {
+  --blur: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 6px 20px rgba(0, 0, 0, 0.14),
+    var(--glass-inner);
+}
+.lg--deep {
+  --blur: 40px;
+}
+.lg--solid::before {
+  background: var(--glass-fill-2);
+}
+
+@supports (corner-shape: squircle) {
+  .lg,
+  .btn,
+  .pill,
+  .cell {
+    corner-shape: squircle;
+  }
+}
+
+/* ============================================================
+   الأزرار — مقاسات آبل الحرفية
+   ============================================================ */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.72rem 1.4rem;
+  border-radius: var(--r-btn);
+  font-family: var(--font-ar);
+  font-size: var(--t-body);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  background: var(--blue);
+  color: var(--blue-ink);
+  cursor: pointer;
+  transition: background var(--d1) var(--e-apple),
+    transform var(--d2) var(--e-soft), opacity var(--d1) linear;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: color-mix(in srgb, var(--blue) 88%, #fff);
+}
+.btn:active {
+  transform: scale(0.965);
+}
+
+.btn--quiet {
+  background: var(--glass-fill-2);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-soft), var(--glass-inner);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+.btn--quiet:hover {
+  background: var(--glass-fill-2);
+  box-shadow: inset 0 0 0 1px var(--line), var(--glass-inner);
+}
+
+.btn--wa {
+  background: #25d366;
+  color: #04120a;
+  font-weight: 600;
+}
+.btn--wa:hover {
+  background: #2ee06f;
+}
+
+.btn--sm {
+  padding: 0.48rem 1rem;
+  font-size: var(--t-small);
+}
+.btn--lg {
+  padding: 0.88rem 1.75rem;
+  font-size: var(--t-lead);
+}
+.btn--block {
+  width: 100%;
+}
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+/* رابط آبل: أزرق + سهم يتقدّم */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--blue);
+  font-size: var(--t-body);
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link svg {
+  width: 0.62em;
+  height: 0.62em;
+  transition: transform var(--d2) var(--e-out);
+}
+.link:hover svg {
+  transform: translateX(-4px);
+}
+
+/* ============================================================
+   الشرائح
+   ============================================================ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.95rem;
+  border-radius: var(--r-btn);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  background: var(--glass-fill);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  cursor: pointer;
+  transition: color var(--d1) var(--e-apple),
+    background var(--d1) var(--e-apple), box-shadow var(--d1) var(--e-apple);
+}
+.pill:hover {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.pill[aria-pressed="true"],
+.pill.on {
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: none;
+  font-weight: 500;
+}
+.pill svg {
+  width: 1em;
+  height: 1em;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--r-btn);
+  font-size: var(--t-caption);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.badge--live {
+  color: #30d158;
+  background: color-mix(in srgb, #30d158 14%, transparent);
+}
+.badge--out {
+  color: #ff453a;
+  background: color-mix(in srgb, #ff453a 14%, transparent);
+}
+.badge--new {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dotPulse 2.2s var(--e-out) infinite;
+}
+@keyframes dotPulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* ============================================================
+   الحقول
+   ============================================================ */
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+.field > label {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  padding-inline-start: 0.15rem;
+}
+.input {
+  width: 100%;
+  padding: 0.78rem 1rem;
+  border-radius: var(--r-sm);
+  font-size: var(--t-body);
+  color: var(--ink);
+  background: var(--glass-fill);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  transition: box-shadow var(--d2) var(--e-apple);
+}
+.input::placeholder {
+  color: var(--ink-4);
+}
+.input:focus {
+  outline: none;
+  animation: none;
+  box-shadow: inset 0 0 0 1px var(--blue),
+    0 0 0 4px color-mix(in srgb, var(--blue) 22%, transparent);
+}
+select.input {
+  appearance: none;
+  padding-inline-start: 2.2rem;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position: 16px calc(50% + 1px), 21px calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+select.input option {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+textarea.input {
+  resize: vertical;
+  min-height: 5rem;
+}
