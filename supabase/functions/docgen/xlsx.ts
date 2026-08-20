@@ -26,8 +26,11 @@ export async function buildSheet(spec: SheetSpec, store: StoreInfo): Promise<Uin
   const colLetter = (n: number) => ws.getColumn(n).letter;
   const span = (row: number) => `A${row}:${colLetter(lastCol)}${row}`;
 
-  ws.columns = spec.columns.map((c) => ({ width: c.width }));
-  while (ws.columns.length < lastCol) ws.columns.push({ width: 16 } as any);
+  // تُبنى القائمة كاملة قبل الإسناد: الدفع داخل ws.columns بعد الإسناد يضع
+  // كائنات خاماً في مصفوفة ExcelJS ويكسر التوليد عند الحفظ.
+  const widths: { width: number }[] = spec.columns.map((c) => ({ width: c.width }));
+  while (widths.length < lastCol) widths.push({ width: 16 });
+  ws.columns = widths as any;
 
   // ------------------------------- الترويسة -------------------------------
   ws.mergeCells(span(1));

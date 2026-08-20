@@ -25,9 +25,9 @@ const ZEBRA = rgb(0.969, 0.973, 0.98);
 const CARD = rgb(0.976, 0.98, 0.988);
 const WHITE = rgb(1, 1, 1);
 
-const A4: [number, number] = [595.28, 841.89];
+const A4_PORTRAIT: [number, number] = [595.28, 841.89];
+const A4_LANDSCAPE: [number, number] = [841.89, 595.28];
 const MARGIN = 40;
-const CONTENT_W = A4[0] - MARGIN * 2;
 
 // ------------------------------- أنواع المستند -------------------------------
 
@@ -53,6 +53,8 @@ export type DocSpec = {
   statusTone: Tone;
   actor: string;
   note?: string;
+  /** التقارير العريضة (المبيعات مثلاً) تحتاج صفحة أفقية. */
+  orientation?: "portrait" | "landscape";
 };
 
 export type StoreInfo = {
@@ -194,6 +196,9 @@ const ROW_H = 22;
 const TABLE_HEAD_H = 26;
 
 export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise<Uint8Array> {
+  const A4: [number, number] = spec.orientation === "landscape" ? A4_LANDSCAPE : A4_PORTRAIT;
+  const CONTENT_W = A4[0] - MARGIN * 2;
+
   const [regularFont, boldFont] = await Promise.all([loadArabicFont(400), loadArabicFont(700)]);
 
   const doc = await PDFDocument.create();
@@ -270,7 +275,10 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
 
   // ----------------------------- بطاقة المعلومات -----------------------------
   if (spec.info.length) {
-    const perColumn = Math.ceil(spec.info.length / 2);
+    // الصفحة الأفقية ضِعف العرض، فنوزّع المعلومات على ثلاثة أعمدة بدل عمودين
+    // ونكسب سطرين إضافيين للجدول.
+    const infoColumns = spec.orientation === "landscape" ? 3 : 2;
+    const perColumn = Math.ceil(spec.info.length / infoColumns);
     const cardH = perColumn * 17 + 18;
     page.drawRectangle({
       x: left,
@@ -283,9 +291,9 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
     });
     page.drawRectangle({ x: right - 3, y: y - cardH, width: 3, height: cardH, color: NAVY_SOFT });
 
-    const colWidth = (CONTENT_W - 26) / 2;
+    const colWidth = (CONTENT_W - 26) / infoColumns;
     spec.info.forEach((item, i) => {
-      const col = i < perColumn ? 0 : 1;
+      const col = Math.floor(i / perColumn);
       const rowIndex = i - col * perColumn;
       const anchor = right - 14 - col * (colWidth + 2);
       const ty = y - 20 - rowIndex * 17;
@@ -305,7 +313,9 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
 
   // -------------------------------- الجدول --------------------------------
   const widths = normalizeWidths(spec.columns);
-  const bottomLimit = FOOTER_H + 130; // مساحة محجوزة لصندوق المجاميع
+  // نملأ الصفحة حتى آخرها؛ صندوق المجاميع له حارس صفحة خاص به بعد الجدول،
+  // فلا داعي لحجز مساحته على كل صفحة وترك فراغ في الوسط.
+  const bottomLimit = FOOTER_H + 24;
 
   const drawTableHead = (): void => {
     page.drawRectangle({
@@ -382,7 +392,7 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
     y = A4[1] - HEADER_H - 30;
   }
 
-  const boxW = 250;
+  const boxW = spec.orientation === "landscape" ? 300 : 250;
   const boxX = left;
   page.drawRectangle({
     x: boxX,
@@ -433,7 +443,10 @@ export async function buildDocumentPdf(spec: DocSpec, store: StoreInfo): Promise
   });
 
   if (spec.note) {
-    paint.line(page, spec.note, right, y - 48, { size: 8.5, color: MUTED, maxWidth: CONTENT_W - boxW - 20 });
+    const noteWidth = CONTENT_W - boxW - 20;
+    paint.wrap(spec.note, 8.5, noteWidth, false, 3).forEach((lineText, i) => {
+      paint.line(page, lineText, right, y - 48 - i * 11, { size: 8.5, color: MUTED });
+    });
   }
 
   // ------------------------------ ترقيم الصفحات ------------------------------
