@@ -9,6 +9,52 @@ Supabase فقط بلا نسخة في المستودع.
 | `docgen` | `/functions/v1/docgen` | البوت عبر `pg_net`، والـ Mini App |
 | `miniapp` | `/functions/v1/miniapp` و `/miniapp/data` | واجهة الـ Mini App داخل تلغرام |
 
+## أنواع المستندات
+
+`POST /functions/v1/docgen` مع `{ kind, query?, from?, to? }`:
+
+| kind | المستند | الاتجاه | المصدر |
+|---|---|---|---|
+| `invoice` | فاتورة بيع (مع IMEI) | عمودي | `doc_invoice` |
+| `statement` | كشف حساب زبون | عمودي | `doc_customer_statement` |
+| `repair` | فاتورة صيانة | عمودي | `doc_repair` |
+| `return` | فاتورة مسترجعات | عمودي | `doc_return` |
+| `sales` | تقرير المبيعات (مع IMEI) | أفقي | `doc_sales` |
+| `returns` | تقرير المسترجعات | أفقي | `doc_returns` |
+| `debts` | تقرير الديون | عمودي | `doc_debts` |
+| `shortages` | تقرير النواقص | عمودي | `doc_shortages` |
+| `expenses` | تقرير المصروفات | عمودي | `doc_expenses` |
+| `repairs` | تقرير الصيانة | عمودي | `doc_repairs` |
+| `payments` | تقرير التسديدات | عمودي | `doc_debt_payments` |
+| `inventory` | تقرير المخزن | عمودي | `doc_inventory` |
+
+`sales` و`returns` يقبلان `from` و`to` بصيغة `YYYY-MM-DD` (الافتراضي: اليوم).
+عمود الـ IMEI يظهر في الفاتورة فقط إذا كانت فيها أجهزة تحمل رقماً تسلسلياً.
+
+لمعاينة أي نوع ببيانات وهمية بلا لمس بيانات المحل:
+
+```
+GET /functions/v1/docgen/selftest?kind=sales
+GET /functions/v1/docgen/selftest?format=json      # كل الأنواع + معلومات الخط
+```
+
+## المسترجعات: جداول جديدة
+
+`returns` و`return_items` لم تكونا موجودتين في قاعدة البيانات — أُنشئتا لأن
+مستند المسترجعات بلا مصدر بدونهما. البنية تحاكي `invoices`/`invoice_items`:
+
+- `returns`: رقم الاسترجاع، فاتورة البيع المرتبطة، الزبون، المبلغ،
+  `refund_method` (`CASH` نقد · `DEBT` نزول من الدين · `EXCHANGE` استبدال)،
+  السبب، الملاحظات، المنفّذ.
+- `return_items`: المادة، الكمية، السعر، `serials` للأجهزة، حالة المادة، السبب.
+
+وأُضيفتا إلى قائمة `sync_push` المسموحة، مع حلّ الأب عبر `return_client_id`
+تماماً كما تفعل `invoice_items` مع `invoice_client_id` — حتى يقدر تطبيق سطح
+المكتب يزامن المسترجعات مثل بقية الجداول.
+
+⚠️ الجدولان فارغان الآن. تقرير المسترجعات يشتغل ويطبع «ماكو مسترجعات مسجّلة»
+حتى يبدأ التطبيق بتسجيلها.
+
 ---
 
 ## 1) الفواتير: الأحرف الناقصة والأرقام المعكوسة
@@ -135,6 +181,15 @@ deno test --allow-net supabase/functions/miniapp/agent_test.ts
 supabase functions deploy docgen  --no-verify-jwt
 supabase functions deploy miniapp --no-verify-jwt
 ```
+
+هذه هي الطريقة الموصى بها: تنشر الملفات كما هي من المستودع.
+
+ملاحظة عن النسخة المنشورة حالياً من `docgen`: نقطة الدخول عليها سطر واحد
+يستورد الشيفرة من المستودع مثبّتة على commit محدّد، لأن أداة النشر التي
+استُعملت لا تنقل كل الملفات دفعة واحدة. Supabase يجلب الوحدات البعيدة وقت
+النشر ويضمّها في الحزمة، فلا تبقى تبعية على GitHub أثناء التشغيل — لكن أي
+تعديل لاحق يحتاج تحديث الـ SHA، أو ببساطة نشرة واحدة بالأمر أعلاه تُرجع
+الدالة إلى ملفاتها الطبيعية.
 
 الدالتان تصادقان الطلبات بنفسهما عبر توقيع `initData` من تلغرام (ولذلك
 `--no-verify-jwt`)، و`docgen` تقبل أيضاً نداءً داخلياً من البوت بترويسة
