@@ -325,6 +325,7 @@ function welcomeFor(id: any): string {
 
     `📁 <b>أوامر:</b>\n` +
     `/ديون — الزبائن اللي تجاوزوا مهلة السداد\n` +
+    `/واتساب — حالة رسائل الواتساب\n` +
     `/backup — نسخة احتياطية ZIP\n` +
     `/id — رقمك بالتلي\n` +
     `/help — هذه القائمة\n` +
@@ -558,6 +559,30 @@ Deno.serve(async (req: Request) => {
         const preset = DEFAULTS[cfg.aiProvider] ?? DEFAULTS.openai;
         await tgSend(cfg.token, chatId,
           `🧠 <b>النموذج</b>\nالمزود: ${cfg.aiProvider}\nالنموذج: ${cfg.aiModel || preset.model}`);
+      } else if (cmd === "/whatsapp" || cmd === "/واتساب") {
+        const { data: st, error } = await db.rpc("wa_stats", { p_days: 7 });
+        if (error) {
+          console.error("wa_stats:", error.message);
+          await tgSend(cfg.token, chatId, "❌ ما قدرت أجيب حالة الواتساب");
+        } else {
+          const by = st?.by_status ?? {};
+          const label: Record<string, string> = {
+            sent: "انرسلت آلياً", linked: "انرسل رابطها", pending: "بالانتظار",
+            skipped: "انطنشت", failed: "فشلت",
+          };
+          const lines = Object.entries(by)
+            .map(([k, v]) => `• ${label[k] ?? k}: ${v}`).join("\n") || "• ماكو شي بعد";
+          const bad = (st?.bad_numbers ?? []) as any[];
+          await tgSend(cfg.token, chatId,
+            `📲 <b>رسائل الواتساب</b>\n` +
+            `الوضع: <b>${st?.mode === "cloud" ? "تلقائي كامل" : "نصف تلقائي (روابط)"}</b>\n` +
+            `بالطابور هسه: ${st?.pending ?? 0}\n` +
+            `────────────\n<b>آخر ٧ أيام</b>\n${lines}` +
+            (bad.length
+              ? `\n────────────\n⚠️ <b>أرقام غلط لازم تصلحها:</b>\n` +
+                bad.map((b) => `• ${esc(b.name ?? "—")} — <code>${esc(b.phone ?? "")}</code>`).join("\n")
+              : ""));
+        }
       } else if (cmd === "/debts" || cmd === "/ديون") {
         const { data: txt, error } = await db.rpc("overdue_debts_text");
         if (error) {
