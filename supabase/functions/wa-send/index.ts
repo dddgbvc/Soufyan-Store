@@ -73,7 +73,7 @@ async function tgSend(token: string, chatId: string, text: string, keyboard?: un
 }
 
 /** الإرسال الآلي عبر WhatsApp Cloud API. */
-async function sendCloud(cfg: any, row: Row): Promise<{ ok: boolean; reason?: string }> {
+async function sendCloud(cfg: any, row: Row): Promise<{ ok: boolean; reason?: string; wamid?: string }> {
   const url = `https://graph.facebook.com/${cfg.api_version}/${cfg.phone_id}/messages`;
   const res = await fetch(url, {
     method: "POST",
@@ -91,7 +91,10 @@ async function sendCloud(cfg: any, row: Row): Promise<{ ok: boolean; reason?: st
   });
 
   const json = await res.json().catch(() => ({}));
-  if (res.ok && json?.messages?.length) return { ok: true };
+  if (res.ok && json?.messages?.length) {
+    // نخزن معرّف Meta حتى wa-webhook يربط بيه تقارير التسليم
+    return { ok: true, wamid: json.messages[0]?.id };
+  }
 
   const code = String(json?.error?.code ?? res.status);
   const detail = json?.error?.error_user_msg ?? json?.error?.message ?? `HTTP ${res.status}`;
@@ -167,6 +170,9 @@ Deno.serve(async (req: Request) => {
         const r = await sendCloud(wa, row);
         if (r.ok) {
           await db.rpc("wa_mark", { p_id: row.id, p_status: "sent", p_provider: "cloud" });
+          if (r.wamid) {
+            await db.from("wa_messages").update({ provider_msg_id: r.wamid }).eq("id", row.id);
+          }
           sent++;
         } else {
           await db.rpc("wa_mark", {
