@@ -32,6 +32,7 @@ Supabase اللي تنمسح بعد ٢٤ ساعة.
 | `app_session_end(session_id, reason)` | anon | يغلق الجلسة |
 | `app_sessions_close_stale(minutes)` | service_role | يغلق الجلسات المنقطعة (cron كل ١٥ دقيقة) |
 | `app_sessions_report(days)` | service_role | تقرير الفتحات بتوقيت بغداد |
+| `app_sessions_devices(days)` | service_role | تقرير الأجهزة: IP، MAC، اسم الجهاز، النظام |
 
 `app_session_start` إذا لقى جلسة مفتوحة لنفس الجهاز ونبضتها أحدث من ١٥ دقيقة
 يرجّع نفس الجلسة — حتى إعادة إدخال الـPIN ما تنحسب فتح جديد.
@@ -66,6 +67,42 @@ window.addEventListener('beforeunload', () => {
   supabase.rpc('app_session_end', { p_session_id: sessionId, p_reason: 'normal' });
 });
 ```
+
+### معلومات الجهاز
+
+| المعلومة | تنلتقط من السيرفر؟ | المصدر |
+|---|---|---|
+| `ip` (العام) | ✅ تلقائي | ترويسة `cf-connecting-ip` |
+| `user_agent` | ✅ تلقائي | ترويسة `user-agent` |
+| `os` | ✅ تلقائي | يُستنتج من الـUser-Agent |
+| `country` | ✅ تلقائي | ترويسة `cf-ipcountry` |
+| `device_name` | ❌ | لازم البرنامج يرسله |
+| `local_ip` | ❌ | لازم البرنامج يرسله |
+| `mac` | ❌ **مستحيل** | عنوان MAC ما يطلع خارج الشبكة المحلية |
+
+الأول أربعة ينلتقطون بدون أي تعديل بالبرنامج — حتى عبر مسار الـPIN.
+الباقي لازم يرسله البرنامج:
+
+```js
+const os  = require('os');
+const nets = os.networkInterfaces();
+const primary = Object.values(nets).flat()
+  .find(n => !n.internal && n.family === 'IPv4');
+
+await supabase.rpc('app_session_start', {
+  p_terminal_id: terminalId,
+  p_app_version: app.getVersion(),
+  p_platform:    `${os.platform()} ${os.release()}`,
+  p_device_name: os.hostname(),      // اسم الجهاز
+  p_mac:         primary?.mac,       // MAC — من هنا فقط
+  p_local_ip:    primary?.address,   // IP المحلي داخل الشبكة
+});
+```
+
+> الـMAC يجي من البرنامج نفسه، يعني نظرياً ينكدر ينتحل إذا أحد عدّل نسخة
+> البرنامج. للتمييز بين الأجهزة بشكل موثوق يبقى `terminal_id` هو الأساس.
+
+تقرير الأجهزة: `select public.app_sessions_devices(30);`
 
 ### استعلامات جاهزة
 
