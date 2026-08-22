@@ -320,3 +320,45 @@ update public.bot_settings set value = jsonb_build_object(
 ```
 
 إطفاء نوع رسائل: `update wa_templates set enabled = false where kind = 'debt';`
+
+### الويبهوك (Callback URL)
+
+```
+https://tyfidwamnlraysqrfdgb.supabase.co/functions/v1/wa-webhook
+```
+
+رمز التحقق محفوظ بالخزنة باسم `whatsapp_verify_token` — اقراه بـ:
+
+```sql
+select decrypted_secret from vault.decrypted_secrets where name = 'whatsapp_verify_token';
+```
+
+> ⚠️ لا تكتب الرمز بالمستودع — المستودع عام.
+
+**الحقول المطلوبة بلوحة Meta** → WhatsApp → Configuration → Webhook:
+
+| الحقل | القيمة |
+|---|---|
+| Callback URL | الرابط أعلاه |
+| Verify token | من الخزنة |
+| Webhook fields | `messages` (يكفي) |
+
+**للتحقق من التوقيع** (اختياري بس مفضّل) ضيف سرّ التطبيق:
+
+```sql
+select vault.create_secret('<App Secret من Meta>', 'whatsapp_app_secret');
+```
+
+إذا انضاف، أي طلب بتوقيع غلط ينرفض. إذا مو موجود، الدالة تكمل وتكتب
+تنبيه بالسجل — حتى الضبط الأولي ما ينعطل.
+
+**شنو يسوي الويبهوك:**
+
+- `GET` — فحص ملكية الرابط: يرجّع `hub.challenge` إذا الرمز طابق (اختُبر ✅).
+- `POST statuses` — تقارير التسليم تنكتب بـ`wa_messages`:
+  `delivered_at` · `read_at` · والفشل ينعلّم `failed` مع السبب.
+- `POST messages` — رد الزبون ينسجل بـ`wa_inbound` **وينربط تلقائياً
+  بالزبون عبر رقمه** (اختُبر: `9647701234567` ← أحمد الجبوري ✅).
+
+رد الزبون مهم لأنه **يفتح نافذة ٢٤ ساعة** تسمح بإرسال نص حر — بدونها
+Meta تطلب قالب موافق عليه لكل رسالة.
