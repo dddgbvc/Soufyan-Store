@@ -324,6 +324,7 @@ function welcomeFor(id: any): string {
     `• أو بس <code>أحمد الجبوري سدد</code> ويطلعلك أزرار المبالغ\n\n` +
 
     `📁 <b>أوامر:</b>\n` +
+    `/ديون — الزبائن اللي تجاوزوا مهلة السداد\n` +
     `/backup — نسخة احتياطية ZIP\n` +
     `/id — رقمك بالتلي\n` +
     `/help — هذه القائمة\n` +
@@ -338,11 +339,18 @@ function welcomeFor(id: any): string {
 
 // ==================== payment flow ====================
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * الـcid يجي من callback_data، يعني من جهاز المستخدم وينكدر ينتحل.
+ * نتحقق من الشكل أولاً، وبعدين ننادي دالة بمعامل مكتوب —
+ * ممنوع نبني نص استعلام من مدخل خارجي.
+ */
 async function loadCustomer(cid: string) {
-  const { data } = await db.rpc("ai_query", {
-    p_sql: `select id, name, balance from customers where id = '${cid}'::uuid limit 1`,
-  });
-  return (data ?? [])[0];
+  if (!UUID.test(cid)) return null;
+  const { data, error } = await db.rpc("bot_get_customer", { p_customer_id: cid });
+  if (error) { console.error("bot_get_customer:", error.message); return null; }
+  return data ?? null;
 }
 
 async function startPayment(cfg: any, chatId: string, userId: number, customerQuery: string, amount: number | null) {
@@ -550,6 +558,14 @@ Deno.serve(async (req: Request) => {
         const preset = DEFAULTS[cfg.aiProvider] ?? DEFAULTS.openai;
         await tgSend(cfg.token, chatId,
           `🧠 <b>النموذج</b>\nالمزود: ${cfg.aiProvider}\nالنموذج: ${cfg.aiModel || preset.model}`);
+      } else if (cmd === "/debts" || cmd === "/ديون") {
+        const { data: txt, error } = await db.rpc("overdue_debts_text");
+        if (error) {
+          console.error("overdue_debts_text:", error.message);
+          await tgSend(cfg.token, chatId, "❌ ما قدرت أجيب الديون المتأخرة");
+        } else {
+          await tgSend(cfg.token, chatId, String(txt ?? "ماكو نتيجة."));
+        }
       } else if (cmd === "/backup" || cmd === "/نسخة") {
         await tgSend(cfg.token, chatId, "⏳ جاري تجهيز النسخة...");
         await sendBackup(cfg, [chatId]);
