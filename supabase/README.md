@@ -362,3 +362,69 @@ select vault.create_secret('<App Secret من Meta>', 'whatsapp_app_secret');
 
 رد الزبون مهم لأنه **يفتح نافذة ٢٤ ساعة** تسمح بإرسال نص حر — بدونها
 Meta تطلب قالب موافق عليه لكل رسالة.
+
+---
+
+## 8. سيناريو الاختبار المتكامل (`wa-demo`)
+
+```
+doc_invoice → buildInvoice → buildDocumentPdf → Storage → Cloud API
+```
+
+يشغّل بأمر واحد:
+
+```sql
+select net.http_post(
+  url := 'https://tyfidwamnlraysqrfdgb.supabase.co/functions/v1/wa-demo',
+  headers := jsonb_build_object('Content-Type','application/json',
+    'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets
+                       where name='telegram_webhook_secret')),
+  body := '{}'::jsonb, timeout_milliseconds := 120000);
+```
+
+`'{"dry_run":true}'` يبني الـPDF ويرفعه بلا إرسال · وتكدر تمرر
+`invoice` و `to` و `caption` و `filename` لتغيير أي شي.
+
+### درس مهم: ممنوع الكتابة المباشرة على الجداول
+
+جداول المشروع **بلا أي GRANT عمداً** — كل شي يمر عبر `SECURITY DEFINER`.
+يعني حتى بمفتاح `service_role`:
+
+```ts
+await db.from("wa_messages").insert({...})   // ❌ يفشل بـ42501 بصمت
+await db.rpc("wa_record_sent", {...})        // ✅
+```
+
+هاي بالضبط نفس جذر مشكلة الـ401 بالقسم ٢. انلكزت بالديمو: الرسالة
+انرسلت بنجاح بس ما انسجلت بالطابور. الدوال المضافة للتصليح:
+
+| الدالة | الفائدة |
+|---|---|
+| `wa_record_sent(...)` | يسجل رسالة مرسلة مع معرّف Meta |
+| `wa_set_wamid(id, wamid)` | يربط معرّف Meta برسالة موجودة |
+
+### تسجيل الرقم على الـCloud API
+
+رقم متحقق منه **مو كافي** للإرسال. لازم خطوة `register`، وبدونها
+كل إرسال يرجع `(#133010) Account not registered`:
+
+```sql
+select net.http_post(
+  url := 'https://graph.facebook.com/v21.0/<PHONE_NUMBER_ID>/register',
+  headers := jsonb_build_object('Content-Type','application/json',
+    'Authorization', 'Bearer ' || (select decrypted_secret
+       from vault.decrypted_secrets where name='whatsapp_token')),
+  body := jsonb_build_object('messaging_product','whatsapp','pin','<٦ أرقام>'));
+```
+
+الـPIN محفوظ بالخزنة باسم `whatsapp_2fa_pin`. لفحص حالة الرقم:
+
+```sql
+select net.http_get(url := 'https://graph.facebook.com/v21.0/<PHONE_NUMBER_ID>'
+  || '?fields=display_phone_number,verified_name,code_verification_status,status,platform_type',
+  headers := jsonb_build_object('Authorization','Bearer ' || (select decrypted_secret
+    from vault.decrypted_secrets where name='whatsapp_token')));
+```
+
+`status: PENDING` + `platform_type: NOT_APPLICABLE` = الرقم ما مسجّل بعد.
+بعد التسجيل الناجح يرجع `{"success": true}`.

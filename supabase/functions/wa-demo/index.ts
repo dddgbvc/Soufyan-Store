@@ -154,20 +154,18 @@ Deno.serve(async (req: Request) => {
     const wamid = apiResponse?.messages?.[0]?.id ?? null;
     if (res.ok && wamid) {
       step(`      ✅ انرسلت — معرّف الرسالة ${wamid}`);
-      // نسجلها بالطابور حتى الويبهوك يربط بيها تقارير التسليم
-      await db.from("wa_messages").insert({
-        kind: "welcome",
-        customer_id: doc.invoice?.customer_id ?? null,
-        customer_name: doc.invoice?.customer_name,
-        phone_raw: to,
-        phone: to,
-        body: caption,
-        status: "sent",
-        provider: "cloud",
-        provider_msg_id: wamid,
-        ref_table: "invoices",
-        sent_at: new Date().toISOString(),
+      // نسجلها بالطابور حتى الويبهوك يربط بيها تقارير التسليم.
+      // لازم RPC مو insert مباشر: جداول المشروع بلا GRANT عمداً،
+      // فالإدخال المباشر يفشل بـ42501.
+      const { error: recErr } = await db.rpc("wa_record_sent", {
+        p_kind: "welcome",
+        p_customer_name: doc.invoice?.customer_name ?? null,
+        p_phone: to,
+        p_body: caption,
+        p_provider_msg_id: wamid,
+        p_ref_table: "invoices",
       });
+      if (recErr) console.error("wa_record_sent فشل:", recErr.message);
     } else {
       step(`      ❌ فشل — ${apiResponse?.error?.message ?? `HTTP ${res.status}`}`);
     }

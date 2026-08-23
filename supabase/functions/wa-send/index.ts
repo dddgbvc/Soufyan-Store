@@ -171,7 +171,9 @@ Deno.serve(async (req: Request) => {
         if (r.ok) {
           await db.rpc("wa_mark", { p_id: row.id, p_status: "sent", p_provider: "cloud" });
           if (r.wamid) {
-            await db.from("wa_messages").update({ provider_msg_id: r.wamid }).eq("id", row.id);
+            // RPC مو update مباشر — الجداول بلا GRANT عمداً
+            const { error } = await db.rpc("wa_set_wamid", { p_id: row.id, p_wamid: r.wamid });
+            if (error) console.error("wa_set_wamid فشل:", error.message);
           }
           sent++;
         } else {
