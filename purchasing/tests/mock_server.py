@@ -83,7 +83,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send(200, (
                 'window.SOUFYAN_PURCHASING_CONFIG={'
                 'supabaseUrl:location.origin,supabaseKey:"test-key",'
-                'pinPepper:"SOUFYAN-PIN-v1:",idleMinutes:60,'
+                'pinPepper:"SOUFYAN-PIN-v1:",pinLength:6,idleMinutes:60,'
                 'requestTimeout:20,currency:"IQD"};'
             ), "application/javascript; charset=utf-8")
         # النسخة أحادية الملف، بإعدادات محلية — لاختبارها بنفس مجموعة الفحوص
@@ -93,7 +93,7 @@ class Handler(SimpleHTTPRequestHandler):
             html = re.sub(r"window\.SOUFYAN_PURCHASING_CONFIG\s*=\s*\{.*?\};",
                           lambda m: ('window.SOUFYAN_PURCHASING_CONFIG={'
                                      'supabaseUrl:location.origin,supabaseKey:"test-key",'
-                                     'pinPepper:"SOUFYAN-PIN-v1:",idleMinutes:60,'
+                                     'pinPepper:"SOUFYAN-PIN-v1:",pinLength:6,idleMinutes:60,'
                                      'requestTimeout:20,currency:"IQD"};'),
                           html, count=1, flags=re.S)
             html = re.sub(r"[ \t]*<link[^>]*fonts\.(googleapis|gstatic)\.com[^>]*>\s*\n?",

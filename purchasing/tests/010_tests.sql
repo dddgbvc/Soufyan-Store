@@ -38,12 +38,12 @@ do $$
 declare r jsonb;
 begin
   -- رمز خاطئ
-  r := public.purchase_login(public.t_pin('9999'), 'TERM-TEST');
+  r := public.purchase_login(public.t_pin('999999'), 'TERM-TEST');
   perform public.t_assert((r->>'ok')::boolean is false and r->>'reason' = 'wrong',
                           'رمز خاطئ يُرفض');
 
   -- الكاشير ممنوع من قسم الشراء
-  r := public.purchase_login(public.t_pin('3456'), 'TERM-TEST');
+  r := public.purchase_login(public.t_pin('907245'), 'TERM-TEST');
   perform public.t_assert((r->>'ok')::boolean is false and r->>'reason' = 'forbidden',
                           'الكاشير ممنوع من دخول قسم الشراء');
 
@@ -52,14 +52,14 @@ begin
   perform public.t_assert(r->>'reason' = 'invalid', 'رمز قصير/غير سداسي عشري يُرفض');
 
   -- المدير العام
-  r := public.purchase_login(public.t_pin('1234'), 'TERM-TEST');
+  r := public.purchase_login(public.t_pin('482913'), 'TERM-TEST');
   perform public.t_assert((r->>'ok')::boolean, 'المدير العام يدخل بنجاح');
   perform public.t_assert(length(r->>'token') = 64, 'الرمز ٦٤ خانة عشوائية');
   perform public.t_assert((r->>'can_settings')::boolean, 'المدير العام يملك الإعدادات');
   perform public.t_set('admin_token', r->>'token');
 
   -- المدير
-  r := public.purchase_login(public.t_pin('2345'), 'TERM-TEST2');
+  r := public.purchase_login(public.t_pin('350716'), 'TERM-TEST2');
   perform public.t_assert((r->>'ok')::boolean, 'المدير يدخل بنجاح');
   perform public.t_assert((r->>'can_settings')::boolean is false, 'المدير لا يملك الإعدادات');
   perform public.t_set('mgr_token', r->>'token');

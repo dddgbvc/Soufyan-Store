@@ -252,11 +252,11 @@ values
 
 insert into public.employees (name, display_name, role, pin_hash, status) values
   ('سفيان يوسف',  'سفيان',  'ADMIN',
-   encode(extensions.digest('SOUFYAN-PIN-v1:1234', 'sha256'), 'hex'), 'active'),
+   encode(extensions.digest('SOUFYAN-PIN-v1:482913', 'sha256'), 'hex'), 'active'),
   ('أنس سفيان',   'أنس',    'MANAGER',
-   encode(extensions.digest('SOUFYAN-PIN-v1:2345', 'sha256'), 'hex'), 'active'),
+   encode(extensions.digest('SOUFYAN-PIN-v1:350716', 'sha256'), 'hex'), 'active'),
   ('محمد إبراهيم','محمد',   'CASHIER',
-   encode(extensions.digest('SOUFYAN-PIN-v1:3456', 'sha256'), 'hex'), 'active');
+   encode(extensions.digest('SOUFYAN-PIN-v1:907245', 'sha256'), 'hex'), 'active');
 
 -- مبيعات آخر ٣٠ يومًا (لحساب سرعة البيع بشاشة النواقص)
 insert into public.invoices (invoice_number, total_amount, paid_amount, client_id)

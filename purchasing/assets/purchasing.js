@@ -442,6 +442,10 @@
   var lock = (function () {
     var pin = "", busy = false, node, msg, dots;
 
+    /* طول الرمز ثابت لكل الموظفين — تُحدّده pinLength بملف الإعدادات.
+       الثبات هو ما يسمح بالإرسال فور اكتمال الخانات بلا مؤقّت ولا زر تأكيد. */
+    var LEN = Math.max(4, Math.min(8, Math.trunc(Number(CFG.pinLength)) || 6));
+
     function paint() {
       for (var i = 0; i < dots.length; i++) dots[i].classList.toggle("on", i < pin.length);
     }
@@ -458,7 +462,7 @@
     }
 
     async function submit() {
-      if (busy || pin.length < 4) return;
+      if (busy || pin.length !== LEN) return;
       busy = true; say("");
       try {
         var hash = await sha256Hex((CFG.pinPepper || "") + pin);
@@ -486,19 +490,16 @@
       say("");
       if (k === "del") pin = pin.slice(0, -1);
       else if (k === "clear") pin = "";
-      else if (pin.length < 8) pin += k;
+      else if (pin.length < LEN) pin += k;
       paint();
-      if (pin.length >= 4 && k !== "del" && k !== "clear") {
-        // مهلة قصيرة تسمح بإكمال رمز أطول من ٤
-        clearTimeout(key._t);
-        key._t = setTimeout(function () { if (pin.length >= 4) submit(); }, 260);
-      }
+      // الإرسال لحظة اكتمال الخانات — بلا انتظار ولا زر إضافي
+      if (pin.length === LEN) submit();
     }
 
     function build() {
       dots = [];
       var dotRow = el("div.pin-dots", { "aria-hidden": "true" });
-      for (var i = 0; i < 4; i++) { var d = el("span.pin-dot"); dots.push(d); dotRow.appendChild(d); }
+      for (var i = 0; i < LEN; i++) { var d = el("span.pin-dot"); dots.push(d); dotRow.appendChild(d); }
 
       var pad = el("div.pin-pad");
       ["1", "2", "3", "4", "5", "6", "7", "8", "9"].forEach(function (n) {
@@ -522,7 +523,7 @@
         el("div.lock-card.glass", {}, [
           el("div.lock-mark", { "aria-hidden": "true" }, "🛒"),
           el("h1", { text: "قسم الشراء" }),
-          el("p", { text: "أدخل رمزك للدخول" }),
+          el("p", { text: "أدخل رمزك المكوّن من " + LEN + " أرقام" }),
           dotRow, pad, msg
         ])
       ]);
