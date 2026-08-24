@@ -4,6 +4,10 @@
 // يشتغل بوضعين حسب اللي متوفر بالخزنة:
 //
 //   cloud — WhatsApp Cloud API الرسمي: يدز الرسالة لحاله، بلا تدخل.
+//           جوّا نافذة الـ٢٤ ساعة يدز نص حر (أرخص وأمرن)،
+//           وبرّاها يدز قالباً معتمداً — لأن Meta ما تسمح بغيره.
+//           رسالة الشكر تنبنيلها فاتورة PDF وتنرفق بترويسة القالب.
+//
 //   link  — ماكو مفاتيح: يدز للمالك بتلغرام رسالة بيها زر،
 //           ضغطة وحدة يفتح واتساب والنص مكتوب جاهز.
 //
@@ -13,6 +17,8 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { buildDocumentPdf } from "../docgen/pdf.ts";
+import { buildInvoice, STORE } from "../docgen/documents.ts";
 
 const db = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -20,7 +26,20 @@ const db = createClient(
   { auth: { persistSession: false } },
 );
 
-type Row = { id: string; kind: string; phone: string; name: string | null; body: string };
+const BUCKET = "invoices";
+const TELEGRAM_ID = 8137310456; // هوية القراءة المستعملة مع doc_invoice
+
+type Row = {
+  id: string;
+  kind: string;
+  phone: string;
+  name: string | null;
+  body: string;
+  template_name: string | null;
+  template_params: string[];
+  window_open: boolean;
+  invoice_number: string | null;
+};
 
 const KIND_LABEL: Record<string, string> = {
   welcome: "شكر بعد الشراء",
@@ -33,7 +52,10 @@ const WA_ERRORS: Record<string, string> = {
   "131047": "خارج نافذة الـ٢٤ ساعة — يحتاج قالب موافق عليه من Meta",
   "131026": "الرقم مو مسجّل بواتساب",
   "131051": "نوع الرسالة مو مدعوم",
-  "133010": "الحساب مو مفعّل بالكامل عند Meta",
+  "132000": "عدد معاملات القالب ما يطابق المعتمد",
+  "132001": "القالب مو موجود أو مو معتمد بهذي اللغة",
+  "132015": "القالب متوقف عند Meta",
+  "133010": "الرقم مو مسجّل على الـCloud API — نفّذ خطوة register",
   "190": "التوكن منتهي — جدّده بالخزنة",
 };
 
@@ -72,41 +94,119 @@ async function tgSend(token: string, chatId: string, text: string, keyboard?: un
   return !!json.ok;
 }
 
-/** الإرسال الآلي عبر WhatsApp Cloud API. */
-async function sendCloud(cfg: any, row: Row): Promise<{ ok: boolean; reason?: string; wamid?: string }> {
-  const url = `https://graph.facebook.com/${cfg.api_version}/${cfg.phone_id}/messages`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.token}`,
+/**
+ * يبني فاتورة PDF ويرفعها ويرجّع رابطاً عاماً.
+ * يُستعمل لترويسة قالب الشكر — Meta تحتاج رابطاً تكدر تنزّل منه.
+ */
+async function invoicePdfLink(row: Row): Promise<string | null> {
+  if (!row.invoice_number) return null;
+  try {
+    const { data: doc, error } = await db.rpc("doc_invoice", {
+      p_telegram_id: TELEGRAM_ID,
+      p_invoice_number: row.invoice_number,
+    });
+    if (error || !doc?.ok) {
+      console.error("doc_invoice:", error?.message ?? doc?.error);
+      return null;
+    }
+
+    const pdf = await buildDocumentPdf(buildInvoice(doc).pdf, STORE);
+    const path = `auto/${row.invoice_number}-${Date.now()}.pdf`;
+
+    const { error: upErr } = await db.storage.from(BUCKET).upload(path, pdf, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+    if (upErr) {
+      console.error("storage.upload:", upErr.message);
+      return null;
+    }
+
+    const { data: pub } = db.storage.from(BUCKET).getPublicUrl(path);
+    await db.rpc("wa_set_media_url", { p_id: row.id, p_url: pub.publicUrl });
+    return pub.publicUrl;
+  } catch (e) {
+    console.error("invoicePdfLink:", String(e));
+    return null;
+  }
+}
+
+/** يبني جسم الطلب: نص حر جوّا النافذة، وقالب برّاها. */
+async function buildPayload(row: Row): Promise<Record<string, unknown>> {
+  const base = { messaging_product: "whatsapp", recipient_type: "individual", to: row.phone };
+
+  // جوّا النافذة النص الحر مسموح — أوضح وأرخص، وما يحتاج اعتماد
+  if (row.window_open || !row.template_name) {
+    return { ...base, type: "text", text: { preview_url: false, body: row.body } };
+  }
+
+  const components: unknown[] = [];
+
+  // ترويسة المستند لرسالة الشكر: الفاتورة تنرفق بنفس الرسالة
+  if (row.kind === "welcome") {
+    const link = await invoicePdfLink(row);
+    if (link) {
+      components.push({
+        type: "header",
+        parameters: [{
+          type: "document",
+          document: { link, filename: "فاتورة_الشراء.pdf" },
+        }],
+      });
+    }
+  }
+
+  if (row.template_params?.length) {
+    components.push({
+      type: "body",
+      parameters: row.template_params.map((v) => ({ type: "text", text: String(v) })),
+    });
+  }
+
+  return {
+    ...base,
+    type: "template",
+    template: {
+      name: row.template_name,
+      language: { code: "ar" },
+      ...(components.length ? { components } : {}),
     },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: row.phone,
-      type: "text",
-      text: { preview_url: false, body: row.body },
-    }),
+  };
+}
+
+/** الإرسال الآلي عبر WhatsApp Cloud API. */
+async function sendCloud(
+  cfg: any,
+  row: Row,
+): Promise<{ ok: boolean; reason?: string; wamid?: string; via: string }> {
+  const payload = await buildPayload(row);
+  const via = payload.type === "template"
+    ? `قالب ${row.template_name}`
+    : "نص حر (النافذة مفتوحة)";
+  console.log(`  ${row.id} → ${via}`);
+
+  const res = await fetch(`https://graph.facebook.com/${cfg.api_version}/${cfg.phone_id}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.token}` },
+    body: JSON.stringify(payload),
   });
 
   const json = await res.json().catch(() => ({}));
   if (res.ok && json?.messages?.length) {
-    // نخزن معرّف Meta حتى wa-webhook يربط بيه تقارير التسليم
-    return { ok: true, wamid: json.messages[0]?.id };
+    return { ok: true, wamid: json.messages[0]?.id, via };
   }
 
   const code = String(json?.error?.code ?? res.status);
   const detail = json?.error?.error_user_msg ?? json?.error?.message ?? `HTTP ${res.status}`;
-  return { ok: false, reason: WA_ERRORS[code] ?? `${code}: ${String(detail).slice(0, 150)}` };
+  console.error(`  ⇢ فشل ${code}:`, JSON.stringify(json).slice(0, 300));
+  return { ok: false, reason: WA_ERRORS[code] ?? `${code}: ${String(detail).slice(0, 150)}`, via };
 }
 
 /** الوضع نصف الآلي: رسالة تلغرام بيها زر يفتح واتساب. */
 async function sendLink(tgToken: string, chatId: string, row: Row): Promise<boolean> {
   const link = waLink(row.phone, row.body);
 
-  const text =
-    `📲 <b>رسالة واتساب جاهزة</b>\n` +
+  const text = `📲 <b>رسالة واتساب جاهزة</b>\n` +
     `النوع: ${KIND_LABEL[row.kind] ?? row.kind}\n` +
     `الزبون: <b>${esc(row.name ?? "—")}</b> — <code>${row.phone}</code>\n` +
     `────────────\n` +
@@ -125,7 +225,6 @@ async function sendLink(tgToken: string, chatId: string, row: Row): Promise<bool
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response("method not allowed", { status: 405 });
 
-  // إعدادات تلغرام (للمصادقة والوضع نصف الآلي)
   const { data: tgData, error: tgErr } = await db.rpc("tg_config");
   if (tgErr) {
     console.error("tg_config:", tgErr.message);
@@ -151,7 +250,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (batch?.paused) {
-    console.log("paused:", batch.reason);
+    console.log("متوقف:", batch.reason);
     return Response.json({ ok: true, paused: true, reason: batch.reason });
   }
 
@@ -163,6 +262,7 @@ Deno.serve(async (req: Request) => {
     .filter(Boolean)[0];
 
   let sent = 0, failed = 0;
+  const detail: unknown[] = [];
 
   for (const row of rows) {
     try {
@@ -176,12 +276,13 @@ Deno.serve(async (req: Request) => {
             if (error) console.error("wa_set_wamid فشل:", error.message);
           }
           sent++;
+          detail.push({ id: row.id, ok: true, via: r.via, wamid: r.wamid });
         } else {
           await db.rpc("wa_mark", {
             p_id: row.id, p_status: "failed", p_provider: "cloud", p_reason: r.reason,
           });
           failed++;
-          console.error("cloud send failed:", row.id, r.reason);
+          detail.push({ id: row.id, ok: false, via: r.via, reason: r.reason });
         }
       } else {
         if (!owner) {
@@ -200,6 +301,7 @@ Deno.serve(async (req: Request) => {
           p_reason: ok ? null : "تعذّر إرسال الرابط بتلغرام",
         });
         ok ? sent++ : failed++;
+        detail.push({ id: row.id, ok, via: "رابط تلغرام" });
       }
     } catch (e) {
       console.error("send error:", row.id, String(e));
@@ -211,5 +313,5 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return Response.json({ ok: true, mode: wa.mode, sent, failed, total: rows.length });
+  return Response.json({ ok: true, mode: wa.mode, sent, failed, total: rows.length, detail });
 });
