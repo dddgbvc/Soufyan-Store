@@ -27,6 +27,7 @@ create or replace function public.purchase_role_rank(p_role text)
 returns integer
 language sql
 immutable
+set search_path to 'public'
 as $$
   select case p_role when 'ADMIN' then 3 when 'MANAGER' then 2 when 'CASHIER' then 1 else 0 end;
 $$;
