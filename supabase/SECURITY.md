@@ -129,15 +129,30 @@ on functions from public`). لفتح دالة جديدة للعميل لازم `
 
 ## أمور مفتوحة معروفة
 
-### نشر `powersync` على كل الجداول
-منشور `FOR ALL TABLES`، يعني يشمل `vault.secrets` و`auth.users` و`storage.objects`
-و`cron.job` وكل جداول المحل. **ماكو replication slot يستهلكه** فهو معلّق
-وغير فعّال، والاشتراك يحتاج اتصال replication بدور له صلاحية REPLICATION —
-مو شي يوصله مفتاح الـAPI.
+### نشر `powersync` على كل الجداول — مُبقى عمداً
+منشور `FOR ALL TABLES` (٧٥ جدولاً)، يشمل `vault.secrets` و`auth.users`
+و`storage.objects` و`cron.job` وكل جداول المحل.
 
-بس نطاق الانفجار أوسع من اللازم: أي تسريب لبيانات اعتماد replication يعطي
-بثّاً حيّاً لـ`vault.secrets`. إذا PowerSync مو مستعمل، احذف المنشور. وإذا
-مستعمل، أعد إنشاءه بقائمة جداول صريحة بدل `FOR ALL TABLES`.
+**القرار: يبقى.** اتخذه صاحب المشروع بـ٢٠٢٦-٠٨-٢٥ بعد عرض الحذف.
+
+ما يخلّيه غير ضار اليوم:
+
+| | |
+|---|---|
+| replication slots | ٠ |
+| بثّ نشط | ٠ |
+| دور أو schema أو جدول يخص PowerSync | ماكو |
+
+يعني الربط ما اكتمل أصلاً — انكتب سطر `CREATE PUBLICATION` ووقف. والاشتراك
+يحتاج اتصال replication بدور له صلاحية REPLICATION، ومفتاح الـAPI ما يوصله.
+الأدوار اللي تكدر: `postgres`, `supabase_admin`, `supabase_etl_admin`,
+`supabase_replication_admin` — كلها أدوار منصّة.
+
+**ما يقلب التقدير:** أول ما ينفتح slot على هذا المنشور، يصير فيه بثّ حيّ
+لـ`vault.secrets` و`auth.users` لأي جهة تستهلكه. عند تشغيل PowerSync فعلياً،
+أعد إنشاء المنشور بقائمة جداول صريحة — الجداول اللي تحتاج مزامنة بس — بدل
+`FOR ALL TABLES`. وراقب `pg_replication_slots`: أي slot ما تعرف مصدره يعني
+أحد يبثّ نسخة من القاعدة.
 
 ### `supabase_realtime` يشمل جداول حسّاسة
 منشور فيه ١١ جدولاً، منهن `employees` و`vault_entries`. الـRLS وانعدام
