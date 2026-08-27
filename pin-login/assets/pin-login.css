@@ -1,0 +1,771 @@
+/* =====================================================================
+   PIN Login — Apple Materials × Fluent Acrylic × Technical Grid
+   ورقة التنسيقات الأساسية (تُستخدم من الديمو ومن مكوّن React معاً)
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1) التوكنز — Primitives تُسمّى بالدرجة، Semantics تُسمّى بالدور
+   --------------------------------------------------------------------- */
+:root {
+  color-scheme: light dark;
+
+  /* --- Primitives: سلّم محايد بارد (لا يُستخدم مباشرة داخل المكوّنات) --- */
+  --n-0:   #ffffff;
+  --n-50:  #f5f5f7;
+  --n-100: #ebebf0;
+  --n-200: #e0e0e6;
+  --n-300: #c7c7cc;
+  --n-400: #aeaeb2;
+  --n-500: #8e8e93;
+  --n-600: #6b6b70;
+  --n-700: #48484a;
+  --n-800: #2c2c2e;
+  --n-900: #1c1c1e;
+  --n-950: #0d0d0f;
+
+  --blue-400: #6cb6ff;
+  --blue-500: #0a84ff;
+  --blue-600: #0069d9;
+  --blue-700: #0062cc;
+
+  --green-500: #30d158;
+  --green-600: #2ea043;
+  --green-700: #248a3d;
+  --green-800: #17803d;
+
+  --red-400: #ff6961;
+  --red-500: #ff3b30;
+  --red-700: #d70015;
+
+  /* --- Semantics: كل توكن له دور واحد فقط --- */
+  /* أوف وايت بارد: أعمق قليلاً من الأبيض كي تطفو البطاقة فوقه */
+  --bg-canvas:        #eceef3;
+  --bg-grid-fine:     rgba(100, 116, 139, 0.26);
+  --bg-grid-major:    rgba(71, 85, 105, 0.20);
+  --bg-glow-cool:     rgba(10, 132, 255, 0.09);
+  --bg-glow-warm:     rgba(255, 159, 10, 0.06);
+  --bg-vignette:      rgba(236, 238, 243, 0.62);
+
+  --surface-card:     rgba(255, 255, 255, 0.74);
+  /* المفاتيح تعبئة نظامية أغمق قليلاً من البطاقة: تُقرأ كعناصر تفاعلية لا كخلفية */
+  --surface-key:      rgba(118, 118, 128, 0.15);
+  --surface-key-press:rgba(118, 118, 128, 0.30);
+  --surface-quiet:    rgba(118, 118, 128, 0.10);
+  --surface-badge:    rgba(255, 255, 255, 0.70);
+
+  --edge-glass:       rgba(255, 255, 255, 0.85);   /* الحافة المضيئة أعلى المادة */
+  --border-glass:     rgba(16, 18, 27, 0.08);
+  --separator:        rgba(16, 18, 27, 0.10);
+
+  --text-primary:     var(--n-900);
+  --text-secondary:   var(--n-600);
+  --text-on-accent:   #ffffff;
+
+  --accent-solid:     var(--blue-600);
+  --accent-solid-top: var(--blue-500);
+  --accent-text:      var(--blue-700);
+  --focus-ring:       var(--blue-500);
+
+  --success-solid:    var(--green-700);
+  --success-text:     var(--green-800);
+  --success-soft:     rgba(48, 209, 88, 0.14);
+
+  --danger-text:      var(--red-700);
+  --danger-solid:     var(--red-500);
+  --danger-soft:      rgba(255, 59, 48, 0.10);
+  --danger-edge:      rgba(255, 59, 48, 0.22);
+
+  --dot-empty:        rgba(16, 18, 27, 0.16);
+  --dot-filled:       var(--n-900);
+
+  /* --- الظلال: طبقتان (ضوء رئيسي + ضوء محيط) بدل الحدود --- */
+  --shadow-card:
+    0 1px 2px rgba(16, 18, 27, 0.05),
+    0 10px 26px -10px rgba(16, 18, 27, 0.12),
+    0 34px 68px -28px rgba(16, 18, 27, 0.22);
+  --shadow-accent:
+    0 1px 2px rgba(0, 78, 168, 0.24),
+    0 8px 18px -8px rgba(0, 78, 168, 0.45);
+
+  /* --- الأشكال: أنصاف الأقطار متراكزة (خارجي = داخلي + الحشو) --- */
+  --r-card: 34px;
+  --pad-card: 22px;
+  --r-inner: 12px;      /* 34 − 22 */
+  --r-badge: 999px;
+
+  /* --- المقاسات --- */
+  --key-size: clamp(52px, 19vw, 84px);                 /* احتياط للمتصفحات بلا dvh */
+  --key-size: clamp(52px, min(19vw, 9.4dvh), 84px);    /* يتقلّص مع العرض والارتفاع معاً */
+  --key-gap:  clamp(10px, 2.2vw, 15px);
+  --keypad-w: calc(var(--key-size) * 3 + var(--key-gap) * 2);
+
+  /* --- الحركة: response = زمن الوصول، bounce = التجاوز --- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-press: 110ms;
+  --t-state: 180ms;
+
+  /* --- الخطوط: خط النظام أولاً (يجلب التحجيم البصري والتتبّع جاهزاً) --- */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Arabic",
+             "Segoe UI Variable Text", "Segoe UI", "Noto Sans Arabic",
+             "Tajawal", system-ui, sans-serif;
+  --font-num: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono",
+              Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-canvas:        #0b0b0d;
+    --bg-grid-fine:     rgba(148, 163, 184, 0.16);
+    --bg-grid-major:    rgba(203, 213, 225, 0.13);
+    --bg-glow-cool:     rgba(10, 132, 255, 0.16);
+    --bg-glow-warm:     rgba(255, 159, 10, 0.07);
+    --bg-vignette:      rgba(11, 11, 13, 0.70);
+
+    --surface-card:     rgba(34, 34, 37, 0.72);
+    --surface-key:      rgba(142, 142, 147, 0.24);
+    --surface-key-press:rgba(142, 142, 147, 0.44);
+    --surface-quiet:    rgba(142, 142, 147, 0.16);
+    --surface-badge:    rgba(44, 44, 47, 0.70);
+
+    --edge-glass:       rgba(255, 255, 255, 0.14);
+    --border-glass:     rgba(255, 255, 255, 0.10);
+    --separator:        rgba(255, 255, 255, 0.12);
+
+    --text-primary:     var(--n-50);
+    --text-secondary:   #98989d;
+
+    --accent-solid:     var(--blue-600);
+    --accent-solid-top: var(--blue-500);
+    --accent-text:      var(--blue-400);
+    --focus-ring:       var(--blue-500);
+
+    --success-solid:    var(--green-600);
+    --success-text:     var(--green-500);
+    --success-soft:     rgba(48, 209, 88, 0.16);
+
+    --danger-text:      var(--red-400);
+    --danger-solid:     var(--red-500);
+    --danger-soft:      rgba(255, 69, 58, 0.14);
+    --danger-edge:      rgba(255, 69, 58, 0.28);
+
+    --dot-empty:        rgba(255, 255, 255, 0.20);
+    --dot-filled:       var(--n-50);
+
+    --shadow-card:
+      0 1px 2px rgba(0, 0, 0, 0.40),
+      0 12px 30px -12px rgba(0, 0, 0, 0.60),
+      0 36px 72px -30px rgba(0, 0, 0, 0.75);
+    --shadow-accent:
+      0 1px 2px rgba(0, 0, 0, 0.45),
+      0 8px 18px -8px rgba(0, 60, 130, 0.70);
+  }
+}
+
+/* التبديل اليدوي للمظهر (لوضع العرض) — آلية تبديل واحدة عبر [data-theme] */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
+
+/* ---------------------------------------------------------------------
+   2) الأساس
+   --------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  justify-items: center;
+  /* safe: حين يتجاوز المحتوى ارتفاع الشاشة يلتصق بالأعلى بدل أن يُقص من الطرفين */
+  align-content: center;
+  align-content: safe center;
+  overflow-y: auto;
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* حلقة تركيز واحدة ومرئية لكل عنصر تفاعلي */
+:where(button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: var(--r-inner);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   3) الخلفية — شبكة تقنية + هالتان تمنحان الزجاج شيئاً يكسره
+   --------------------------------------------------------------------- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.backdrop__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: opacity;
+}
+.backdrop__glow--cool {
+  inset-block-start: -18%;
+  inset-inline-start: -12%;
+  inline-size: 62vmax; block-size: 62vmax;
+  background: var(--bg-glow-cool);
+}
+.backdrop__glow--warm {
+  inset-block-end: -22%;
+  inset-inline-end: -14%;
+  inline-size: 54vmax; block-size: 54vmax;
+  background: var(--bg-glow-warm);
+}
+
+/* أكبر من إطار العرض بمقدار الربع، فلا تنكشف حوافها وهي تتمدّد للخارج */
+.backdrop__grid {
+  position: absolute;
+  top: -25%;
+  left: -25%;
+  width: 150%;
+  height: 150%;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+/* ألوان الشبكة تُضبط من CSS لا من سمات SVG، فتتبع المظهر الفاتح والداكن */
+.grid-line--fine  { stroke: var(--bg-grid-fine); }
+.grid-line--major { stroke: var(--bg-grid-major); }
+.grid-fade        { stop-color: var(--bg-vignette); }
+
+/* ---------------------------------------------------------------------
+   4) البطاقة — مادة زجاجية بحافة مضيئة أعلاها
+   --------------------------------------------------------------------- */
+.stage {
+  position: relative;
+  z-index: 1;
+  inline-size: min(374px, 100%);
+}
+
+.card {
+  position: relative;
+  padding: var(--pad-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--r-card);
+  background: var(--surface-card);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: var(--shadow-card), inset 0 1px 0 var(--edge-glass);
+  overflow: hidden;
+  will-change: height;
+}
+
+/* الطبقتان تتقاطعان أثناء الانتقال: الخروج يُرفع من التدفّق */
+.card__view { display: grid; }
+.card__view--leaving {
+  position: absolute;
+  inset: var(--pad-card) var(--pad-card) auto;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------
+   5) الترويسة
+   --------------------------------------------------------------------- */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block-end: 20px;
+}
+
+.header__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(180deg, var(--n-700), var(--n-900));
+  box-shadow: 0 1px 2px rgba(16,18,27,.25), inset 0 1px 0 rgba(255,255,255,.22);
+}
+@media (prefers-color-scheme: dark) {
+  /* على سطح داكن تنقلب العلامة إلى فاتحة كي تبقى مرئية */
+  .header__mark {
+    color: var(--n-900);
+    background: linear-gradient(180deg, #fbfbfd, #d4d4da);
+    box-shadow: 0 1px 2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+}
+.header__mark svg { inline-size: 22px; block-size: 22px; }
+
+.header__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.014em;   /* تتبّع سالب للحجم الأكبر */
+  text-wrap: balance;
+}
+
+.header__subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* ---------------------------------------------------------------------
+   6) نقاط الـ PIN
+   --------------------------------------------------------------------- */
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-block-size: 26px;
+  margin-block-end: 6px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dot {
+  inline-size: 13px;
+  block-size: 13px;
+  border-radius: 50%;
+  background: var(--dot-empty);
+  transition:
+    background-color var(--t-state) var(--ease-out),
+    box-shadow var(--t-state) var(--ease-out);
+  will-change: transform;
+}
+.dot[data-filled="true"] {
+  background: var(--dot-filled);
+}
+.dot[data-next="true"] {
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus-ring) 22%, transparent);
+}
+.dot[data-optional="true"]:not([data-filled="true"]) {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--dot-empty);
+}
+.dots[data-state="error"] .dot[data-filled="true"] { background: var(--danger-solid); }
+.dots[data-state="busy"]  .dot[data-filled="true"] { background: var(--accent-solid); }
+
+/* ---------------------------------------------------------------------
+   7) شريط الرسالة — يحجز مكانه دائماً فلا تقفز الواجهة
+   --------------------------------------------------------------------- */
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-block-size: 18px;
+  margin-block-end: 14px;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--text-secondary);
+  transition: color var(--t-state) var(--ease-out);
+}
+.notice[data-tone="error"] { color: var(--danger-text); }
+.notice__icon { flex: none; inline-size: 15px; block-size: 15px; }
+.notice[data-tone="idle"] .notice__icon { display: none; }
+
+/* ---------------------------------------------------------------------
+   8) لوحة الأرقام — مفاتيح دائرية بمادة فاتحة
+   --------------------------------------------------------------------- */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, var(--key-size));
+  gap: var(--key-gap);
+  justify-content: center;
+  inline-size: var(--keypad-w);
+  margin-inline: auto;
+  margin-block-end: 18px;
+}
+
+.key {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--key-size);
+  block-size: var(--key-size);
+  border-radius: 50%;
+  background: var(--surface-key);
+  color: var(--text-primary);
+  font-family: var(--font-num);
+  font-size: clamp(20px, 4.6vw, 26px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color var(--t-press) var(--ease-out),
+    scale var(--t-press) var(--ease-out),
+    box-shadow var(--t-press) var(--ease-out);
+}
+
+/* الاستجابة عند الضغط لا عند الإفلات — بلا JavaScript */
+.key:active,
+.key[data-pressed="true"] {
+  background: var(--surface-key-press);
+  scale: 0.96;
+}
+
+@media (hover: hover) {
+  .key:hover { background: var(--surface-key-press); }
+}
+
+.key--utility {
+  background: var(--surface-quiet);
+  color: var(--text-secondary);
+}
+.key--utility svg { inline-size: 26px; block-size: 26px; }
+
+/* ---------------------------------------------------------------------
+   9) الإجراء الأساسي + الأزرار المساعدة
+   --------------------------------------------------------------------- */
+.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  inline-size: 100%;
+  min-block-size: 50px;
+  margin-block-end: 10px;
+  border-radius: var(--r-inner);
+  background: linear-gradient(180deg, var(--accent-solid-top), var(--accent-solid));
+  color: var(--text-on-accent);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.006em;
+  box-shadow: var(--shadow-accent), inset 0 1px 0 rgba(255,255,255,.24);
+  transition:
+    scale var(--t-press) var(--ease-out),
+    filter var(--t-press) var(--ease-out),
+    background-color var(--t-state) var(--ease-out),
+    color var(--t-state) var(--ease-out);
+}
+.submit:active { scale: 0.98; filter: brightness(0.94); }
+
+/* قبل اكتمال الحد الأدنى يبقى الزر مفعّلاً لكنه هادئ — والضغط عليه يشرح الناقص */
+.submit[data-ready="false"] {
+  background: var(--surface-quiet);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+.submit[data-busy="true"] { pointer-events: none; }
+
+.submit__spinner {
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35);
+  border-block-start-color: #fff;
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin { to { rotate: 360deg; } }
+
+.helpers {
+  display: grid;
+  /* minmax(0,…) يمنع نص الزر من توسيع العمود خارج البطاقة */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-block-end: 12px;
+}
+
+/* الصفّان يتكدّسان حين يضيق العرض عن سطر واحد لكل زر — الانكسار من المحتوى لا من مقاس جهاز */
+@media (max-width: 380px) {
+  .helpers { grid-template-columns: 1fr; }
+}
+
+.helper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-block-size: 46px;
+  padding-inline: 10px;
+  border-radius: var(--r-inner);
+  background: var(--surface-quiet);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 550;
+  text-align: center;
+  transition:
+    background-color var(--t-press) var(--ease-out),
+    color var(--t-press) var(--ease-out),
+    scale var(--t-press) var(--ease-out);
+}
+.helper:active { scale: 0.97; background: var(--surface-key-press); }
+@media (hover: hover) {
+  .helper:hover { color: var(--text-primary); background: var(--surface-key); }
+}
+.helper span { white-space: nowrap; }
+.helper svg { flex: none; inline-size: 18px; block-size: 18px; }
+
+.hint {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+@media (pointer: coarse) { .hint { display: none; } }
+
+/* ---------------------------------------------------------------------
+   10) بطاقة الترحيب
+   --------------------------------------------------------------------- */
+.welcome {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-block: 18px 6px;
+  text-align: center;
+}
+
+.welcome__seal {
+  display: grid;
+  place-items: center;
+  inline-size: 62px;
+  block-size: 62px;
+  border-radius: 50%;
+  background: var(--success-solid);
+  color: #fff;
+  box-shadow:
+    0 8px 22px -10px color-mix(in oklab, var(--success-solid) 80%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.28);
+  will-change: transform;
+}
+.welcome__seal svg { inline-size: 32px; block-size: 32px; }
+.welcome__check {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+}
+
+.welcome__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;   /* النص الأكبر يحتاج تتبّعاً أضيق */
+  text-wrap: balance;
+}
+
+.welcome__role {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--r-badge);
+  background: var(--success-soft);
+  color: var(--success-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.welcome__role::before {
+  content: "";
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.welcome__progress {
+  inline-size: 128px;
+  block-size: 4px;
+  border-radius: 999px;
+  background: var(--separator);
+  overflow: hidden;
+}
+.welcome__bar {
+  display: block;
+  block-size: 100%;
+  inline-size: 0%;
+  border-radius: inherit;
+  background: var(--success-solid);
+}
+
+/* ---------------------------------------------------------------------
+   11) شارات وضع العرض (خارج المكوّن — لا يحتاجها التطبيق الحقيقي)
+   --------------------------------------------------------------------- */
+
+/* الشريط العلوي ثابت، فنحجز له مساحة كي لا يغطّي البطاقة على الشاشات القصيرة */
+body.demo-page { padding-block-start: max(68px, calc(env(safe-area-inset-top) + 60px)); }
+
+.demo-bar {
+  position: fixed;
+  inset-block-start: max(14px, env(safe-area-inset-top));
+  inset-inline: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-inline: 16px;
+}
+
+.demo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--r-badge);
+  background: var(--surface-badge);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 4px 14px -8px rgba(16,18,27,.35);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.demo-pill code {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.demo-toggle {
+  display: grid;
+  place-items: center;
+  inline-size: 38px;
+  block-size: 38px;
+  border: 1px solid var(--border-glass);
+  border-radius: 50%;
+  background: var(--surface-badge);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  color: var(--text-secondary);
+  transition: scale var(--t-press) var(--ease-out), color var(--t-press) var(--ease-out);
+}
+.demo-toggle:active { scale: 0.94; }
+.demo-toggle svg { inline-size: 18px; block-size: 18px; }
+
+.toasts {
+  position: fixed;
+  inset-block-end: max(20px, env(safe-area-inset-bottom));
+  inset-inline: 0;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-inline: 16px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 10px 16px;
+  border-radius: var(--r-badge);
+  background: color-mix(in oklab, var(--n-900) 92%, transparent);
+  color: var(--n-50);
+  font-size: 13px;
+  font-weight: 550;
+  box-shadow: 0 10px 30px -12px rgba(0,0,0,.55);
+  will-change: transform, opacity;
+}
+
+/* ---------------------------------------------------------------------
+   12) الشاشات القصيرة — تُضغط اللوحة قبل أن تُقص
+   --------------------------------------------------------------------- */
+@media (max-height: 740px) {
+  :root { --pad-card: 18px; --r-card: 30px; --r-inner: 12px; }
+  .header { margin-block-end: 14px; }
+  .header__mark { inline-size: 40px; block-size: 40px; border-radius: 12px; }
+  .notice { margin-block-end: 10px; }
+  .keypad { margin-block-end: 13px; }
+  .helper { min-block-size: 42px; }
+  .submit { min-block-size: 46px; }
+}
+
+/* ---------------------------------------------------------------------
+   13) تفضيلات المستخدم — الحركة والشفافية والتباين
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .submit__spinner { animation-duration: 900ms !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .card, .demo-pill, .demo-toggle {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root {
+    --surface-card: #ffffff;
+    --surface-key: #ffffff;
+    --surface-quiet: #f2f2f5;
+    --surface-badge: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-card: #1c1c1e;
+      --surface-key: #2c2c2e;
+      --surface-quiet: #242426;
+      --surface-badge: #1c1c1e;
+    }
+  }
+  .backdrop__glow { display: none; }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --surface-card: Canvas;
+    --surface-key: Canvas;
+    --border-glass: currentColor;
+    --text-secondary: var(--text-primary);
+  }
+  .card, .key, .helper, .submit { border: 1px solid var(--border-glass); }
+  .backdrop { opacity: 0.35; }
+}
+
+@media (forced-colors: active) {
+  .card, .key, .helper, .submit { border: 1px solid CanvasText; }
+  .dot[data-filled="true"] { background: CanvasText; }
+  .dot { border: 1px solid CanvasText; }
+  .backdrop { display: none; }
+}

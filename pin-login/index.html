@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <!-- التكبير مسموح: منعه يكسر إمكانية الوصول على الأجهزة اللمسية -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#eceef3" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
+  <title>تسجيل الدخول — نظام نقاط البيع</title>
+  <link rel="stylesheet" href="assets/pin-login.css" />
+</head>
+
+<body class="demo-page">
+
+  <!-- الخلفية: هالتان ناعمتان تمنحان الزجاج ما يكسره، وفوقهما الشبكة التقنية -->
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop__glow backdrop__glow--cool" data-glow></div>
+    <div class="backdrop__glow backdrop__glow--warm" data-glow></div>
+    <svg class="backdrop__grid" id="grid" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid-fine" width="44" height="44" patternUnits="userSpaceOnUse">
+          <path class="grid-line grid-line--fine" d="M44 0H0v44" fill="none" stroke-width="0.6" />
+        </pattern>
+        <pattern id="grid-major" width="176" height="176" patternUnits="userSpaceOnUse">
+          <rect width="176" height="176" fill="url(#grid-fine)" />
+          <path class="grid-line grid-line--major" d="M176 0H0v176" fill="none" stroke-width="1" />
+        </pattern>
+        <radialGradient id="grid-vignette" cx="50%" cy="50%" r="72%">
+          <stop class="grid-fade" offset="35%" stop-opacity="0" />
+          <stop class="grid-fade" offset="100%" stop-opacity="1" />
+        </radialGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid-major)" />
+      <rect width="100%" height="100%" fill="url(#grid-vignette)" />
+    </svg>
+  </div>
+
+  <!-- شريط وضع العرض (ليس جزءاً من المكوّن) -->
+  <div class="demo-bar">
+    <p class="demo-pill">عرض توضيحي · الرمز الصحيح <code>1234</code></p>
+    <button type="button" class="demo-toggle" id="theme-toggle" aria-label="تبديل المظهر"></button>
+  </div>
+
+  <!-- المكوّن -->
+  <main id="pin-login"></main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="assets/pin-login.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    var reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    var grid = document.getElementById("grid");
+    var glows = Array.prototype.slice.call(document.querySelectorAll("[data-glow]"));
+    var toasts = document.getElementById("toasts");
+
+    /* ---------- انفجار الشبكة: تتمدّد للخارج وتتلاشى (≈300ms) ---------- */
+    function burstGrid() {
+      if (reduced.matches) return;   // الحركة المخفّضة: نترك الخلفية كما هي
+      new PinLogin.Spring({
+        from: 0, to: 1, response: 0.5, bounce: 0, epsilon: 0.002,
+        onUpdate: function (p) {
+          grid.style.transform = "scale(" + (1 + p * 1.5) + ")";
+          grid.style.opacity = String(Math.max(0, 1 - p * 1.4));
+          grid.style.filter = "blur(" + p * 4 + "px)";   // ضبابية الحركة تُشعر بالسرعة
+          glows.forEach(function (g) { g.style.opacity = String(1 - p * 0.6); });
+        }
+      });
+    }
+
+    function restoreGrid() {
+      grid.style.transform = "";
+      grid.style.opacity = "";
+      grid.style.filter = "";
+      glows.forEach(function (g) { g.style.opacity = ""; });
+    }
+
+    /* ---------- رسائل وضع العرض ---------- */
+    function toast(text) {
+      var el = document.createElement("div");
+      el.className = "toast";
+      el.textContent = text;
+      toasts.appendChild(el);
+      new PinLogin.Spring({
+        from: 0, to: 1, response: 0.3, bounce: 0,
+        onUpdate: function (p) {
+          el.style.opacity = String(p);
+          el.style.transform = "translateY(" + (1 - p) * 14 + "px)";
+        }
+      });
+      setTimeout(function () {
+        new PinLogin.Spring({
+          from: 1, to: 0, response: 0.24, bounce: 0,
+          onUpdate: function (p) { el.style.opacity = String(p); },
+          onRest: function () { el.remove(); }
+        });
+      }, 2200);
+    }
+
+    /* ---------- تبديل المظهر: نوقف الانتقالات لإطار واحد كي لا يتلطّخ ---------- */
+    var toggle = document.getElementById("theme-toggle");
+    var root = document.documentElement;
+
+    function currentTheme() {
+      return root.dataset.theme ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+    function paintToggle() {
+      var next = currentTheme() === "dark" ? "light" : "dark";
+      toggle.innerHTML = next === "dark" ? PinLogin.icons.moon : PinLogin.icons.sun;
+      toggle.setAttribute("aria-label",
+        next === "dark" ? "التبديل إلى المظهر الداكن" : "التبديل إلى المظهر الفاتح");
+    }
+    toggle.addEventListener("click", function () {
+      var style = document.createElement("style");
+      style.textContent = "*,*::before,*::after{transition:none !important}";
+      document.head.appendChild(style);
+      root.dataset.theme = currentTheme() === "dark" ? "light" : "dark";
+      paintToggle();
+      void document.body.offsetHeight;                     // إعادة تدفّق مقصودة
+      requestAnimationFrame(function () { style.remove(); });
+    });
+    paintToggle();
+
+    /* ---------- تشغيل المكوّن ---------- */
+    var instance;
+    function mount() {
+      instance = PinLogin.create(document.getElementById("pin-login"), {
+        systemName: "متجر صوفيان — نقطة البيع",
+        minLength: 4,
+        maxLength: 6,
+
+        // في التطبيق الحقيقي: نداء الخادم. هنا محاكاة بزمن استجابة واقعي.
+        onSuccess: function (pin) {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              resolve(pin === "1234"
+                ? { success: true, employeeName: "أحمد السالم", roleName: "كاشير · وردية صباحية" }
+                : { success: false });
+            }, 260);
+          });
+        },
+
+        onForgotPin: function () { toast("نداء onForgotPin()"); },
+        onPasskeyLogin: function () { toast("نداء onPasskeyLogin()"); },
+        onVerified: burstGrid,
+        onFinish: showReplay
+      });
+    }
+
+    /* ---------- إعادة التجربة (أداة عرض فقط) ---------- */
+    function showReplay() {
+      if (document.getElementById("replay")) return;
+      var btn = document.createElement("button");
+      btn.id = "replay";
+      btn.type = "button";
+      btn.className = "demo-pill";
+      btn.style.pointerEvents = "auto";
+      btn.style.cursor = "pointer";
+      btn.textContent = "↺ إعادة التجربة";
+      toasts.appendChild(btn);
+      new PinLogin.Spring({
+        from: 0, to: 1, response: 0.32, bounce: 0,
+        onUpdate: function (p) {
+          btn.style.opacity = String(p);
+          btn.style.transform = "translateY(" + (1 - p) * 10 + "px)";
+        }
+      });
+      btn.addEventListener("click", function () {
+        btn.remove();
+        restoreGrid();
+        instance.destroy();
+        mount();
+      });
+    }
+
+    mount();
+  })();
+  </script>
+</body>
+</html>
