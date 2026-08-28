@@ -22,9 +22,10 @@ python3 -m http.server 8080
 ## المحتويات
 
 ```
-index.html                   ← التطبيق كاملًا (HTML + CSS + JS، بلا تبعيات)
-assets/setup/*.svg           ← 18 رسمة، اسم لكل خطوة (قابلة للاستبدال)
-tools/build-illustrations.mjs ← مولّد الرسوم (خامة واحدة، إضاءة واحدة، لوحة زرقاء واحدة)
+index.html                    ← التطبيق كاملًا (HTML + CSS + JS + مسرح ثلاثي الأبعاد)
+vendor/                       ← Three.js · GSAP · Motion — محليًا، بلا إنترنت وبلا خطوة بناء
+assets/setup/*.svg            ← 18 رسمة بديلة، اسم لكل خطوة (قابلة للاستبدال)
+tools/build-illustrations.mjs ← مولّد رسوم SVG (خامة واحدة، إضاءة واحدة، لوحة زرقاء واحدة)
 tools/embed-assets.mjs        ← يضمّن الرسوم داخل index.html كنسخة احتياطية
 ```
 
@@ -38,6 +39,45 @@ tools/embed-assets.mjs        ← يضمّن الرسوم داخل index.html ك
 | **02 — إعداد المتجر** | نشاط المتجر · المخزون و IMEI · المنتجات · المبيعات · الزبائن والديون |
 | **03 — الفريق** | الموظفون · توثيق الموظفين (OTP) · الأدوار والصلاحيات |
 | **04 — النظام** | الفواتير والطباعة · التفضيلات · المراجعة · التهيئة · الاكتمال |
+
+---
+
+## محرّكات الحركة
+
+ثلاث مكتبات مضمّنة محليًا في `vendor/` — لكل واحدة دور محدّد، بلا تحميل من الإنترنت وبلا خطوة بناء:
+
+| المكتبة | الدور | الإصدار والرخصة |
+|---|---|---|
+| **Three.js** | مسرح الرسوم ثلاثي الأبعاد: مجسّمات طين مطفي بكاميرا وإضاءة وخامة موحّدة، مشهد لكل خطوة | r149 · MIT |
+| **GSAP** | التوقيت والتتابع: انتقال الخطوات، أشرطة المراحل، تتابع مهام التهيئة، كنس نجاح رمز OTP، عدّادات الشاشة الأخيرة، وقيادة انتقالات المشهد ثلاثي الأبعاد | 3.13 · [رخصة GSAP القياسية](https://gsap.com/standard-license) |
+| **Motion** | نوابض التفاعل: ضغط الأزرار، اختيار البطاقات، مقبض المفاتيح، فتح الحوارات والتنبيهات، وظهور أقسام المراجعة عبر `inView` | 10.18 · MIT |
+
+**ملاحظة عن Framer Motion:** المكتبة المعروفة بهذا الاسم تعمل داخل React حصرًا، وهذا المشروع
+بلا إطار عمل. لذلك استُخدمت **Motion** (`motion.dev`) وهي المكتبة الرسمية بلغة JavaScript الصِرفة
+من الفريق نفسه وبالمحرّك الفيزيائي نفسه. لو انتقل النظام إلى React لاحقًا، يمكن استبدالها
+بـ `framer-motion` مباشرة لأن مفاهيم النوابض متطابقة.
+
+### وضع الرسم
+
+```js
+window.SETUP_CONFIG = { illustration: "auto" };   // "auto" | "3d" | "svg"
+```
+
+* `auto` (الافتراضي): مشهد ثلاثي الأبعاد عند توفّر WebGL، وإلا رسوم SVG.
+* `3d`: يفرض المشهد ثلاثي الأبعاد متى أمكن.
+* `svg`: يفرض ملفات `assets/setup/*.svg` — استخدمه بعد وضع رسومك النهائية.
+
+### التدرّج الآمن
+
+| الحالة | النتيجة |
+|---|---|
+| حذف مجلد `vendor/` كاملًا | يعمل كل شيء بحركات CSS ورسوم SVG |
+| لا يوجد WebGL | عودة تلقائية إلى رسوم SVG |
+| `prefers-reduced-motion` | إيقاف المشهد ثلاثي الأبعاد وكل الحركات، وعرض ساكن |
+| تجمّد إطار الرسم (تبويب مخفي) | التنقّل بين الخطوات مضمون بمهلة حارسة لا تعتمد على الحركة |
+
+الدورة لكل خطوة: `enter → idle → processing → success / error`، ويقودها GSAP على المشهد
+ثلاثي الأبعاد وعلى حاوية SVG بالتساوي.
 
 ---
 
@@ -134,7 +174,13 @@ window.addEventListener("erp:setup-complete", e => console.log(e.detail));
 
 ## Quick English notes
 
-Open `index.html` in any modern browser — no build step, no dependencies. It is an 18-step,
+Open `index.html` in any modern browser — no build step, no network. Motion is powered by three
+vendored libraries in `vendor/`: **Three.js** (the matte-clay 3D stage, one scene per step),
+**GSAP** (step choreography, provisioning sequence, counters) and **Motion** (interaction springs).
+Framer Motion itself is React-only, so this vanilla build uses `motion.dev`, the same team's
+plain-JavaScript library; swapping in `framer-motion` after a React migration is a drop-in change.
+Set `SETUP_CONFIG.illustration` to `"svg"` to use your own SVG assets instead of the 3D stage.
+Deleting `vendor/` degrades cleanly to CSS animations and SVG illustrations. It is an 18-step,
 4-phase first-run setup wizard for a mobile-phone-store ERP: IMEI-level inventory, staff with
 per-module permissions, A4 + 80mm thermal invoices. Arabic/RTL first, English secondary
 (toggle in the header). Drop replacement SVGs into `assets/setup/` using the same filenames.

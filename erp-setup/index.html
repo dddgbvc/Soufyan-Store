@@ -167,6 +167,8 @@ ul{margin:0; padding:0; list-style:none}
 .illus-media{width:100%; height:100%; display:block; object-fit:contain; padding:4%;
   transform-origin:50% 58%; will-change:transform, opacity}
 .illus-media svg{width:100%; height:100%; display:block}
+.illus-canvas{position:absolute; inset:0; width:100%; height:100%; display:block; z-index:1}
+.illus[data-mode="3d"]{background:var(--glass-bg)}
 .illus-ph{position:absolute; inset:12%; border-radius:var(--r-xl); background:var(--clay-2);
   border:1px dashed var(--line); display:grid; place-items:center; color:var(--text-3);
   font-size:.78rem; text-align:center; padding:16px; line-height:1.6}
@@ -320,11 +322,9 @@ html[data-theme="dark"] .choice .c-ico{color:var(--blue-300)}
 .switch{width:50px; height:29px; border-radius:var(--r-pill); flex:none; padding:3px; background:var(--cool-300);
   position:relative; transition:background var(--t-med) var(--ease)}
 html[data-theme="dark"] .switch{background:rgba(146,175,255,.22)}
-.switch::after{content:""; position:absolute; inset-block:3px; inset-inline-start:3px; width:23px; height:23px;
-  border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(16,32,80,.28);
-  transition:inset-inline-start var(--t-med) var(--ease)}
+.switch .knob{position:absolute; inset-block:3px; inset-inline-start:3px; width:23px; height:23px;
+  border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(16,32,80,.28); will-change:transform}
 .switch[aria-checked="true"]{background:linear-gradient(145deg,#5F80FA,var(--blue-600))}
-.switch[aria-checked="true"]::after{inset-inline-start:24px}
 .switch-row[data-on="1"]{background:var(--clay-on); border-color:var(--blue-500)}
 
 /* ---- شرائح ---- */
@@ -478,15 +478,14 @@ html[data-theme="dark"] .task[data-state="error"]{background:rgba(206,59,84,.14)
 .scrim{position:fixed; inset:0; z-index:90; background:rgba(9,18,44,.44); backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity var(--t-med) var(--ease)}
 .scrim[data-open="1"]{opacity:1; pointer-events:auto}
-.modal{position:fixed; z-index:91; inset-block-start:50%; inset-inline-start:50%;
-  transform:translate(50%,-50%) scale(.96); width:min(560px,calc(100vw - 28px)); max-height:min(88dvh,760px);
-  overflow-y:auto; overscroll-behavior:contain; opacity:0; pointer-events:none;
+.modal-wrap{position:fixed; inset:0; z-index:91; display:grid; place-items:center; padding:14px;
+  pointer-events:none}
+.modal{width:min(560px,100%); max-height:min(88dvh,760px); opacity:0; transform:scale(.94);
+  overflow-y:auto; overscroll-behavior:contain; pointer-events:none;
   background:var(--glass-bg-strong); border:1px solid var(--glass-border); border-radius:var(--r-xl);
   backdrop-filter:blur(30px) saturate(160%); -webkit-backdrop-filter:blur(30px) saturate(160%);
   box-shadow:var(--shadow-lg); transition:opacity var(--t-med) var(--ease), transform var(--t-med) var(--ease)}
-html[dir="ltr"] .modal{transform:translate(-50%,-50%) scale(.96)}
-.modal[data-open="1"]{opacity:1; pointer-events:auto; transform:translate(50%,-50%) scale(1)}
-html[dir="ltr"] .modal[data-open="1"]{transform:translate(-50%,-50%) scale(1)}
+.modal[data-open="1"]{opacity:1; pointer-events:auto; transform:none}
 .modal-head{display:flex; align-items:flex-start; gap:12px; padding:20px 22px 6px}
 .modal-head h2{font-size:1.15rem; flex:1}
 .modal-head p{font-size:.84rem; color:var(--text-2); margin-top:4px}
@@ -706,9 +705,576 @@ html[data-theme="dark"] .stat .c-ico{color:var(--blue-300)}
 </div>
 
 <div class="scrim" id="scrim" hidden></div>
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden></div>
+<div class="modal-wrap" id="modalWrap" hidden><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></div></div>
 <div class="toasts" id="toasts"></div>
 <div class="sr-only" id="live" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/CustomEase.min.js"></script>
+<script src="vendor/motion.min.js"></script>
+<script src="vendor/three.min.js"></script>
+<script>
+/* ==========================================================================
+   Stage3D — مسرح الرسوم ثلاثي الأبعاد (Three.js) بخامة طين مطفية
+   كاميرا واحدة، إضاءة واحدة، خامة واحدة، لوحة زرقاء واحدة لكل الخطوات.
+   يعمل فقط عند توفّر WebGL؛ وإلا يعود المعالج إلى رسوم SVG تلقائيًا.
+   ========================================================================== */
+window.Stage3D = (function(){
+"use strict";
+if(typeof THREE === "undefined") return null;
+
+const C = {
+  blue:"#4A6CF7", royal:"#2F4FD8", deep:"#1B2E6B", soft:"#7E9BF6",
+  powder:"#C7D8FB", mist:"#E4EDFD", white:"#F7FAFF", ink:"#152449",
+  ok:"#12946B", warn:"#D9A32B"
+};
+const R = { on:false, hidden:false };
+let renderer, scene, camera, root, key, fill, hemi, ro, shadowTex, contactMats = [];
+let current = null, curName = null, host = null, tlIdle = null, tlState = null, disposed = [];
+const reduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- خامات وأشكال أوّلية ---------- */
+const MATS = new Map();
+function mat(color, o){
+  const k = color + JSON.stringify(o || {});
+  if(MATS.has(k)) return MATS.get(k).clone();
+  const m = new THREE.MeshStandardMaterial(Object.assign({
+    color: new THREE.Color(color), roughness:.92, metalness:0, transparent:true, opacity:1
+  }, o || {}));
+  MATS.set(k, m); return m.clone();
+}
+function roundedShape(w, h, r){
+  const s = new THREE.Shape(), x = -w/2, y = -h/2;
+  r = Math.min(r, w/2, h/2);
+  s.moveTo(x+r, y);
+  s.lineTo(x+w-r, y); s.quadraticCurveTo(x+w, y, x+w, y+r);
+  s.lineTo(x+w, y+h-r); s.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  s.lineTo(x+r, y+h); s.quadraticCurveTo(x, y+h, x, y+h-r);
+  s.lineTo(x, y+r); s.quadraticCurveTo(x, y, x+r, y);
+  return s;
+}
+function slabGeo(w, h, d, r){
+  const b = Math.min(d*0.34, 0.05);
+  const g = new THREE.ExtrudeGeometry(roundedShape(w-b*2, h-b*2, Math.max(.02, (r||.12)-b)), {
+    depth: Math.max(.02, d-b*2), bevelEnabled:true, bevelThickness:b, bevelSize:b, bevelSegments:3, curveSegments:14
+  });
+  g.center(); return g;
+}
+function slab(w,h,d,r,color,o){ const m = new THREE.Mesh(slabGeo(w,h,d,r), mat(color,o)); m.castShadow = m.receiveShadow = true; return m; }
+function ball(r,color,o){ const m = new THREE.Mesh(new THREE.SphereGeometry(r,32,24), mat(color,o)); m.castShadow=true; return m; }
+function disc(r,h,color,o){ const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,40), mat(color,o)); m.castShadow=true; return m; }
+function ring(R2,r,color,o){ const m = new THREE.Mesh(new THREE.TorusGeometry(R2,r,14,60), mat(color,o)); m.castShadow=true; return m; }
+function bar(w,h,color){ const m = slab(w,h,.08,h/2,color); return m; }
+
+/** علامة صح داخل قرص — تُستخدم في حالات النجاح */
+function checkBadge(r, color){
+  const g = new THREE.Group();
+  const d = slab(r*2, r*2, r*.72, r, color||C.royal); g.add(d);
+  const th = r*.22, z = r*.40;
+  const a = slab(r*.60, th, th, th/2, C.white), b2 = slab(r*1.05, th, th, th/2, C.white);
+  a.position.set(-r*.34,-r*.04, z); a.rotation.z = -Math.PI/4;
+  b2.position.set(r*.15, r*.10, z); b2.rotation.z = Math.PI/4.2;
+  g.add(a,b2); return g;
+}
+function person(scale, color){
+  const g = new THREE.Group();
+  const head = ball(.30*scale, color); head.position.y = .46*scale;
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.30*scale,.30*scale,8,20), mat(color));
+  body.castShadow = true; body.position.y = -.06*scale; body.scale.set(1,.72,.78);
+  g.add(head, body); return g;
+}
+function sparkle(s, color){
+  const g = new THREE.Group();
+  const c = color || C.soft;
+  const glow = { emissive:new THREE.Color(c), emissiveIntensity:.55, roughness:.65 };
+  const a = new THREE.Mesh(slabGeo(s*.30, s*1.35, .10, s*.14), mat(c, glow));
+  const b2 = new THREE.Mesh(slabGeo(s*1.35, s*.30, .10, s*.14), mat(c, glow));
+  g.add(a,b2); return g;
+}
+function phone(h, color){
+  const g = new THREE.Group();
+  const body = slab(h*.50, h, .17, h*.10, color||C.royal);
+  const screen = slab(h*.43, h*.90, .06, h*.075, C.powder);
+  screen.position.z = .10;
+  const cam = disc(h*.028,.05,C.deep); cam.rotation.x = Math.PI/2;
+  cam.position.set(h*.13, h*.40, .14);
+  g.add(body, screen, cam);
+  g.userData.screen = screen;
+  return g;
+}
+function card(w,h,color,rows,rowColor){
+  const g = new THREE.Group();
+  const c = slab(w,h,.12,.14,color||C.white); g.add(c);
+  for(let i=0;i<(rows||0);i++){
+    const b2 = bar(w*(i%2?.44:.62), .085, rowColor||C.powder);
+    b2.position.set(-w*.5 + w*(i%2?.30:.39), h*.5 - .30 - i*.26, .08);
+    g.add(b2);
+  }
+  return g;
+}
+function chip(w,color){ const m = slab(w,.30,.12,.15,color); return m; }
+
+/** ظل ملامس: بقعة ناعمة تحت المجسّم تمنحه ثِقلًا دون ظل مُسقط قاسٍ */
+function contactTexture(){
+  if(shadowTex) return shadowTex;
+  const c = document.createElement("canvas"); c.width = c.height = 256;
+  const x = c.getContext("2d");
+  const rg = x.createRadialGradient(128,128,0,128,128,126);
+  rg.addColorStop(0,   "rgba(17,32,74,.62)");
+  rg.addColorStop(.42, "rgba(17,32,74,.26)");
+  rg.addColorStop(.72, "rgba(17,32,74,.07)");
+  rg.addColorStop(1,   "rgba(17,32,74,0)");
+  x.fillStyle = rg; x.fillRect(0,0,256,256);
+  shadowTex = new THREE.CanvasTexture(c);
+  return shadowTex;
+}
+function contactShadow(w, y){
+  const m = new THREE.MeshBasicMaterial({ map:contactTexture(), transparent:true, depthWrite:false, opacity:.9 });
+  contactMats.push(m);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, w * .40), m);
+  mesh.position.set(0, y, -.45);
+  mesh.userData.isShadow = true;
+  return mesh;
+}
+
+/* ---------- المشاهد: مشهد لكل خطوة ---------- */
+const SCENES = {
+  welcome(){
+    const g = new THREE.Group();
+    const p = phone(2.5); p.rotation.set(0,-.22,0);
+    const chk = checkBadge(.38); chk.position.set(.34,.34,.22);
+    p.add(chk);
+    const s1 = sparkle(.30), s2 = sparkle(.22), s3 = sparkle(.18);
+    s1.position.set(-1.5,1.1,.4); s2.position.set(1.5,.55,.2); s3.position.set(-1.25,-.95,.5);
+    g.add(p,s1,s2,s3);
+    g.userData = { hero:p, check:chk, sparkles:[s1,s2,s3], spin:p };
+    return g;
+  },
+  store(){
+    const g = new THREE.Group();
+    const base = slab(3.1,1.9,1.0,.16,C.mist); base.position.y = -.35;
+    const awn = slab(3.4,.62,1.05,.14,C.royal); awn.position.set(0,.72,.06); awn.rotation.x = -.30;
+    const door = slab(.9,1.15,.12,.10,C.white); door.position.set(-.75,-.55,.52);
+    const win = slab(1.25,.78,.12,.10,C.deep); win.position.set(.66,-.30,.52);
+    for(let i=0;i<3;i++){ const d = disc(.11,.06,C.soft); d.rotation.x=Math.PI/2; d.position.set(.28+i*.38,-.30,.60); g.add(d); }
+    const sign = slab(1.0,.26,.1,.13,C.soft); sign.position.set(0,1.12,.30);
+    g.add(base,awn,door,win,sign);
+    g.userData = { hero:base, spin:g, sparkles:[] };
+    return g;
+  },
+  owner(){
+    const g = new THREE.Group();
+    const p = person(1.5, C.royal); p.position.y = .35;
+    const c = card(2.2,.95,C.white,2); c.position.set(0,-1.05,.25);
+    const chk = checkBadge(.28); chk.position.set(.85,-1.02,.42);
+    g.add(p,c,chk);
+    g.userData = { hero:p, check:chk, spin:p };
+    return g;
+  },
+  "email-otp"(){
+    const g = new THREE.Group();
+    const env = new THREE.Group();
+    const body = slab(2.5,1.7,.34,.22,C.royal);
+    const f1 = slab(1.55,.20,.10,.10,C.white), f2 = slab(1.55,.20,.10,.10,C.white);
+    f1.position.set(-.62,.30,.20); f1.rotation.z = -.62;
+    f2.position.set(.62,.30,.20); f2.rotation.z = .62;
+    env.add(body,f1,f2);
+    env.position.y = .55;
+    const dots = new THREE.Group();
+    for(let i=0;i<6;i++){
+      const d = slab(.26,.40,.12,.11, i<4 ? C.blue : C.mist);
+      d.position.x = (i-2.5)*.36; dots.add(d);
+    }
+    dots.position.set(0,-1.10,.2);
+    const chk = checkBadge(.40); chk.position.set(1.15,1.20,.35);
+    g.add(env,dots,chk);
+    g.userData = { hero:env, check:chk, otp:dots, spin:env };
+    return g;
+  },
+  security(){
+    const g = new THREE.Group();
+    const sh = new THREE.Group();
+    const plate = new THREE.Mesh(new THREE.ExtrudeGeometry((function(){
+      const s = new THREE.Shape();
+      s.moveTo(-1.05,.95); s.quadraticCurveTo(0,1.35,1.05,.95);
+      s.lineTo(1.05,-.05); s.quadraticCurveTo(1.0,-1.05,0,-1.5);
+      s.quadraticCurveTo(-1.0,-1.05,-1.05,-.05); s.closePath(); return s;
+    })(), { depth:.34, bevelEnabled:true, bevelThickness:.08, bevelSize:.08, bevelSegments:3, curveSegments:18 }), mat(C.royal));
+    plate.castShadow = plate.receiveShadow = true; plate.geometry.center();
+    const lockB = slab(.72,.56,.22,.12,C.white); lockB.position.set(0,-.14,.30);
+    const shack = new THREE.Mesh(new THREE.TorusGeometry(.22,.075,12,26,Math.PI), mat(C.white));
+    shack.position.set(0,.22,.30); shack.castShadow = true;
+    sh.add(plate,lockB,shack); sh.position.y = .30;
+    const dots = new THREE.Group();
+    for(let i=0;i<4;i++){ const d = disc(.13,.14,C.soft); d.rotation.x=Math.PI/2; d.position.x=(i-1.5)*.44; dots.add(d); }
+    dots.position.y = -1.35;
+    g.add(sh,dots);
+    g.userData = { hero:sh, spin:sh, otp:dots };
+    return g;
+  },
+  business(){
+    const g = new THREE.Group();
+    const a = phone(2.0, C.royal), b2 = phone(2.0, C.deep);
+    a.position.set(-1.25,.15,0); a.rotation.set(0,.34,.13);
+    b2.position.set(1.25,.15,0); b2.rotation.set(0,-.34,-.13);
+    const ar = new THREE.Group();
+    const l1 = bar(.85,.14,C.blue), t1 = new THREE.Mesh(new THREE.ConeGeometry(.14,.28,18), mat(C.blue));
+    t1.rotation.z = -Math.PI/2; t1.position.x = .50; l1.position.x = -.05;
+    const l2 = bar(.85,.14,C.soft), t2 = new THREE.Mesh(new THREE.ConeGeometry(.14,.28,18), mat(C.soft));
+    t2.rotation.z = Math.PI/2; t2.position.x = -.50; l2.position.x = .05;
+    const up = new THREE.Group(); up.add(l1,t1); up.position.y = .30;
+    const dn = new THREE.Group(); dn.add(l2,t2); dn.position.y = -.30;
+    ar.add(up,dn); ar.position.z = .3;
+    g.add(a,b2,ar);
+    g.userData = { hero:ar, spin:ar, swap:[up,dn] };
+    return g;
+  },
+  inventory(){
+    const g = new THREE.Group();
+    const b1 = slab(1.5,1.15,1.1,.16,C.royal); b1.position.set(-.85,-.62,0);
+    const b2 = slab(1.5,1.15,1.1,.16,C.powder); b2.position.set(.85,-.62,-.1);
+    const b3 = slab(1.5,1.15,1.1,.16,C.deep); b3.position.set(0,.60,.15);
+    const tag = slab(1.35,.50,.14,.14,C.white); tag.position.set(.85,.05,.62);
+    for(let i=0;i<7;i++){ const l = bar(.055,.28,C.deep); l.position.set(.85-.36+i*.12,.05,.72); g.add(l); }
+    g.add(b1,b2,b3,tag);
+    g.userData = { hero:b3, spin:g, stack:[b1,b2,b3] };
+    return g;
+  },
+  products(){
+    const g = new THREE.Group();
+    const p = phone(2.35); p.rotation.y = -.18;
+    const chips = new THREE.Group();
+    const cols = [C.royal,C.soft,C.deep,C.powder];
+    for(let i=0;i<4;i++){
+      const c = chip(1.0, C.white);
+      const dot = disc(.12,.14,cols[i]); dot.rotation.x = Math.PI/2; dot.position.set(-.32,0,.12);
+      const w = new THREE.Group(); w.add(c,dot);
+      w.position.set(i<2 ? -1.65 : 1.65, i%2 ? .55 : -.35, .25);
+      chips.add(w);
+    }
+    g.add(p,chips);
+    g.userData = { hero:p, spin:p, chips:chips.children };
+    return g;
+  },
+  sales(){
+    const g = new THREE.Group();
+    const r = card(1.95,2.55,C.white,4,C.powder); r.position.set(-.55,.15,0);
+    const hl = slab(1.3,.42,.12,.12,C.blue); hl.position.set(-.55,-.30,.12);
+    const coin = disc(.62,.24,C.royal); coin.rotation.x = Math.PI/2; coin.position.set(1.35,-.65,.55);
+    const coin2 = disc(.62,.24,C.soft); coin2.rotation.x = Math.PI/2; coin2.position.set(1.35,-.95,.35);
+    g.add(r,hl,coin2,coin);
+    g.userData = { hero:r, spin:g, coins:[coin,coin2] };
+    return g;
+  },
+  customers(){
+    const g = new THREE.Group();
+    const a = person(1.05, C.royal), b2 = person(1.05, C.deep);
+    a.position.set(-.95,.55,.2); b2.position.set(.95,.55,0);
+    const c = card(2.6,1.05,C.white,2); c.position.set(0,-.95,.3);
+    const pill = slab(.85,.32,.12,.16,C.blue); pill.position.set(.75,-1.15,.42);
+    g.add(a,b2,c,pill);
+    g.userData = { hero:c, spin:g, people:[a,b2] };
+    return g;
+  },
+  employees(){
+    const g = new THREE.Group();
+    const a = person(1.25, C.royal), b2 = person(.95, C.deep), c = person(.95, C.soft);
+    a.position.set(0,.75,.3); b2.position.set(-1.35,.15,0); c.position.set(1.35,.15,0);
+    const cd = card(2.7,.85,C.white,2); cd.position.set(0,-1.15,.25);
+    g.add(a,b2,c,cd);
+    g.userData = { hero:a, spin:g, people:[a,b2,c] };
+    return g;
+  },
+  "employee-otp"(){
+    const g = new THREE.Group();
+    const p = person(1.25, C.royal); p.position.set(0,.95,0);
+    const env = slab(1.9,1.25,.28,.18,C.royal); env.position.set(0,-.30,.3);
+    const f1 = slab(1.15,.16,.1,.08,C.white); f1.position.set(-.46,-.05,.48); f1.rotation.z = -.60;
+    const f2 = slab(1.15,.16,.1,.08,C.white); f2.position.set(.46,-.05,.48); f2.rotation.z = .60;
+    const dots = new THREE.Group();
+    for(let i=0;i<6;i++){ const d = slab(.22,.34,.1,.1, i<3?C.blue:C.mist); d.position.x=(i-2.5)*.31; dots.add(d); }
+    dots.position.set(0,-1.35,.2);
+    const chk = checkBadge(.30); chk.position.set(.95,1.15,.3);
+    g.add(p,env,f1,f2,dots,chk);
+    g.userData = { hero:p, check:chk, otp:dots, spin:p };
+    return g;
+  },
+  permissions(){
+    const g = new THREE.Group();
+    const sh = SCENES.security().userData.hero; sh.position.set(0,.75,0); sh.scale.setScalar(.78);
+    const grid = new THREE.Group();
+    const w = [1.0,1.0,.5,.65,1.0,.8];
+    let x = -1.45;
+    w.forEach((ww,i) => {
+      const c = chip(ww, i===2||i===4 ? C.blue : C.powder);
+      c.position.set(x + ww/2, i<3 ? -.85 : -1.35, 0);
+      if(i===2) x = -1.45; else x += ww + .18;
+      if(i===2) x = -1.45;
+      grid.add(c);
+    });
+    // ترتيب صفّين متوازنين
+    grid.children.forEach((c,i) => { const row = i<3?0:1; const idx = i%3;
+      c.position.set(-1.25 + idx*1.25, row ? -1.35 : -.80, .1); });
+    g.add(sh,grid);
+    g.userData = { hero:sh, spin:sh, chips:grid.children };
+    return g;
+  },
+  invoices(){
+    const g = new THREE.Group();
+    const pr = slab(2.6,1.1,1.25,.18,C.royal); pr.position.y = -.55;
+    const slot = slab(1.9,.12,.1,.06,C.deep); slot.position.set(0,-.15,.64);
+    const paper = card(1.75,1.5,C.white,3); paper.position.set(0,.95,.35);
+    const out = card(1.55,.85,C.white,2); out.position.set(0,-1.35,.72);
+    g.add(pr,slot,paper,out);
+    g.userData = { hero:paper, spin:g, paper:paper, out:out };
+    return g;
+  },
+  preferences(){
+    const g = new THREE.Group();
+    const d = disc(1.15,.42,C.royal); d.rotation.x = Math.PI/2; d.position.y = .45;
+    const inner = disc(.68,.5,C.white); inner.rotation.x = Math.PI/2; inner.position.set(0,.45,.06);
+    const hand = slab(.15,.62,.14,.07,C.royal); hand.position.set(0,.78,.30);
+    const dial = new THREE.Group(); dial.add(d,inner,hand);
+    const s1 = slab(1.05,.44,.20,.22,C.blue), k1 = disc(.16,.22,C.white);
+    k1.rotation.x = Math.PI/2; k1.position.set(.24,0,.14); s1.position.set(-.75,-1.15,.1);
+    const w1 = new THREE.Group(); w1.add(s1); k1.position.set(-.75+.24,-1.15,.24); w1.add(k1);
+    const s2 = slab(1.05,.44,.20,.22,C.powder), k2 = disc(.16,.22,C.white);
+    k2.rotation.x = Math.PI/2; s2.position.set(.75,-1.15,.1); k2.position.set(.75-.24,-1.15,.24);
+    const w2 = new THREE.Group(); w2.add(s2,k2);
+    g.add(dial,w1,w2);
+    g.userData = { hero:dial, spin:dial, dial:hand, knobs:[k1,k2] };
+    return g;
+  },
+  review(){
+    const g = new THREE.Group();
+    const c = slab(2.9,3.0,.22,.20,C.white); c.position.z = 0;
+    const rows = [];
+    for(let i=0;i<4;i++){
+      const y = .95 - i*.62;
+      const d = disc(.20,.16, i<3 ? C.blue : C.powder); d.rotation.x = Math.PI/2; d.position.set(-.95,y,.16);
+      const l1 = bar(1.15,.13,C.powder); l1.position.set(.05,y+.10,.14);
+      const l2 = bar(.75,.11,C.mist); l2.position.set(-.15,y-.13,.14);
+      rows.push(d); g.add(d,l1,l2);
+    }
+    g.add(c);
+    g.userData = { hero:c, spin:g, rows:rows };
+    return g;
+  },
+  preparing(){
+    const g = new THREE.Group();
+    const core = ball(.92, C.royal); core.position.y = .25;
+    const inner = ball(.42, C.white); inner.position.y = .25; inner.position.z = .62;
+    const orb = ring(1.65,.055,C.powder); orb.position.y = .25; orb.rotation.x = 1.15;
+    const m1 = ball(.20, C.blue), m2 = ball(.14, C.soft);
+    m1.position.set(1.65,.25,0); m2.position.set(-1.65,.25,0);
+    const orbGroup = new THREE.Group(); orbGroup.add(orb,m1,m2); orbGroup.position.y = 0;
+    const barBg = slab(2.4,.22,.12,.11,C.mist); barBg.position.y = -1.45;
+    const barFg = slab(1.4,.22,.14,.11,C.blue); barFg.position.set(-.50,-1.45,.06);
+    g.add(core,inner,orbGroup,barBg,barFg);
+    g.userData = { hero:core, spin:orbGroup, orbit:orbGroup, progress:barFg, core:core };
+    return g;
+  },
+  complete(){
+    const g = new THREE.Group();
+    const p = phone(2.4); p.rotation.y = -.16;
+    const chk = checkBadge(.44); chk.position.set(.30,.26,.24);
+    p.add(chk);
+    const sp = [];
+    for(let i=0;i<6;i++){
+      const s = sparkle(.14 + (i%3)*.07);
+      const a = (i/6)*Math.PI*2;
+      s.position.set(Math.cos(a)*1.85, Math.sin(a)*1.35, .3 + (i%2)*.3);
+      sp.push(s); g.add(s);
+    }
+    g.add(p);
+    g.userData = { hero:p, check:chk, sparkles:sp, spin:p };
+    return g;
+  }
+};
+SCENES.sales = SCENES.sales; // خرائط بديلة
+const ALIAS = {};
+
+/* ---------- الإعداد ---------- */
+function webglOK(){
+  try{ const c = document.createElement("canvas");
+    return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl"))); }
+  catch(_){ return false; }
+}
+function init(el){
+  if(!webglOK()) return false;
+  host = el;
+  const w = Math.max(1, el.clientWidth), h = Math.max(1, el.clientHeight);
+  try{
+    renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:"high-performance" });
+  }catch(_){ return false; }
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setSize(w, h, false);
+  renderer.shadowMap.enabled = false;   /* ظل ملامس مرسوم يدويًا أنسب للطين من الظل المُسقط */
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.NoToneMapping;   /* الطين المطفي يحتاج لونًا صادقًا لا تعريضًا سينمائيًا */
+  if(THREE.ColorManagement) THREE.ColorManagement.enabled = true;
+  renderer.domElement.className = "illus-canvas";
+  renderer.domElement.setAttribute("aria-hidden", "true");
+  el.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(30, w/h, .1, 60);
+  camera.position.set(.42, .58, 7.6); camera.lookAt(0, -.06, 0);
+
+  hemi = new THREE.HemisphereLight(0xE6EFFF, 0x8FA6D4, .42); scene.add(hemi);
+  key = new THREE.DirectionalLight(0xFFFFFF, 1.05);
+  key.position.set(-2.6, 6.4, 3.6);
+  scene.add(key);
+  fill = new THREE.DirectionalLight(0xBFD4FF, .22); fill.position.set(4.0,.8,3.0); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xE8F0FF, .16); rim.position.set(.4,1.6,-4.5); scene.add(rim);
+
+  root = new THREE.Group(); root.scale.setScalar(1.16); scene.add(root);
+
+  if(window.ResizeObserver){
+    ro = new ResizeObserver(() => resize());
+    ro.observe(el);
+  }else window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", () => { R.hidden = document.hidden; });
+
+  if(window.gsap) gsap.ticker.add(tick); else { R.on = true; (function loop(){ if(R.on) requestAnimationFrame(loop); tick(); })(); }
+  return true;
+}
+function resize(){
+  if(!renderer || !host) return;
+  const w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight);
+  renderer.setSize(w, h, false);
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+  render();
+}
+function render(){ if(renderer) renderer.render(scene, camera); }
+function tick(){ if(R.hidden || !renderer) return; render(); }
+
+function theme(dark){
+  if(!renderer) return;
+  hemi.intensity = dark ? .34 : .42;
+  hemi.groundColor.set(dark ? 0x1B2A4D : 0x8FA6D4);
+  hemi.color.set(dark ? 0xBBD0FF : 0xE6EFFF);
+  key.intensity = dark ? .92 : 1.05;
+  fill.intensity = dark ? .18 : .22;
+  contactMats.forEach(m => { m.opacity = dark ? .55 : .9; });
+  render();
+}
+
+function eachMat(g, fn){ g.traverse(o => { if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(fn); } }); }
+function dispose(g){
+  const gone = new Set();
+  g.traverse(o => {
+    if(o.geometry) o.geometry.dispose();
+    if(o.material) (Array.isArray(o.material)?o.material:[o.material]).forEach(m => { gone.add(m); m.dispose(); });
+  });
+  contactMats = contactMats.filter(m => !gone.has(m));
+}
+
+/* ---------- دورة حياة الحركة ---------- */
+function killTweens(){
+  if(tlIdle){ tlIdle.kill(); tlIdle = null; }
+  if(tlState){ tlState.kill(); tlState = null; }
+}
+function idle(g){
+  if(!window.gsap || reduce()) return;
+  const u = g.userData;
+  tlIdle = gsap.timeline({ repeat:-1, yoyo:true, defaults:{ ease:"sine.inOut" } });
+  tlIdle.to(g.position, { y:"+=0.14", duration:2.9 }, 0);
+  if(u.spin) tlIdle.to(u.spin.rotation, { y:"+=0.20", duration:4.4 }, 0);
+  (u.sparkles || []).forEach((s,i) => {
+    gsap.to(s.rotation, { z:"+=" + (Math.PI*2), duration:12+i*3, repeat:-1, ease:"none" });
+    gsap.to(s.scale, { x:1.25, y:1.25, z:1.25, duration:1.4+i*.35, repeat:-1, yoyo:true, ease:"sine.inOut" });
+  });
+}
+function show(name){
+  if(!renderer) return false;
+  const build = SCENES[ALIAS[name] || name] || SCENES.welcome;
+  if(curName === name && current) return true;
+  curName = name;
+  killTweens();
+  const old = current;
+  const inner = build();
+  const box = new THREE.Box3().setFromObject(inner);
+  const size = box.getSize(new THREE.Vector3());
+  const mid  = box.getCenter(new THREE.Vector3());
+  const fit  = Math.min(3.10 / Math.max(size.y, .01), 4.15 / Math.max(size.x, .01), 1.25);
+  inner.position.y -= mid.y; inner.position.x -= mid.x * .35;
+  const g = new THREE.Group();
+  g.add(inner); g.scale.setScalar(fit);
+  g.userData = inner.userData; g.userData.inner = inner;
+  const w = Math.max(1.8, size.x * 1.30);
+  g.add(contactShadow(w, box.min.y - mid.y - w * .05));
+  root.add(g);
+  current = g;
+
+  if(!window.gsap || reduce()){
+    if(old){ root.remove(old); dispose(old); }
+    render(); return true;
+  }
+  const fadeOut = { v:1 };
+  if(old){
+    gsap.to(old.position, { y:-.6, duration:.34, ease:"power2.in" });
+    gsap.to(old.scale, { x:.85, y:.85, z:.85, duration:.34, ease:"power2.in" });
+    gsap.to(fadeOut, { v:0, duration:.30, ease:"power1.in",
+      onUpdate(){ eachMat(old, m => { m.opacity = fadeOut.v; }); },
+      onComplete(){ root.remove(old); dispose(old); } });
+  }
+  const fadeIn = { v:0 };
+  eachMat(g, m => { m.opacity = 0; });
+  g.scale.setScalar(.80); g.position.y = -.55; g.rotation.y = -.45;
+  const tl = gsap.timeline({ delay: old ? .16 : .04 });
+  tl.to(fadeIn, { v:1, duration:.45, ease:"power2.out",
+      onUpdate(){ eachMat(g, m => { m.opacity = fadeIn.v; }); } }, 0)
+    .to(g.scale, { x:1, y:1, z:1, duration:.85, ease:"back.out(1.5)" }, 0)
+    .to(g.position, { y:0, duration:.8, ease:"back.out(1.2)" }, 0)
+    .to(g.rotation, { y:0, duration:1.0, ease:"power3.out" }, 0)
+    .add(() => idle(g), .5);
+  /* ضمان اكتمال الدخول ورسم إطار حتى لو تجمّد مؤقّت الرسم */
+  setTimeout(() => { if(tl.progress() < 1){ tl.progress(1); render(); } }, 1500);
+  return true;
+}
+function setState(s){
+  if(!current || !window.gsap) return;
+  const u = current.userData;
+  if(tlState){ tlState.kill(); tlState = null; }
+  if(reduce()) return;
+  if(s === "processing"){
+    tlState = gsap.timeline({ repeat:-1 });
+    const spin = u.orbit || u.spin || current;
+    tlState.to(spin.rotation, { y:"+=" + Math.PI*2, duration:3.4, ease:"none" }, 0);
+    tlState.to(current.scale, { x:1.035, y:1.035, z:1.035, duration:.9, yoyo:true, repeat:-1, ease:"sine.inOut" }, 0);
+    if(u.progress) tlState.to(u.progress.scale, { x:1.35, duration:1.2, yoyo:true, repeat:-1, ease:"sine.inOut" }, 0);
+  }else if(s === "success"){
+    tlState = gsap.timeline();
+    if(u.check){
+      u.check.scale.setScalar(.01);
+      tlState.to(u.check.scale, { x:1, y:1, z:1, duration:.85, ease:"back.out(2.4)" }, 0);
+      tlState.to(u.check.rotation, { z:"+=" + Math.PI*2, duration:.9, ease:"power3.out" }, 0);
+    }
+    tlState.fromTo(current.scale, { x:.94, y:.94, z:.94 }, { x:1, y:1, z:1, duration:.9, ease:"elastic.out(1,.55)" }, 0);
+    (u.otp ? u.otp.children : []).forEach((d,i) =>
+      tlState.to(d.material, { color: new THREE.Color(C.ok), duration:.3 }, .05*i));
+  }else if(s === "error"){
+    tlState = gsap.timeline();
+    tlState.fromTo(current.position, { x:0 }, { x:.22, duration:.08, repeat:5, yoyo:true, ease:"none" })
+           .set(current.position, { x:0 });
+  }else{
+    gsap.to(current.scale, { x:1, y:1, z:1, duration:.4, ease:"power2.out" });
+    if(u.spin) gsap.to(u.spin.rotation, { y:0, duration:.6, ease:"power2.out" });
+    idle(current);
+  }
+}
+function destroy(){
+  killTweens();
+  if(window.gsap) gsap.ticker.remove(tick); else R.on = false;
+  if(ro && host) ro.unobserve(host);
+  if(current) dispose(current);
+  if(renderer){ renderer.dispose(); if(renderer.domElement.parentNode) renderer.domElement.remove(); }
+  renderer = null; current = null;
+}
+return { init, show, setState, theme, resize, destroy, webglOK, scenes:Object.keys(SCENES) };
+})();
+</script>
 
 <script id="illus-fallback" type="application/json">{"business":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">نشاط متجر الهواتف</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"398\" cy=\"86\" r=\"52\" fill=\"url(#gGlow)\"/><circle cx=\"78\" cy=\"240\" r=\"46\" fill=\"url(#gGlow)\"/> <rect x=\"60\" y=\"56\" width=\"40\" height=\"40\" rx=\"14\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"414\" cy=\"286\" r=\"14\" fill=\"#7E9BF6\" opacity=\".40\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"302\" rx=\"138\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"phone\" data-layer=\"phone\" transform=\"rotate(-8 162 177)\"> <g id=\"phone-body\" data-layer=\"phone-body\"> <rect x=\"118\" y=\"96\" width=\"88\" height=\"162\" rx=\"28\" fill=\"url(#gClay)\"/> <path d=\"M130 242 V112 a22 22 0 0 1 22 -22 h33.44 a6 6 0 0 1 0 12 h-26.4 a10 10 0 0 0 -10 10 V242 a6 6 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.26\"/> </g> <g id=\"phone-screen\" data-layer=\"phone-screen\"> <rect x=\"127\" y=\"107\" width=\"70\" height=\"140\" rx=\"20\" fill=\"url(#gScreen)\"/> <rect x=\"136\" y=\"130\" width=\"52\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"136\" y=\"148\" width=\"34\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"136\" y=\"176\" width=\"52\" height=\"30\" rx=\"10\" fill=\"url(#gAccent)\"/> </g> <g id=\"camera\" data-layer=\"camera\"> <rect x=\"166\" y=\"110\" width=\"24\" height=\"14\" rx=\"7\" fill=\"#1B2E6B\" opacity=\".22\"/> <circle cx=\"178\" cy=\"117\" r=\"4.4\" fill=\"#1B2E6B\" opacity=\".5\"/> </g> <g id=\"buttons\" data-layer=\"buttons\"> <rect x=\"204\" y=\"148\" width=\"4\" height=\"26\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".35\"/> <rect x=\"204\" y=\"182\" width=\"4\" height=\"16\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".28\"/> </g> </g> <g id=\"phone\" data-layer=\"phone\" transform=\"rotate(8 318 177)\"> <g id=\"phone-body\" data-layer=\"phone-body\"> <rect x=\"274\" y=\"96\" width=\"88\" height=\"162\" rx=\"28\" fill=\"url(#gClay)\"/> <path d=\"M286 242 V112 a22 22 0 0 1 22 -22 h33.44 a6 6 0 0 1 0 12 h-26.4 a10 10 0 0 0 -10 10 V242 a6 6 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.26\"/> </g> <g id=\"phone-screen\" data-layer=\"phone-screen\"> <rect x=\"283\" y=\"107\" width=\"70\" height=\"140\" rx=\"20\" fill=\"url(#gScreen)\"/> <rect x=\"292\" y=\"130\" width=\"52\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"292\" y=\"148\" width=\"34\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"292\" y=\"176\" width=\"52\" height=\"30\" rx=\"10\" fill=\"url(#gClayDeep)\"/> </g> <g id=\"camera\" data-layer=\"camera\"> <rect x=\"322\" y=\"110\" width=\"24\" height=\"14\" rx=\"7\" fill=\"#1B2E6B\" opacity=\".22\"/> <circle cx=\"334\" cy=\"117\" r=\"4.4\" fill=\"#1B2E6B\" opacity=\".5\"/> </g> <g id=\"buttons\" data-layer=\"buttons\"> <rect x=\"360\" y=\"148\" width=\"4\" height=\"26\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".35\"/> <rect x=\"360\" y=\"182\" width=\"4\" height=\"16\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".28\"/> </g> </g> <g id=\"exchange\" data-layer=\"exchange\"> <path d=\"M212 158 h56 m-14 -12 l14 12 l-14 12\" fill=\"none\" stroke=\"#2F4FD8\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> <path d=\"M268 200 h-56 m14 -12 l-14 12 l14 12\" fill=\"none\" stroke=\"#7E9BF6\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> </g> </g> </svg>","complete":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">المتجر جاهز</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"304\" rx=\"122\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"phone\" data-layer=\"phone\" transform=\"rotate(0 243 157)\"> <g id=\"phone-body\" data-layer=\"phone-body\"> <rect x=\"194\" y=\"66\" width=\"98\" height=\"182\" rx=\"28\" fill=\"url(#gClay)\"/> <path d=\"M206 232 V82 a22 22 0 0 1 22 -22 h37.24 a6 6 0 0 1 0 12 h-29.4 a10 10 0 0 0 -10 10 V232 a6 6 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.26\"/> </g> <g id=\"phone-screen\" data-layer=\"phone-screen\"> <rect x=\"203\" y=\"77\" width=\"80\" height=\"160\" rx=\"20\" fill=\"url(#gScreen)\"/> <rect x=\"212\" y=\"150\" width=\"62\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> <rect x=\"224\" y=\"168\" width=\"38\" height=\"9\" rx=\"4.5\" fill=\"#E4EDFD\"/> </g> <g id=\"camera\" data-layer=\"camera\"> <rect x=\"252\" y=\"80\" width=\"24\" height=\"14\" rx=\"7\" fill=\"#1B2E6B\" opacity=\".22\"/> <circle cx=\"264\" cy=\"87\" r=\"4.4\" fill=\"#1B2E6B\" opacity=\".5\"/> </g> <g id=\"buttons\" data-layer=\"buttons\"> <rect x=\"290\" y=\"118\" width=\"4\" height=\"26\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".35\"/> <rect x=\"290\" y=\"152\" width=\"4\" height=\"16\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".28\"/> </g> </g> <g id=\"check\" data-layer=\"check\"> <circle cx=\"243\" cy=\"128\" r=\"30\" fill=\"url(#gClay)\"/> <path d=\"M213 128 a30 30 0 0 1 30 -30 a30 30 0 0 0 -30 30 z\" fill=\"#FFFFFF\" opacity=\"0.3\"/> <path d=\"M230.4 129.2 l9 9.6 l16.5 -18.6\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"5.1000000000000005\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> </g> <g id=\"sparkles\" data-layer=\"sparkles\"> <path d=\"M122 85 q2.42 8.58 11 11 q-8.58 2.42 -11 11 q-2.42 -8.58 -11 -11 q8.58 -2.42 11 -11 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M370 101 q1.98 7.0200000000000005 9 9 q-7.0200000000000005 1.98 -9 9 q-1.98 -7.0200000000000005 -9 -9 q7.0200000000000005 -1.98 9 -9 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M136 224 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M366 229 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z\" fill=\"#7E9BF6\" opacity=\".75\"/> </g> </g> </svg>","customers":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">الزبائن والديون</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"86\" cy=\"80\" r=\"46\" fill=\"url(#gGlow)\"/><circle cx=\"404\" cy=\"252\" r=\"58\" fill=\"url(#gGlow)\"/> <rect x=\"366\" y=\"52\" width=\"46\" height=\"46\" rx=\"16\" fill=\"#C7D8FB\" opacity=\".55\"/> <circle cx=\"70\" cy=\"272\" r=\"17\" fill=\"#7E9BF6\" opacity=\".38\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"128\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"people\" data-layer=\"people\"> <circle cx=\"164\" cy=\"132\" r=\"34\" fill=\"url(#gClay)\"/> <circle cx=\"164\" cy=\"122\" r=\"13\" fill=\"#FFFFFF\" opacity=\".92\"/> <path d=\"M146 152 q18 -16 36 0 a34 34 0 0 1 -36 0 z\" fill=\"#FFFFFF\" opacity=\".92\"/> <circle cx=\"316\" cy=\"132\" r=\"34\" fill=\"url(#gClayDeep)\"/> <circle cx=\"316\" cy=\"122\" r=\"13\" fill=\"#FFFFFF\" opacity=\".85\"/> <path d=\"M298 152 q18 -16 36 0 a34 34 0 0 1 -36 0 z\" fill=\"#FFFFFF\" opacity=\".85\"/> </g> <rect x=\"140\" y=\"190\" width=\"200\" height=\"88\" rx=\"20\" fill=\"url(#gWhite)\"/><rect x=\"160\" y=\"216\" width=\"160\" height=\"9\" rx=\"4.5\" fill=\"#7E9BF6\"/><rect x=\"160\" y=\"236\" width=\"134\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/><rect x=\"160\" y=\"256\" width=\"160\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> <g id=\"balance\" data-layer=\"balance\"> <rect x=\"256\" y=\"238\" width=\"70\" height=\"26\" rx=\"10\" fill=\"url(#gAccent)\"/> <rect x=\"268\" y=\"248\" width=\"46\" height=\"7\" rx=\"3.5\" fill=\"#FFFFFF\" opacity=\".9\"/> </g> </g> </svg>","email-otp":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">توثيق البريد برمز OTP</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"86\" cy=\"80\" r=\"46\" fill=\"url(#gGlow)\"/><circle cx=\"404\" cy=\"252\" r=\"58\" fill=\"url(#gGlow)\"/> <rect x=\"366\" y=\"52\" width=\"46\" height=\"46\" rx=\"16\" fill=\"#C7D8FB\" opacity=\".55\"/> <circle cx=\"70\" cy=\"272\" r=\"17\" fill=\"#7E9BF6\" opacity=\".38\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"302\" rx=\"122\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"envelope\" data-layer=\"envelope\"> <rect x=\"156\" y=\"92\" width=\"168\" height=\"116\" rx=\"20\" fill=\"url(#gClay)\"/> <path d=\"M166 112 L240 159.28 L314 112\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".85\"/> <path d=\"M168 194 V118 a12 12 0 0 1 12 -12 h30 a5 5 0 0 1 0 10 h-22 a8 8 0 0 0 -8 8 V194 a5 5 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.22\"/> </g> <g id=\"otp-dots\" data-layer=\"otp-dots\"><rect x=\"154\" y=\"231\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"165\" cy=\"246\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"184\" y=\"231\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"195\" cy=\"246\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"214\" y=\"231\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"225\" cy=\"246\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"244\" y=\"231\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"255\" cy=\"246\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"274\" y=\"231\" width=\"22\" height=\"30\" rx=\"9\" fill=\"#F8FBFF\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><rect x=\"304\" y=\"231\" width=\"22\" height=\"30\" rx=\"9\" fill=\"#F8FBFF\" stroke=\"#C7D8FB\" stroke-width=\"2\"/></g> <g id=\"check\" data-layer=\"check\"> <circle cx=\"330\" cy=\"118\" r=\"26\" fill=\"url(#gClay)\"/> <path d=\"M304 118 a26 26 0 0 1 26 -26 a26 26 0 0 0 -26 26 z\" fill=\"#FFFFFF\" opacity=\"0.3\"/> <path d=\"M319.08 119.04 l7.8 8.32 l14.3 -16.12\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4.42\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> </g> <g id=\"sparkles\" data-layer=\"sparkles\"> <path d=\"M118 109 q1.98 7.0200000000000005 9 9 q-7.0200000000000005 1.98 -9 9 q-1.98 -7.0200000000000005 -9 -9 q7.0200000000000005 -1.98 9 -9 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M372 225 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z\" fill=\"#7E9BF6\" opacity=\".75\"/> </g> </g> </svg>","employee-otp":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">توثيق الموظف</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"302\" rx=\"112\" ry=\"22\" fill=\"url(#gShadow)\"/></g> <g id=\"person\" data-layer=\"person\"> <circle cx=\"240\" cy=\"112\" r=\"42\" fill=\"url(#gClay)\"/> <circle cx=\"240\" cy=\"100\" r=\"16\" fill=\"#FFFFFF\" opacity=\".92\"/> <path d=\"M218 136 q22 -19 44 0 a42 42 0 0 1 -44 0 z\" fill=\"#FFFFFF\" opacity=\".92\"/> </g> <g id=\"envelope\" data-layer=\"envelope\"> <rect x=\"186\" y=\"168\" width=\"108\" height=\"74\" rx=\"20\" fill=\"url(#gClay)\"/> <path d=\"M196 188 L240 210.92 L284 188\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".85\"/> <path d=\"M198 228 V194 a12 12 0 0 1 12 -12 h30 a5 5 0 0 1 0 10 h-22 a8 8 0 0 0 -8 8 V228 a5 5 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.22\"/> </g> <g id=\"otp-dots\" data-layer=\"otp-dots\"><rect x=\"154\" y=\"259\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"165\" cy=\"274\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"184\" y=\"259\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"195\" cy=\"274\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"214\" y=\"259\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"225\" cy=\"274\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"244\" y=\"259\" width=\"22\" height=\"30\" rx=\"9\" fill=\"#F8FBFF\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><rect x=\"274\" y=\"259\" width=\"22\" height=\"30\" rx=\"9\" fill=\"#F8FBFF\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><rect x=\"304\" y=\"259\" width=\"22\" height=\"30\" rx=\"9\" fill=\"#F8FBFF\" stroke=\"#C7D8FB\" stroke-width=\"2\"/></g> <g id=\"check\" data-layer=\"check\"> <circle cx=\"310\" cy=\"128\" r=\"22\" fill=\"url(#gClay)\"/> <path d=\"M288 128 a22 22 0 0 1 22 -22 a22 22 0 0 0 -22 22 z\" fill=\"#FFFFFF\" opacity=\"0.3\"/> <path d=\"M300.76 128.88 l6.6 7.04 l12.100000000000001 -13.64\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"3.74\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> </g> </g> </svg>","employees":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">فريق العمل</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"398\" cy=\"86\" r=\"52\" fill=\"url(#gGlow)\"/><circle cx=\"78\" cy=\"240\" r=\"46\" fill=\"url(#gGlow)\"/> <rect x=\"60\" y=\"56\" width=\"40\" height=\"40\" rx=\"14\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"414\" cy=\"286\" r=\"14\" fill=\"#7E9BF6\" opacity=\".40\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"304\" rx=\"132\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"team\" data-layer=\"team\"> <circle cx=\"240\" cy=\"112\" r=\"40\" fill=\"url(#gClay)\"/> <circle cx=\"240\" cy=\"100\" r=\"15\" fill=\"#FFFFFF\" opacity=\".92\"/> <path d=\"M219 134 q21 -18 42 0 a40 40 0 0 1 -42 0 z\" fill=\"#FFFFFF\" opacity=\".92\"/> <circle cx=\"140\" cy=\"176\" r=\"30\" fill=\"url(#gClayDeep)\"/> <circle cx=\"140\" cy=\"167\" r=\"11\" fill=\"#FFFFFF\" opacity=\".85\"/> <path d=\"M125 192 q15 -13 30 0 a30 30 0 0 1 -30 0 z\" fill=\"#FFFFFF\" opacity=\".85\"/> <circle cx=\"340\" cy=\"176\" r=\"30\" fill=\"url(#gAccent)\"/> <circle cx=\"340\" cy=\"167\" r=\"11\" fill=\"#FFFFFF\" opacity=\".9\"/> <path d=\"M325 192 q15 -13 30 0 a30 30 0 0 1 -30 0 z\" fill=\"#FFFFFF\" opacity=\".9\"/> </g> <rect x=\"152\" y=\"226\" width=\"176\" height=\"56\" rx=\"20\" fill=\"url(#gWhite)\"/><rect x=\"172\" y=\"252\" width=\"136\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/><rect x=\"172\" y=\"272\" width=\"110\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> </g> </svg>","inventory":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">المخزون و IMEI</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"86\" cy=\"80\" r=\"46\" fill=\"url(#gGlow)\"/><circle cx=\"404\" cy=\"252\" r=\"58\" fill=\"url(#gGlow)\"/> <rect x=\"366\" y=\"52\" width=\"46\" height=\"46\" rx=\"16\" fill=\"#C7D8FB\" opacity=\".55\"/> <circle cx=\"70\" cy=\"272\" r=\"17\" fill=\"#7E9BF6\" opacity=\".38\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"304\" rx=\"130\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"boxes\" data-layer=\"boxes\"> <rect x=\"122\" y=\"176\" width=\"106\" height=\"100\" rx=\"18\" fill=\"url(#gClay)\"/> <path d=\"M134 268 V196 a10 10 0 0 1 10 -10 h26 a5 5 0 0 1 0 10 h-18 a8 8 0 0 0 -8 8 v64 a5 5 0 0 1 -10 0 z\" fill=\"#FFFFFF\" opacity=\"0.24\"/> <rect x=\"252\" y=\"176\" width=\"106\" height=\"100\" rx=\"18\" fill=\"url(#gPowder)\"/> <rect x=\"188\" y=\"96\" width=\"106\" height=\"94\" rx=\"18\" fill=\"url(#gClayDeep)\"/> <rect x=\"206\" y=\"126\" width=\"70\" height=\"10\" rx=\"5\" fill=\"#FFFFFF\" opacity=\".55\"/> <rect x=\"206\" y=\"146\" width=\"44\" height=\"10\" rx=\"5\" fill=\"#FFFFFF\" opacity=\".35\"/> </g> <g><rect x=\"258\" y=\"212\" width=\"96\" height=\"34\" rx=\"12\" fill=\"url(#gClayDeep)\"/> <rect x=\"270\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.45\"/><rect x=\"280\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.65\"/><rect x=\"290\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.8500000000000001\"/><rect x=\"300\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.45\"/><rect x=\"310\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.65\"/><rect x=\"320\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.8500000000000001\"/><rect x=\"330\" y=\"222\" width=\"4\" height=\"14\" rx=\"2\" fill=\"#FFFFFF\" opacity=\"0.45\"/></g> <g id=\"sparkles\" data-layer=\"sparkles\"> <path d=\"M96 120 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M396 141 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z\" fill=\"#7E9BF6\" opacity=\".75\"/> </g> </g> </svg>","invoices":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">الفواتير والطباعة</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"398\" cy=\"86\" r=\"52\" fill=\"url(#gGlow)\"/><circle cx=\"78\" cy=\"240\" r=\"46\" fill=\"url(#gGlow)\"/> <rect x=\"60\" y=\"56\" width=\"40\" height=\"40\" rx=\"14\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"414\" cy=\"286\" r=\"14\" fill=\"#7E9BF6\" opacity=\".40\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"304\" rx=\"126\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"printer\" data-layer=\"printer\"> <rect x=\"146\" y=\"168\" width=\"188\" height=\"86\" rx=\"20\" fill=\"url(#gClay)\"/> <path d=\"M158 244 V190 a10 10 0 0 1 10 -10 h28 a5 5 0 0 1 0 10 h-20 a8 8 0 0 0 -8 8 v46 a5 5 0 0 1 -10 0 z\" fill=\"#FFFFFF\" opacity=\"0.24\"/> <rect x=\"300\" y=\"188\" width=\"20\" height=\"12\" rx=\"6\" fill=\"#FFFFFF\" opacity=\".8\"/> </g> <g id=\"paper\" data-layer=\"paper\"> <rect x=\"178\" y=\"76\" width=\"124\" height=\"96\" rx=\"14\" fill=\"url(#gWhite)\"/> <rect x=\"196\" y=\"98\" width=\"88\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> <rect x=\"196\" y=\"118\" width=\"60\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> <rect x=\"196\" y=\"140\" width=\"88\" height=\"9\" rx=\"4.5\" fill=\"#7E9BF6\" opacity=\".7\"/> <rect x=\"178\" y=\"238\" width=\"124\" height=\"66\" rx=\"14\" fill=\"url(#gWhite)\"/> <rect x=\"196\" y=\"258\" width=\"88\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"196\" y=\"274\" width=\"52\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> </g> </g> </svg>","owner":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">حساب المالك</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"398\" cy=\"86\" r=\"52\" fill=\"url(#gGlow)\"/><circle cx=\"78\" cy=\"240\" r=\"46\" fill=\"url(#gGlow)\"/> <rect x=\"60\" y=\"56\" width=\"40\" height=\"40\" rx=\"14\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"414\" cy=\"286\" r=\"14\" fill=\"#7E9BF6\" opacity=\".40\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"108\" ry=\"22\" fill=\"url(#gShadow)\"/></g> <g id=\"owner\" data-layer=\"owner\"> <circle cx=\"240\" cy=\"132\" r=\"52\" fill=\"url(#gClay)\"/> <path d=\"M188 132 a52 52 0 0 1 52 -52 a52 52 0 0 0 -52 52 z\" fill=\"#FFFFFF\" opacity=\"0.3\"/> <circle cx=\"240\" cy=\"118\" r=\"20\" fill=\"#FFFFFF\" opacity=\".92\"/> <path d=\"M212 162 q28 -24 56 0 a52 52 0 0 1 -56 0 z\" fill=\"#FFFFFF\" opacity=\".92\"/> <rect x=\"150\" y=\"206\" width=\"180\" height=\"74\" rx=\"20\" fill=\"url(#gWhite)\"/><rect x=\"170\" y=\"232\" width=\"140\" height=\"9\" rx=\"4.5\" fill=\"#7E9BF6\"/><rect x=\"170\" y=\"252\" width=\"114\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> <circle cx=\"316\" cy=\"242\" r=\"16\" fill=\"url(#gAccent)\"/> <path d=\"M309 242 l5 5 l10 -11\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> </g> </g> </svg>","permissions":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">الأدوار والصلاحيات</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"86\" cy=\"80\" r=\"46\" fill=\"url(#gGlow)\"/><circle cx=\"404\" cy=\"252\" r=\"58\" fill=\"url(#gGlow)\"/> <rect x=\"366\" y=\"52\" width=\"46\" height=\"46\" rx=\"16\" fill=\"#C7D8FB\" opacity=\".55\"/> <circle cx=\"70\" cy=\"272\" r=\"17\" fill=\"#7E9BF6\" opacity=\".38\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"302\" rx=\"124\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"shield\" data-layer=\"shield\"> <path d=\"M193.2 84.4 q46.8 -20 93.6 0 v48.38399999999999 q0 50.687999999999995 -46.8 66.81599999999999 q-46.8 -16.128 -46.8 -66.81599999999999 z\" fill=\"url(#gClay)\"/> <path d=\"M202.2 90.4 q23.4 -14 46.8 -4 v57.599999999999994 q-23.4 8 -46.8 -6 z\" fill=\"#FFFFFF\" opacity=\"0.24\"/> </g> <g id=\"keyhole\" data-layer=\"keyhole\"> <circle cx=\"240\" cy=\"120\" r=\"12\" fill=\"#FFFFFF\" opacity=\".95\"/> <path d=\"M234 128 h12 l-3 22 h-6 z\" fill=\"#FFFFFF\" opacity=\".95\"/> </g> <g id=\"modules\" data-layer=\"modules\"> <rect x=\"116\" y=\"208\" width=\"92\" height=\"34\" rx=\"12\" fill=\"url(#gPowder)\"/> <rect x=\"220\" y=\"208\" width=\"92\" height=\"34\" rx=\"12\" fill=\"url(#gPowder)\"/> <rect x=\"324\" y=\"208\" width=\"44\" height=\"34\" rx=\"12\" fill=\"url(#gAccent)\"/> <rect x=\"116\" y=\"254\" width=\"62\" height=\"34\" rx=\"12\" fill=\"url(#gPowder)\"/> <rect x=\"190\" y=\"254\" width=\"92\" height=\"34\" rx=\"12\" fill=\"url(#gAccent)\"/> <rect x=\"294\" y=\"254\" width=\"74\" height=\"34\" rx=\"12\" fill=\"url(#gPowder)\"/> </g> </g> </svg>","preferences":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">التفضيلات</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"110\" ry=\"22\" fill=\"url(#gShadow)\"/></g> <g id=\"dial\" data-layer=\"dial\"> <circle cx=\"240\" cy=\"150\" r=\"72\" fill=\"url(#gClay)\"/> <path d=\"M168 150 a72 72 0 0 1 72 -72 a72 72 0 0 0 -72 72 z\" fill=\"#FFFFFF\" opacity=\"0.28\"/> <circle cx=\"240\" cy=\"150\" r=\"44\" fill=\"url(#gWhite)\"/> <rect x=\"236\" y=\"112\" width=\"8\" height=\"34\" rx=\"4\" fill=\"#2F4FD8\"/> </g> <g id=\"switches\" data-layer=\"switches\"> <rect x=\"140\" y=\"250\" width=\"76\" height=\"34\" rx=\"17\" fill=\"url(#gAccent)\"/> <circle cx=\"200\" cy=\"267\" r=\"12\" fill=\"#FFFFFF\"/> <rect x=\"264\" y=\"250\" width=\"76\" height=\"34\" rx=\"17\" fill=\"#C7D8FB\"/> <circle cx=\"280\" cy=\"267\" r=\"12\" fill=\"#FFFFFF\"/> </g> </g> </svg>","preparing":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">تهيئة النظام</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"116\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"core\" data-layer=\"core\"> <circle cx=\"240\" cy=\"152\" r=\"58\" fill=\"url(#gClay)\"/> <path d=\"M182 152 a58 58 0 0 1 58 -58 a58 58 0 0 0 -58 58 z\" fill=\"#FFFFFF\" opacity=\"0.3\"/> <circle cx=\"240\" cy=\"152\" r=\"26\" fill=\"#FFFFFF\" opacity=\".92\"/> </g> <g id=\"orbit\" data-layer=\"orbit\"> <circle cx=\"240\" cy=\"152\" r=\"92\" fill=\"none\" stroke=\"#C7D8FB\" stroke-width=\"4\" stroke-dasharray=\"14 16\"/> <circle cx=\"332\" cy=\"152\" r=\"13\" fill=\"url(#gAccent)\"/> <circle cx=\"148\" cy=\"152\" r=\"9\" fill=\"#7E9BF6\"/> </g> <g id=\"progress\" data-layer=\"progress\"> <rect x=\"150\" y=\"264\" width=\"180\" height=\"18\" rx=\"9\" fill=\"#E4EDFD\"/> <rect x=\"150\" y=\"264\" width=\"118\" height=\"18\" rx=\"9\" fill=\"url(#gAccent)\"/> </g> </g> </svg>","products":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">الماركات والموديلات</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"302\" rx=\"126\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"phone\" data-layer=\"phone\" transform=\"rotate(0 244 163)\"> <g id=\"phone-body\" data-layer=\"phone-body\"> <rect x=\"196\" y=\"74\" width=\"96\" height=\"178\" rx=\"28\" fill=\"url(#gClay)\"/> <path d=\"M208 236 V90 a22 22 0 0 1 22 -22 h36.480000000000004 a6 6 0 0 1 0 12 h-28.799999999999997 a10 10 0 0 0 -10 10 V236 a6 6 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.26\"/> </g> <g id=\"phone-screen\" data-layer=\"phone-screen\"> <rect x=\"205\" y=\"85\" width=\"78\" height=\"156\" rx=\"20\" fill=\"url(#gScreen)\"/> <circle cx=\"244\" cy=\"128\" r=\"26\" fill=\"url(#gAccent)\"/> <rect x=\"214\" y=\"172\" width=\"60\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> <rect x=\"226\" y=\"190\" width=\"36\" height=\"9\" rx=\"4.5\" fill=\"#C7D8FB\"/> </g> <g id=\"camera\" data-layer=\"camera\"> <rect x=\"252\" y=\"88\" width=\"24\" height=\"14\" rx=\"7\" fill=\"#1B2E6B\" opacity=\".22\"/> <circle cx=\"264\" cy=\"95\" r=\"4.4\" fill=\"#1B2E6B\" opacity=\".5\"/> </g> <g id=\"buttons\" data-layer=\"buttons\"> <rect x=\"290\" y=\"126\" width=\"4\" height=\"26\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".35\"/> <rect x=\"290\" y=\"160\" width=\"4\" height=\"16\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".28\"/> </g> </g> <g id=\"variants\" data-layer=\"variants\"> <rect x=\"96\" y=\"128\" width=\"74\" height=\"32\" rx=\"16\" fill=\"url(#gPowder)\"/> <rect x=\"96\" y=\"176\" width=\"74\" height=\"32\" rx=\"16\" fill=\"url(#gPowder)\"/> <rect x=\"310\" y=\"128\" width=\"74\" height=\"32\" rx=\"16\" fill=\"url(#gPowder)\"/> <rect x=\"310\" y=\"176\" width=\"74\" height=\"32\" rx=\"16\" fill=\"url(#gPowder)\"/> <circle cx=\"133\" cy=\"144\" r=\"9\" fill=\"#2F4FD8\"/> <circle cx=\"133\" cy=\"192\" r=\"9\" fill=\"#7E9BF6\"/> <circle cx=\"347\" cy=\"144\" r=\"9\" fill=\"#1B2E6B\"/> <circle cx=\"347\" cy=\"192\" r=\"9\" fill=\"#8FA3C8\"/> </g> </g> </svg>","review":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">مراجعة الإعداد</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"86\" cy=\"80\" r=\"46\" fill=\"url(#gGlow)\"/><circle cx=\"404\" cy=\"252\" r=\"58\" fill=\"url(#gGlow)\"/> <rect x=\"366\" y=\"52\" width=\"46\" height=\"46\" rx=\"16\" fill=\"#C7D8FB\" opacity=\".55\"/> <circle cx=\"70\" cy=\"272\" r=\"17\" fill=\"#7E9BF6\" opacity=\".38\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"304\" rx=\"122\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"checklist\" data-layer=\"checklist\"> <rect x=\"140\" y=\"66\" width=\"200\" height=\"216\" rx=\"24\" fill=\"url(#gWhite)\"/> <circle cx=\"176\" cy=\"112\" r=\"15\" fill=\"url(#gAccent)\"/> <path d=\"M169 112 l5 5 l10 -11\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> <rect x=\"202\" y=\"104\" width=\"112\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> <rect x=\"202\" y=\"120\" width=\"68\" height=\"8\" rx=\"4\" fill=\"#E4EDFD\"/> <circle cx=\"176\" cy=\"158\" r=\"15\" fill=\"url(#gAccent)\"/> <path d=\"M169 158 l5 5 l10 -11\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> <rect x=\"202\" y=\"150\" width=\"98\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> <rect x=\"202\" y=\"166\" width=\"60\" height=\"8\" rx=\"4\" fill=\"#E4EDFD\"/> <circle cx=\"176\" cy=\"204\" r=\"15\" fill=\"url(#gAccent)\"/> <path d=\"M169 204 l5 5 l10 -11\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> <rect x=\"202\" y=\"196\" width=\"84\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> <rect x=\"202\" y=\"212\" width=\"52\" height=\"8\" rx=\"4\" fill=\"#E4EDFD\"/> <circle cx=\"176\" cy=\"250\" r=\"15\" fill=\"#C7D8FB\"/> <rect x=\"202\" y=\"242\" width=\"70\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> <rect x=\"202\" y=\"258\" width=\"44\" height=\"8\" rx=\"4\" fill=\"#E4EDFD\"/> </g> <g id=\"sparkles\" data-layer=\"sparkles\"> <path d=\"M104 99 q1.98 7.0200000000000005 9 9 q-7.0200000000000005 1.98 -9 9 q-1.98 -7.0200000000000005 -9 -9 q7.0200000000000005 -1.98 9 -9 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M386 208 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z\" fill=\"#7E9BF6\" opacity=\".75\"/> </g> </g> </svg>","sales":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">المبيعات والدفع</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"398\" cy=\"86\" r=\"52\" fill=\"url(#gGlow)\"/><circle cx=\"78\" cy=\"240\" r=\"46\" fill=\"url(#gGlow)\"/> <rect x=\"60\" y=\"56\" width=\"40\" height=\"40\" rx=\"14\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"414\" cy=\"286\" r=\"14\" fill=\"#7E9BF6\" opacity=\".40\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"302\" rx=\"120\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"receipt\" data-layer=\"receipt\"> <path d=\"M158 76 h164 v186 l-20 -12 l-20 12 l-20 -12 l-21 12 l-21 -12 l-20 12 l-21 -12 l-21 12 z\" fill=\"url(#gWhite)\"/> <rect x=\"182\" y=\"106\" width=\"116\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> <rect x=\"182\" y=\"130\" width=\"80\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> <rect x=\"182\" y=\"164\" width=\"116\" height=\"34\" rx=\"12\" fill=\"url(#gAccent)\"/> <rect x=\"182\" y=\"212\" width=\"60\" height=\"10\" rx=\"5\" fill=\"#C7D8FB\"/> </g> <g id=\"coin\" data-layer=\"coin\"> <circle cx=\"336\" cy=\"222\" r=\"36\" fill=\"url(#gClay)\"/> <path d=\"M300 222 a36 36 0 0 1 36 -36 a36 36 0 0 0 -36 36 z\" fill=\"#FFFFFF\" opacity=\"0.3\"/> <rect x=\"322\" y=\"204\" width=\"28\" height=\"8\" rx=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/> <rect x=\"322\" y=\"218\" width=\"28\" height=\"8\" rx=\"4\" fill=\"#FFFFFF\" opacity=\".7\"/> <rect x=\"322\" y=\"232\" width=\"18\" height=\"8\" rx=\"4\" fill=\"#FFFFFF\" opacity=\".5\"/> </g> </g> </svg>","security":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">الحماية وكلمة المرور</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"100\" ry=\"22\" fill=\"url(#gShadow)\"/></g> <g id=\"shield\" data-layer=\"shield\"> <path d=\"M181.5 92 q58.5 -20 117 0 v60.48 q0 63.36 -58.5 83.52 q-58.5 -20.160000000000004 -58.5 -83.52 z\" fill=\"url(#gClay)\"/> <path d=\"M190.5 98 q29.25 -14 58.5 -4 v72 q-29.25 8 -58.5 -6 z\" fill=\"#FFFFFF\" opacity=\"0.24\"/> </g> <g id=\"lock\" data-layer=\"lock\"> <rect x=\"216\" y=\"146\" width=\"48\" height=\"40\" rx=\"12\" fill=\"#FFFFFF\" opacity=\".94\"/> <path d=\"M228 146 v-12 a12 12 0 0 1 24 0 v12\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"7\" stroke-linecap=\"round\"/> <circle cx=\"240\" cy=\"164\" r=\"6\" fill=\"#2F4FD8\"/> </g> <g id=\"otp-dots\" data-layer=\"otp-dots\"><rect x=\"184\" y=\"239\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"195\" cy=\"254\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"214\" y=\"239\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"225\" cy=\"254\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"244\" y=\"239\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"255\" cy=\"254\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"274\" y=\"239\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"285\" cy=\"254\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/></g> </g> </svg>","store":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">ملف المتجر</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"86\" cy=\"80\" r=\"46\" fill=\"url(#gGlow)\"/><circle cx=\"404\" cy=\"252\" r=\"58\" fill=\"url(#gGlow)\"/> <rect x=\"366\" y=\"52\" width=\"46\" height=\"46\" rx=\"16\" fill=\"#C7D8FB\" opacity=\".55\"/> <circle cx=\"70\" cy=\"272\" r=\"17\" fill=\"#7E9BF6\" opacity=\".38\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"132\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"store\" data-layer=\"store\"> <path d=\"M104 132 h272 v128 a16 16 0 0 1 -16 16 H120 a16 16 0 0 1 -16 -16 z\" fill=\"url(#gPowder)\"/> <path d=\"M96 132 l22 -44 h244 l22 44 z\" fill=\"url(#gClay)\"/> <path d=\"M112 128 l16 -34 h44 l-16 34 z\" fill=\"#FFFFFF\" opacity=\"0.28\"/> <rect x=\"150\" y=\"176\" width=\"86\" height=\"100\" rx=\"14\" fill=\"url(#gWhite)\"/> <rect x=\"166\" y=\"196\" width=\"54\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"166\" y=\"214\" width=\"38\" height=\"8\" rx=\"4\" fill=\"#C7D8FB\"/> <rect x=\"262\" y=\"176\" width=\"82\" height=\"60\" rx=\"14\" fill=\"url(#gClayDeep)\"/> <g id=\"otp-dots\" data-layer=\"otp-dots\"><rect x=\"262\" y=\"191\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"273\" cy=\"206\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"292\" y=\"191\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"303\" cy=\"206\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/><rect x=\"322\" y=\"191\" width=\"22\" height=\"30\" rx=\"9\" fill=\"url(#gAccent)\" stroke=\"#C7D8FB\" stroke-width=\"2\"/><circle cx=\"333\" cy=\"206\" r=\"4\" fill=\"#FFFFFF\" opacity=\".9\"/></g> </g> <g id=\"sparkles\" data-layer=\"sparkles\"> <path d=\"M402 112 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M80 201 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z\" fill=\"#7E9BF6\" opacity=\".75\"/> </g> </g> </svg>","welcome":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 360\" width=\"480\" height=\"360\" fill=\"none\" role=\"img\" aria-labelledby=\"ttl\"> <title id=\"ttl\">مرحبًا — بدء إعداد النظام</title> <defs> <linearGradient id=\"gClay\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#7C9AFB\"/><stop offset=\"1\" stop-color=\"#2F4FD8\"/> </linearGradient> <linearGradient id=\"gClayDeep\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#3B58AE\"/><stop offset=\"1\" stop-color=\"#1B2E6B\"/> </linearGradient> <linearGradient id=\"gPowder\" x1=\"0\" y1=\"0\" x2=\"0.6\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#F2F6FE\"/><stop offset=\"1\" stop-color=\"#C7D8FB\"/> </linearGradient> <linearGradient id=\"gScreen\" x1=\"0\" y1=\"0\" x2=\"0.7\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#E8F0FF\"/><stop offset=\"1\" stop-color=\"#B7CDFA\"/> </linearGradient> <linearGradient id=\"gWhite\" x1=\"0\" y1=\"0\" x2=\"0.5\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#FFFFFF\"/><stop offset=\"1\" stop-color=\"#E9F0FE\"/> </linearGradient> <linearGradient id=\"gAccent\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"> <stop offset=\"0\" stop-color=\"#A8C0FF\"/><stop offset=\"1\" stop-color=\"#5B7BF0\"/> </linearGradient> <radialGradient id=\"gGlow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#8FAEFF\" stop-opacity=\"0.45\"/> <stop offset=\"1\" stop-color=\"#8FAEFF\" stop-opacity=\"0\"/> </radialGradient> <radialGradient id=\"gShadow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"> <stop offset=\"0\" stop-color=\"#1B2E6B\" stop-opacity=\"0.20\"/> <stop offset=\"1\" stop-color=\"#1B2E6B\" stop-opacity=\"0\"/> </radialGradient> <filter id=\"fSoft\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"> <feGaussianBlur stdDeviation=\"9\"/> </filter> <filter id=\"fTiny\" x=\"-40%\" y=\"-40%\" width=\"180%\" height=\"180%\"> <feGaussianBlur stdDeviation=\"3.5\"/> </filter> </defs> <g id=\"scene\" data-layer=\"scene\"> <g id=\"abstract-shapes\" data-layer=\"abstract-shapes\"><circle cx=\"240\" cy=\"150\" r=\"128\" fill=\"url(#gGlow)\"/> <rect x=\"52\" y=\"188\" width=\"34\" height=\"34\" rx=\"12\" fill=\"#C7D8FB\" opacity=\".5\"/> <circle cx=\"418\" cy=\"112\" r=\"18\" fill=\"#7E9BF6\" opacity=\".34\"/></g> <g id=\"shadow\" data-layer=\"shadow\"><ellipse cx=\"240\" cy=\"300\" rx=\"118\" ry=\"24\" fill=\"url(#gShadow)\"/></g> <g id=\"phone\" data-layer=\"phone\" transform=\"rotate(0 242 159)\"> <g id=\"phone-body\" data-layer=\"phone-body\"> <rect x=\"190\" y=\"60\" width=\"104\" height=\"198\" rx=\"28\" fill=\"url(#gClay)\"/> <path d=\"M202 242 V76 a22 22 0 0 1 22 -22 h39.52 a6 6 0 0 1 0 12 h-31.2 a10 10 0 0 0 -10 10 V242 a6 6 0 0 1 -12 0 z\" fill=\"#FFFFFF\" opacity=\"0.26\"/> </g> <g id=\"phone-screen\" data-layer=\"phone-screen\"> <rect x=\"199\" y=\"71\" width=\"86\" height=\"176\" rx=\"20\" fill=\"url(#gScreen)\"/> <rect x=\"212\" y=\"92\" width=\"60\" height=\"60\" rx=\"20\" fill=\"url(#gAccent)\"/> <path d=\"M232 122 l10 11 l20 -24\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/> <rect x=\"206\" y=\"172\" width=\"72\" height=\"10\" rx=\"5\" fill=\"#7E9BF6\" opacity=\".8\"/> <rect x=\"218\" y=\"192\" width=\"48\" height=\"8\" rx=\"4\" fill=\"#8FA3C8\" opacity=\".55\"/> </g> <g id=\"camera\" data-layer=\"camera\"> <rect x=\"254\" y=\"74\" width=\"24\" height=\"14\" rx=\"7\" fill=\"#1B2E6B\" opacity=\".22\"/> <circle cx=\"266\" cy=\"81\" r=\"4.4\" fill=\"#1B2E6B\" opacity=\".5\"/> </g> <g id=\"buttons\" data-layer=\"buttons\"> <rect x=\"292\" y=\"112\" width=\"4\" height=\"26\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".35\"/> <rect x=\"292\" y=\"146\" width=\"4\" height=\"16\" rx=\"2\" fill=\"#1B2E6B\" opacity=\".28\"/> </g> </g> <g id=\"sparkles\" data-layer=\"sparkles\"> <path d=\"M132 94 q2.2 7.800000000000001 10 10 q-7.800000000000001 2.2 -10 10 q-2.2 -7.800000000000001 -10 -10 q7.800000000000001 -2.2 10 -10 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M352 84 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z\" fill=\"#7E9BF6\" opacity=\".75\"/> <path d=\"M356 229 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z\" fill=\"#7E9BF6\" opacity=\".75\"/> </g> </g> </svg>"}</script>
 <script>
@@ -721,6 +1287,7 @@ const CONFIG = Object.assign({
   appEntryUrl: "",                 // وجهة "دخول إلى النظام" بعد اكتمال الإعداد
   assetsBase : "assets/setup/",    // مجلد رسوم الإعداد (SVG)
   storageKey : "soufyan.erp.setup.v1",
+  illustration: "auto",            // "auto" | "3d" | "svg" — auto: ثلاثي الأبعاد إن توفّر WebGL
   otpTtl     : 120,                // ثانية
   passkey    : null                // null = كشف تلقائي لدعم المتصفح
 }, window.SETUP_CONFIG || {});
@@ -747,6 +1314,42 @@ const RX = {
   phone: /^[0-9+\-\s()]{7,20}$/,
   pin  : /^[0-9]{4,6}$/,
   digits: /^[0-9]+$/
+};
+
+/* ---- محرّكات الحركة: GSAP للتوقيت، Motion (من فريق Framer) للنوابض، Three.js للمشهد ---- */
+const HAS_GSAP   = typeof window.gsap !== "undefined";
+const HAS_MOTION = typeof window.Motion !== "undefined";
+const HAS_3D     = !!(window.Stage3D && window.Stage3D.webglOK());
+if(HAS_GSAP){
+  gsap.config({ force3D:true, nullTargetWarn:false });
+  gsap.defaults({ ease:"power3.out", duration:.5 });
+  if(window.CustomEase){
+    gsap.registerPlugin(CustomEase);
+    CustomEase.create("clay", "M0,0 C0.13,0.62 0.2,1 1,1");   /* دخول هادئ بلا ارتداد */
+    CustomEase.create("snap", "M0,0 C0.2,0 0.05,1.06 1,1");    /* استجابة سريعة للتفاعل */
+  }
+}
+
+/** نوابض Motion للتفاعلات القصيرة (ضغط، اختيار، مفاتيح، حوارات) */
+const Spring = {
+  soft : () => HAS_MOTION ? Motion.spring({ stiffness:380, damping:28, mass:.9 }) : "ease-out",
+  snap : () => HAS_MOTION ? Motion.spring({ stiffness:620, damping:22, mass:.7 }) : "ease-out",
+  bouncy:() => HAS_MOTION ? Motion.spring({ stiffness:520, damping:16, mass:.8 }) : "ease-out",
+  /** ضغطة زر — تُنظَّف الأنماط السطرية بعدها حتى لا تعطّل تأثيرات CSS */
+  press(el){
+    if(!HAS_MOTION || reducedMotion() || !el) return;
+    const a = Motion.animate(el, { scale:[1,.955,1] }, { duration:.32, easing:this.snap() });
+    if(a && a.finished) a.finished.then(() => { el.style.transform = ""; }).catch(() => {});
+  },
+  pop(el, from){
+    if(!HAS_MOTION || reducedMotion() || !el) return;
+    const a = Motion.animate(el, { transform:[`scale(${from || .4})`, "scale(1)"] }, { easing:this.bouncy() });
+    if(a && a.finished) a.finished.then(() => { el.style.transform = ""; }).catch(() => {});
+  },
+  in(el, props, opts){
+    if(!HAS_MOTION || reducedMotion() || !el) return null;
+    return Motion.animate(el, props, Object.assign({ easing:this.soft() }, opts || {}));
+  }
 };
 
 /* أيقونات (خط موحّد 24×24) */
@@ -1039,15 +1642,28 @@ const Toast = {
     el.className = "toast"; el.dataset.tone = tone;
     el.innerHTML = ico(tone === "ok" ? "check" : tone === "err" ? "alert" : "info") + "<div>" + esc(msg) + "</div>";
     host.appendChild(el);
-    setTimeout(() => { el.dataset.closing = "1"; setTimeout(() => el.remove(), 280); }, ms);
+    if(HAS_MOTION && !reducedMotion()){
+      el.style.animation = "none";
+      Motion.animate(el, { opacity:[0,1], transform:["translateY(20px) scale(.94)","none"] }, { easing:Spring.soft() });
+    }
+    setTimeout(() => {
+      if(HAS_MOTION && !reducedMotion()){
+        el.style.animation = "none";
+        const a = Motion.animate(el, { opacity:[1,0], transform:["none","translateY(10px) scale(.97)"] }, { duration:.22, easing:"ease-in" });
+        if(a && a.finished) a.finished.then(() => el.remove()).catch(() => el.remove());
+        else el.remove();
+      }else{ el.dataset.closing = "1"; setTimeout(() => el.remove(), 280); }
+    }, ms);
     announce(msg);
   }
 };
 
 const Modal = {
   _last:null, _onClose:null,
+  _gen:0,
   open({ title, desc, body, actions = [], size, onMount }){
-    const m = $("#modal"), s = $("#scrim");
+    const m = $("#modal"), w = $("#modalWrap"), s = $("#scrim");
+    this._gen++;                       // يُبطل أي منهي إغلاق معلّق من حوار سابق
     this._last = document.activeElement;
     m.innerHTML =
       `<div class="modal-head"><div style="flex:1"><h2 id="modalTitle">${esc(title)}</h2>${desc ? `<p>${esc(desc)}</p>` : ""}</div>
@@ -1056,8 +1672,13 @@ const Modal = {
        <div class="modal-foot">${actions.map((a, i) =>
           `<button class="btn ${a.variant || "btn-ghost"}" data-act="${i}"${a.disabled ? " disabled" : ""}>${a.icon ? ico(a.icon) : ""}<span class="btn-label">${esc(a.label)}</span></button>`).join("")}</div>`;
     if(size) m.style.width = size;
-    m.hidden = false; s.hidden = false;
-    requestAnimationFrame(() => { m.dataset.open = "1"; s.dataset.open = "1"; });
+    w.hidden = false; s.hidden = false;
+    requestAnimationFrame(() => {
+      m.dataset.open = "1"; s.dataset.open = "1";
+      if(HAS_MOTION && !reducedMotion())
+        Motion.animate(m, { opacity:[0,1], transform:["scale(.93) translateY(14px)","scale(1) translateY(0px)"] },
+          { easing:Spring.soft() });
+    });
     m.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => {
       const a = actions[+b.dataset.act]; if(a && a.onClick) a.onClick(m, b); else this.close();
     }));
@@ -1081,10 +1702,20 @@ const Modal = {
     else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
   },
   close(){
-    const m = $("#modal"), s = $("#scrim");
+    const m = $("#modal"), w = $("#modalWrap"), s = $("#scrim");
     m.dataset.open = ""; s.dataset.open = "";
     document.removeEventListener("keydown", this._key);
-    setTimeout(() => { m.hidden = true; s.hidden = true; m.innerHTML = ""; m.style.width = ""; }, 260);
+    const gen = ++this._gen;
+    const done = () => {
+      if(this._gen !== gen) return;    // فُتح حوار آخر بعده — لا نمسح محتواه
+      w.hidden = true; s.hidden = true; m.innerHTML = ""; m.style.cssText = "";
+    };
+    if(HAS_MOTION && !reducedMotion()){
+      const a = Motion.animate(m, { opacity:[1,0], transform:["scale(1)","scale(.95) translateY(10px)"] },
+        { duration:.2, easing:"ease-in" });
+      if(a && a.finished) a.finished.then(done).catch(done);
+      setTimeout(done, 340);           // ضمان الإنهاء حتى لو تجمّد إطار الرسم
+    }else setTimeout(done, 260);
     if(this._last && this._last.isConnected) this._last.focus();
     if(this._onClose){ const f = this._onClose; this._onClose = null; f(); }
   },
@@ -1109,7 +1740,16 @@ const Modal = {
    ========================================================================== */
 const SetupIllustration = {
   el:null, cache:new Map(), current:null, _timer:null,
-  init(el){ this.el = el; try{ this.fallback = JSON.parse($("#illus-fallback").textContent || "{}"); }catch(_){ this.fallback = {}; } },
+  mode:"svg",
+  init(el){
+    this.el = el;
+    try{ this.fallback = JSON.parse($("#illus-fallback").textContent || "{}"); }catch(_){ this.fallback = {}; }
+    const want = CONFIG.illustration || "auto";
+    if(want !== "svg" && HAS_3D && (want === "3d" || !reducedMotion())){
+      if(window.Stage3D.init(el)){ this.mode = "3d"; el.dataset.mode = "3d"; }
+    }
+    if(this.mode === "3d") window.Stage3D.theme(document.documentElement.dataset.theme === "dark");
+  },
   _clean(svg){
     return String(svg).replace(/<script[\s\S]*?<\/script>/gi, "").replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
   },
@@ -1134,6 +1774,10 @@ const SetupIllustration = {
     if(this.current === name){ this.setState("enter"); return; }
     this.current = name;
     this.el.setAttribute("aria-label", alt || "");
+    if(this.mode === "3d"){
+      if(window.Stage3D.show(name)) return;
+      this.mode = "svg"; this.el.dataset.mode = "";     // تعذّر المشهد: عودة نظيفة إلى SVG
+    }
     let asset = this.cache.get(name);
     if(!asset){
       asset = await this._fetchExternal(name);
@@ -1155,6 +1799,7 @@ const SetupIllustration = {
     if(!this.el) return;
     clearTimeout(this._timer);
     this.el.dataset.anim = s;
+    if(this.mode === "3d"){ window.Stage3D.setState(s === "enter" ? "idle" : s); return; }
     if(s === "enter" || s === "success"){
       const back = s === "enter" ? 760 : 820;
       this._timer = setTimeout(() => { if(this.el.dataset.anim === s) this.el.dataset.anim = "idle"; }, reducedMotion() ? 10 : back);
@@ -1210,7 +1855,14 @@ class OtpInput {
   value(){ return this.inputs.map(i => i.value).join(""); }
   clear(){ this.inputs.forEach(i => i.value = ""); }
   focusFirst(){ const e = this.inputs.find(i => !i.value) || this.inputs[0]; e.focus(); }
-  setState(s){ this.state = s; this.root.dataset.state = s; }
+  setState(s){
+    this.state = s; this.root.dataset.state = s;
+    if(s === "verified" && HAS_GSAP && !reducedMotion())
+      gsap.fromTo(this.inputs, { scale:.84 },
+        { scale:1, duration:.55, stagger:.055, ease:"back.out(2.6)", clearProps:"scale" });
+    if(s === "invalid" && HAS_GSAP && !reducedMotion())
+      gsap.fromTo(this.root, { x:0 }, { x:-9, duration:.065, repeat:5, yoyo:true, ease:"none", clearProps:"x" });
+  }
   disable(v){ this.inputs.forEach(i => i.disabled = !!v); }
 }
 Object.assign(L, {
@@ -1272,7 +1924,7 @@ const F = {
     return `<div class="switch-row" data-row>
       <div class="s-txt"><b>${esc(o.title)}</b>${o.desc ? `<span>${esc(o.desc)}</span>` : ""}</div>
       <button type="button" class="switch" role="switch" aria-checked="false" aria-label="${esc(o.title)}"
-        data-toggle="${o.key}"${o.sec ? ` data-sec="${o.sec}"` : ""}></button></div>`;
+        data-toggle="${o.key}"${o.sec ? ` data-sec="${o.sec}"` : ""}><i class="knob"></i></button></div>`;
   },
   tokens(o){
     return `<div class="field" data-tokens="${o.key}"${o.sec ? ` data-sec="${o.sec}"` : ""}>
@@ -1300,11 +1952,21 @@ function bindFields(root, section){
   });
   $$("[data-toggle]", root).forEach(el => {
     const sec = el.dataset.sec || section, key = el.dataset.toggle;
-    const paint = v => { el.setAttribute("aria-checked", v ? "true" : "false");
-      const row = el.closest("[data-row]"); if(row) row.dataset.on = v ? "1" : ""; };
-    paint(!!S[sec][key]);
-    el.addEventListener("click", () => { const v = !(el.getAttribute("aria-checked") === "true");
-      SetupState.set(sec, key, v); paint(v); });
+    const knob = $(".knob", el);
+    const travel = () => 21 * (document.documentElement.dir === "rtl" ? -1 : 1);
+    const paint = (v, animate) => {
+      el.setAttribute("aria-checked", v ? "true" : "false");
+      const row = el.closest("[data-row]"); if(row) row.dataset.on = v ? "1" : "";
+      if(!knob) return;
+      const x = v ? travel() : 0;
+      if(animate && HAS_MOTION && !reducedMotion()) Motion.animate(knob, { x:[null, x] }, { easing:Spring.snap() });
+      else knob.style.transform = `translateX(${x}px)`;
+    };
+    paint(!!S[sec][key], false);
+    el.addEventListener("click", () => {
+      const v = !(el.getAttribute("aria-checked") === "true");
+      SetupState.set(sec, key, v); paint(v, true);
+    });
   });
   $$("[data-multi]", root).forEach(el => {
     const sec = el.dataset.sec || section, key = el.dataset.multi, val = el.dataset.value;
@@ -1316,6 +1978,7 @@ function bindFields(root, section){
       if(i > -1) arr.splice(i, 1); else arr.push(val);
       SetupState.set(sec, key, arr);
       el.setAttribute("aria-checked", i > -1 ? "false" : "true");
+      if(i === -1) Spring.pop($(".c-mark", el), .45);
       clearError(root, key);
     });
   });
@@ -1325,6 +1988,7 @@ function bindFields(root, section){
     el.addEventListener("click", () => {
       SetupState.set(sec, key, val);
       $$(`[data-radio="${key}"]`, root).forEach(o => o.setAttribute("aria-checked", o === el ? "true" : "false"));
+      Spring.pop($(".c-mark", el), .45);
       clearError(root, key);
       if(key === "theme") Theme.apply(val);
       if(key === "language") Lang.set(val);
@@ -1396,6 +2060,7 @@ const Theme = {
   apply(pref){
     const eff = pref === "system" ? (this.mq.matches ? "dark" : "light") : (pref || "light");
     document.documentElement.dataset.theme = eff;
+    if(window.Stage3D && SetupIllustration.mode === "3d") window.Stage3D.theme(eff === "dark");
     const btn = $("#themeBtn");
     if(btn){ btn.innerHTML = ico(eff === "dark" ? "sun" : "moon"); btn.title = t("themeToggle") + " — " + t("theme_" + (pref || "light")); }
   },
@@ -2538,6 +3203,16 @@ STEPS.push({
   },
   mount(root){
     $$("[data-jump]", root).forEach(b => b.addEventListener("click", () => Wizard.goTo(Wizard.indexOf(b.dataset.jump), true)));
+    if(HAS_MOTION && !reducedMotion()){
+      $$(".rev", root).forEach((el, i) => {
+        if(i < 2) return;                       // أول قسمين يظهران مع الخطوة نفسها
+        el.style.opacity = "0";
+        Motion.inView(el, () => {
+          Motion.animate(el, { opacity:[0,1], transform:["translateY(22px)","none"] },
+            { easing:Spring.soft(), duration:.5 });
+        }, { amount:.2 });
+      });
+    }
   },
   validate(){
     for(let i = 0; i < STEPS.length; i++){
@@ -2578,13 +3253,18 @@ STEPS.push({
       li.dataset.state = s;
       $(".t-ico", li).innerHTML = s === "complete" ? ico("check") : s === "processing" ? `<span class="spin"></span>`
         : s === "error" ? ico("alert") : ico("clock");
+      if(s === "complete") Spring.pop($(".t-ico", li), .45);
+      if(s === "processing" && HAS_GSAP && !reducedMotion())
+        gsap.fromTo(li, { x:-8, opacity:.75 }, { x:0, opacity:1, duration:.45, ease:"clay", clearProps:"all" });
       const tasks = SetupState.data.setupStatus.tasks || {};
       tasks[k] = s; SetupState.data.setupStatus.tasks = tasks; SetupState.save();
     };
     const progress = () => {
       const done = TASKS.filter(k => (SetupState.data.setupStatus.tasks || {})[k] === "complete").length;
       const pct = Math.round(done / TASKS.length * 100);
-      bar.style.width = pct + "%"; barBox.setAttribute("aria-valuenow", String(pct));
+      if(HAS_GSAP && !reducedMotion()) gsap.to(bar, { width:pct + "%", duration:.7, ease:"power3.out" });
+      else bar.style.width = pct + "%";
+      barBox.setAttribute("aria-valuenow", String(pct));
       txt.textContent = t("s17_prog", { d: fmtNum(done), n: fmtNum(TASKS.length) });
     };
     const run = async () => {
@@ -2616,6 +3296,9 @@ STEPS.push({
       Wizard.goTo(Wizard.indexOf("complete"), true);
     };
     $("[data-retry]", root).addEventListener("click", run);
+    if(HAS_GSAP && !reducedMotion())
+      gsap.fromTo($$(".task", root), { y:16, opacity:0 },
+        { y:0, opacity:1, duration:.5, stagger:.07, ease:"clay", clearProps:"all", delay:.15 });
     progress();
     setTimeout(run, reducedMotion() ? 60 : 420);
   }
@@ -2628,13 +3311,13 @@ STEPS.push({
   body(){
     const d = SetupState.data;
     const stats = [
-      { i:"users", v: fmtNum(d.employees.length), l:t("s18_emp") },
-      { i:"tag", v: fmtNum(d.productSettings.brands.length), l:t("s18_brands") },
-      { i:"shield", v: fmtNum(MODULES.length), l:t("s18_mods") },
-      { i:"printer", v: fmtNum((d.invoiceSettings.formats || []).length), l:t("s18_fmt") }
-    ];
+      { i:"users", n:d.employees.length, l:t("s18_emp") },
+      { i:"tag", n:d.productSettings.brands.length, l:t("s18_brands") },
+      { i:"shield", n:MODULES.length, l:t("s18_mods") },
+      { i:"printer", n:(d.invoiceSettings.formats || []).length, l:t("s18_fmt") }
+    ].map(x => Object.assign(x, { v: fmtNum(x.n) }));
     return `<div class="stat-grid">${stats.map(s => `<div class="stat"><span class="c-ico">${ico(s.i)}</span>
-        <b>${esc(s.v)}</b><span>${esc(s.l)}</span></div>`).join("")}</div>
+        <b data-count="${s.n}">${esc(s.v)}</b><span>${esc(s.l)}</span></div>`).join("")}</div>
       <div class="cta-row">
         <button type="button" class="btn btn-primary btn-lg" data-enter>${ico("rocket")}<span class="btn-label">${esc(t("s18_cta"))}</span></button>
         <button type="button" class="btn btn-ghost" data-export>${ico("download")}<span class="btn-label">${esc(t("s18_export"))}</span></button>
@@ -2663,6 +3346,15 @@ STEPS.push({
     });
     $("[data-restart]", root).addEventListener("click", () => Wizard.confirmReset());
     SetupIllustration.setState("success");
+    if(HAS_GSAP && !reducedMotion()){
+      $$("[data-count]", root).forEach((el, i) => {
+        const to = +el.dataset.count, o = { n:0 };
+        gsap.to(o, { n:to, duration:1.1, delay:.35 + i * .08, ease:"power2.out",
+          onUpdate(){ el.textContent = fmtNum(Math.round(o.n)); } });
+      });
+      gsap.fromTo($$(".stat", root), { y:20, opacity:0, scale:.94 },
+        { y:0, opacity:1, scale:1, duration:.7, stagger:.07, ease:"back.out(1.6)", clearProps:"all" });
+    }
   }
 });
 
@@ -3101,14 +3793,18 @@ const Wizard = {
       const doneCount = inPhase.filter(s => SetupState.data.completedSteps.includes(s.id)).length;
       const state = idx < cur ? "done" : idx === cur ? "current" : "todo";
       const pct = idx < cur ? 100 : Math.round(doneCount / inPhase.length * 100);
+      this._pct = this._pct || {}; this._pct[idx] = pct;
       return `<div class="phase" data-state="${state}" aria-current="${idx === cur ? "step" : "false"}">
         <div class="phase-top">
           <span class="phase-dot">${state === "done" ? ico("check") : String(idx + 1).padStart(2, "0")}</span>
           <span class="phase-name">${esc(t(p.name))}</span>
         </div>
-        <div class="phase-bar"><i class="phase-fill" style="width:${pct}%"></i></div>
+        <div class="phase-bar"><i class="phase-fill" style="width:${HAS_GSAP && !reducedMotion() ? 0 : pct}%"></i></div>
       </div>`;
     }).join("");
+    if(HAS_GSAP && !reducedMotion())
+      $$(".phase-fill", $("#phases")).forEach((f, i) =>
+        gsap.to(f, { width:(this._pct[i] || 0) + "%", duration:.9, ease:"power3.out", delay:.08 + i * .05 }));
   },
 
   renderNav(){
@@ -3130,7 +3826,8 @@ const Wizard = {
     this._runCleanups();
     const s = this.step();
     const host = $("#stepHost");
-    const html = `<section class="step" data-step="${s.id}"${animate ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
+    const useGsap = HAS_GSAP && !reducedMotion();
+    const html = `<section class="step" data-step="${s.id}"${animate && !useGsap ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
       <span class="step-eyebrow">${ico(PHASES[s.phase].icon)}${esc(t(PHASES[s.phase].name))} · ${esc(t("stepShort", { a: fmtNum(this.i + 1), b: fmtNum(STEPS.length) }))}</span>
       <h1 id="stepTitle" tabindex="-1">${esc(s.title())}</h1>
       <p class="lede">${esc(s.lede())}</p>
@@ -3142,12 +3839,31 @@ const Wizard = {
     else bindFields(this.root, "preferences");
     if(s.mount) s.mount.call(s, this.root);
     this.renderNav(); this.renderPhases();
+    if(animate && useGsap) this.animateIn();
     SetupIllustration.show(s.svg, s.title());
     SetupState.data.currentStep = this.i;
     SetupState.data.maxStep = Math.max(SetupState.data.maxStep || 0, this.i);
     SetupState.save();
     if(animate) setTimeout(() => { const h = $("#stepTitle"); if(h) h.focus({ preventScroll:true }); }, 120);
     announce(s.title());
+  },
+
+  /** دخول الخطوة: عنوان ثم شرح ثم عناصر النموذج بتتابع محسوب */
+  animateIn(){
+    const el = this.root; if(!el) return;
+    const head = [$(".step-eyebrow", el), $("#stepTitle", el), $(".lede", el)].filter(Boolean);
+    const body = $$(".step-body > *", el);
+    gsap.killTweensOf([...head, ...body]);
+    const tl = gsap.timeline({ defaults:{ ease:"clay", duration:.62 } });
+    tl.fromTo(head, { y:24, opacity:0 }, { y:0, opacity:1, stagger:.06, clearProps:"transform,opacity" }, 0);
+    if(body.length)
+      tl.fromTo(body, { y:26, opacity:0 },
+        { y:0, opacity:1, stagger:{ amount: Math.min(.42, body.length * .06) }, clearProps:"transform,opacity" }, .12);
+    const nav = $("#navRow");
+    if(nav) tl.fromTo(nav.children, { y:10, opacity:0 },
+      { y:0, opacity:1, duration:.45, stagger:.05, clearProps:"transform,opacity" }, .18);
+    setTimeout(() => { if(tl.isActive() || tl.progress() < 1) tl.progress(1); }, 1600);
+    return tl;
   },
 
   async next(){
@@ -3170,7 +3886,16 @@ const Wizard = {
     }
     const stepEl = $(".step");
     const go = () => { this.i = idx; this.renderStep(true); window.scrollTo({ top:0, behavior: reducedMotion() ? "auto" : "smooth" }); };
-    if(stepEl && !reducedMotion()){ stepEl.dataset.leave = "1"; setTimeout(go, 180); } else go();
+    if(stepEl && HAS_GSAP && !reducedMotion()){
+      let fired = false;
+      const once = () => { if(fired) return; fired = true; go(); };
+      const kids = [$(".step-eyebrow", stepEl), $("#stepTitle", stepEl), $(".lede", stepEl), ...$$(".step-body > *", stepEl)].filter(Boolean);
+      gsap.killTweensOf(kids);
+      gsap.to(kids, { y:-18, opacity:0, duration:.24, ease:"power2.in",
+        stagger:{ amount: Math.min(.16, kids.length * .02), from: idx > this.i ? "start" : "end" }, onComplete: once });
+      setTimeout(once, 420);        // الانتقال مضمون حتى لو توقّف إطار الرسم (تبويب مخفي مثلًا)
+    }else if(stepEl && !reducedMotion()){ stepEl.dataset.leave = "1"; setTimeout(go, 180); }
+    else go();
   },
 
   async confirmReset(){
@@ -3184,6 +3909,12 @@ const Wizard = {
     Toast.show(t("resetDone"), "ok");
   }
 };
+
+/* استجابة اللمس/النقر: نابض قصير على العناصر التفاعلية */
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest(".btn, .icon-btn, .mini-btn, .chip, .perm-chip, .choice, .switch");
+  if(b && !b.disabled) Spring.press(b);
+}, { passive:true });
 
 /* ==========================================================================
    16) الإقلاع
