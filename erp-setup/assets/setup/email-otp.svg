@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" fill="none" role="img" aria-labelledby="ttl">
+  <title id="ttl">توثيق البريد برمز OTP</title>
+
+  <defs>
+    <linearGradient id="gClay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C9AFB"/><stop offset="1" stop-color="#2F4FD8"/>
+    </linearGradient>
+    <linearGradient id="gClayDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B58AE"/><stop offset="1" stop-color="#1B2E6B"/>
+    </linearGradient>
+    <linearGradient id="gPowder" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F2F6FE"/><stop offset="1" stop-color="#C7D8FB"/>
+    </linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/><stop offset="1" stop-color="#B7CDFA"/>
+    </linearGradient>
+    <linearGradient id="gWhite" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9F0FE"/>
+    </linearGradient>
+    <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/><stop offset="1" stop-color="#5B7BF0"/>
+    </linearGradient>
+    <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8FAEFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8FAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1B2E6B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#1B2E6B" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="fTiny" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5"/>
+    </filter>
+  </defs>
+  <g id="scene" data-layer="scene">
+<g id="abstract-shapes" data-layer="abstract-shapes"><circle cx="86" cy="80" r="46" fill="url(#gGlow)"/><circle cx="404" cy="252" r="58" fill="url(#gGlow)"/>
+     <rect x="366" y="52" width="46" height="46" rx="16" fill="#C7D8FB" opacity=".55"/>
+     <circle cx="70" cy="272" r="17" fill="#7E9BF6" opacity=".38"/></g>
+  <g id="shadow" data-layer="shadow"><ellipse cx="240" cy="302" rx="122" ry="24" fill="url(#gShadow)"/></g>
+  
+  <g id="envelope" data-layer="envelope">
+    <rect x="156" y="92" width="168" height="116" rx="20" fill="url(#gClay)"/>
+    <path d="M166 112 L240 159.28 L314 112"
+      fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
+    <path d="M168 194 V118 a12 12 0 0 1 12 -12 h30 a5 5 0 0 1 0 10 h-22 a8 8 0 0 0 -8 8 V194 a5 5 0 0 1 -12 0 z" fill="#FFFFFF" opacity="0.22"/>
+  </g>
+  <g id="otp-dots" data-layer="otp-dots"><rect x="154" y="231" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="165" cy="246" r="4" fill="#FFFFFF" opacity=".9"/><rect x="184" y="231" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="195" cy="246" r="4" fill="#FFFFFF" opacity=".9"/><rect x="214" y="231" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="225" cy="246" r="4" fill="#FFFFFF" opacity=".9"/><rect x="244" y="231" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="255" cy="246" r="4" fill="#FFFFFF" opacity=".9"/><rect x="274" y="231" width="22" height="30" rx="9"
+      fill="#F8FBFF" stroke="#C7D8FB" stroke-width="2"/><rect x="304" y="231" width="22" height="30" rx="9"
+      fill="#F8FBFF" stroke="#C7D8FB" stroke-width="2"/></g>
+  
+  <g id="check" data-layer="check">
+    <circle cx="330" cy="118" r="26" fill="url(#gClay)"/>
+    <path d="M304 118 a26 26 0 0 1 26 -26 a26 26 0 0 0 -26 26 z" fill="#FFFFFF" opacity="0.3"/>
+    <path d="M319.08 119.04 l7.8 8.32 l14.3 -16.12"
+      fill="none" stroke="#FFFFFF" stroke-width="4.42" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <g id="sparkles" data-layer="sparkles">
+    <path d="M118 109 q1.98 7.0200000000000005 9 9 q-7.0200000000000005 1.98 -9 9 q-1.98 -7.0200000000000005 -9 -9 q7.0200000000000005 -1.98 9 -9 z" fill="#7E9BF6" opacity=".75"/>
+    <path d="M372 225 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z" fill="#7E9BF6" opacity=".75"/>
+  </g>
+  </g>
+</svg>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" fill="none" role="img" aria-labelledby="ttl">
+  <title id="ttl">المبيعات والدفع</title>
+
+  <defs>
+    <linearGradient id="gClay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C9AFB"/><stop offset="1" stop-color="#2F4FD8"/>
+    </linearGradient>
+    <linearGradient id="gClayDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B58AE"/><stop offset="1" stop-color="#1B2E6B"/>
+    </linearGradient>
+    <linearGradient id="gPowder" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F2F6FE"/><stop offset="1" stop-color="#C7D8FB"/>
+    </linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/><stop offset="1" stop-color="#B7CDFA"/>
+    </linearGradient>
+    <linearGradient id="gWhite" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9F0FE"/>
+    </linearGradient>
+    <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/><stop offset="1" stop-color="#5B7BF0"/>
+    </linearGradient>
+    <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8FAEFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8FAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1B2E6B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#1B2E6B" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="fTiny" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5"/>
+    </filter>
+  </defs>
+  <g id="scene" data-layer="scene">
+<g id="abstract-shapes" data-layer="abstract-shapes"><circle cx="398" cy="86" r="52" fill="url(#gGlow)"/><circle cx="78" cy="240" r="46" fill="url(#gGlow)"/>
+     <rect x="60" y="56" width="40" height="40" rx="14" fill="#C7D8FB" opacity=".5"/>
+     <circle cx="414" cy="286" r="14" fill="#7E9BF6" opacity=".40"/></g>
+  <g id="shadow" data-layer="shadow"><ellipse cx="240" cy="302" rx="120" ry="24" fill="url(#gShadow)"/></g>
+  <g id="receipt" data-layer="receipt">
+    <path d="M158 76 h164 v186 l-20 -12 l-20 12 l-20 -12 l-21 12 l-21 -12 l-20 12 l-21 -12 l-21 12 z" fill="url(#gWhite)"/>
+    <rect x="182" y="106" width="116" height="10" rx="5" fill="#C7D8FB"/>
+    <rect x="182" y="130" width="80" height="10" rx="5" fill="#C7D8FB"/>
+    <rect x="182" y="164" width="116" height="34" rx="12" fill="url(#gAccent)"/>
+    <rect x="182" y="212" width="60" height="10" rx="5" fill="#C7D8FB"/>
+  </g>
+  <g id="coin" data-layer="coin">
+    <circle cx="336" cy="222" r="36" fill="url(#gClay)"/>
+    <path d="M300 222 a36 36 0 0 1 36 -36 a36 36 0 0 0 -36 36 z" fill="#FFFFFF" opacity="0.3"/>
+    <rect x="322" y="204" width="28" height="8" rx="4" fill="#FFFFFF" opacity=".9"/>
+    <rect x="322" y="218" width="28" height="8" rx="4" fill="#FFFFFF" opacity=".7"/>
+    <rect x="322" y="232" width="18" height="8" rx="4" fill="#FFFFFF" opacity=".5"/>
+  </g>
+  </g>
+</svg>
