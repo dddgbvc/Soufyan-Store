@@ -1,0 +1,325 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   Design tokens
+   An instrument, not a website: a dark, low-glare surface for a shop counter,
+   with one warm accent that only ever marks the live element.
+   ========================================================================== */
+@theme {
+  --color-canvas: oklch(0.17 0.012 250);
+  --color-panel: oklch(0.215 0.014 252);
+  --color-raised: oklch(0.262 0.016 252);
+  --color-sunken: oklch(0.145 0.012 250);
+  --color-line: oklch(0.33 0.016 252);
+  --color-line-soft: oklch(0.27 0.014 252);
+
+  --color-ink: oklch(0.96 0.006 250);
+  --color-ink-dim: oklch(0.78 0.012 250);
+  --color-ink-faint: oklch(0.62 0.014 252);
+
+  --color-brass: oklch(0.78 0.135 76);
+  --color-brass-deep: oklch(0.62 0.125 68);
+  --color-brass-glow: oklch(0.78 0.135 76 / 0.16);
+
+  --color-danger: oklch(0.68 0.175 22);
+  --color-danger-soft: oklch(0.68 0.175 22 / 0.14);
+  --color-success: oklch(0.75 0.14 158);
+  --color-success-soft: oklch(0.75 0.14 158 / 0.14);
+  --color-caution: oklch(0.8 0.13 85);
+
+  --font-sans: var(--font-readex), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --radius-key: 1rem;
+  --radius-panel: 1.5rem;
+
+  --ease-out-quick: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* =============================================================================
+   Base
+   ========================================================================== */
+html {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Atmosphere: a slow brass wash from the top, a cool floor beneath it. */
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, oklch(0.28 0.05 70 / 0.5), transparent 60%),
+    radial-gradient(90% 60% at 50% 115%, oklch(0.22 0.03 250 / 0.7), transparent 65%);
+  background-attachment: fixed;
+}
+
+/* Fine grain keeps the large dark fields from banding. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background-color: var(--color-brass);
+  color: oklch(0.18 0.02 70);
+}
+
+/* Arabic numerals stay in their Latin forms and never reorder in RTL. */
+.numeral {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* =============================================================================
+   Focus — visible for keyboards, quiet for pointers
+   ========================================================================== */
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* =============================================================================
+   Components
+   ========================================================================== */
+@layer components {
+  .panel {
+    background-color: color-mix(in oklab, var(--color-panel) 88%, transparent);
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-panel);
+    backdrop-filter: blur(18px);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.05) inset,
+      0 24px 60px -24px oklch(0 0 0 / 0.7);
+  }
+
+  /* A keypad key should feel like it has travel. */
+  .key {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4rem;
+    border-radius: var(--radius-key);
+    border: 1px solid var(--color-line-soft);
+    background-image: linear-gradient(180deg, var(--color-raised), var(--color-panel));
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.07) inset,
+      0 2px 0 0 oklch(0 0 0 / 0.45),
+      0 6px 16px -8px oklch(0 0 0 / 0.6);
+    transition:
+      transform 120ms var(--ease-out-quick),
+      box-shadow 120ms var(--ease-out-quick),
+      border-color 160ms var(--ease-out-quick),
+      background-color 160ms var(--ease-out-quick);
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  @media (hover: hover) {
+    .key:hover:not(:disabled) {
+      border-color: var(--color-line);
+      background-image: linear-gradient(180deg, oklch(0.3 0.017 252), var(--color-raised));
+    }
+  }
+
+  .key:active:not(:disabled),
+  .key[data-pressed="true"] {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 3px 0 oklch(0 0 0 / 0.5) inset,
+      0 0 0 1px var(--color-brass-glow);
+    border-color: var(--color-brass-deep);
+  }
+
+  .key:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.875rem;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+    transition:
+      transform 120ms var(--ease-out-quick),
+      background-color 160ms var(--ease-out-quick),
+      border-color 160ms var(--ease-out-quick),
+      opacity 160ms var(--ease-out-quick);
+    touch-action: manipulation;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background-color: var(--color-brass);
+    color: oklch(0.2 0.03 70);
+    font-weight: 600;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: oklch(0.83 0.14 78);
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    border-color: var(--color-line-soft);
+    color: var(--color-ink-dim);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    border-color: var(--color-line);
+    color: var(--color-ink);
+    background-color: oklch(1 0 0 / 0.03);
+  }
+
+  .btn-quiet {
+    background-color: transparent;
+    color: var(--color-ink-faint);
+    padding: 0.5rem 0.75rem;
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    color: var(--color-brass);
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 0.875rem;
+    border: 1px solid var(--color-line-soft);
+    background-color: var(--color-sunken);
+    padding: 0.8rem 1rem;
+    color: var(--color-ink);
+    /* 16px minimum stops iOS from zooming the viewport on focus. */
+    font-size: 1rem;
+    transition: border-color 160ms var(--ease-out-quick), box-shadow 160ms var(--ease-out-quick);
+  }
+
+  .field::placeholder {
+    color: var(--color-ink-faint);
+  }
+
+  .field:focus {
+    outline: none;
+    border-color: var(--color-brass-deep);
+    box-shadow: 0 0 0 3px var(--color-brass-glow);
+  }
+
+  .field[aria-invalid="true"] {
+    border-color: var(--color-danger);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line-soft);
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+    color: var(--color-ink-faint);
+  }
+}
+
+/* =============================================================================
+   Motion
+   ========================================================================== */
+@keyframes dot-fill {
+  from { transform: scale(0.4); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-9px); }
+  30%      { transform: translateX(8px); }
+  45%      { transform: translateX(-6px); }
+  60%      { transform: translateX(4px); }
+  80%      { transform: translateX(-2px); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes sweep {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(300%); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--color-brass-glow); }
+  70%  { box-shadow: 0 0 0 14px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.animate-dot        { animation: dot-fill 220ms var(--ease-spring) both; }
+.animate-shake      { animation: shake 460ms var(--ease-out-quick); }
+.animate-rise       { animation: rise 420ms var(--ease-out-quick) both; }
+.animate-fade       { animation: fade-in 260ms var(--ease-out-quick) both; }
+.animate-sweep      { animation: sweep 2.4s linear infinite; }
+.animate-pulse-ring { animation: pulse-ring 1.9s ease-out infinite; }
+
+/* Staggered reveal for the keypad on first paint. */
+.stagger > * { animation: rise 380ms var(--ease-out-quick) both; }
+.stagger > *:nth-child(1)  { animation-delay: 20ms; }
+.stagger > *:nth-child(2)  { animation-delay: 35ms; }
+.stagger > *:nth-child(3)  { animation-delay: 50ms; }
+.stagger > *:nth-child(4)  { animation-delay: 65ms; }
+.stagger > *:nth-child(5)  { animation-delay: 80ms; }
+.stagger > *:nth-child(6)  { animation-delay: 95ms; }
+.stagger > *:nth-child(7)  { animation-delay: 110ms; }
+.stagger > *:nth-child(8)  { animation-delay: 125ms; }
+.stagger > *:nth-child(9)  { animation-delay: 140ms; }
+.stagger > *:nth-child(10) { animation-delay: 155ms; }
+.stagger > *:nth-child(11) { animation-delay: 170ms; }
+.stagger > *:nth-child(12) { animation-delay: 185ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbars that belong to the surface rather than the operating system. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
