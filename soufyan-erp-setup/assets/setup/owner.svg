@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" fill="none" role="img" aria-labelledby="ttl">
+  <title id="ttl">حساب المالك</title>
+
+  <defs>
+    <linearGradient id="gClay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C9AFB"/><stop offset="1" stop-color="#2F4FD8"/>
+    </linearGradient>
+    <linearGradient id="gClayDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B58AE"/><stop offset="1" stop-color="#1B2E6B"/>
+    </linearGradient>
+    <linearGradient id="gPowder" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F2F6FE"/><stop offset="1" stop-color="#C7D8FB"/>
+    </linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/><stop offset="1" stop-color="#B7CDFA"/>
+    </linearGradient>
+    <linearGradient id="gWhite" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9F0FE"/>
+    </linearGradient>
+    <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/><stop offset="1" stop-color="#5B7BF0"/>
+    </linearGradient>
+    <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8FAEFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8FAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1B2E6B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#1B2E6B" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="fTiny" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5"/>
+    </filter>
+  </defs>
+  <g id="scene" data-layer="scene">
+<g id="abstract-shapes" data-layer="abstract-shapes"><circle cx="398" cy="86" r="52" fill="url(#gGlow)"/><circle cx="78" cy="240" r="46" fill="url(#gGlow)"/>
+     <rect x="60" y="56" width="40" height="40" rx="14" fill="#C7D8FB" opacity=".5"/>
+     <circle cx="414" cy="286" r="14" fill="#7E9BF6" opacity=".40"/></g>
+  <g id="shadow" data-layer="shadow"><ellipse cx="240" cy="300" rx="108" ry="22" fill="url(#gShadow)"/></g>
+  <g id="owner" data-layer="owner">
+    <circle cx="240" cy="132" r="52" fill="url(#gClay)"/>
+    <path d="M188 132 a52 52 0 0 1 52 -52 a52 52 0 0 0 -52 52 z" fill="#FFFFFF" opacity="0.3"/>
+    <circle cx="240" cy="118" r="20" fill="#FFFFFF" opacity=".92"/>
+    <path d="M212 162 q28 -24 56 0 a52 52 0 0 1 -56 0 z" fill="#FFFFFF" opacity=".92"/>
+    <rect x="150" y="206" width="180" height="74" rx="20" fill="url(#gWhite)"/><rect x="170" y="232" width="140" height="9" rx="4.5" fill="#7E9BF6"/><rect x="170" y="252" width="114" height="9" rx="4.5" fill="#C7D8FB"/>
+    <circle cx="316" cy="242" r="16" fill="url(#gAccent)"/>
+    <path d="M309 242 l5 5 l10 -11" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  </g>
+</svg>
