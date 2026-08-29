@@ -20,6 +20,8 @@
   --blue-200:#C7D8FB; --blue-100:#E4EDFD; --blue-50:#F2F6FE;
   --cool-700:#3E4C6B; --cool-600:#5A6A8C; --cool-500:#8FA3C8; --cool-300:#C3CEE3;
   --ok:#12946B; --ok-soft:#DEF5EC; --warn:#B57A0C; --warn-soft:#FBF0DA; --err:#CE3B54; --err-soft:#FBE4E8;
+  /* الأوّليّات أعلاه قيم؛ الرموز الدلالية أدناه أدوار. المكوّنات تستعمل الأدوار وحدها،
+     فتغيير المظهر يجري في مكان واحد ولا يُلاحَق في كل مكوّن. */
 
   /* أشكال */
   --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-2xl:36px; --r-pill:999px;
@@ -30,6 +32,10 @@
   --ease-out:cubic-bezier(.16,1,.3,1);
   --t-fast:.18s; --t-med:.34s; --t-slow:.62s;
 
+  /* مقياس الخطوط — أحجام قليلة تُستعمل بانضباط */
+  --fs-xs:.74rem; --fs-sm:.82rem; --fs-md:.9rem; --fs-base:.95rem; --fs-lg:1.06rem;
+  --fs-xl:1.22rem; --fs-display:clamp(1.6rem,3.6vw,2.5rem);
+
   /* خطوط */
   --font:"IBM Plex Sans Arabic","Segoe UI",Tahoma,"Noto Sans Arabic",system-ui,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -39,7 +45,7 @@
 html[data-theme="light"]{
   --bg:#EAF0FC;
   --bg-mesh-1:rgba(122,155,255,.42); --bg-mesh-2:rgba(199,216,251,.62); --bg-mesh-3:rgba(255,255,255,.9);
-  --text:#152449; --text-2:#5A6A8C; --text-3:#8FA3C8;
+  --text:#152449; --text-2:#54648A; --text-3:#59698D;
   --surface:#FFFFFF; --surface-2:#F5F8FF; --surface-3:#EDF2FD;
   --glass-bg:rgba(255,255,255,.62); --glass-bg-strong:rgba(255,255,255,.80);
   --glass-border:rgba(255,255,255,.85); --glass-hl:rgba(255,255,255,.9);
@@ -51,6 +57,16 @@ html[data-theme="light"]{
   --shadow-lg:0 4px 12px rgba(16,32,80,.07), 0 34px 70px -34px rgba(16,32,80,.38);
   --shadow-clay:inset 0 1px 0 rgba(255,255,255,.95), 0 8px 18px -14px rgba(21,36,73,.45);
   --ring:rgba(74,108,247,.30);
+
+  /* --- أدوار اللون --- */
+  --accent:#2F4FD8; --accent-hover:#2743C4; --accent-text:#2F4FD8; --accent-on:#FFFFFF;
+  --accent-solid:linear-gradient(145deg,#4569F1,#2F4FD8);
+  --accent-bar:linear-gradient(90deg,#6E8DFB,#2F4FD8);
+  --focus:#2743C4; --focus-halo:#FFFFFF;
+  --success:#0F8560; --success-text:#0A5C43; --success-soft:#DEF5EC;
+  --success-bar:linear-gradient(90deg,#3FBF95,#0F8560);
+  --warning:#9C690A; --warning-text:#7A5308; --warning-soft:#FBF0DA;
+  --danger:#C13049;  --danger-text:#8E1F33;  --danger-soft:#FBE4E8;
 }
 /* ---- المظهر الداكن ---- */
 html[data-theme="dark"]{
@@ -68,6 +84,16 @@ html[data-theme="dark"]{
   --shadow-lg:0 6px 16px rgba(0,0,0,.4), 0 40px 80px -40px rgba(0,0,0,.9);
   --shadow-clay:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 22px -16px rgba(0,0,0,.8);
   --ring:rgba(126,155,246,.45);
+
+  /* --- أدوار اللون في الوضع الداكن — النصوص تفتح، والتشبّع يهدأ --- */
+  --accent:#4A6CF7; --accent-hover:#5F80FA; --accent-text:#A8C0FF; --accent-on:#FFFFFF;
+  --accent-solid:linear-gradient(145deg,#4569F1,#2F4FD8);
+  --accent-bar:linear-gradient(90deg,#7E9BF6,#4A6CF7);
+  --focus:#8FAAFF; --focus-halo:#070E22;
+  --success:#12946B; --success-text:#8FE3C4; --success-soft:rgba(18,148,107,.16);
+  --success-bar:linear-gradient(90deg,#3FBF95,#12946B);
+  --warning:#B57A0C; --warning-text:#F0D08A; --warning-soft:rgba(181,122,12,.16);
+  --danger:#CE3B54;  --danger-text:#FFA9B8;  --danger-soft:rgba(206,59,84,.16);
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -86,15 +112,26 @@ body::before{
     radial-gradient(120% 120% at 50% 40%, transparent 40%, var(--bg-mesh-3));
   transition:background var(--t-slow) var(--ease);
 }
-h1,h2,h3,h4{margin:0; line-height:1.35; font-weight:700; letter-spacing:-.01em}
+h1,h2,h3,h4{margin:0; line-height:1.3; font-weight:700; letter-spacing:-.01em; text-wrap:balance}
+p{text-wrap:pretty}
+:where(h1,h2,h3,.lede,p,li,dd,dt){overflow-wrap:break-word}
 p{margin:0}
 button,input,select,textarea{font:inherit; color:inherit}
 button{cursor:pointer; border:0; background:none}
 ul{margin:0; padding:0; list-style:none}
-:focus-visible{outline:3px solid var(--blue-500); outline-offset:3px; border-radius:8px}
+:focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:8px;
+  box-shadow:0 0 0 5px var(--focus-halo)}
+@media (forced-colors: active){ :focus-visible{outline-color:Highlight; box-shadow:none} }
+/* العنوان يُركَّز برمجيًا لنقل قارئ الشاشة إلى الخطوة الجديدة، وليس عنصرًا
+   تفاعليًا: لا يصل إليه Tab، فحلقة التركيز عليه ضجيج بصري بلا فائدة. */
+[tabindex="-1"]:focus,[tabindex="-1"]:focus-visible{outline:none; box-shadow:none}
 .mono{font-family:var(--font-mono); direction:ltr; unicode-bidi:isolate; font-variant-numeric:tabular-nums}
 [hidden]{display:none!important}
 .sr-only{position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.skip-link{position:fixed; z-index:100; inset-block-start:8px; inset-inline-start:8px; padding:10px 16px;
+  border-radius:var(--r-md); background:var(--surface); color:var(--text); font-weight:600; font-size:.86rem;
+  box-shadow:var(--shadow-md); transform:translateY(-160%); transition:transform var(--t-fast) var(--ease)}
+.skip-link:focus-visible{transform:none}
 
 /* ==========================================================================
    الهيكل — SetupShell
@@ -109,7 +146,7 @@ ul{margin:0; padding:0; list-style:none}
 .s-header .row{display:flex; align-items:center; gap:14px; min-width:0}
 .brand{display:flex; align-items:center; gap:10px; min-width:0; overflow:hidden; flex:0 1 auto}
 .brand-mark{width:38px; height:38px; border-radius:12px; flex:none; display:grid; place-items:center;
-  background:linear-gradient(145deg,#7C9AFB,var(--blue-600)); box-shadow:var(--shadow-clay); color:#fff}
+  background:var(--accent-solid); box-shadow:var(--shadow-clay); color:var(--accent-on)}
 .brand-mark svg{width:20px; height:20px}
 .brand-txt{min-width:0}
 .brand-txt b{display:block; font-size:.95rem; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -119,36 +156,46 @@ ul{margin:0; padding:0; list-style:none}
   background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(18px);
   -webkit-backdrop-filter:blur(18px); box-shadow:var(--shadow-sm); color:var(--text);
   transition:transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease)}
-.icon-btn:hover{transform:translateY(-1px); background:var(--glass-bg-strong)}
-.icon-btn:active{transform:scale(.94)}
+@media (hover:hover){ .icon-btn:hover{transform:translateY(-1px); background:var(--glass-bg-strong)} }
+.icon-btn:active{transform:scale(.96)}
 .icon-btn svg{width:19px; height:19px}
 .lang-btn{width:auto; padding-inline:14px; font-size:.82rem; font-weight:600; letter-spacing:.02em}
 
-/* ---- SetupPhaseIndicator + SetupProgress ---- */
-.phases{display:flex; gap:clamp(6px,1.4vw,14px); padding:10px 12px; margin-top:6px;
+/* ---- SetupPhaseIndicator — أربع مراحل، لا ثماني عشرة خطوة ---- */
+.phases{margin-top:6px; padding:8px 10px;
   background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-lg);
   backdrop-filter:blur(24px) saturate(150%); -webkit-backdrop-filter:blur(24px) saturate(150%);
   box-shadow:var(--shadow-sm)}
-.phase{flex:1; min-width:0; display:flex; flex-direction:column; gap:7px; padding:4px 6px; border-radius:var(--r-md);
+.phase-rail{display:flex; gap:clamp(6px,1.4vw,12px); list-style:none; margin:0; padding:0}
+.phase{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px}
+.phase-btn{display:flex; align-items:center; gap:8px; min-width:0; width:100%; padding:6px 8px;
+  border-radius:var(--r-sm); text-align:start; color:inherit;
   transition:background var(--t-med) var(--ease)}
-.phase-top{display:flex; align-items:center; gap:8px; min-width:0}
-.phase-dot{width:22px; height:22px; border-radius:50%; flex:none; display:grid; place-items:center;
-  font-size:.66rem; font-weight:700; background:var(--clay-2); color:var(--text-3);
-  border:1px solid var(--line-soft); transition:all var(--t-med) var(--ease)}
+.phase-btn:disabled{cursor:default}
+.phase-dot{width:24px; height:24px; border-radius:50%; flex:none; display:grid; place-items:center;
+  font-size:.68rem; font-weight:700; font-variant-numeric:tabular-nums; background:var(--clay-2); color:var(--text-3);
+  border:1px solid var(--line-soft);
+  transition:background var(--t-med) var(--ease), color var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease)}
 .phase-dot svg{width:12px; height:12px}
-.phase-name{font-size:.8rem; font-weight:600; color:var(--text-3); white-space:nowrap; overflow:hidden;
+.phase-name{font-size:.82rem; font-weight:600; color:var(--text-3); white-space:nowrap; overflow:hidden;
   text-overflow:ellipsis; transition:color var(--t-med) var(--ease)}
-.phase-bar{height:5px; border-radius:var(--r-pill); background:var(--clay-2); overflow:hidden}
-.phase-fill{display:block; height:100%; width:0; border-radius:var(--r-pill);
-  background:linear-gradient(90deg,var(--blue-400),var(--blue-600));
-  transition:width var(--t-slow) var(--ease-out)}
-.phase[data-state="current"]{background:var(--clay-on)}
-.phase[data-state="current"] .phase-dot{background:linear-gradient(145deg,#7C9AFB,var(--blue-600)); color:#fff;
-  border-color:transparent; box-shadow:0 0 0 4px var(--ring)}
+.phase-bar{display:block; height:4px; border-radius:var(--r-pill); background:var(--clay-2); overflow:hidden}
+.phase-fill{display:block; height:100%; width:0; border-radius:var(--r-pill); background:var(--accent-bar)}
+@media (hover:hover){ .phase-btn:not(:disabled):hover{background:var(--clay)} }
+.phase[data-state="current"] .phase-btn{background:var(--clay-on)}
+.phase[data-state="current"] .phase-dot{background:var(--accent-solid); color:var(--accent-on);
+  border-color:transparent; box-shadow:0 0 0 3px var(--ring)}
 .phase[data-state="current"] .phase-name{color:var(--text)}
-.phase[data-state="done"] .phase-dot{background:var(--ok); color:#fff; border-color:transparent}
+.phase[data-state="partial"] .phase-dot{background:var(--clay-on); color:var(--accent-text); border-color:var(--line)}
+.phase[data-state="partial"] .phase-name{color:var(--text-2)}
+.phase[data-state="done"] .phase-dot{background:var(--success); color:#fff; border-color:transparent}
 .phase[data-state="done"] .phase-name{color:var(--text-2)}
-.phase[data-state="done"] .phase-fill{background:linear-gradient(90deg,var(--ok),#3FBF95)}
+.phase[data-state="done"] .phase-fill{background:var(--success-bar)}
+
+/* السطر الذي يقول للمستخدم أين هو بالضبط — بديل عدّاد «٧ من ١٨» */
+.phase-now{display:none; align-items:baseline; gap:8px; padding:6px 8px 2px; font-size:.8rem; color:var(--text-2)}
+.phase-now b{font-size:.88rem; font-weight:700; color:var(--text)}
+.phase-now span{font-variant-numeric:tabular-nums}
 
 /* ---- المسرح ---- */
 .stage{padding-block:clamp(14px,2.6vw,26px) 18px}
@@ -164,9 +211,11 @@ ul{margin:0; padding:0; list-style:none}
   box-shadow:var(--shadow-lg), inset 0 1px 0 var(--glass-hl)}
 .illus::after{content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
   background:radial-gradient(80% 60% at 50% 0%, rgba(255,255,255,.18), transparent 70%)}
-.illus-media{width:100%; height:100%; display:block; object-fit:contain; padding:4%;
+/* صندوق محدّد الأبعاد: بدونه ترث الرسمة نسبة ملفها وتفيض خارج الحاوية عندما
+   تتغيّر نسبة الحاوية (لافتة عريضة على الجوال مثلًا). */
+.illus-media{position:absolute; inset:0; display:grid; place-items:center; padding:4%;
   transform-origin:50% 58%; will-change:transform, opacity}
-.illus-media svg{width:100%; height:100%; display:block}
+.illus-media svg{width:100%; height:100%; max-height:100%; display:block}
 .illus-canvas{position:absolute; inset:0; width:100%; height:100%; display:block; z-index:1}
 .illus[data-mode="3d"]{background:var(--glass-bg)}
 .illus-ph{position:absolute; inset:12%; border-radius:var(--r-xl); background:var(--clay-2);
@@ -209,11 +258,13 @@ ul{margin:0; padding:0; list-style:none}
 @keyframes stepOut{to{opacity:0; transform:translateY(-10px)}}
 .step-eyebrow svg{width:14px; height:14px; flex:none}
 .step-eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:.75rem; font-weight:600;
-  color:var(--blue-600); background:var(--clay-on); padding:5px 12px; border-radius:var(--r-pill);
+  color:var(--accent-text); background:var(--clay-on); padding:5px 12px; border-radius:var(--r-pill);
   border:1px solid var(--line-soft); margin-bottom:14px}
-html[data-theme="dark"] .step-eyebrow{color:var(--blue-300)}
-.step h1{font-size:clamp(1.6rem,3.6vw,2.5rem); margin-bottom:10px; letter-spacing:-.02em}
-.step .lede{color:var(--text-2); font-size:clamp(.95rem,1.6vw,1.06rem); max-width:52ch; margin-bottom:22px}
+.step-eyebrow i{opacity:.5; font-style:normal}
+.step-eyebrow .opt-flag{font-style:normal; font-weight:600; color:var(--text-2);
+  padding-inline-start:8px; margin-inline-start:2px; border-inline-start:1px solid var(--line)}
+.step h1{font-size:var(--fs-display); margin-bottom:10px; letter-spacing:-.022em; line-height:1.18}
+.step .lede{color:var(--text-2); font-size:clamp(.95rem,1.6vw,1.06rem); max-width:56ch; line-height:1.65; margin-bottom:22px}
 .step-body{display:grid; gap:16px}
 .step-scroll{padding:2px; margin:-2px}
 @media (min-width:1001px){ .illus{position:sticky; top:150px} }
@@ -225,7 +276,7 @@ html[data-theme="dark"] .step-eyebrow{color:var(--blue-300)}
   background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-lg);
   backdrop-filter:blur(24px) saturate(150%); -webkit-backdrop-filter:blur(24px) saturate(150%);
   box-shadow:var(--shadow-md)}
-.step-count{font-size:.78rem; color:var(--text-2); white-space:nowrap}
+.step-count{font-size:.78rem; color:var(--text-2); white-space:nowrap; font-variant-numeric:tabular-nums}
 .step-count b{color:var(--text); font-weight:600}
 .nav-spacer{flex:1}
 
@@ -235,17 +286,18 @@ html[data-theme="dark"] .step-eyebrow{color:var(--blue-300)}
   transition:transform var(--t-fast) var(--ease), box-shadow var(--t-med) var(--ease),
     background var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease)}
 .btn svg{width:17px; height:17px; flex:none}
-.btn:active:not(:disabled){transform:scale(.975)}
+.btn:active:not(:disabled){transform:scale(.96)}
 .btn:disabled{opacity:.5; cursor:not-allowed}
-.btn-primary{background:linear-gradient(145deg,#5F80FA,var(--blue-600)); color:#fff;
+.btn-primary{background:var(--accent-solid); color:var(--accent-on);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 10px 22px -12px rgba(47,79,216,.9)}
-.btn-primary:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.34), 0 14px 30px -12px rgba(47,79,216,1)}
 .btn-ghost{background:var(--clay); color:var(--text); border:1px solid var(--line-soft); box-shadow:var(--shadow-clay)}
-.btn-ghost:hover:not(:disabled){background:var(--clay-2)}
 .btn-quiet{background:transparent; color:var(--text-2); padding:10px 14px}
-.btn-quiet:hover:not(:disabled){color:var(--text); background:var(--clay)}
-.btn-danger{background:var(--err-soft); color:var(--err); border:1px solid rgba(206,59,84,.22)}
-html[data-theme="dark"] .btn-danger{background:rgba(206,59,84,.16); color:#FF9AAB}
+.btn-danger{background:var(--danger-soft); color:var(--danger-text); border:1px solid rgba(206,59,84,.22)}
+@media (hover:hover){
+  .btn-primary:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.34), 0 14px 30px -12px rgba(47,79,216,1)}
+  .btn-ghost:hover:not(:disabled){background:var(--clay-2)}
+  .btn-quiet:hover:not(:disabled){color:var(--text); background:var(--clay)}
+}
 .btn-lg{padding:15px 30px; font-size:1rem; border-radius:var(--r-lg)}
 .btn-sm{padding:8px 14px; font-size:.82rem; border-radius:var(--r-sm)}
 .btn-block{width:100%}
@@ -262,8 +314,7 @@ html[data-theme="dark"] .btn-danger{background:rgba(206,59,84,.16); color:#FF9AA
 .grid-3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
 .field{display:flex; flex-direction:column; gap:7px; min-width:0}
 .field > label{font-size:.86rem; font-weight:600; display:flex; align-items:center; gap:6px}
-.req{color:var(--blue-600); font-size:.9em}
-html[data-theme="dark"] .req{color:var(--blue-300)}
+.req{color:var(--accent-text); font-size:.9em}
 .opt{color:var(--text-3); font-weight:500; font-size:.78rem}
 .hint{font-size:.78rem; color:var(--text-3); line-height:1.55}
 .control{width:100%; padding:12px 14px; border-radius:var(--r-md); background:var(--field);
@@ -271,17 +322,17 @@ html[data-theme="dark"] .req{color:var(--blue-300)}
   transition:border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
     background var(--t-fast) var(--ease)}
 .control::placeholder{color:var(--text-3)}
-.control:hover{border-color:var(--blue-400)}
-.control:focus{outline:none; border-color:var(--blue-500); box-shadow:0 0 0 4px var(--ring)}
+@media (hover:hover){ .control:hover{border-color:var(--blue-400)} }
+.control:focus-visible{outline:none; border-color:var(--focus); box-shadow:0 0 0 4px var(--ring)}
 textarea.control{resize:vertical; min-height:88px; line-height:1.6}
 select.control{appearance:none; padding-inline-end:38px;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A6A8C' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat; background-size:16px; background-position:left 14px center}
 html[dir="ltr"] select.control{background-position:right 14px center}
-.field[data-invalid="1"] .control{border-color:var(--err); box-shadow:0 0 0 4px rgba(206,59,84,.16)}
-.err-msg{display:flex; align-items:flex-start; gap:6px; font-size:.79rem; color:var(--err); font-weight:500}
+.field[data-invalid="1"] .control{border-color:var(--danger); box-shadow:0 0 0 4px rgba(206,59,84,.16)}
+.err-msg{display:flex; align-items:flex-start; gap:6px; font-size:.79rem; color:var(--danger-text); font-weight:500}
 .err-msg svg{width:14px; height:14px; flex:none; margin-top:3px}
-.ok-msg{display:flex; align-items:center; gap:6px; font-size:.79rem; color:var(--ok); font-weight:600}
+.ok-msg{display:flex; align-items:center; gap:6px; font-size:.79rem; color:var(--success-text); font-weight:600}
 .ok-msg svg{width:14px; height:14px; flex:none}
 .with-prefix{display:flex; align-items:stretch; gap:0}
 .with-prefix .prefix{display:grid; place-items:center; padding-inline:13px; font-size:.85rem; color:var(--text-2);
@@ -295,22 +346,25 @@ html[dir="ltr"] select.control{background-position:right 14px center}
 .choices.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .choice{display:flex; align-items:flex-start; gap:12px; text-align:start; width:100%; padding:14px;
   border-radius:var(--r-lg); background:var(--clay); border:1.5px solid var(--line-soft);
-  box-shadow:var(--shadow-clay); transition:all var(--t-med) var(--ease)}
-.choice:hover{border-color:var(--blue-400); transform:translateY(-1px)}
+  box-shadow:var(--shadow-clay);
+  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease), transform var(--t-med) var(--ease)}
+@media (hover:hover){ .choice:hover{border-color:var(--blue-400); transform:translateY(-1px)} }
 .choice .c-ico{width:38px; height:38px; border-radius:12px; flex:none; display:grid; place-items:center;
-  background:var(--clay-2); color:var(--blue-600); transition:all var(--t-med) var(--ease)}
-html[data-theme="dark"] .choice .c-ico{color:var(--blue-300)}
+  background:var(--clay-2); color:var(--accent-text);
+  transition:background var(--t-med) var(--ease), color var(--t-med) var(--ease)}
 .choice .c-ico svg{width:19px; height:19px}
 .choice .c-txt{min-width:0; flex:1}
 .choice .c-txt b{display:block; font-size:.92rem; font-weight:600; line-height:1.45}
 .choice .c-txt span{display:block; font-size:.78rem; color:var(--text-2); line-height:1.55; margin-top:2px}
 .choice .c-mark{width:22px; height:22px; border-radius:7px; flex:none; border:1.5px solid var(--field-border);
-  background:var(--field); display:grid; place-items:center; color:#fff; transition:all var(--t-med) var(--ease)}
-.choice .c-mark svg{width:13px; height:13px; opacity:0; transform:scale(.5); transition:all var(--t-med) var(--ease)}
-.choice[aria-pressed="true"],.choice[aria-checked="true"]{background:var(--clay-on); border-color:var(--blue-500)}
-.choice[aria-pressed="true"] .c-mark,.choice[aria-checked="true"] .c-mark{background:var(--blue-600); border-color:var(--blue-600)}
+  background:var(--field); display:grid; place-items:center; color:var(--accent-on);
+  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease)}
+.choice .c-mark svg{width:13px; height:13px; opacity:0; transform:scale(.5);
+  transition:opacity var(--t-med) var(--ease), transform var(--t-med) var(--ease)}
+.choice[aria-pressed="true"],.choice[aria-checked="true"]{background:var(--clay-on); border-color:var(--accent)}
+.choice[aria-pressed="true"] .c-mark,.choice[aria-checked="true"] .c-mark{background:var(--accent); border-color:var(--accent)}
 .choice[aria-pressed="true"] .c-mark svg,.choice[aria-checked="true"] .c-mark svg{opacity:1; transform:none}
-.choice[aria-pressed="true"] .c-ico,.choice[aria-checked="true"] .c-ico{background:var(--blue-600); color:#fff}
+.choice[aria-pressed="true"] .c-ico,.choice[aria-checked="true"] .c-ico{background:var(--accent); color:var(--accent-on)}
 .choice[role="radio"] .c-mark{border-radius:50%}
 .choice[data-compact="1"]{padding:11px 13px; align-items:center}
 .choices.cols-3 .choice .c-txt b{font-size:.86rem}
@@ -319,7 +373,7 @@ html[data-theme="dark"] .choice .c-ico{color:var(--blue-300)}
 .switch-row{display:flex; align-items:center; gap:14px; padding:13px 15px; border-radius:var(--r-lg);
   background:var(--clay); border:1.5px solid var(--line-soft); box-shadow:var(--shadow-clay);
   transition:border-color var(--t-med) var(--ease), background var(--t-med) var(--ease)}
-.switch-row:hover{border-color:var(--blue-400)}
+@media (hover:hover){ .switch-row:hover{border-color:var(--blue-400)} }
 .switch-row .s-txt{flex:1; min-width:0}
 .switch-row .s-txt b{display:block; font-size:.9rem; font-weight:600}
 .switch-row .s-txt span{display:block; font-size:.78rem; color:var(--text-2); line-height:1.55}
@@ -328,32 +382,28 @@ html[data-theme="dark"] .choice .c-ico{color:var(--blue-300)}
 html[data-theme="dark"] .switch{background:rgba(146,175,255,.22)}
 .switch .knob{position:absolute; inset-block:3px; inset-inline-start:3px; width:23px; height:23px;
   border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(16,32,80,.28); will-change:transform}
-.switch[aria-checked="true"]{background:linear-gradient(145deg,#5F80FA,var(--blue-600))}
-.switch-row[data-on="1"]{background:var(--clay-on); border-color:var(--blue-500)}
+.switch[aria-checked="true"]{background:var(--accent-solid)}
+.switch-row[data-on="1"]{background:var(--clay-on); border-color:var(--accent)}
 
 /* ---- شرائح ---- */
 .chips{display:flex; flex-wrap:wrap; gap:8px}
 .chip{padding:7px 14px; border-radius:var(--r-pill); font-size:.83rem; font-weight:500;
   background:var(--clay); border:1.5px solid var(--line-soft); box-shadow:var(--shadow-clay);
-  transition:all var(--t-fast) var(--ease)}
-.chip:hover{border-color:var(--blue-400)}
-.chip[aria-pressed="true"]{background:var(--blue-600); color:#fff; border-color:transparent}
+  transition:background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease)}
+@media (hover:hover){ .chip:hover{border-color:var(--blue-400)} }
+.chip[aria-pressed="true"]{background:var(--accent); color:var(--accent-on); border-color:transparent}
 
 /* ---- بطاقة معلومات ---- */
 .note{display:flex; gap:11px; padding:13px 15px; border-radius:var(--r-lg); font-size:.83rem; line-height:1.65;
   background:var(--clay); border:1px solid var(--line-soft); color:var(--text-2)}
-.note svg{width:17px; height:17px; flex:none; margin-top:3px; color:var(--blue-600)}
-html[data-theme="dark"] .note svg{color:var(--blue-300)}
-.note b{color:var(--text)}
-.note.warn{background:var(--warn-soft); border-color:rgba(181,122,12,.22); color:#7A5308}
-.note.warn svg{color:var(--warn)}
-html[data-theme="dark"] .note.warn{background:rgba(181,122,12,.14); color:#F0D08A}
-.note.ok{background:var(--ok-soft); border-color:rgba(18,148,107,.22); color:#0A5C43}
-.note.ok svg{color:var(--ok)}
-html[data-theme="dark"] .note.ok{background:rgba(18,148,107,.16); color:#8FE3C4}
-.note.err{background:var(--err-soft); border-color:rgba(206,59,84,.22); color:#8E1F33}
-.note.err svg{color:var(--err)}
-html[data-theme="dark"] .note.err{background:rgba(206,59,84,.16); color:#FFA9B8}
+.note svg{width:17px; height:17px; flex:none; margin-top:3px; color:var(--accent-text)}
+.note b{color:inherit; font-weight:700}
+.note.warn{background:var(--warning-soft); border-color:rgba(181,122,12,.22); color:var(--warning-text)}
+.note.warn svg{color:currentColor}
+.note.ok{background:var(--success-soft); border-color:rgba(18,148,107,.22); color:var(--success-text)}
+.note.ok svg{color:currentColor}
+.note.err{background:var(--danger-soft); border-color:rgba(206,59,84,.22); color:var(--danger-text)}
+.note.err svg{color:currentColor}
 
 /* ==========================================================================
    OtpInput
@@ -363,19 +413,19 @@ html[dir="rtl"] .otp{justify-content:flex-end}
 .otp input{width:clamp(42px,11vw,54px); height:clamp(52px,13vw,64px); text-align:center; font-size:1.4rem;
   font-weight:600; font-family:var(--font-mono); border-radius:var(--r-md); background:var(--field);
   border:1.5px solid var(--field-border); box-shadow:var(--shadow-sm); padding:0;
-  transition:all var(--t-fast) var(--ease)}
-.otp input:focus{outline:none; border-color:var(--blue-500); box-shadow:0 0 0 4px var(--ring); transform:translateY(-2px)}
-.otp[data-state="invalid"] input{border-color:var(--err); animation:shake .42s ease-in-out}
-.otp[data-state="verified"] input{border-color:var(--ok); background:var(--ok-soft); color:#0A5C43}
-html[data-theme="dark"] .otp[data-state="verified"] input{background:rgba(18,148,107,.18); color:#8FE3C4}
+  transition:border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease)}
+.otp input:focus-visible{outline:none; border-color:var(--focus); box-shadow:0 0 0 4px var(--ring); transform:translateY(-2px)}
+.otp[data-state="invalid"] input{border-color:var(--danger); animation:shake .42s ease-in-out}
+.otp[data-state="verified"] input{border-color:var(--success); background:var(--success-soft); color:var(--success-text)}
 .otp[data-state="verifying"] input,.otp[data-state="verified"] input{pointer-events:none}
 @keyframes shake{0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}}
 .otp-meta{display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:.83rem; color:var(--text-2)}
 .otp-meta svg,.otp-status svg{width:15px; height:15px; flex:none}
 .countdown{font-family:var(--font-mono); font-weight:600; color:var(--text)}
 .otp-status{display:flex; align-items:center; gap:8px; font-size:.86rem; font-weight:600; min-height:24px}
-.otp-status[data-tone="ok"]{color:var(--ok)} .otp-status[data-tone="err"]{color:var(--err)}
-.otp-status[data-tone="busy"]{color:var(--text-2)} .otp-status[data-tone="warn"]{color:var(--warn)}
+.otp-status[data-tone="ok"]{color:var(--success-text)} .otp-status[data-tone="err"]{color:var(--danger-text)}
+.otp-status[data-tone="busy"]{color:var(--text-2)} .otp-status[data-tone="warn"]{color:var(--warning-text)}
 
 /* ==========================================================================
    الموظفون · EmployeeList
@@ -384,10 +434,10 @@ html[data-theme="dark"] .otp[data-state="verified"] input{background:rgba(18,148
 .emp{display:flex; align-items:center; gap:13px; flex-wrap:wrap; padding:13px 15px; border-radius:var(--r-lg);
   background:var(--clay); border:1.5px solid var(--line-soft); box-shadow:var(--shadow-clay);
   transition:border-color var(--t-med) var(--ease)}
-.emp:hover{border-color:var(--blue-400)}
+@media (hover:hover){ .emp:hover{border-color:var(--blue-400)} }
 .emp[data-status="disabled"]{opacity:.62}
 .avatar{width:42px; height:42px; border-radius:14px; flex:none; display:grid; place-items:center; color:#fff;
-  font-weight:700; font-size:.95rem; background:linear-gradient(145deg,#7C9AFB,var(--blue-600));
+  font-weight:700; font-size:.95rem; background:var(--accent-solid);
   box-shadow:var(--shadow-clay)}
 .emp[data-status="disabled"] .avatar{background:linear-gradient(145deg,var(--cool-500),var(--cool-600))}
 .emp-info{flex:1 1 150px; min-width:0}
@@ -396,22 +446,23 @@ html[data-theme="dark"] .otp[data-state="verified"] input{background:rgba(18,148
   text-overflow:ellipsis; direction:ltr; text-align:start}
 html[dir="rtl"] .emp-info span{text-align:right}
 .emp-actions{display:flex; gap:5px; flex:none; margin-inline-start:auto}
-.mini-btn{width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:var(--text-2);
-  background:var(--field); border:1px solid var(--line-soft); transition:all var(--t-fast) var(--ease)}
-.mini-btn:hover{color:var(--blue-600); border-color:var(--blue-400); transform:translateY(-1px)}
-.mini-btn.danger:hover{color:var(--err); border-color:var(--err)}
+.mini-btn{width:36px; height:36px; border-radius:10px; display:grid; place-items:center; color:var(--text-2);
+  background:var(--field); border:1px solid var(--line-soft); position:relative;
+  transition:color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease)}
+/* مساحة اللمس تبلغ 44px دون تكبير الزر بصريًا */
+.mini-btn::after{content:""; position:absolute; inset:-5px; border-radius:14px}
+@media (hover:hover){
+  .mini-btn:hover{color:var(--accent-text); border-color:var(--blue-400); transform:translateY(-1px)}
+  .mini-btn.danger:hover{color:var(--danger-text); border-color:var(--danger)}
+}
 .mini-btn svg{width:16px; height:16px}
 .badge{display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:var(--r-pill);
   font-size:.72rem; font-weight:600; white-space:nowrap; flex:none}
 .badge svg{width:11px; height:11px}
-.badge[data-tone="pending"]{background:var(--warn-soft); color:#7A5308}
-.badge[data-tone="verified"]{background:var(--clay-on); color:var(--blue-600)}
-.badge[data-tone="active"]{background:var(--ok-soft); color:#0A5C43}
-.badge[data-tone="disabled"]{background:var(--surface-3); color:var(--text-3)}
-html[data-theme="dark"] .badge[data-tone="pending"]{background:rgba(181,122,12,.2); color:#F0D08A}
-html[data-theme="dark"] .badge[data-tone="verified"]{background:rgba(47,79,216,.28); color:var(--blue-300)}
-html[data-theme="dark"] .badge[data-tone="active"]{background:rgba(18,148,107,.2); color:#8FE3C4}
-html[data-theme="dark"] .badge[data-tone="disabled"]{background:rgba(146,175,255,.12); color:var(--text-3)}
+.badge[data-tone="pending"]{background:var(--warning-soft); color:var(--warning-text)}
+.badge[data-tone="verified"]{background:var(--clay-on); color:var(--accent-text)}
+.badge[data-tone="active"]{background:var(--success-soft); color:var(--success-text)}
+.badge[data-tone="disabled"]{background:var(--surface-3); color:var(--text-2)}
 .empty-state{padding:26px 20px; text-align:center; border-radius:var(--r-lg); border:1.5px dashed var(--line);
   background:var(--clay); color:var(--text-2); font-size:.87rem; line-height:1.7}
 .empty-state b{display:block; color:var(--text); font-size:.95rem; margin-bottom:4px}
@@ -424,16 +475,16 @@ html[data-theme="dark"] .badge[data-tone="disabled"]{background:rgba(146,175,255
   box-shadow:var(--shadow-clay); overflow:hidden}
 .perm-head{display:flex; align-items:center; gap:11px; padding:11px 14px; width:100%; text-align:start}
 .perm-head .c-ico{width:34px; height:34px; border-radius:11px; flex:none; display:grid; place-items:center;
-  background:var(--clay-2); color:var(--blue-600)}
-html[data-theme="dark"] .perm-head .c-ico{color:var(--blue-300)}
+  background:var(--clay-2); color:var(--accent-text)}
 .perm-head .c-ico svg{width:17px; height:17px}
 .perm-head b{flex:1; font-size:.9rem; font-weight:600}
 .perm-count{font-size:.74rem; color:var(--text-2); font-variant-numeric:tabular-nums}
 .perm-body{display:flex; flex-wrap:wrap; gap:7px; padding:0 14px 13px}
 .perm-chip{padding:6px 12px; border-radius:var(--r-pill); font-size:.78rem; font-weight:500;
-  background:var(--field); border:1.5px solid var(--field-border); transition:all var(--t-fast) var(--ease)}
-.perm-chip:hover{border-color:var(--blue-400)}
-.perm-chip[aria-pressed="true"]{background:var(--blue-600); color:#fff; border-color:transparent}
+  background:var(--field); border:1.5px solid var(--field-border);
+  transition:background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease)}
+@media (hover:hover){ .perm-chip:hover{border-color:var(--blue-400)} }
+.perm-chip[aria-pressed="true"]{background:var(--accent); color:var(--accent-on); border-color:transparent}
 .perm-chip:disabled{opacity:.45; cursor:not-allowed}
 
 /* ==========================================================================
@@ -443,8 +494,7 @@ html[data-theme="dark"] .perm-head .c-ico{color:var(--blue-300)}
 .rev{border-radius:var(--r-lg); background:var(--clay); border:1.5px solid var(--line-soft); box-shadow:var(--shadow-clay)}
 .rev-head{display:flex; align-items:center; gap:11px; padding:12px 15px}
 .rev-head .c-ico{width:32px; height:32px; border-radius:10px; flex:none; display:grid; place-items:center;
-  background:var(--clay-2); color:var(--blue-600)}
-html[data-theme="dark"] .rev-head .c-ico{color:var(--blue-300)}
+  background:var(--clay-2); color:var(--accent-text)}
 .rev-head .c-ico svg{width:16px; height:16px}
 .rev-head b{flex:1; font-size:.9rem; font-weight:600}
 .rev-body{padding:0 15px 13px; display:grid; gap:6px}
@@ -459,23 +509,23 @@ html[data-theme="dark"] .rev-head .c-ico{color:var(--blue-300)}
 .tasks{display:grid; gap:9px}
 .task{display:flex; align-items:center; gap:13px; padding:13px 15px; border-radius:var(--r-lg);
   background:var(--clay); border:1.5px solid var(--line-soft); box-shadow:var(--shadow-clay);
-  transition:all var(--t-med) var(--ease)}
+  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease)}
 .task .t-ico{width:30px; height:30px; border-radius:50%; flex:none; display:grid; place-items:center;
-  background:var(--clay-2); color:var(--text-3); transition:all var(--t-med) var(--ease)}
+  background:var(--clay-2); color:var(--text-2);
+  transition:background var(--t-med) var(--ease), color var(--t-med) var(--ease)}
 .task .t-ico svg{width:15px; height:15px}
 .task b{flex:1; font-size:.89rem; font-weight:500; color:var(--text-2)}
-.task[data-state="processing"]{border-color:var(--blue-500); background:var(--clay-on)}
-.task[data-state="processing"] .t-ico{background:linear-gradient(145deg,#7C9AFB,var(--blue-600)); color:#fff}
+.task[data-state="processing"]{border-color:var(--accent); background:var(--clay-on)}
+.task[data-state="processing"] .t-ico{background:var(--accent-solid); color:var(--accent-on)}
 .task[data-state="processing"] b{color:var(--text); font-weight:600}
-.task[data-state="complete"] .t-ico{background:var(--ok); color:#fff}
+.task[data-state="complete"] .t-ico{background:var(--success); color:#fff}
 .task[data-state="complete"] b{color:var(--text)}
-.task[data-state="error"]{border-color:var(--err); background:var(--err-soft)}
-html[data-theme="dark"] .task[data-state="error"]{background:rgba(206,59,84,.14)}
-.task[data-state="error"] .t-ico{background:var(--err); color:#fff}
-.task[data-state="error"] b{color:var(--err); font-weight:600}
+.task[data-state="error"]{border-color:var(--danger); background:var(--danger-soft)}
+.task[data-state="error"] .t-ico{background:var(--danger); color:#fff}
+.task[data-state="error"] b{color:var(--danger-text); font-weight:600}
 .progress-line{height:8px; border-radius:var(--r-pill); background:var(--clay-2); overflow:hidden; margin-bottom:6px}
 .progress-line i{display:block; height:100%; width:0; border-radius:var(--r-pill);
-  background:linear-gradient(90deg,var(--blue-400),var(--blue-600)); transition:width .5s var(--ease-out)}
+  background:var(--accent-bar); transition:width .5s var(--ease-out)}
 
 /* ==========================================================================
    الحوارات · التنبيهات
@@ -503,30 +553,35 @@ html[data-theme="dark"] .task[data-state="error"]{background:rgba(206,59,84,.14)
   -webkit-backdrop-filter:blur(24px); box-shadow:var(--shadow-md); font-size:.86rem;
   animation:toastIn .38s var(--ease-out) both}
 .toast svg{width:17px; height:17px; flex:none; margin-top:2px}
-.toast[data-tone="ok"] svg{color:var(--ok)} .toast[data-tone="err"] svg{color:var(--err)}
-.toast[data-tone="info"] svg{color:var(--blue-500)}
+.toast[data-tone="ok"] svg{color:var(--success-text)} .toast[data-tone="err"] svg{color:var(--danger-text)}
+.toast[data-tone="info"] svg{color:var(--accent-text)}
 .toast[data-closing="1"]{animation:toastOut .26s ease-in both}
 @keyframes toastIn{from{opacity:0; transform:translateY(14px) scale(.97)} to{opacity:1; transform:none}}
 @keyframes toastOut{to{opacity:0; transform:translateY(8px) scale(.98)}}
 
 /* شارة وضع الخادم */
 .mode-flag{display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:var(--r-pill);
-  font-size:.74rem; font-weight:600; background:var(--warn-soft); color:#7A5308; border:1px solid rgba(181,122,12,.25)}
-html[data-theme="dark"] .mode-flag{background:rgba(181,122,12,.18); color:#F0D08A}
+  font-size:.74rem; font-weight:600; background:var(--warning-soft); color:var(--warning-text);
+  border:1px solid rgba(181,122,12,.25)}
 .mode-flag svg{width:12px; height:12px}
-.mode-flag[data-mode="server"]{background:var(--ok-soft); color:#0A5C43; border-color:rgba(18,148,107,.25)}
-html[data-theme="dark"] .mode-flag[data-mode="server"]{background:rgba(18,148,107,.18); color:#8FE3C4}
+.mode-flag[data-mode="server"]{background:var(--success-soft); color:var(--success-text); border-color:rgba(18,148,107,.25)}
 
 /* ==========================================================================
    الاستجابة
    ========================================================================== */
+/* الجوال ليس نسخة مصغّرة من سطح المكتب: شريط المراحل يتحوّل إلى نقاط + سطر
+   يقول أين أنت، والرسمة تصبح لافتة عريضة بدل مربّع يزيح النموذج تحت الطيّة. */
 @media (max-width:1000px){
-  .stage-grid{grid-template-columns:1fr; gap:20px; min-height:0}
-  .illus{order:-1; max-width:min(360px,72vw); aspect-ratio:5/4; position:static}
+  .stage-grid{grid-template-columns:1fr; gap:18px; min-height:0}
+  .illus{order:-1; width:100%; max-width:520px; aspect-ratio:16/9; max-height:32vh; position:static}
   .step{max-width:none}
+}
+@media (max-width:820px){
+  .phases{padding:6px 8px}
   .phase-name{display:none}
-  .phases{gap:8px}
-  .phase-top{justify-content:center}
+  .phase-btn{justify-content:center; padding:5px 4px}
+  .phase-now{display:flex}
+  .phase-rail{gap:8px}
 }
 @media (max-width:900px){
   .mode-flag{display:none}                 /* المعلومة نفسها تظهر داخل خطوتَي الترحيب والتوثيق */
@@ -534,18 +589,35 @@ html[data-theme="dark"] .mode-flag[data-mode="server"]{background:rgba(18,148,10
 }
 @media (max-width:560px){ .brand-txt{display:none} }
 @media (max-width:640px){
+  /* أقل من 16px يجعل iOS يكبّر الصفحة عند التركيز على الحقل */
+  .control,textarea.control,select.control{font-size:16px}
   .grid-2,.grid-3,.choices.cols-2,.choices.cols-3{grid-template-columns:1fr}
-  .illus{max-width:min(300px,68vw)}
+  .illus{aspect-ratio:16/9; max-height:26vh}
+  .stage{padding-block:10px 12px}
+  .s-nav{padding-block:10px calc(12px + env(safe-area-inset-bottom))}
   .s-nav .row{gap:8px; padding:9px 10px}
-  .btn{padding:11px 16px; font-size:.88rem}
-  .btn-lg{padding:13px 20px}
+  .btn{padding:12px 16px; font-size:.9rem}
+  .btn-lg{padding:14px 20px}
   .step-count{display:none}
   .brand-txt span{display:none}
   .rev-line{flex-direction:column; gap:1px}
   .rev-line dt{min-width:0}
-  .toasts{inset-inline:14px; width:auto}
+  .toasts{inset-inline:14px; width:auto; inset-block-end:calc(18px + env(safe-area-inset-bottom))}
+  .later-card{gap:10px}
+  .later-card .btn{width:100%}
+  .prog-top{gap:12px}
+  /* الإجراء الرئيسي يبقى أوّلًا وبعرض كامل في متناول الإبهام */
+  .cta-row{flex-direction:column}
+  .cta-row .btn{width:100%}
+}
+@media (max-width:420px){
+  .step h1{font-size:1.55rem}
+  .illus{max-height:21vh}
+  .prog-ring{width:56px; height:56px}
 }
 @media (max-width:380px){ .otp{gap:6px} .otp input{width:40px; height:48px; font-size:1.1rem} }
+/* شاشات عريضة جدًا: لا تمتد السطور بلا نهاية */
+@media (min-width:1500px){ :root{--pane-w:min(100%, 1320px)} .step{max-width:680px} }
 
 /* حركة مخفّضة */
 @media (prefers-reduced-motion: reduce){
@@ -564,7 +636,7 @@ html[data-motion="off"] *,html[data-motion="off"] *::before,html[data-motion="of
 .feat{display:flex; align-items:center; gap:13px; padding:13px 15px; border-radius:var(--r-lg);
   background:var(--clay); border:1px solid var(--line-soft); box-shadow:var(--shadow-clay)}
 .feat .c-ico{width:38px; height:38px; border-radius:12px; flex:none; display:grid; place-items:center;
-  background:linear-gradient(145deg,#7C9AFB,var(--blue-600)); color:#fff}
+  background:var(--accent-solid); color:var(--accent-on)}
 .feat .c-ico svg{width:19px; height:19px}
 .feat b{display:block; font-size:.92rem; font-weight:600}
 .feat span{display:block; font-size:.79rem; color:var(--text-2); line-height:1.55}
@@ -574,9 +646,11 @@ html[data-motion="off"] *,html[data-motion="off"] *::before,html[data-motion="of
   font-size:.83rem; font-weight:500; background:var(--clay-on); border:1px solid var(--line-soft); color:var(--text)}
 html[dir="ltr"] .tok{padding:6px 12px 6px 8px}
 .tok-x{width:20px; height:20px; border-radius:50%; display:grid; place-items:center; flex:none;
-  background:var(--field); color:var(--text-2); transition:all var(--t-fast) var(--ease)}
+  background:var(--field); color:var(--text-2); position:relative;
+  transition:background var(--t-fast) var(--ease), color var(--t-fast) var(--ease)}
+.tok-x::after{content:""; position:absolute; inset:-8px; border-radius:50%}
 .tok-x svg{width:11px; height:11px}
-.tok-x:hover{background:var(--err); color:#fff}
+@media (hover:hover){ .tok-x:hover{background:var(--danger); color:#fff} }
 .tok-add{display:flex; gap:8px; margin-top:8px}
 .tok-add .control{flex:1}
 .tok-add .btn{flex:none}
@@ -586,7 +660,7 @@ html[dir="ltr"] .tok{padding:6px 12px 6px 8px}
   background:var(--clay); border:1px solid var(--line-soft); box-shadow:var(--shadow-clay)}
 .flow-i{padding:5px 11px; border-radius:var(--r-pill); background:var(--field); border:1px solid var(--line-soft);
   font-size:.76rem; font-weight:600; white-space:nowrap}
-.flow-a{display:grid; place-items:center; color:var(--blue-500); opacity:.7}
+.flow-a{display:grid; place-items:center; color:var(--accent-text); opacity:.65}
 .flow-a svg{width:14px; height:14px}
 html[dir="rtl"] .flow-a svg{transform:scaleX(-1)}
 html[dir="rtl"] [data-next] svg,html[dir="rtl"] [data-back] svg{transform:scaleX(-1)}
@@ -596,10 +670,10 @@ html[dir="rtl"] [data-next] svg,html[dir="rtl"] [data-back] svg{transform:scaleX
 .pwd-meter i{height:6px; flex:1; border-radius:var(--r-pill); background:rgba(47,79,216,.14);
   transition:background var(--t-med) var(--ease)}
 html[data-theme="dark"] .pwd-meter i{background:rgba(146,175,255,.18)}
-.pwd-meter i[data-on="1"]{background:var(--blue-500)}
-.pwd-meter[data-level="1"] i[data-on="1"],.pwd-meter[data-level="2"] i[data-on="1"]{background:var(--err)}
-.pwd-meter[data-level="3"] i[data-on="1"]{background:var(--warn)}
-.pwd-meter[data-level="4"] i[data-on="1"],.pwd-meter[data-level="5"] i[data-on="1"]{background:var(--ok)}
+.pwd-meter i[data-on="1"]{background:var(--accent)}
+.pwd-meter[data-level="1"] i[data-on="1"],.pwd-meter[data-level="2"] i[data-on="1"]{background:var(--danger)}
+.pwd-meter[data-level="3"] i[data-on="1"]{background:var(--warning)}
+.pwd-meter[data-level="4"] i[data-on="1"],.pwd-meter[data-level="5"] i[data-on="1"]{background:var(--success)}
 .pwd-meter span{font-size:.75rem; color:var(--text-2); min-width:52px; text-align:start; font-weight:600}
 
 /* الشعار */
@@ -607,7 +681,9 @@ html[data-theme="dark"] .pwd-meter i{background:rgba(146,175,255,.18)}
 .logo-prev{width:74px; height:74px; border-radius:var(--r-lg); flex:none; display:grid; place-items:center;
   background:var(--clay-2); border:1.5px dashed var(--line); color:var(--text-3); overflow:hidden}
 .logo-prev svg{width:26px; height:26px}
-.logo-prev img{width:100%; height:100%; object-fit:contain; padding:6px}
+.logo-prev img{width:100%; height:100%; object-fit:contain; padding:6px;
+  outline:1px solid rgba(0,0,0,.1); outline-offset:-1px}
+html[data-theme="dark"] .logo-prev img{outline-color:rgba(255,255,255,.1)}
 .logo-ctl{display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-width:0}
 .logo-ctl .hint{width:100%; margin:0}
 
@@ -617,7 +693,7 @@ html[data-theme="dark"] .pwd-meter i{background:rgba(146,175,255,.18)}
 .list-head .hint{margin:0}
 .list-head .btn{margin-inline-start:auto}
 .emp-tags{display:flex; gap:6px; flex-wrap:wrap; flex:none}
-.emp-warn{flex-basis:100%; display:flex; align-items:center; gap:6px; font-size:.75rem; color:var(--warn); font-weight:600}
+.emp-warn{flex-basis:100%; display:flex; align-items:center; gap:6px; font-size:.75rem; color:var(--warning-text); font-weight:600}
 .emp-warn svg{width:13px; height:13px}
 @media (max-width:640px){
   .emp{flex-wrap:wrap}
@@ -632,23 +708,19 @@ html[data-theme="dark"] .pwd-meter i{background:rgba(146,175,255,.18)}
 .sent-to{font-size:.88rem; color:var(--text-2); margin-bottom:14px}
 .otp-actions{margin-top:12px}
 .demo-code{display:flex; gap:11px; padding:13px 15px; border-radius:var(--r-lg); margin-bottom:16px;
-  background:var(--warn-soft); border:1px solid rgba(181,122,12,.28); color:#7A5308}
-html[data-theme="dark"] .demo-code{background:rgba(181,122,12,.16); color:#F0D08A}
-.demo-code svg{width:17px; height:17px; flex:none; margin-top:3px; color:var(--warn)}
+  background:var(--warning-soft); border:1px solid rgba(181,122,12,.28); color:var(--warning-text)}
+.demo-code svg{width:17px; height:17px; flex:none; margin-top:3px; color:currentColor}
 .demo-code b{display:block; font-size:.82rem}
 .demo-code p{font-size:.75rem; opacity:.9; line-height:1.6}
 .demo-val{display:inline-block; font-size:1.5rem; font-weight:600; letter-spacing:.22em; margin:4px 0}
 .verified-box{display:flex; gap:14px; padding:18px; border-radius:var(--r-lg); align-items:center;
-  background:var(--ok-soft); border:1px solid rgba(18,148,107,.25)}
-html[data-theme="dark"] .verified-box{background:rgba(18,148,107,.14)}
+  background:var(--success-soft); border:1px solid rgba(18,148,107,.25); color:var(--success-text)}
 .verified-box .v-ico{width:46px; height:46px; border-radius:15px; flex:none; display:grid; place-items:center;
-  background:var(--ok); color:#fff; box-shadow:var(--shadow-clay)}
+  background:var(--success); color:#fff; box-shadow:var(--shadow-clay)}
 .verified-box .v-ico svg{width:23px; height:23px}
-.verified-box b{display:block; font-size:.98rem; color:#0A5C43}
-.verified-box span{display:block; font-size:.85rem; color:#0A5C43; opacity:.85}
-.verified-box .hint{color:#0A5C43; opacity:.7; margin-top:2px}
-html[data-theme="dark"] .verified-box b,html[data-theme="dark"] .verified-box span,
-html[data-theme="dark"] .verified-box .hint{color:#8FE3C4}
+.verified-box b{display:block; font-size:.98rem; color:inherit}
+.verified-box span{display:block; font-size:.85rem; color:inherit; opacity:.9}
+.verified-box .hint{color:inherit; opacity:.75; margin-top:2px}
 
 /* معاينة قالب الفاتورة الموجود في Supabase — لا يُصمَّم هنا شيء، يُعرض القالب كما هو */
 .docpv{margin:0; border-radius:var(--r-xl); overflow:hidden; background:var(--clay);
@@ -656,8 +728,7 @@ html[data-theme="dark"] .verified-box .hint{color:#8FE3C4}
 .docpv-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:11px 14px;
   border-bottom:1px solid var(--line-soft); background:var(--clay-2)}
 .docpv-head .c-ico{width:30px; height:30px; border-radius:10px; display:grid; place-items:center;
-  background:var(--clay-on); color:var(--blue-600); flex:none}
-html[data-theme="dark"] .docpv-head .c-ico{color:var(--blue-300)}
+  background:var(--clay-on); color:var(--accent-text); flex:none}
 .docpv-head .c-ico svg{width:16px; height:16px}
 .docpv-titles{flex:1; min-width:150px}
 .docpv-titles b{display:block; font-size:.9rem; font-weight:600; line-height:1.4}
@@ -668,9 +739,9 @@ html[data-theme="dark"] .docpv-stage{background:#141B2E}
 .docpv-msg{padding:28px 20px; text-align:center; display:grid; gap:10px; justify-items:center;
   color:var(--text-2); font-size:.84rem; line-height:1.7; max-width:420px}
 .docpv-msg .c-ico{width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
-  background:var(--clay-on); color:var(--blue-600)}
+  background:var(--clay-on); color:var(--accent-text)}
 .docpv-msg .c-ico svg{width:20px; height:20px}
-.docpv-msg[data-tone="err"] .c-ico{background:rgba(198,58,58,.12); color:#C63A3A}
+.docpv-msg[data-tone="err"] .c-ico{background:var(--danger-soft); color:var(--danger-text)}
 .docpv-msg b{color:var(--text); font-size:.92rem}
 .docpv-msg code{font-family:var(--font-mono); font-size:.7rem; direction:ltr; display:block;
   max-width:100%; overflow-x:auto; color:var(--text-3)}
@@ -678,18 +749,16 @@ html[data-theme="dark"] .docpv-stage{background:#141B2E}
 .docpv-chip{display:inline-flex; align-items:center; gap:5px; font-size:.7rem; padding:4px 9px;
   border-radius:var(--r-pill); background:var(--clay-2); border:1px solid var(--line-soft); color:var(--text-2)}
 .docpv-chip svg{width:12px; height:12px; flex:none}
-.docpv-chip[data-on="1"]{color:var(--blue-600); border-color:var(--line)}
-html[data-theme="dark"] .docpv-chip[data-on="1"]{color:var(--blue-300)}
+.docpv-chip[data-on="1"]{color:var(--accent-text); border-color:var(--line)}
 
 /* لوحة الأرقام النهائية */
 .stat-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
 .stat{padding:14px 10px; border-radius:var(--r-lg); text-align:center; background:var(--clay);
   border:1px solid var(--line-soft); box-shadow:var(--shadow-clay)}
 .stat .c-ico{width:32px; height:32px; border-radius:11px; margin:0 auto 6px; display:grid; place-items:center;
-  background:var(--clay-on); color:var(--blue-600)}
-html[data-theme="dark"] .stat .c-ico{color:var(--blue-300)}
+  background:var(--clay-on); color:var(--accent-text)}
 .stat .c-ico svg{width:16px; height:16px}
-.stat b{display:block; font-size:1.3rem; font-weight:700; line-height:1.2}
+.stat b{display:block; font-size:1.3rem; font-weight:700; line-height:1.2; font-variant-numeric:tabular-nums}
 .stat span{display:block; font-size:.72rem; color:var(--text-2)}
 .cta-row{display:flex; gap:10px; flex-wrap:wrap}
 @media (max-width:640px){ .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .cta-row .btn{flex:1} }
@@ -698,10 +767,81 @@ html[data-theme="dark"] .stat .c-ico{color:var(--blue-300)}
 .code-box{padding:12px 14px; border-radius:var(--r-md); background:var(--clay-2); border:1px solid var(--line-soft);
   font-size:.78rem; overflow-x:auto; direction:ltr; text-align:start; margin:0}
 
+
+/* ==========================================================================
+   V4 — الإكمال لاحقًا، بطاقة تقدّم الإعداد، وقائمة المراحل النهائية
+   ========================================================================== */
+
+/* لافتة تأجيل مرحلة — تظهر مرة واحدة عند أول خطوة اختيارية في المرحلة */
+.later-card{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px;
+  padding:12px 14px; border-radius:var(--r-lg); background:var(--clay);
+  border:1px solid var(--line-soft); box-shadow:var(--shadow-clay)}
+.later-card .c-ico{width:34px; height:34px; border-radius:11px; flex:none; display:grid; place-items:center;
+  background:var(--clay-2); color:var(--accent-text)}
+.later-card .c-ico svg{width:17px; height:17px}
+.later-txt{flex:1 1 220px; min-width:0}
+.later-txt b{display:block; font-size:.88rem; font-weight:600}
+.later-txt span{display:block; font-size:.79rem; color:var(--text-2); line-height:1.6}
+.later-card .btn{flex:none}
+
+/* بطاقة «إعداد متجرك» — نفس البطاقة قبل الدخول وبعده */
+.prog-card{display:grid; gap:14px; padding:18px; border-radius:var(--r-xl);
+  background:var(--glass-bg); border:1px solid var(--glass-border);
+  backdrop-filter:blur(20px) saturate(140%); -webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:var(--shadow-md)}
+.prog-top{display:flex; align-items:center; gap:14px}
+.prog-ring{width:64px; height:64px; flex:none; position:relative; display:grid; place-items:center}
+.prog-ring svg{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg)}
+.prog-ring .track{fill:none; stroke:var(--clay-2); stroke-width:7}
+.prog-ring .fill{fill:none; stroke:var(--accent); stroke-width:7; stroke-linecap:round;
+  transition:stroke-dashoffset .8s var(--ease-out)}
+.prog-ring b{font-size:.95rem; font-weight:700; font-variant-numeric:tabular-nums; position:relative}
+.prog-head{min-width:0; flex:1}
+.prog-head b{display:block; font-size:1rem; font-weight:700}
+.prog-head span{display:block; font-size:.82rem; color:var(--text-2)}
+.prog-remain{display:grid; gap:7px; margin:0; padding:0; list-style:none}
+.prog-remain > b{font-size:.82rem; font-weight:600; color:var(--text-2)}
+.prog-remain li{display:flex; align-items:center; gap:9px; font-size:.86rem}
+.prog-remain li::before{content:""; width:6px; height:6px; border-radius:50%; flex:none; background:var(--accent); opacity:.55}
+.prog-remain .st{margin-inline-start:auto; font-size:.72rem; color:var(--text-2)}
+.shop-name{font-size:1.05rem; font-weight:700; color:var(--text); margin:-8px 0 4px}
+
+/* قائمة المراحل على شاشة الاكتمال — «✓ الهوية · ✓ المتجر …» */
+.done-list{display:grid; gap:8px; margin:0; padding:0; list-style:none}
+.done-list li{display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:var(--r-md);
+  background:var(--clay); border:1px solid var(--line-soft); font-size:.88rem}
+.done-list .d-ico{width:24px; height:24px; border-radius:50%; flex:none; display:grid; place-items:center;
+  background:var(--success); color:#fff}
+.done-list .d-ico svg{width:13px; height:13px}
+.done-list li[data-state="partial"] .d-ico{background:var(--clay-2); color:var(--text-2)}
+.done-list b{flex:1; font-weight:600}
+.done-list .d-tag{font-size:.74rem; color:var(--text-2); font-variant-numeric:tabular-nums}
+
+/* ==========================================================================
+   احترام تفضيلات النظام: شفافية أقل، تباين أعلى
+   ========================================================================== */
+@media (prefers-reduced-transparency: reduce){
+  .phases,.s-nav .row,.illus,.modal,.toast,.icon-btn,.prog-card{
+    background:var(--surface); backdrop-filter:none; -webkit-backdrop-filter:none}
+  .scrim{backdrop-filter:none; -webkit-backdrop-filter:none; background:rgba(9,18,44,.7)}
+}
+@media (prefers-contrast: more){
+  :root{--line:rgba(21,36,73,.5); --line-soft:rgba(21,36,73,.32)}
+  html[data-theme="dark"]{--line:rgba(200,220,255,.55); --line-soft:rgba(200,220,255,.34)}
+  .phases,.s-nav .row,.illus,.modal,.toast,.prog-card{background:var(--surface); border-color:var(--line)}
+  .choice,.switch-row,.chip,.perm-chip,.note,.task,.rev,.later-card,.done-list li{border-color:var(--line)}
+  .hint,.opt{color:var(--text-2)}
+}
+
+/* تبديل المظهر يجب أن يقفز لا أن يتلطّخ: الانتقالات تُعطَّل لإطار واحد */
+html[data-theme-swap="1"] *,html[data-theme-swap="1"] *::before,html[data-theme-swap="1"] *::after{
+  transition:none!important}
+
 @media print{ .s-header,.s-nav,.illus{display:none} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#stepTitle">تخطّي إلى محتوى الخطوة</a>
 <div class="shell">
   <header class="s-header">
     <div class="wrap">
@@ -1337,6 +1477,21 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const nowISO = () => new Date().toISOString();
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const fmtNum = n => new Intl.NumberFormat(LANG === "en" ? "en-US" : "ar-IQ").format(n);
+const pad2   = n => fmtNum(n).padStart(2, LANG === "en" ? "0" : "٠");
+/**
+ * صيغة العدد بالعربية ليست «{n} خطوات» دائمًا: المفرد والمثنّى وجمع القلّة
+ * وجمع الكثرة صيغ مختلفة. لذلك تُخزَّن الجملة كاملة لكل حالة بدل تركيبها.
+ */
+const plural = (n, forms) => {
+  const k = LANG === "en"
+    ? (n === 1 ? "one" : "other")
+    : (n === 1 ? "one" : n === 2 ? "two" : (n % 100 >= 3 && n % 100 <= 10) ? "few" : "many");
+  const s = forms[k] || forms.many || forms.other || forms.one;
+  return s.split("{n}").join(fmtNum(n));
+};
+const nSteps = n => plural(n, LANG === "en"
+  ? { one:"1 optional step", other:"{n} optional steps" }
+  : { one:"خطوة اختيارية واحدة", two:"خطوتان اختياريتان", few:"{n} خطوات اختيارية", many:"{n} خطوة اختيارية" });
 const initials = name => String(name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0] || "").join("") || "?";
 const RX = {
   email: /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i,
@@ -1367,7 +1522,7 @@ const Spring = {
   /** ضغطة زر — تُنظَّف الأنماط السطرية بعدها حتى لا تعطّل تأثيرات CSS */
   press(el){
     if(!HAS_MOTION || reducedMotion() || !el) return;
-    const a = Motion.animate(el, { scale:[1,.955,1] }, { duration:.32, easing:this.snap() });
+    const a = Motion.animate(el, { scale:[1,.96,1] }, { duration:.32, easing:this.snap() });
     if(a && a.finished) a.finished.then(() => { el.style.transform = ""; }).catch(() => {});
   },
   pop(el, from){
@@ -1465,7 +1620,31 @@ Object.assign(L, {
   errFix:["راجع الحقول المميزة بالأحمر","Please review the highlighted fields"],
   errBlocked:["أكمل هذه الخطوة أولًا","Complete this step first"],
   savedLocally:["حُفظ في هذا المتصفح","Saved in this browser"],
-  restored:["تمت استعادة إعدادك السابق","Your previous progress was restored"]
+  restored:["تمت استعادة إعدادك السابق","Your previous progress was restored"],
+
+  /* --- V4: المراحل الأربع، التخطّي، والإكمال لاحقًا --- */
+  stageStep:["الخطوة {a} من {b}","Step {a} of {b}"],
+  stagePct:["{p}% مكتمل","{p}% done"],
+  skipStep:["تخطّي","Skip"],
+  skipped:["أُجّلت «{s}» — يمكنك إكمالها بعد الدخول إلى النظام","\"{s}\" was postponed — you can finish it after signing in"],
+  laterTitle:["يمكنك إكمال هذا القسم لاحقًا","You can finish this part later"],
+  laterBody:["بقي في مرحلة {s} {n}. أجّلها الآن وأكملها بعد الدخول إلى النظام.","{n} remain in the {s} stage. Postpone them now and finish after you sign in."],
+  laterCta:["إكمال لاحقًا","Finish later"],
+  laterDone:["أُجّلت {n} — تجدها في «إكمال الإعداد»","{n} postponed — you will find them under \"Finish setup\""],
+  optionalStep:["خطوة اختيارية","Optional step"],
+  skipToContent:["تخطّي إلى محتوى الخطوة","Skip to step content"],
+
+  /* بطاقة «إعداد متجرك» — قبل الدخول وبعده */
+  progT:["إعداد متجرك","Your store setup"],
+  progRemain:["بقي:","Remaining:"],
+  progCta:["إكمال الإعداد","Finish setup"],
+  progDone:["الإعداد مكتمل بالكامل","Setup is fully complete"],
+  progDoneD:["لم يبقَ شيء — يمكنك البدء بالبيع.","Nothing left — you can start selling."],
+  stageDone:["مكتملة","Complete"],
+  stageOf:["{a} من {b}","{a} of {b}"],
+  stageNone:["لم تبدأ بعد","Not started"],
+  stagePart:["ناقصة","Partial"],
+  reqLeft:["أكمل «{s}» قبل الدخول إلى النظام","Complete \"{s}\" before entering the system"]
 });
 
 /* ==========================================================================
@@ -1474,8 +1653,10 @@ Object.assign(L, {
 const DEFAULT_STATE = () => ({
   version: 1,
   currentStep: 0,
+  currentStepId: "welcome",
   maxStep: 0,
   completedSteps: [],
+  skippedSteps: [],
   storeData: { storeName:"", shopName:"", phone:"", whatsapp:"", city:"", address:"", branch:"", logo:"" },
   ownerData: { name:"", email:"", phone:"" },
   emailVerification: { email:"", status:"idle", verifiedAt:null, method:null },
@@ -1523,6 +1704,14 @@ const SetupState = {
   patch(section, obj){ Object.assign(this.data[section], obj); this.save(); this._emit(); },
   markComplete(stepId){
     if(!this.data.completedSteps.includes(stepId)) this.data.completedSteps.push(stepId);
+    this.data.skippedSteps = (this.data.skippedSteps || []).filter(id => id !== stepId);
+    this.save();
+  },
+  /** خطوة اختيارية أجّلها المستخدم — تبقى قابلة للإكمال بعد الدخول إلى النظام. */
+  markSkipped(stepId){
+    this.data.skippedSteps = this.data.skippedSteps || [];
+    if(!this.data.skippedSteps.includes(stepId)) this.data.skippedSteps.push(stepId);
+    this.data.completedSteps = this.data.completedSteps.filter(id => id !== stepId);
     this.save();
   },
   reset(){ try{ localStorage.removeItem(CONFIG.storageKey); }catch(_){} this.data = DEFAULT_STATE(); this._emit(); },
@@ -1546,7 +1735,9 @@ const SetupState = {
         role:e.role, status:e.status, pinSet:!!e.pinSet, permissions:e.permissions,
         verification:{ status:(d.employeeVerification[e.id]||{}).status || "pending",
           method:(d.employeeVerification[e.id]||{}).method || null } })),
-      invoices: d.invoiceSettings, preferences: d.preferences
+      invoices: d.invoiceSettings, preferences: d.preferences,
+      // ما تبقّى من الإعداد الاختياري — يقرؤه النظام ليعرض بطاقة «إكمال الإعداد».
+      progress: (typeof Flow !== "undefined") ? Flow.snapshot() : null
     };
   }
 };
@@ -1935,6 +2126,9 @@ const Modal = {
           `<button class="btn ${a.variant || "btn-ghost"}" data-act="${i}"${a.disabled ? " disabled" : ""}>${a.icon ? ico(a.icon) : ""}<span class="btn-label">${esc(a.label)}</span></button>`).join("")}</div>`;
     if(size) m.style.width = size;
     w.hidden = false; s.hidden = false;
+    // الخلفية تخرج من شجرة الوصول كاملة، فلا يتجوّل قارئ الشاشة خلف الحوار.
+    const shell = $(".shell"); if(shell) shell.inert = true;
+    document.body.style.overflow = "hidden";
     requestAnimationFrame(() => {
       m.dataset.open = "1"; s.dataset.open = "1";
       if(HAS_MOTION && !reducedMotion())
@@ -1967,6 +2161,8 @@ const Modal = {
     const m = $("#modal"), w = $("#modalWrap"), s = $("#scrim");
     m.dataset.open = ""; s.dataset.open = "";
     document.removeEventListener("keydown", this._key);
+    const shell = $(".shell"); if(shell) shell.inert = false;
+    document.body.style.overflow = "";
     const gen = ++this._gen;
     const done = () => {
       if(this._gen !== gen) return;    // فُتح حوار آخر بعده — لا نمسح محتواه
@@ -2610,7 +2806,7 @@ const F = {
   },
   text(o){
     return `<div class="field" data-fw="${o.name}">${this._lbl(o)}
-      <input class="control" id="f_${o.name}"${o.nobind ? "" : ` data-field="${o.name}"`}${o.sec ? ` data-sec="${o.sec}"` : ""}
+      <input class="control" id="f_${o.name}" name="${o.name}"${o.nobind ? "" : ` data-field="${o.name}"`}${o.sec ? ` data-sec="${o.sec}"` : ""}
         type="${o.type || "text"}"${o.dir ? ` dir="${o.dir}"` : ""}${o.inputmode ? ` inputmode="${o.inputmode}"` : ""}
         ${o.maxlength ? ` maxlength="${o.maxlength}"` : ""}${o.autocomplete ? ` autocomplete="${o.autocomplete}"` : ""}
         ${o.placeholder ? ` placeholder="${esc(o.placeholder)}"` : ""}${o.hint ? ` aria-describedby="h_${o.name}"` : ""}
@@ -2619,13 +2815,13 @@ const F = {
   },
   textarea(o){
     return `<div class="field" data-fw="${o.name}">${this._lbl(o)}
-      <textarea class="control" id="f_${o.name}" data-field="${o.name}"${o.sec ? ` data-sec="${o.sec}"` : ""}
+      <textarea class="control" id="f_${o.name}" name="${o.name}" data-field="${o.name}"${o.sec ? ` data-sec="${o.sec}"` : ""}
         rows="${o.rows || 3}"${o.placeholder ? ` placeholder="${esc(o.placeholder)}"` : ""}></textarea>
       ${this._tail(o)}</div>`;
   },
   select(o){
     return `<div class="field" data-fw="${o.name}">${this._lbl(o)}
-      <select class="control" id="f_${o.name}" data-field="${o.name}"${o.sec ? ` data-sec="${o.sec}"` : ""}>
+      <select class="control" id="f_${o.name}" name="${o.name}" data-field="${o.name}"${o.sec ? ` data-sec="${o.sec}"` : ""}>
         ${o.options.map(op => `<option value="${esc(op.v)}">${esc(op.l)}</option>`).join("")}
       </select>${this._tail(o)}</div>`;
   },
@@ -2827,7 +3023,13 @@ const Theme = {
   mq: window.matchMedia("(prefers-color-scheme: dark)"),
   apply(pref){
     const eff = pref === "system" ? (this.mq.matches ? "dark" : "light") : (pref || "light");
-    document.documentElement.dataset.theme = eff;
+    const root = document.documentElement;
+    if(root.dataset.theme && root.dataset.theme !== eff){
+      root.dataset.themeSwap = "1";
+      void root.offsetWidth;                       // إعادة تدفّق واحدة تثبّت الحالة
+      requestAnimationFrame(() => { delete root.dataset.themeSwap; });
+    }
+    root.dataset.theme = eff;
     if(window.Stage3D && SetupIllustration.mode === "3d") window.Stage3D.theme(eff === "dark");
     const btn = $("#themeBtn");
     if(btn){ btn.innerHTML = ico(eff === "dark" ? "sun" : "moon"); btn.title = t("themeToggle") + " — " + t("theme_" + (pref || "light")); }
@@ -3009,7 +3211,7 @@ const STEPS = [];
 
 /* ---------------- المرحلة 01 — الهوية ---------------- */
 STEPS.push({
-  id:"welcome", phase:0, svg:"welcome", hideBack:true, nextLabel:"ctaStart", nextIcon:"next",
+  id:"welcome", phase:0, svg:"welcome", hideBack:true, nextLabel:"ctaStart", nextIcon:"next", kind:"intro",
   title:() => t("w_title"), lede:() => t("w_lede"), eyebrow:() => t("w_eyebrow"),
   body(){
     const items = [
@@ -3024,7 +3226,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"store", phase:0, svg:"store", section:"storeData", errLayer:"store",
+  id:"store", phase:0, svg:"store", section:"storeData", errLayer:"store", required:true,
   title:() => t("s2_title"), lede:() => t("s2_lede"), eyebrow:() => t("s2_eyebrow"),
   body(){
     const d = SetupState.data.storeData;
@@ -3084,7 +3286,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"owner", phase:0, svg:"owner", section:"ownerData", errLayer:"owner",
+  id:"owner", phase:0, svg:"owner", section:"ownerData", errLayer:"owner", required:true,
   title:() => t("s3_title"), lede:() => t("s3_lede"), eyebrow:() => t("s3_eyebrow"),
   body(){
     return `${F.text({ name:"name", label:t("f_ownerName"), required:true, placeholder:t("f_ownerNameP"), autocomplete:"name" })}
@@ -3112,7 +3314,7 @@ STEPS.push({
 
 /* ---- الخطوة 04 — البريد + OTP ---- */
 STEPS.push({
-  id:"email-otp", phase:0, svg:"email-otp",
+  id:"email-otp", phase:0, svg:"email-otp", required:true,
   title:() => t("s4_title"), lede:() => t("s4_lede"), eyebrow:() => t("s4_eyebrow"),
   nextLabel:"next",
   body(){
@@ -3248,7 +3450,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"security", phase:0, svg:"security", section:"securityData",
+  id:"security", phase:0, svg:"security", section:"securityData", required:true,
   // رمز PIN خاطئ ⇒ القفل يهتزّ. كلمة مرور ضعيفة ⇒ الدرع.
   errLayer: e => (e.pin1 || e.pin2) ? "lock" : "shield",
   title:() => t("s5_title"), lede:() => t("s5_lede"), eyebrow:() => t("s5_eyebrow"),
@@ -3342,7 +3544,7 @@ STEPS.push({
 
 /* ---------------- المرحلة 02 — إعداد المتجر ---------------- */
 STEPS.push({
-  id:"business", phase:1, svg:"business", section:"businessSettings",
+  id:"business", phase:1, svg:"business", section:"businessSettings", required:true,
   title:() => t("s6_title"), lede:() => t("s6_lede"), eyebrow:() => t("s6_eyebrow"),
   body(){
     const acts = [
@@ -3366,16 +3568,18 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"inventory", phase:1, svg:"inventory", section:"inventorySettings", errLayer:"boxes",
+  id:"inventory", phase:1, svg:"inventory", section:"inventorySettings", errLayer:"boxes", optional:true,
   title:() => t("s7_title"), lede:() => t("s7_lede"), eyebrow:() => t("s7_eyebrow"),
   body(){
     const conds = [
       { v:"new", t:t("c_new") }, { v:"used", t:t("c_used") },
       { v:"refurb", t:t("c_refurb") }, { v:"openbox", t:t("c_open") }
     ];
-    return `${F.toggle({ key:"trackImei", title:t("s7_imei"), desc:t("s7_imeiD") })}
+    const imei = Flow.needsImei();
+    return `${imei ? "" : F.note(esc(t("s7_noImei")))}
+      ${F.toggle({ key:"trackImei", title:t("s7_imei"), desc:t("s7_imeiD") })}
       ${F.toggle({ key:"trackSerial", title:t("s7_serial"), desc:t("s7_serialD") })}
-      ${F.toggle({ key:"requireImeiOnSale", title:t("s7_require"), desc:t("s7_requireD") })}
+      ${imei ? F.toggle({ key:"requireImeiOnSale", title:t("s7_require"), desc:t("s7_requireD") }) : ""}
       <h3 class="sub-h">${esc(t("s7_conds"))}</h3>
       <div class="choices cols-2">${conds.map(c =>
         F.check({ key:"conditions", value:c.v, title:c.t, compact:true })).join("")}</div>
@@ -3415,7 +3619,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"products", phase:1, svg:"products", section:"productSettings",
+  id:"products", phase:1, svg:"products", section:"productSettings", optional:true,
   title:() => t("s8_title"), lede:() => t("s8_lede"), eyebrow:() => t("s8_eyebrow"),
   body(){
     const chain = ["ch_brand","ch_model","ch_storage","ch_color","ch_device","ch_imei","ch_cond"];
@@ -3434,7 +3638,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"sales", phase:1, svg:"sales", section:"salesSettings",
+  id:"sales", phase:1, svg:"sales", section:"salesSettings", required:true,
   title:() => t("s9_title"), lede:() => t("s9_lede"), eyebrow:() => t("s9_eyebrow"),
   body(){
     const pm = [
@@ -3460,7 +3664,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"customers", phase:1, svg:"customers", section:"customerSettings",
+  id:"customers", phase:1, svg:"customers", section:"customerSettings", optional:true,
   title:() => t("s10_title"), lede:() => t("s10_lede"), eyebrow:() => t("s10_eyebrow"),
   body(){
     const chain = ["cf_cust","cf_sale","cf_debt","cf_pay","cf_rest"];
@@ -3671,7 +3875,7 @@ const EmployeeUI = {
 };
 
 STEPS.push({
-  id:"employees", phase:2, svg:"employees", errLayer:"team",
+  id:"employees", phase:2, svg:"employees", errLayer:"team", optional:true,
   title:() => t("s11_title"), lede:() => t("s11_lede"), eyebrow:() => t("s11_eyebrow"),
   body(){
     const list = Employees.all();
@@ -3681,18 +3885,24 @@ STEPS.push({
         <button type="button" class="btn btn-primary btn-sm" data-add>${ico("plus")}<span class="btn-label">${esc(t("s11_add"))}</span></button>
       </div>
       ${list.length ? `<ul class="emp-list">${list.map(e => EmployeeUI.card(e)).join("")}</ul>`
-        : `<div class="empty-state"><b>${esc(t("s11_emptyT"))}</b>${esc(t("s11_emptyD"))}</div>`}
+        : `<div class="empty-state"><b>${esc(t("s11_emptyT"))}</b>${esc(t("s11_emptyD"))}
+             <button type="button" class="btn btn-ghost btn-sm" data-solo style="margin-top:14px">
+               ${ico("user")}<span class="btn-label">${esc(t("s11_solo"))}</span></button>
+           </div>`}
       ${F.note(esc(t("s11_note")))}`;
   },
   mount(root){
     $("[data-add]", root).addEventListener("click", () => EmployeeUI.form(null));
+    const solo = $("[data-solo]", root);
+    // محل بموظف واحد لا يُجبَر على المرور بخطوات فريق لا وجود له.
+    if(solo) solo.addEventListener("click", () => Wizard.finishStageLater());
     EmployeeUI.bindList(root);
   },
   validate(){ return {}; }
 });
 
 STEPS.push({
-  id:"employee-otp", phase:2, svg:"employee-otp",
+  id:"employee-otp", phase:2, svg:"employee-otp", optional:true, when:() => SetupState.data.employees.length > 0,
   title:() => t("s12_title"), lede:() => t("s12_lede"), eyebrow:() => t("s12_eyebrow"),
   body(){
     const list = Employees.all().filter(e => e.status !== "disabled");
@@ -3805,7 +4015,7 @@ const EmployeeVerification = {
 };
 
 STEPS.push({
-  id:"permissions", phase:2, svg:"permissions", errLayer:"shield",
+  id:"permissions", phase:2, svg:"permissions", errLayer:"shield", optional:true, when:() => SetupState.data.employees.length > 0,
   title:() => t("s13_title"), lede:() => t("s13_lede"), eyebrow:() => t("s13_eyebrow"),
   body(){
     const list = Employees.all().filter(e => e.status !== "disabled");
@@ -3843,7 +4053,7 @@ STEPS.push({
 
 /* ---------------- المرحلة 04 — النظام ---------------- */
 STEPS.push({
-  id:"invoices", phase:3, svg:"invoices", section:"invoiceSettings", errLayer:"paper",
+  id:"invoices", phase:3, svg:"invoices", section:"invoiceSettings", errLayer:"paper", required:true,
   title:() => t("s14_title"), lede:() => t("s14_lede"), eyebrow:() => t("s14_eyebrow"),
   body(){
     return `<div class="choices cols-2">
@@ -3881,7 +4091,7 @@ STEPS.push({
 });
 
 STEPS.push({
-  id:"preferences", phase:3, svg:"preferences", section:"preferences",
+  id:"preferences", phase:3, svg:"preferences", section:"preferences", required:true,
   title:() => t("s15_title"), lede:() => t("s15_lede"), eyebrow:() => t("s15_eyebrow"),
   body(){
     return `${F.radio({ key:"language", label:t("s15_lang"), cols:2, compact:true, options:[
@@ -3968,16 +4178,23 @@ const REVIEW = () => {
 };
 
 STEPS.push({
-  id:"review", phase:3, svg:"review",
+  id:"review", phase:3, svg:"review", kind:"review",
   title:() => t("s16_title"), lede:() => t("s16_lede"), eyebrow:() => t("s16_eyebrow"),
   nextLabel:"s16_cta", nextIcon:"rocket",
   body(){
-    return `<div class="review">${REVIEW().map(sec => `<section class="rev">
+    const shown = new Set(Flow.visible().map(s => s.id));
+    const stepOf = id => STEPS.find(s => s.id === id);
+    return `<div data-prog-host></div>
+      <div class="review">${REVIEW().filter(sec => shown.has(sec.step)).map(sec => {
+        const st = stepOf(sec.step);
+        const late = st && st.optional && !Flow.isDone(st);
+        return `<section class="rev">
         <div class="rev-head"><span class="c-ico">${ico(sec.icon)}</span><b>${esc(sec.title)}</b>
-          <button type="button" class="btn btn-quiet btn-sm" data-jump="${sec.step}">${ico("edit")}<span class="btn-label">${esc(t("edit"))}</span></button></div>
+          ${late ? `<span class="badge" data-tone="pending">${ico("clock")}${esc(t("laterCta"))}</span>` : ""}
+          <button type="button" class="btn btn-quiet btn-sm" data-jump="${sec.step}">${ico("edit")}<span class="btn-label">${esc(t(late ? "progCta" : "edit"))}</span></button></div>
         <dl class="rev-body">${sec.lines.map(l => `<div class="rev-line"><dt>${esc(l[0])}</dt>
           <dd${l[2] ? ' class="mono"' : ""} dir="auto">${esc(l[1] === "" ? "—" : l[1])}</dd></div>`).join("")}</dl>
-      </section>`).join("")}</div>
+      </section>`; }).join("")}</div>
       <h3 class="sub-h">${esc(t("s16_inv"))}</h3>
       <p class="hint" style="margin:-6px 0 12px">${esc(t("s16_invH"))}</p>
       <div data-doc-host></div>
@@ -3985,7 +4202,11 @@ STEPS.push({
       ${F.note(esc(t("s16_note")))}`;
   },
   mount(root){
-    $$("[data-jump]", root).forEach(b => b.addEventListener("click", () => Wizard.goTo(Wizard.indexOf(b.dataset.jump), true)));
+    renderProgressCard($("[data-prog-host]", root), { cta:"primary" });
+    $$("[data-jump]", root).forEach(b => b.addEventListener("click", () => {
+      const idx = Wizard.indexOf(b.dataset.jump);
+      if(idx >= 0) Wizard.goTo(idx, true);
+    }));
     renderInvoicePreview($("[data-doc-host]", root), {});
     if(HAS_MOTION && !reducedMotion()){
       $$(".rev", root).forEach((el, i) => {
@@ -3999,14 +4220,15 @@ STEPS.push({
     }
   },
   validate(){
-    for(let i = 0; i < STEPS.length; i++){
-      const s = STEPS[i];
-      if(s.id === "review") break;
-      if(s.id === "security" || s.id === "welcome") continue;   // يعتمدان على عناصر الصفحة نفسها
-      if(s.validate){
-        const e = s.validate.call(s, document.createElement("div"));
-        if(Object.keys(e).length) return { __block: t("s16_block", { s: s.title() }) };
-      }
+    // الاختياري لا يمنع الدخول إلى النظام؛ الإلزامي وحده يمنع.
+    const pending = Flow.requiredPending().filter(s => s.id !== "security");
+    if(pending.length) return { __block: t("reqLeft", { s: Flow.label(pending[0]) }) };
+    for(const s of Flow.content()){
+      // خطوة الحماية تتحقّق من حقول الصفحة نفسها، فلا تُشغَّل على جذر وهمي.
+      if(!s.required || !s.validate || s.id === "security") continue;
+      let e;
+      try{ e = s.validate.call(s, document.createElement("div")); }catch(_){ continue; }
+      if(e && Object.keys(e).length) return { __block: t("s16_block", { s: Flow.label(s) }) };
     }
     if(!SetupState.data.securityData.passwordSet || !SetupState.data.securityData.pinSet)
       return { __block: t("s16_blockSec") };
@@ -4017,7 +4239,7 @@ STEPS.push({
 /* ---- الخطوة 17 — التهيئة ---- */
 const TASKS = ["workspace", "store", "permissions", "inventory", "products", "defaults", "finalize"];
 STEPS.push({
-  id:"preparing", phase:3, svg:"preparing", hideBack:true, hideNext:true,
+  id:"preparing", phase:3, svg:"preparing", hideBack:true, hideNext:true, kind:"system",
   title:() => t("s17_title"), lede:() => t("s17_lede"), eyebrow:() => t("s17_eyebrow"),
   body(){
     const st = SetupState.data.setupStatus.tasks || {};
@@ -4081,9 +4303,8 @@ STEPS.push({
       Wizard.goTo(Wizard.indexOf("complete"), true);
     };
     $("[data-retry]", root).addEventListener("click", run);
-    if(HAS_GSAP && !reducedMotion())
-      gsap.fromTo($$(".task", root), { y:16, opacity:0 },
-        { y:0, opacity:1, duration:.5, stagger:.07, ease:"clay", clearProps:"all", delay:.15 });
+    // لا تتابع دخول هنا: الكتلة دخلت مع الخطوة، والحركة البطلة لهذه الشاشة
+    // هي تقدّم المهام نفسه — مهمة واحدة تتحرّك في كل لحظة.
     progress();
     setTimeout(run, reducedMotion() ? 60 : 420);
   }
@@ -4091,27 +4312,32 @@ STEPS.push({
 
 /* ---- الخطوة 18 — الاكتمال ---- */
 STEPS.push({
-  id:"complete", phase:3, svg:"complete", hideBack:true, hideNext:true,
+  id:"complete", phase:3, svg:"complete", hideBack:true, hideNext:true, kind:"system",
   title:() => t("s18_title"), lede:() => t("s18_lede"), eyebrow:() => t("s18_eyebrow"),
   body(){
     const d = SetupState.data;
+    const shop = d.storeData.storeName || d.storeData.shopName || "";
     const stats = [
       { i:"users", n:d.employees.length, l:t("s18_emp") },
       { i:"tag", n:d.productSettings.brands.length, l:t("s18_brands") },
       { i:"shield", n:MODULES.length, l:t("s18_mods") },
       { i:"printer", n:(d.invoiceSettings.formats || []).length, l:t("s18_fmt") }
     ].map(x => Object.assign(x, { v: fmtNum(x.n) }));
-    return `<div class="stat-grid">${stats.map(s => `<div class="stat"><span class="c-ico">${ico(s.i)}</span>
-        <b data-count="${s.n}">${esc(s.v)}</b><span>${esc(s.l)}</span></div>`).join("")}</div>
+    return `${shop ? `<p class="shop-name">${esc(shop)}</p>` : ""}
+      ${stageChecklist()}
       <div class="cta-row">
         <button type="button" class="btn btn-primary btn-lg" data-enter>${ico("rocket")}<span class="btn-label">${esc(t("s18_cta"))}</span></button>
         <button type="button" class="btn btn-ghost" data-export>${ico("download")}<span class="btn-label">${esc(t("s18_export"))}</span></button>
       </div>
+      <div data-prog-host></div>
+      <div class="stat-grid">${stats.map(s => `<div class="stat"><span class="c-ico">${ico(s.i)}</span>
+        <b data-count="${s.n}">${esc(s.v)}</b><span>${esc(s.l)}</span></div>`).join("")}</div>
       ${d.emailVerification.method === "local-demo" ? F.note(esc(t("s18_demoNote")), "warn") : F.note(esc(t("s18_note")), "ok")}
       <button type="button" class="btn btn-quiet btn-sm" data-restart>${ico("reset")}<span class="btn-label">${esc(t("resetSetup"))}</span></button>`;
   },
   mount(root){
     LocalDB.put("setup_completed", true);
+    renderProgressCard($("[data-prog-host]", root), {});
     $("[data-enter]", root).addEventListener("click", () => {
       if(CONFIG.appEntryUrl){ location.href = CONFIG.appEntryUrl; return; }
       window.dispatchEvent(new CustomEvent("erp:setup-complete", { detail: SetupState.exportConfig() }));
@@ -4137,11 +4363,164 @@ STEPS.push({
         gsap.to(o, { n:to, duration:1.1, delay:.35 + i * .08, ease:"power2.out",
           onUpdate(){ el.textContent = fmtNum(Math.round(o.n)); } });
       });
-      gsap.fromTo($$(".stat", root), { y:20, opacity:0, scale:.94 },
-        { y:0, opacity:1, scale:1, duration:.7, stagger:.07, ease:"back.out(1.6)", clearProps:"all" });
+      // الأرقام وحدها تتحرّك هنا؛ القائمة دخلت مع الخطوة ولا تُحرَّك مرّتين.
     }
   }
 });
+
+
+/* ==========================================================================
+   13.a) Flow — المراحل الأربع التي يراها المستخدم
+   --------------------------------------------------------------------------
+   الخطوات الثماني عشرة تبقى كما هي: منطق العمل والتحقق لم يتغيّر. ما تغيّر هو
+   طريقة تقديمها: المستخدم يرى أربع مراحل، ويرى داخل مرحلته موقعه منها فقط.
+   كما يقرّر Flow أي خطوة تظهر أصلًا (`when`)، وأيها إلزامية وأيها يمكن تأجيلها.
+   ========================================================================== */
+const Flow = {
+  /** الخطوات الظاهرة فعلًا لهذا المستخدم — الإعداد يتكيّف مع إجاباته. */
+  visible(){ return STEPS.filter(s => !s.when || s.when()); },
+  /** خطوات المحتوى: ما عدا الترحيب والمراجعة والتهيئة والاكتمال. */
+  isContent(s){ return !s.kind; },
+  content(){ return this.visible().filter(s => this.isContent(s)); },
+  stageSteps(phase){ return this.content().filter(s => s.phase === phase); },
+
+  /** اسم قصير للقوائم: «المخزون» بدل «كيف تتابع أجهزتك؟». */
+  label(s){ try{ return s.eyebrow ? s.eyebrow() : s.title(); }catch(_){ return s.title(); } },
+
+  isDone(s){ return SetupState.data.completedSteps.includes(s.id); },
+  isSkipped(s){ return (SetupState.data.skippedSteps || []).includes(s.id); },
+  isSettled(s){ return this.isDone(s) || this.isSkipped(s); },
+
+  /** موقع الخطوة داخل مرحلتها — «الخطوة ٢ من ٥» بدل «٧ من ١٨». */
+  positionInStage(step){
+    const list = this.stageSteps(step.phase);
+    const n = list.findIndex(s => s.id === step.id);
+    return { n: n + 1, of: list.length, inStage: n >= 0 };
+  },
+
+  /** نسبة إنجاز مرحلة: المكتمل وحده يُحتسب، والمؤجَّل لا يُحتسب مكتملًا. */
+  stagePct(phase){
+    const list = this.stageSteps(phase);
+    if(!list.length) return 100;
+    return Math.round(list.filter(s => this.isDone(s)).length / list.length * 100);
+  },
+  stageState(phase, curPhase){
+    const list = this.stageSteps(phase);
+    if(list.length && list.every(s => this.isDone(s))) return "done";
+    if(phase === curPhase) return "current";
+    return phase < curPhase ? "partial" : "todo";
+  },
+
+  /** نسبة الإعداد كاملًا — هي الرقم الذي تعرضه بطاقة «إكمال الإعداد». */
+  percent(){
+    const list = this.content();
+    if(!list.length) return 100;
+    return Math.round(list.filter(s => this.isDone(s)).length / list.length * 100);
+  },
+
+  /** خطوات إلزامية لم تُنجَز بعد — هذه وحدها تمنع الدخول إلى النظام. */
+  requiredPending(){ return this.content().filter(s => s.required && !this.isDone(s)); },
+  /** خطوات اختيارية مؤجَّلة أو لم تُفتح — تُعرض كـ«بقي» بعد الدخول. */
+  optionalPending(){ return this.content().filter(s => !s.required && !this.isDone(s)); },
+  canFinish(){ return this.requiredPending().length === 0; },
+
+  /** بقية الخطوات الاختيارية في المرحلة الحالية — زر «إكمال لاحقًا». */
+  restOfStage(step){
+    const list = this.stageSteps(step.phase);
+    const from = list.findIndex(s => s.id === step.id);
+    return from < 0 ? [] : list.slice(from).filter(s => !s.required && !this.isDone(s));
+  },
+
+  /** أول خطوة غير منجَزة — وجهة زر «إكمال الإعداد». */
+  nextPending(){
+    return this.requiredPending()[0] || this.optionalPending()[0] || null;
+  },
+
+  /** ملخّص يُسلَّم إلى النظام بعد الدخول ليعرض بطاقة الإكمال بنفسه. */
+  snapshot(){
+    return {
+      percent: this.percent(),
+      complete: this.optionalPending().length === 0 && this.canFinish(),
+      remaining: this.optionalPending().map(s => ({ id:s.id, title:this.label(s), stage: PHASES[s.phase].id })),
+      stages: PHASES.map((p, i) => ({
+        id: p.id, name: t(p.name), percent: this.stagePct(i),
+        steps: this.stageSteps(i).map(s => ({ id:s.id, title:this.label(s), done:this.isDone(s), skipped:this.isSkipped(s) }))
+      }))
+    };
+  },
+
+  /** IMEI ليس إلزاميًا لكل نشاط: محل إكسسوارات فقط لا يحتاجه. */
+  needsImei(){
+    const a = SetupState.data.businessSettings.activities || [];
+    return ["sell_phones", "buy_phones", "exchange"].some(k => a.includes(k));
+  },
+  hasTeam(){ return SetupState.data.employees.length > 0; }
+};
+
+
+/**
+ * بطاقة «إعداد متجرك» — حلقة النسبة وما تبقّى من خطوات اختيارية.
+ * تُعرض على شاشة الاكتمال، وتُصدَّر عبر ERPSetup.progressCard ليعرضها النظام
+ * نفسه بعد الدخول دون إعادة بنائها هناك.
+ */
+function renderProgressCard(host, opts){
+  opts = opts || {};
+  if(!host) return null;
+  const pct = Flow.percent();
+  const rest = Flow.optionalPending();
+  const R = 28, C = 2 * Math.PI * R;
+  const draw = () => {
+    host.innerHTML = `<section class="prog-card">
+      <div class="prog-top">
+        <div class="prog-ring" role="img" aria-label="${esc(t("stagePct", { p: fmtNum(pct) }))}">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle class="track" cx="32" cy="32" r="${R}"></circle>
+            <circle class="fill" cx="32" cy="32" r="${R}"
+              stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}"></circle>
+          </svg>
+          <b>${esc(fmtNum(pct))}%</b>
+        </div>
+        <div class="prog-head">
+          <b>${esc(t("progT"))}</b>
+          <span>${esc(rest.length ? t("stagePct", { p: fmtNum(pct) }) : t("progDoneD"))}</span>
+        </div>
+      </div>
+      ${rest.length ? `<ul class="prog-remain">
+        <b>${esc(t("progRemain"))}</b>
+        ${rest.map(s => {
+          const label = Flow.label(s), stage = t(PHASES[s.phase].name);
+          return `<li>${esc(label)}${label === stage ? "" : `<span class="st">${esc(stage)}</span>`}</li>`;
+        }).join("")}
+      </ul>
+      <button type="button" class="btn ${opts.cta === "primary" ? "btn-primary" : "btn-ghost"}" data-prog-go>${ico("next")}<span class="btn-label">${esc(t("progCta"))}</span></button>`
+      : `<p class="hint">${esc(t("progDone"))}</p>`}
+    </section>`;
+    const go = $("[data-prog-go]", host);
+    if(go) go.addEventListener("click", () => {
+      const target = Flow.nextPending();
+      if(!target) return;
+      const idx = Wizard.indexOf(target.id);
+      if(idx >= 0) Wizard.goTo(idx, true);
+    });
+  };
+  draw();
+  return { refresh: draw, percent: pct, remaining: rest.map(s => s.id) };
+}
+
+/** قائمة المراحل على شاشة الاكتمال: ما اكتمل فعلًا، وما بقي ناقصًا. */
+function stageChecklist(){
+  return `<ul class="done-list">${PHASES.map((p, i) => {
+    const list = Flow.stageSteps(i);
+    if(!list.length) return "";
+    const done = list.filter(s => Flow.isDone(s)).length;
+    const full = done === list.length;
+    return `<li data-state="${full ? "done" : "partial"}">
+      <span class="d-ico" aria-hidden="true">${full ? ico("check") : ico("clock")}</span>
+      <b>${esc(t(p.name))}</b>
+      <span class="d-tag">${esc(full ? t("stageDone") : done ? t("stageOf", { a: fmtNum(done), b: fmtNum(list.length) }) : t("stageNone"))}</span>
+    </li>`;
+  }).join("")}</ul>`;
+}
 
 /* ==========================================================================
    13.b) نصوص الخطوات — عربي (أساسي) + إنجليزي (ثانوي)
@@ -4203,7 +4582,7 @@ Object.assign(L, {
   s4_title:["أدخل رمز التحقق","Enter the verification code"],
   s4_lede:["خطوة أمان إلزامية: لا يمكن متابعة الإعداد قبل إثبات ملكية البريد.","A required security step: setup cannot continue until the email is proven."],
   s4_send:["إرسال رمز التحقق","Send verification code"],
-  s4_sendHint:["رمز من ستة أرقام صالح لمدّتين دقيقتين.","A six-digit code, valid for two minutes."],
+  s4_sendHint:["رمز من ستة أرقام، صالح لمدّة دقيقتين.","A six-digit code, valid for two minutes."],
   s4_sentTo:["أرسلنا الرمز إلى {e}","We sent the code to {e}"],
   s4_change:["تغيير البريد","Change email"],
   s4_expiresIn:["ينتهي خلال","Expires in"],
@@ -4287,6 +4666,7 @@ Object.assign(L, {
   s7_low:["حد التنبيه للنفاد","Low-stock alert"],
   s7_lowH:["ينبّهك النظام حين تقلّ الكمية عن هذا الحد","You are alerted when quantity falls below this"],
   s7_note:["يمكن تعديل كل هذه الخيارات لاحقًا من إعدادات المخزون.","All of these can be changed later from inventory settings."],
+  s7_noImei:["أنشطتك المختارة لا تشمل بيع الهواتف أو شراءها، فتتبّع IMEI غير ضروري لك. اعتمد تتبّع Serial ويكفي.","Your selected activities do not include buying or selling handsets, so IMEI tracking is not needed. Serial tracking is enough."],
 
   /* 08 — المنتجات */
   s8_eyebrow:["المنتجات","Products"],
@@ -4340,6 +4720,7 @@ Object.assign(L, {
   s11_lede:["أضف من يعمل معك؛ لكل موظف بريد للتوثيق ورمز PIN ودور يحدّد ما يراه.","Add who works with you; each has an email for verification, a PIN, and a role that decides what they see."],
   s11_count:["الموظفون المضافون: {n}","Staff added: {n}"],
   s11_hint:["يمكنك المتابعة بدون موظفين وإضافتهم لاحقًا.","You can continue without staff and add them later."],
+  s11_solo:["أشتغل لوحدي — تخطّي الفريق","I work alone — skip the team"],
   s11_add:["إضافة موظف","Add employee"],
   s11_emptyT:["لا يوجد موظفون بعد","No staff yet"],
   s11_emptyD:["أضف أول موظف، أو تابع الآن وأضفهم من إدارة الموظفين لاحقًا.","Add the first employee, or continue and add them later from staff management."],
@@ -4535,15 +4916,27 @@ const PasskeyUtil = {
    15) Wizard — التحكم بالتنقل والعرض
    ========================================================================== */
 const Wizard = {
-  i:0, cleanups:[], root:null,
-  indexOf(id){ return STEPS.findIndex(s => s.id === id); },
-  step(){ return STEPS[this.i]; },
+  i:0, cleanups:[], root:null, _pct:{},
+  /** التنقّل يجري على الخطوات الظاهرة فقط — الإعداد يتكيّف مع إجابات المستخدم. */
+  list(){ return Flow.visible(); },
+  indexOf(id){ return this.list().findIndex(s => s.id === id); },
+  step(){ const l = this.list(); return l[clamp(this.i, 0, l.length - 1)]; },
+  /** الخطوة التالية/السابقة تتخطّى ما أجّله المستخدم — لا يُعاد إليه ما رفضه للتوّ. */
+  seek(from, dir){
+    const l = this.list();
+    for(let k = from; k >= 0 && k < l.length; k += dir) if(!Flow.isSkipped(l[k])) return k;
+    return clamp(from, 0, l.length - 1);
+  },
   registerCleanup(fn){ this.cleanups.push(fn); },
   _runCleanups(){ this.cleanups.forEach(f => { try{ f(); }catch(_){ } }); this.cleanups = []; },
 
   init(){
-    this.i = clamp(SetupState.data.currentStep || 0, 0, STEPS.length - 1);
-    if(this.i === this.indexOf("preparing")) this.i = this.indexOf("review");   // لا نستأنف داخل التهيئة
+    const l = this.list();
+    const saved = SetupState.data.currentStepId;
+    let idx = saved ? l.findIndex(s => s.id === saved) : -1;
+    if(idx < 0) idx = clamp(SetupState.data.currentStep || 0, 0, l.length - 1);
+    this.i = idx;
+    if(this.step().id === "preparing") this.i = this.indexOf("review");   // لا نستأنف داخل التهيئة
     this.renderChrome();
     this.renderStep(false);
     document.addEventListener("keydown", e => {
@@ -4559,6 +4952,7 @@ const Wizard = {
   renderChrome(){
     $("#brandName").textContent = t("appName");
     $("#brandSub").textContent = t("appSub");
+    const skip = $(".skip-link"); if(skip) skip.textContent = t("skipToContent");
     document.title = t("appName") + " — " + t("appSub");
     $("#hActions").innerHTML = `
       <span class="mode-flag" data-mode="${HAS_SERVER ? "server" : "local"}" title="${esc(HAS_SERVER ? t("serverModeTip") : t("localModeTip"))}">
@@ -4573,83 +4967,134 @@ const Wizard = {
     this.renderPhases();
   },
 
+  /** شريط المراحل: أربع مراحل، لا ثماني عشرة خطوة. */
   renderPhases(){
-    const cur = this.step().phase;
-    $("#phases").innerHTML = PHASES.map((p, idx) => {
-      const inPhase = STEPS.filter(s => s.phase === idx);
-      const doneCount = inPhase.filter(s => SetupState.data.completedSteps.includes(s.id)).length;
-      const state = idx < cur ? "done" : idx === cur ? "current" : "todo";
-      const pct = idx < cur ? 100 : Math.round(doneCount / inPhase.length * 100);
-      this._pct = this._pct || {}; this._pct[idx] = pct;
-      return `<div class="phase" data-state="${state}" aria-current="${idx === cur ? "step" : "false"}">
-        <div class="phase-top">
-          <span class="phase-dot">${state === "done" ? ico("check") : String(idx + 1).padStart(2, "0")}</span>
+    const s = this.step();
+    const cur = s.phase;
+    const pos = Flow.positionInStage(s);
+    const host = $("#phases");
+    const next = {};
+    const rail = PHASES.map((p, idx) => {
+      const state = Flow.stageState(idx, cur);
+      const pct = state === "current" || state === "todo" ? Flow.stagePct(idx)
+        : state === "done" ? 100 : Flow.stagePct(idx);
+      next[idx] = pct;
+      const reachable = idx <= cur || Flow.stageSteps(idx).some(x => Flow.isSettled(x));
+      const label = `${t(p.name)} — ${t("stagePct", { p: fmtNum(pct) })}`;
+      return `<li class="phase" data-state="${state}"${idx === cur ? ' aria-current="step"' : ""}>
+        <button type="button" class="phase-btn" data-stage="${idx}"${reachable ? "" : " disabled"} aria-label="${esc(label)}">
+          <span class="phase-dot" aria-hidden="true">${state === "done" ? ico("check") : pad2(idx + 1)}</span>
           <span class="phase-name">${esc(t(p.name))}</span>
-        </div>
-        <div class="phase-bar"><i class="phase-fill" style="width:${HAS_GSAP && !reducedMotion() ? 0 : pct}%"></i></div>
-      </div>`;
+        </button>
+        <span class="phase-bar"><i class="phase-fill" style="width:${this._pct[idx] === undefined ? pct : this._pct[idx]}%"></i></span>
+      </li>`;
     }).join("");
-    if(HAS_GSAP && !reducedMotion())
-      $$(".phase-fill", $("#phases")).forEach((f, i) =>
-        gsap.to(f, { width:(this._pct[i] || 0) + "%", duration:.9, ease:"power3.out", delay:.08 + i * .05 }));
+
+    host.innerHTML = `<ol class="phase-rail">${rail}</ol>
+      <p class="phase-now">
+        <b>${esc(t(PHASES[cur].name))}</b>
+        <span>${pos.inStage ? esc(t("stageStep", { a: fmtNum(pos.n), b: fmtNum(pos.of) })) : esc(t(s.kind === "review" ? "s16_eyebrow" : s.kind === "intro" ? "w_eyebrow" : "s17_eyebrow"))}</span>
+      </p>`;
+
+    // الشريط يتحرّك فقط حين تتغيّر قيمته — لا حركة تُعاد مع كل رسم.
+    $$(".phase-fill", host).forEach((f, idx) => {
+      const to = next[idx], from = this._pct[idx];
+      if(from === to) return;
+      if(HAS_GSAP && !reducedMotion() && from !== undefined)
+        gsap.fromTo(f, { width: from + "%" }, { width: to + "%", duration:.6, ease:"power3.out" });
+      else f.style.width = to + "%";
+    });
+    this._pct = next;
+    $$("[data-stage]", host).forEach(b => b.addEventListener("click", () => this.goToStage(+b.dataset.stage)));
+  },
+
+  /** الانتقال إلى مرحلة: أول خطوة غير منجَزة فيها، وإلا أوّلها. */
+  goToStage(phase){
+    const steps = Flow.stageSteps(phase);
+    if(!steps.length) return;
+    const target = steps.find(x => !Flow.isSettled(x)) || steps[0];
+    const idx = this.indexOf(target.id);
+    if(idx >= 0) this.goTo(idx, phase <= this.step().phase);
   },
 
   renderNav(){
     const s = this.step();
     const canBack = !s.hideBack && this.i > 0;
+    const canSkip = !!s.optional && !s.hideNext;
+    const pos = Flow.positionInStage(s);
     $("#navRow").innerHTML = `
       ${canBack ? `<button class="btn btn-ghost" data-back>${ico("prev")}<span class="btn-label">${esc(t("back"))}</span></button>` : ""}
       <span class="nav-spacer"></span>
-      <span class="step-count">${t("stepOf", { a: fmtNum(this.i + 1), b: fmtNum(STEPS.length) })}</span>
-      ${s.hideNext ? "" : `<button class="btn btn-primary${s.id === "welcome" || s.id === "review" ? " btn-lg" : ""}" data-next>
+      ${pos.inStage ? `<span class="step-count">${t("stageStep", { a: fmtNum(pos.n), b: fmtNum(pos.of) })}</span>` : ""}
+      ${canSkip ? `<button class="btn btn-quiet" data-skip>${esc(t("skipStep"))}</button>` : ""}
+      ${s.hideNext ? "" : `<button class="btn btn-primary${s.kind === "intro" || s.kind === "review" ? " btn-lg" : ""}" data-next>
         <span class="btn-label">${esc(t(s.nextLabel || "next"))}</span>${ico(s.nextIcon || "next")}</button>`}`;
-    const b = $("[data-back]"), n = $("[data-next]");
+    const b = $("[data-back]"), n = $("[data-next]"), sk = $("[data-skip]");
     if(b) b.addEventListener("click", () => this.back());
     if(n) n.addEventListener("click", () => this.next());
+    if(sk) sk.addEventListener("click", () => this.skip());
   },
   refreshNav(){ this.renderNav(); },
+
+  /** لافتة «إكمال لاحقًا» — تظهر مرة واحدة عند أول خطوة اختيارية في المرحلة. */
+  laterBanner(s){
+    if(!s.optional) return "";
+    const rest = Flow.restOfStage(s);
+    if(rest.length < 2) return "";
+    return `<div class="later-card">
+      <span class="c-ico" aria-hidden="true">${ico("clock")}</span>
+      <div class="later-txt">
+        <b>${esc(t("laterTitle"))}</b>
+        <span>${esc(t("laterBody", { n: nSteps(rest.length), s: t(PHASES[s.phase].name) }))}</span>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" data-later>${esc(t("laterCta"))}</button>
+    </div>`;
+  },
 
   async renderStep(animate = true){
     this._runCleanups();
     const s = this.step();
     const host = $("#stepHost");
     const useGsap = HAS_GSAP && !reducedMotion();
+    const pos = Flow.positionInStage(s);
+    const eyebrow = `${ico(PHASES[s.phase].icon)}<span>${esc(t(PHASES[s.phase].name))}</span>${
+      pos.inStage ? `<i aria-hidden="true">·</i><span>${esc(t("stageStep", { a: fmtNum(pos.n), b: fmtNum(pos.of) }))}</span>` : ""}${
+      s.optional ? `<em class="opt-flag">${esc(t("optional"))}</em>` : ""}`;
     const html = `<section class="step" data-step="${s.id}"${animate && !useGsap ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
-      <span class="step-eyebrow">${ico(PHASES[s.phase].icon)}${esc(t(PHASES[s.phase].name))} · ${esc(t("stepShort", { a: fmtNum(this.i + 1), b: fmtNum(STEPS.length) }))}</span>
+      <span class="step-eyebrow">${eyebrow}</span>
       <h1 id="stepTitle" tabindex="-1">${esc(s.title())}</h1>
       <p class="lede">${esc(s.lede())}</p>
+      ${this.laterBanner(s)}
       <div class="step-body step-scroll">${s.body()}</div>
     </section>`;
     host.innerHTML = html;
     this.root = $(".step", host);
     if(s.section) bindFields(this.root, s.section);
     else bindFields(this.root, "preferences");
+    const later = $("[data-later]", this.root);
+    if(later) later.addEventListener("click", () => this.finishStageLater());
     if(s.mount) s.mount.call(s, this.root);
     this.renderNav(); this.renderPhases();
     if(animate && useGsap) this.animateIn();
     SetupIllustration.show(s.svg, s.title());
     SetupState.data.currentStep = this.i;
+    SetupState.data.currentStepId = s.id;
     SetupState.data.maxStep = Math.max(SetupState.data.maxStep || 0, this.i);
     SetupState.save();
     if(animate) setTimeout(() => { const h = $("#stepTitle"); if(h) h.focus({ preventScroll:true }); }, 120);
-    announce(s.title());
+    announce(`${t(PHASES[s.phase].name)} — ${s.title()}`);
   },
 
-  /** دخول الخطوة: عنوان ثم شرح ثم عناصر النموذج بتتابع محسوب */
+  /** حركة بطلة واحدة: العنوان والشرح يدخلان بتتابع، والجسم يدخل ككتلة واحدة. */
   animateIn(){
     const el = this.root; if(!el) return;
     const head = [$(".step-eyebrow", el), $("#stepTitle", el), $(".lede", el)].filter(Boolean);
-    const body = $$(".step-body > *", el);
-    gsap.killTweensOf([...head, ...body]);
-    const tl = gsap.timeline({ defaults:{ ease:"clay", duration:.62 } });
-    tl.fromTo(head, { y:24, opacity:0 }, { y:0, opacity:1, stagger:.06, clearProps:"transform,opacity" }, 0);
-    if(body.length)
-      tl.fromTo(body, { y:26, opacity:0 },
-        { y:0, opacity:1, stagger:{ amount: Math.min(.42, body.length * .06) }, clearProps:"transform,opacity" }, .12);
-    const nav = $("#navRow");
-    if(nav) tl.fromTo(nav.children, { y:10, opacity:0 },
-      { y:0, opacity:1, duration:.45, stagger:.05, clearProps:"transform,opacity" }, .18);
-    setTimeout(() => { if(tl.isActive() || tl.progress() < 1) tl.progress(1); }, 1600);
+    const body = $(".step-body", el);
+    gsap.killTweensOf([...head, body].filter(Boolean));
+    const tl = gsap.timeline({ defaults:{ ease:"clay", duration:.56 } });
+    tl.fromTo(head, { y:20, opacity:0 }, { y:0, opacity:1, stagger:.06, clearProps:"transform,opacity" }, 0);
+    if(body) tl.fromTo(body, { y:22, opacity:0 }, { y:0, opacity:1, clearProps:"transform,opacity" }, .14);
+    setTimeout(() => { if(tl.isActive() || tl.progress() < 1) tl.progress(1); }, 1400);
     return tl;
   },
 
@@ -4663,16 +5108,43 @@ const Wizard = {
     }
     if(s.onNext){ const ok = await s.onNext.call(s, this.root); if(ok === false) return; }
     SetupState.markComplete(s.id);
-    if(this.i < STEPS.length - 1) this.goTo(this.i + 1);
+    if(this.i < this.list().length - 1) this.goTo(this.seek(this.i + 1, 1));
   },
-  back(){ if(this.i > 0) this.goTo(this.i - 1); },
+
+  /** تخطّي خطوة اختيارية — تُسجَّل «مؤجَّلة» وتبقى في قائمة ما تبقّى. */
+  skip(){
+    const s = this.step();
+    if(!s.optional) return;
+    SetupState.markSkipped(s.id);
+    Toast.show(t("skipped", { s: Flow.label(s) }), "info");
+    if(this.i < this.list().length - 1) this.goTo(this.seek(this.i + 1, 1));
+  },
+
+  /** «إكمال لاحقًا» — تأجيل بقية الخطوات الاختيارية في هذه المرحلة دفعة واحدة. */
+  finishStageLater(){
+    const s = this.step();
+    const rest = Flow.restOfStage(s);
+    if(!rest.length) return;
+    rest.forEach(x => SetupState.markSkipped(x.id));
+    const l = this.list();
+    const after = l.findIndex((x, i) => i > this.i && !rest.some(r => r.id === x.id));
+    Toast.show(t("laterDone", { n: nSteps(rest.length) }), "info");
+    this.goTo(after < 0 ? l.length - 1 : after, true);
+  },
+
+  back(){ if(this.i > 0) this.goTo(this.seek(this.i - 1, -1)); },
 
   goTo(idx, force){
-    idx = clamp(idx, 0, STEPS.length - 1);
+    const l = this.list();
+    if(idx < 0) return;
+    idx = clamp(idx, 0, l.length - 1);
     if(idx === this.i) return;
+    // الخطوات الإلزامية وحدها تمنع التقدّم؛ الاختيارية لا تحجز الطريق.
     if(!force && idx > this.i){
       for(let k = this.i; k < idx; k++){
-        if(!SetupState.data.completedSteps.includes(STEPS[k].id)){ Toast.show(t("errBlocked"), "err"); return; }
+        const st = l[k];
+        if(st.kind || !st.required) continue;          // الاختيارية والمقدّمة والمراجعة لا تحجز الطريق
+        if(!Flow.isDone(st)){ Toast.show(t("errBlocked"), "err"); return; }
       }
     }
     const stepEl = $(".step");
@@ -4680,10 +5152,10 @@ const Wizard = {
     if(stepEl && HAS_GSAP && !reducedMotion()){
       let fired = false;
       const once = () => { if(fired) return; fired = true; go(); };
-      const kids = [$(".step-eyebrow", stepEl), $("#stepTitle", stepEl), $(".lede", stepEl), ...$$(".step-body > *", stepEl)].filter(Boolean);
+      const kids = [$(".step-eyebrow", stepEl), $("#stepTitle", stepEl), $(".lede", stepEl), $(".step-body", stepEl)].filter(Boolean);
       gsap.killTweensOf(kids);
-      gsap.to(kids, { y:-18, opacity:0, duration:.24, ease:"power2.in",
-        stagger:{ amount: Math.min(.16, kids.length * .02), from: idx > this.i ? "start" : "end" }, onComplete: once });
+      gsap.to(kids, { y:-14, opacity:0, duration:.22, ease:"power2.in",
+        stagger:{ amount:.08, from: idx > this.i ? "start" : "end" }, onComplete: once });
       setTimeout(once, 420);        // الانتقال مضمون حتى لو توقّف إطار الرسم (تبويب مخفي مثلًا)
     }else if(stepEl && !reducedMotion()){ stepEl.dataset.leave = "1"; setTimeout(go, 180); }
     else go();
@@ -4695,7 +5167,7 @@ const Wizard = {
     Secrets.ownerPassword = ""; Secrets.ownerPin = ""; Secrets.empPin = {};
     ["workspace","store","permissions","inventory","catalog","defaults","config","setup_completed"].forEach(k => LocalDB.del(k));
     SetupState.reset();
-    this.i = 0; LANG = "ar"; Lang.set("ar"); Theme.apply("light");
+    this.i = 0; this._pct = {}; LANG = "ar"; Lang.set("ar"); Theme.apply("light");
     this.renderChrome(); this.renderStep(true);
     Toast.show(t("resetDone"), "ok");
   }
@@ -4722,6 +5194,7 @@ document.addEventListener("pointerdown", e => {
   if(restored && SetupState.data.completedSteps.length) setTimeout(() => Toast.show(t("restored"), "info"), 600);
   window.ERPSetup = { state:SetupState, wizard:Wizard, employees:Employees, permissions:Permissions,
     services:{ OtpService, SetupService, InvoiceTemplate }, config:CONFIG,
+    flow:Flow, progress:() => Flow.snapshot(), progressCard:renderProgressCard,
     illustration:{ el:SetupIllustration, live:LiveSVG,
       setIllustrationState, triggerShake, triggerSuccess, triggerProcessing, triggerAttention } };
 })();
