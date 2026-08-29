@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" fill="none" role="img" aria-labelledby="ttl">
+  <title id="ttl">المخزون و IMEI</title>
+
+  <defs>
+    <linearGradient id="gClay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C9AFB"/><stop offset="1" stop-color="#2F4FD8"/>
+    </linearGradient>
+    <linearGradient id="gClayDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B58AE"/><stop offset="1" stop-color="#1B2E6B"/>
+    </linearGradient>
+    <linearGradient id="gPowder" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F2F6FE"/><stop offset="1" stop-color="#C7D8FB"/>
+    </linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/><stop offset="1" stop-color="#B7CDFA"/>
+    </linearGradient>
+    <linearGradient id="gWhite" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9F0FE"/>
+    </linearGradient>
+    <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/><stop offset="1" stop-color="#5B7BF0"/>
+    </linearGradient>
+    <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8FAEFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8FAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1B2E6B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#1B2E6B" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="fTiny" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5"/>
+    </filter>
+  </defs>
+  <g id="scene" data-layer="scene">
+<g id="abstract-shapes" data-layer="abstract-shapes"><circle cx="86" cy="80" r="46" fill="url(#gGlow)"/><circle cx="404" cy="252" r="58" fill="url(#gGlow)"/>
+     <rect x="366" y="52" width="46" height="46" rx="16" fill="#C7D8FB" opacity=".55"/>
+     <circle cx="70" cy="272" r="17" fill="#7E9BF6" opacity=".38"/></g>
+  <g id="shadow" data-layer="shadow"><ellipse cx="240" cy="304" rx="130" ry="24" fill="url(#gShadow)"/></g>
+  <g id="boxes" data-layer="boxes">
+    <rect x="122" y="176" width="106" height="100" rx="18" fill="url(#gClay)"/>
+    <path d="M134 268 V196 a10 10 0 0 1 10 -10 h26 a5 5 0 0 1 0 10 h-18 a8 8 0 0 0 -8 8 v64 a5 5 0 0 1 -10 0 z" fill="#FFFFFF" opacity="0.24"/>
+    <rect x="252" y="176" width="106" height="100" rx="18" fill="url(#gPowder)"/>
+    <rect x="188" y="96" width="106" height="94" rx="18" fill="url(#gClayDeep)"/>
+    <rect x="206" y="126" width="70" height="10" rx="5" fill="#FFFFFF" opacity=".55"/>
+    <rect x="206" y="146" width="44" height="10" rx="5" fill="#FFFFFF" opacity=".35"/>
+  </g>
+  <g><rect x="258" y="212" width="96" height="34" rx="12" fill="url(#gClayDeep)"/>
+   <rect x="270" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.45"/><rect x="280" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.65"/><rect x="290" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.8500000000000001"/><rect x="300" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.45"/><rect x="310" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.65"/><rect x="320" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.8500000000000001"/><rect x="330" y="222" width="4" height="14" rx="2" fill="#FFFFFF" opacity="0.45"/></g>
+  
+  <g id="sparkles" data-layer="sparkles">
+    <path d="M96 120 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z" fill="#7E9BF6" opacity=".75"/>
+    <path d="M396 141 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z" fill="#7E9BF6" opacity=".75"/>
+  </g>
+  </g>
+</svg>
