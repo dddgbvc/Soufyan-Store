@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" fill="none" role="img" aria-labelledby="ttl">
+  <title id="ttl">ملف المتجر</title>
+
+  <defs>
+    <linearGradient id="gClay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C9AFB"/><stop offset="1" stop-color="#2F4FD8"/>
+    </linearGradient>
+    <linearGradient id="gClayDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B58AE"/><stop offset="1" stop-color="#1B2E6B"/>
+    </linearGradient>
+    <linearGradient id="gPowder" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F2F6FE"/><stop offset="1" stop-color="#C7D8FB"/>
+    </linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/><stop offset="1" stop-color="#B7CDFA"/>
+    </linearGradient>
+    <linearGradient id="gWhite" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9F0FE"/>
+    </linearGradient>
+    <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/><stop offset="1" stop-color="#5B7BF0"/>
+    </linearGradient>
+    <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8FAEFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8FAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1B2E6B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#1B2E6B" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="fTiny" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5"/>
+    </filter>
+  </defs>
+  <g id="scene" data-layer="scene">
+<g id="abstract-shapes" data-layer="abstract-shapes"><circle cx="86" cy="80" r="46" fill="url(#gGlow)"/><circle cx="404" cy="252" r="58" fill="url(#gGlow)"/>
+     <rect x="366" y="52" width="46" height="46" rx="16" fill="#C7D8FB" opacity=".55"/>
+     <circle cx="70" cy="272" r="17" fill="#7E9BF6" opacity=".38"/></g>
+  <g id="shadow" data-layer="shadow"><ellipse cx="240" cy="300" rx="132" ry="24" fill="url(#gShadow)"/></g>
+  <g id="store" data-layer="store">
+    <path d="M104 132 h272 v128 a16 16 0 0 1 -16 16 H120 a16 16 0 0 1 -16 -16 z" fill="url(#gPowder)"/>
+    <path d="M96 132 l22 -44 h244 l22 44 z" fill="url(#gClay)"/>
+    <path d="M112 128 l16 -34 h44 l-16 34 z" fill="#FFFFFF" opacity="0.28"/>
+    <rect x="150" y="176" width="86" height="100" rx="14" fill="url(#gWhite)"/>
+    <rect x="166" y="196" width="54" height="8" rx="4" fill="#C7D8FB"/>
+    <rect x="166" y="214" width="38" height="8" rx="4" fill="#C7D8FB"/>
+    <rect x="262" y="176" width="82" height="60" rx="14" fill="url(#gClayDeep)"/>
+    <g id="otp-dots" data-layer="otp-dots"><rect x="262" y="191" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="273" cy="206" r="4" fill="#FFFFFF" opacity=".9"/><rect x="292" y="191" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="303" cy="206" r="4" fill="#FFFFFF" opacity=".9"/><rect x="322" y="191" width="22" height="30" rx="9"
+      fill="url(#gAccent)" stroke="#C7D8FB" stroke-width="2"/><circle cx="333" cy="206" r="4" fill="#FFFFFF" opacity=".9"/></g>
+  </g>
+  
+  <g id="sparkles" data-layer="sparkles">
+    <path d="M402 112 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z" fill="#7E9BF6" opacity=".75"/>
+    <path d="M80 201 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z" fill="#7E9BF6" opacity=".75"/>
+  </g>
+  </g>
+</svg>

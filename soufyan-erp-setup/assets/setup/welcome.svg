@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" fill="none" role="img" aria-labelledby="ttl">
+  <title id="ttl">مرحبًا — بدء إعداد النظام</title>
+
+  <defs>
+    <linearGradient id="gClay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C9AFB"/><stop offset="1" stop-color="#2F4FD8"/>
+    </linearGradient>
+    <linearGradient id="gClayDeep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B58AE"/><stop offset="1" stop-color="#1B2E6B"/>
+    </linearGradient>
+    <linearGradient id="gPowder" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F2F6FE"/><stop offset="1" stop-color="#C7D8FB"/>
+    </linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/><stop offset="1" stop-color="#B7CDFA"/>
+    </linearGradient>
+    <linearGradient id="gWhite" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9F0FE"/>
+    </linearGradient>
+    <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/><stop offset="1" stop-color="#5B7BF0"/>
+    </linearGradient>
+    <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8FAEFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8FAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1B2E6B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#1B2E6B" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="fTiny" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5"/>
+    </filter>
+  </defs>
+  <g id="scene" data-layer="scene">
+<g id="abstract-shapes" data-layer="abstract-shapes"><circle cx="240" cy="150" r="128" fill="url(#gGlow)"/>
+     <rect x="52" y="188" width="34" height="34" rx="12" fill="#C7D8FB" opacity=".5"/>
+     <circle cx="418" cy="112" r="18" fill="#7E9BF6" opacity=".34"/></g>
+  <g id="shadow" data-layer="shadow"><ellipse cx="240" cy="300" rx="118" ry="24" fill="url(#gShadow)"/></g>
+  
+  <g id="phone" data-layer="phone" transform="rotate(0 242 159)">
+    <g id="phone-body" data-layer="phone-body">
+      <rect x="190" y="60" width="104" height="198" rx="28" fill="url(#gClay)"/>
+      <path d="M202 242 V76 a22 22 0 0 1 22 -22 h39.52 a6 6 0 0 1 0 12 h-31.2 a10 10 0 0 0 -10 10 V242 a6 6 0 0 1 -12 0 z" fill="#FFFFFF" opacity="0.26"/>
+    </g>
+    <g id="phone-screen" data-layer="phone-screen">
+      <rect x="199" y="71" width="86" height="176" rx="20" fill="url(#gScreen)"/>
+      
+    <rect x="212" y="92" width="60" height="60" rx="20" fill="url(#gAccent)"/>
+    <path d="M232 122 l10 11 l20 -24" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="206" y="172" width="72" height="10" rx="5" fill="#7E9BF6" opacity=".8"/>
+    <rect x="218" y="192" width="48" height="8" rx="4" fill="#8FA3C8" opacity=".55"/>
+    </g>
+    <g id="camera" data-layer="camera">
+      <rect x="254" y="74" width="24" height="14" rx="7" fill="#1B2E6B" opacity=".22"/>
+      <circle cx="266" cy="81" r="4.4" fill="#1B2E6B" opacity=".5"/>
+    </g>
+    <g id="buttons" data-layer="buttons">
+      <rect x="292" y="112" width="4" height="26" rx="2" fill="#1B2E6B" opacity=".35"/>
+      <rect x="292" y="146" width="4" height="16" rx="2" fill="#1B2E6B" opacity=".28"/>
+    </g>
+  </g>
+  
+  <g id="sparkles" data-layer="sparkles">
+    <path d="M132 94 q2.2 7.800000000000001 10 10 q-7.800000000000001 2.2 -10 10 q-2.2 -7.800000000000001 -10 -10 q7.800000000000001 -2.2 10 -10 z" fill="#7E9BF6" opacity=".75"/>
+    <path d="M352 84 q1.76 6.24 8 8 q-6.24 1.76 -8 8 q-1.76 -6.24 -8 -8 q6.24 -1.76 8 -8 z" fill="#7E9BF6" opacity=".75"/>
+    <path d="M356 229 q1.54 5.46 7 7 q-5.46 1.54 -7 7 q-1.54 -5.46 -7 -7 q5.46 -1.54 7 -7 z" fill="#7E9BF6" opacity=".75"/>
+  </g>
+  </g>
+</svg>
