@@ -5554,12 +5554,17 @@ const AuthService = {
     const r = await Sb.rpc("app_session_ping", { p_session_id: sessionId });
     return !!(r && r.ok === true);
   },
-  /** اختياري: إن نُشرت الدالة المرافقة، عادت الهوية من الخادم بدل التخزين المحلي. */
+  /**
+   * اختياري: إن نُشرت `app_session_whoami` عادت الهوية والصلاحيات من الخادم
+   * فلا يبقى للتخزين المحلي رأي فيهما. وإن لم تُنشر عاد `{missing:true}`
+   * ويُقال ذلك في التقرير بدل ادّعاء تحقّق لم يحدث.
+   * المهاجرة الجاهزة: supabase/migrations/0001_app_session_whoami.sql
+   */
   async whoami(sessionId){
     try{
       const r = await Sb.rpc("app_session_whoami", { p_session_id: sessionId });
-      return (r && r.ok === true) ? r : null;
-    }catch(_){ return null; }
+      return (r && typeof r === "object") ? r : { missing:true };
+    }catch(_){ return { missing:true }; }
   }
 };
 
@@ -5662,7 +5667,8 @@ const AuthSession = {
       if(age > CONFIG.offlineGraceMinutes * 60e3){ this._forget(); return null; }
     }
     if(!offline && !alive){ this._forget(); return null; }
-    const who = offline ? null : await AuthService.whoami(raw.sessionId);
+    const who = offline ? { missing:true } : await AuthService.whoami(raw.sessionId);
+    if(who && who.ok === false){ this._forget(); return null; }   // الخادم نفى الجلسة صراحةً
     this.data = {
       sessionId : raw.sessionId,
       method    : raw.method,
