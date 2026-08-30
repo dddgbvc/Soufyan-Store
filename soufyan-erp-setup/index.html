@@ -838,6 +838,124 @@ html[data-theme-swap="1"] *,html[data-theme-swap="1"] *::before,html[data-theme-
   transition:none!important}
 
 @media print{ .s-header,.s-nav,.illus{display:none} }
+/* ==========================================================================
+   AuthGate · Login · Session — بوابة الدخول
+   --------------------------------------------------------------------------
+   الشاشات الثلاث تشترك في مسرح الإعداد نفسه (الرأس، اللوحة، الرسمة) فتبقى
+   الهوية واحدة بلا نسخة ثانية من التخطيط. ما يلي هو ما تحتاجه البوابة وحدها.
+   ========================================================================== */
+
+/* شارة الوضع في الرأس تتبدّل بحسب السطح، وشريط المراحل والتذييل يختفيان
+   خارج الإعداد: البوابة ليست خطوة من الإعداد ولا تُعرض كأنها كذلك. */
+body[data-surface="auth"] #phases,
+body[data-surface="auth"] .s-nav{display:none}
+body[data-surface="auth"] .step{max-width:560px}
+/* البوابة والدخول محتواهما أقصر من خطوة الإعداد، فيُوسَّط المسرح رأسيًا بدل
+   أن يتعلّق أعلى الشاشة وتحته فراغ لا يفعل شيئًا. */
+body[data-surface="auth"] .stage-grid{align-items:center; min-height:calc(100dvh - 210px)}
+body[data-surface="auth"] .illus{position:static; max-width:min(100%,440px); margin-inline:auto}
+
+/* ---- البابان: «لدي حساب» و«مستخدم جديد» ---- */
+.doors{display:grid; gap:12px}
+@media (min-width:760px){ .doors{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.door{display:flex; flex-direction:column; align-items:flex-start; gap:12px; text-align:start; width:100%;
+  padding:20px; border-radius:var(--r-xl); background:var(--clay); border:1.5px solid var(--line-soft);
+  box-shadow:var(--shadow-clay); color:inherit;
+  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease),
+    transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease)}
+@media (hover:hover){ .door:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-md)} }
+.door:active{transform:scale(.98)}
+.door .d-ico{width:46px; height:46px; border-radius:15px; display:grid; place-items:center; flex:none;
+  background:var(--clay-2); color:var(--accent-text);
+  transition:background var(--t-med) var(--ease), color var(--t-med) var(--ease)}
+.door .d-ico svg{width:23px; height:23px}
+@media (hover:hover){ .door:hover .d-ico{background:var(--accent); color:var(--accent-on)} }
+.door b{font-size:1.06rem; font-weight:700; line-height:1.35; letter-spacing:-.01em}
+.door p{font-size:.84rem; color:var(--text-2); line-height:1.6}
+.door .d-go{display:inline-flex; align-items:center; gap:7px; margin-top:auto; padding-top:4px;
+  font-size:.84rem; font-weight:600; color:var(--accent-text)}
+.door .d-go svg{width:15px; height:15px}
+html[dir="rtl"] .door .d-go svg{transform:scaleX(-1)}
+.door[data-tone="primary"]{background:var(--clay-on); border-color:var(--accent)}
+.door[data-tone="primary"] .d-ico{background:var(--accent-solid); color:var(--accent-on)}
+
+/* ---- قائمة طرق الدخول ---- */
+.methods{display:grid; gap:10px}
+.method{display:flex; align-items:center; gap:13px; text-align:start; width:100%; padding:14px 15px;
+  border-radius:var(--r-lg); background:var(--clay); border:1.5px solid var(--line-soft);
+  box-shadow:var(--shadow-clay); color:inherit;
+  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease), transform var(--t-med) var(--ease)}
+@media (hover:hover){ .method:not(:disabled):hover{border-color:var(--accent); transform:translateY(-1px)} }
+.method:active:not(:disabled){transform:scale(.98)}
+.method:disabled{cursor:not-allowed; opacity:1; background:transparent; border-style:dashed; box-shadow:none}
+.method .m-ico{width:40px; height:40px; border-radius:13px; flex:none; display:grid; place-items:center;
+  background:var(--clay-2); color:var(--accent-text)}
+.method .m-ico svg{width:20px; height:20px}
+.method:disabled .m-ico{background:var(--surface-3); color:var(--text-3)}
+.method .m-txt{flex:1; min-width:0}
+.method .m-txt b{display:block; font-size:.94rem; font-weight:600; line-height:1.45}
+.method .m-txt span{display:block; font-size:.79rem; color:var(--text-2); line-height:1.55; margin-top:1px}
+.method:disabled .m-txt b{color:var(--text-2)}
+.method .m-go{flex:none; color:var(--text-3)}
+.method .m-go svg{width:16px; height:16px}
+html[dir="rtl"] .method .m-go svg{transform:scaleX(-1)}
+
+/* ---- إدخال رمز الدخول ---- */
+/* الحقل يأخذ عرض الزر الذي تحته فتستقيم الحافتان، والرمز نفسه يبقى موسَّطًا
+   داخله لأنه بؤرة الشاشة. النقاط والتلميح يتبعان الحقل لا العكس. */
+.pin-wrap{display:grid; gap:10px; justify-items:stretch; padding:4px 0}
+.pin-wrap .pin-dots{justify-content:center}
+.pin-wrap .hint{text-align:center; max-width:none}
+.pin-dots{display:flex; gap:10px; direction:ltr}
+.pin-dots i{width:12px; height:12px; border-radius:50%; background:var(--clay-2);
+  border:1.5px solid var(--field-border); display:block;
+  transition:background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease)}
+.pin-dots i[data-on="1"]{background:var(--accent); border-color:transparent; transform:scale(1.12)}
+.pin-input{width:100%; text-align:center; font-family:var(--font-mono); font-size:1.5rem;
+  font-weight:600; letter-spacing:.42em; text-indent:.42em; padding:14px; border-radius:var(--r-lg);
+  background:var(--field); border:1.5px solid var(--field-border); box-shadow:var(--shadow-sm);
+  transition:border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease)}
+.pin-input:focus-visible{outline:none; border-color:var(--focus); box-shadow:0 0 0 4px var(--ring)}
+.pin-wrap[data-state="invalid"] .pin-input{border-color:var(--danger); box-shadow:0 0 0 4px rgba(206,59,84,.16)}
+.pin-wrap[data-state="invalid"] .pin-dots i{border-color:var(--danger)}
+.pin-wrap[data-state="verified"] .pin-input{border-color:var(--success); background:var(--success-soft)}
+.pin-wrap[data-state="verifying"] .pin-input{pointer-events:none; opacity:.7}
+
+/* ---- بطاقة الهوية بعد التحقّق ---- */
+.who{display:flex; align-items:center; gap:14px; padding:15px 16px; border-radius:var(--r-lg);
+  background:var(--clay-on); border:1.5px solid var(--accent); box-shadow:var(--shadow-clay)}
+.who .w-txt{min-width:0; flex:1}
+.who .w-txt > b{display:block; font-size:1rem; font-weight:700; line-height:1.4}
+.who .w-txt > span{display:block; font-size:.8rem; color:var(--text-2); line-height:1.55}
+.perm-block{display:grid; gap:8px}
+.perm-block > b{font-size:.84rem; font-weight:600}
+.perm-list{display:flex; flex-wrap:wrap; gap:6px; list-style:none; margin:0; padding:0}
+.perm-list li{display:inline-flex; align-items:center; padding:5px 11px; border-radius:var(--r-pill);
+  font-size:.76rem; font-weight:600; background:var(--surface); border:1px solid var(--line-soft); color:var(--text-2)}
+
+/* ---- شريط الجلسة في الرأس ---- */
+.sess{display:flex; align-items:center; gap:9px; padding:5px 6px 5px 12px; border-radius:var(--r-pill);
+  background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px); box-shadow:var(--shadow-sm); max-width:min(46vw,280px)}
+html[dir="rtl"] .sess{padding:5px 12px 5px 6px}
+.sess .avatar{width:30px; height:30px; border-radius:10px; font-size:.78rem}
+.sess .s-who{min-width:0; font-size:.79rem; line-height:1.35}
+.sess .s-who b{display:block; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.sess .s-who span{display:block; color:var(--text-2); font-size:.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+@media (max-width:640px){ .sess .s-who{display:none} .sess{padding:5px} }
+
+/* ---- شاشة تسليم النظام ---- */
+.hand-grid{display:grid; gap:12px}
+@media (min-width:640px){ .hand-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.hand-card{padding:15px 16px; border-radius:var(--r-lg); background:var(--clay);
+  border:1.5px solid var(--line-soft); box-shadow:var(--shadow-clay)}
+.hand-card b{display:block; font-size:.88rem; font-weight:700; margin-bottom:3px}
+.hand-card span{display:block; font-size:.79rem; color:var(--text-2); line-height:1.6}
+
+/* ---- سطر إجراءات ثانوية أسفل الشاشة ---- */
+.auth-foot{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding-top:4px}
+.auth-foot .sep{flex:1}
+
 </style>
 </head>
 <body>
@@ -1458,7 +1576,17 @@ const CONFIG = Object.assign({
   supabaseUrl     : "https://tyfidwamnlraysqrfdgb.supabase.co",
   supabaseAnonKey : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Zmlkd2FtbmxyYXlzcXJmZGdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTI1MjEsImV4cCI6MjA4ODYyODUyMX0.DpLQRqW5GOj4YBffGYcQ785Mf1OmBVGmfohKJWhWz2w",
   invoiceFunction : "setup-invoice",
-  passkey    : null                // null = كشف تلقائي لدعم المتصفح
+  passkey    : null,               // null = كشف تلقائي لدعم المتصفح
+
+  /* ---- الدخول (V5) ---- */
+  webauthnFunction   : "webauthn", // دالة الحافة التي تولّد التحدّي وتتحقّق من التوقيع
+  emailLogin         : true,       // الدخول برمز البريد عبر Supabase Auth (لا يُنشئ حسابات)
+  pinDigest          : "SHA-256",  // بصمة رمز الدخول قبل إرساله — يقارنها الخادم بـ bcrypt
+  requestTimeout     : 15000,      // مهلة كل طلب (ms)
+  sessionMaxHours    : 12,         // أقصى عمر لجلسة مستأنَفة قبل طلب الدخول من جديد
+  offlineGraceMinutes: 60,         // مهلة سماح حين لا يُجيب الخادم — لا حين يرفض
+  heartbeatSeconds   : 180,        // نبضة الجلسة: الخادم يعرف أننا هنا، ونعرف أننا مقبولون
+  appVersion         : "setup-v5"
 }, window.SETUP_CONFIG || {});
 
 const HAS_SERVER = !!CONFIG.apiBaseUrl;
@@ -3051,7 +3179,9 @@ const Lang = {
     document.documentElement.lang = LANG;
     document.documentElement.dir = LANG === "en" ? "ltr" : "rtl";
     if(SetupState.data.preferences.language !== LANG) SetupState.set("preferences", "language", LANG);
-    Wizard.renderChrome(); Wizard.renderStep(false);
+    // السطح الحالي هو ما يُعاد رسمه — البوابة تبقى بوابة بعد تبديل اللغة.
+    if(Router.surface && Router.surface !== "setup"){ Chrome.render(); Router.go(Router.surface); }
+    else { Wizard.renderChrome(); Wizard.renderStep(false); }
   },
   toggle(){ this.set(LANG === "ar" ? "en" : "ar"); }
 };
@@ -4340,7 +4470,8 @@ STEPS.push({
     renderProgressCard($("[data-prog-host]", root), {});
     $("[data-enter]", root).addEventListener("click", () => {
       if(CONFIG.appEntryUrl){ location.href = CONFIG.appEntryUrl; return; }
-      window.dispatchEvent(new CustomEvent("erp:setup-complete", { detail: SetupState.exportConfig() }));
+      // «الإعداد مكتمل» و«موثَّق» حالتان مختلفتان: Router هو من يقرّر الوجهة.
+      if(Router.enterErp() !== false) return;
       Modal.open({ title:t("s18_doneT"), desc:t("s18_doneD"),
         body:`<div class="note">${ico("info")}<div>${esc(t("s18_doneBody"))}</div></div>
           <pre class="code-box mono">window.SETUP_CONFIG = { appEntryUrl: "/app" };</pre>`,
@@ -4949,21 +5080,9 @@ const Wizard = {
     });
   },
 
+  /** الرأس صار مشتركًا بين الإعداد والبوابة، فيرسمه Chrome بحسب السطح. */
   renderChrome(){
-    $("#brandName").textContent = t("appName");
-    $("#brandSub").textContent = t("appSub");
-    const skip = $(".skip-link"); if(skip) skip.textContent = t("skipToContent");
-    document.title = t("appName") + " — " + t("appSub");
-    $("#hActions").innerHTML = `
-      <span class="mode-flag" data-mode="${HAS_SERVER ? "server" : "local"}" title="${esc(HAS_SERVER ? t("serverModeTip") : t("localModeTip"))}">
-        ${ico(HAS_SERVER ? "shieldCheck" : "alert")}${esc(HAS_SERVER ? t("serverMode") : t("localMode"))}</span>
-      <button class="icon-btn lang-btn" id="langBtn" aria-label="${esc(t("langToggle"))}">${LANG === "ar" ? "EN" : "ع"}</button>
-      <button class="icon-btn" id="themeBtn" aria-label="${esc(t("themeToggle"))}"></button>
-      <button class="icon-btn" id="resetBtn" aria-label="${esc(t("resetSetup"))}" title="${esc(t("resetSetup"))}">${ico("reset")}</button>`;
-    $("#langBtn").addEventListener("click", () => Lang.toggle());
-    $("#themeBtn").addEventListener("click", () => Theme.cycle());
-    $("#resetBtn").addEventListener("click", () => this.confirmReset());
-    Theme.apply(SetupState.data.preferences.theme);
+    Chrome.render();
     this.renderPhases();
   },
 
@@ -5180,6 +5299,1203 @@ document.addEventListener("pointerdown", e => {
 }, { passive:true });
 
 /* ==========================================================================
+   14.a) Supabase — عميل مصغّر بلا SDK
+   --------------------------------------------------------------------------
+   لا مكتبة ولا خطوة بناء: ثلاثة مسارات فقط من واجهة Supabase العلنية —
+   `rpc` لدوال قاعدة البيانات، و`fn` لدوال الحافة، و`auth` لتوثيق البريد.
+   المفتاح المستعمل هو المفتاح العلني (anon) وحده؛ مفتاح الخدمة لا يوجد في
+   الواجهة ولا يجوز أن يوجد.
+   ========================================================================== */
+const Sb = {
+  ready(){ return !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey); },
+  _base(){ return String(CONFIG.supabaseUrl || "").replace(/\/+$/, ""); },
+  _headers(token, extra){
+    return Object.assign({
+      "Content-Type"  : "application/json",
+      "apikey"        : CONFIG.supabaseAnonKey,
+      "Authorization" : "Bearer " + (token || CONFIG.supabaseAnonKey),
+      // يقرأه `request_client_info()` على الخادم فيُنسب الطلب إلى هذا الجهاز.
+      "x-terminal-id" : Terminal.id()
+    }, extra || {});
+  },
+  /** خطأ موحّد: code واحد تقرؤه الواجهة، بلا تسريب تفاصيل الخادم للمستخدم. */
+  _err(code, status, detail){
+    const e = new Error(code); e.code = code; e.status = status || 0; e.detail = detail || ""; return e;
+  },
+  async _send(url, body, token){
+    if(!this.ready()) throw this._err("config");
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), CONFIG.requestTimeout);
+    let res;
+    try{
+      res = await fetch(url, { method:"POST", headers:this._headers(token), body:JSON.stringify(body), signal:ctrl.signal });
+    }catch(_){
+      throw this._err("offline");            // شبكة مقطوعة أو مهلة — ليست رفضًا من الخادم
+    }finally{ clearTimeout(timer); }
+    let data = null;
+    try{ data = await res.json(); }catch(_){ }
+    if(res.status === 429) throw this._err("rate", 429, (data && (data.msg || data.error_description)) || "");
+    if(res.status === 401 || res.status === 403) throw this._err("unauthorized", res.status);
+    if(!res.ok) throw this._err("server", res.status, (data && (data.message || data.msg || data.error_description || data.error)) || "");
+    return data;
+  },
+  /** دالة قاعدة بيانات عبر PostgREST. */
+  rpc(fn, args, token){ return this._send(this._base() + "/rest/v1/rpc/" + fn, args || {}, token); },
+  /** دالة حافة. */
+  fn(slug, body, token){ return this._send(this._base() + "/functions/v1/" + slug, body || {}, token); },
+  /** توثيق البريد (GoTrue). */
+  auth(path, body){ return this._send(this._base() + "/auth/v1/" + path, body || {}); },
+  /** قراءة صف واحد للمستخدم الموثَّق نفسه — تحكمها سياسات RLS لا الواجهة. */
+  async select(path, token){
+    if(!this.ready()) throw this._err("config");
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), CONFIG.requestTimeout);
+    let res;
+    try{ res = await fetch(this._base() + "/rest/v1/" + path, { headers:this._headers(token), signal:ctrl.signal }); }
+    catch(_){ throw this._err("offline"); }
+    finally{ clearTimeout(timer); }
+    if(res.status === 401 || res.status === 403) throw this._err("unauthorized", res.status);
+    if(!res.ok) throw this._err("server", res.status);
+    return res.json().catch(() => null);
+  }
+};
+
+/* ==========================================================================
+   14.b) Terminal — هوية الجهاز (لا هوية المستخدم)
+   --------------------------------------------------------------------------
+   الخادم يحدّ محاولات رمز الدخول لكل جهاز، ويسجّل جلسات التشغيل لكل جهاز.
+   لذلك يحتاج معرّفًا ثابتًا للجهاز — وهو ليس سرًّا ولا يمنح أي صلاحية.
+   ========================================================================== */
+const Terminal = {
+  key:"soufyan.erp.terminal.v1",
+  _id:null,
+  id(){
+    if(this._id) return this._id;
+    let v = null;
+    try{ v = localStorage.getItem(this.key); }catch(_){ }
+    if(!v || v.length < 8){
+      v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : "t-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      try{ localStorage.setItem(this.key, v); }catch(_){ }
+    }
+    this._id = v; return v;
+  },
+  os(){
+    const u = navigator.userAgent;
+    if(/Windows NT 10/.test(u)) return "Windows 10/11";
+    if(/Windows/.test(u)) return "Windows";
+    if(/Android/.test(u)) return "Android";
+    if(/iPhone|iPad|iPod/.test(u)) return "iOS";
+    if(/Mac OS X/.test(u)) return "macOS";
+    if(/Linux/.test(u)) return "Linux";
+    return "";
+  },
+  browser(){
+    const u = navigator.userAgent;
+    if(/Edg\//.test(u)) return "Edge";
+    if(/OPR\//.test(u)) return "Opera";
+    if(/Chrome\//.test(u)) return "Chrome";
+    if(/Firefox\//.test(u)) return "Firefox";
+    if(/Safari\//.test(u)) return "Safari";
+    return "";
+  },
+  name(){ return [this.browser(), this.os()].filter(Boolean).join(" · ") || t("deviceUnknown"); },
+  /** جهاز جديد = لم يسبق أن نجحت عليه جلسة. يُستعمل للنبرة لا للحماية. */
+  isNew(){ try{ return !localStorage.getItem("soufyan.erp.terminal.seen"); }catch(_){ return true; } },
+  markSeen(){ try{ localStorage.setItem("soufyan.erp.terminal.seen", nowISO()); }catch(_){ } }
+};
+
+/* ==========================================================================
+   14.c) AuthService — توثيق حقيقي، أو لا شيء
+   --------------------------------------------------------------------------
+   لا يوجد في هذا الملف أي مقارنة رمز في المتصفح ولا `isLoggedIn = true`.
+   كل طريقة تسأل الخادم، والخادم وحده يقرّر:
+
+     رمز الدخول  →  rpc verify_employee_pin   (bcrypt + تحديد محاولات + جلسة)
+     مفتاح مرور  →  functions/webauthn        (تحدٍّ يُولَّد ويُحرَق على الخادم)
+     بريد + رمز  →  auth/v1/otp + verify      (Supabase Auth، ثم قراءة الملف الشخصي)
+
+   ما لا يملك الخادم إجابته يُعرض معطّلًا بسببه الحقيقي، ولا يُحاكى.
+   ========================================================================== */
+
+/** بصمة رمز الدخول تُحسب في المتصفح ولا يغادر الرمز نفسه الجهاز أبدًا.
+ *  الخادم يقارنها بـ bcrypt، فهي «كلمة السر» من منظوره لا الرمز الخام. */
+async function pinDigest(pin){
+  if(!(window.crypto && crypto.subtle)) throw Sb._err("insecure");
+  const buf = await crypto.subtle.digest(CONFIG.pinDigest, new TextEncoder().encode(String(pin)));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+const AuthService = {
+  /** ما تدعمه هذه البيئة فعلًا — يُسأل عنه ولا يُفترض. */
+  caps(){
+    const secure = !!(window.isSecureContext && window.crypto && crypto.subtle);
+    return {
+      configured : Sb.ready(),
+      secure,
+      pin        : Sb.ready() && secure,
+      pinReason  : !Sb.ready() ? "config" : !secure ? "insecure" : "",
+      passkey    : Sb.ready() && PASSKEY_SUPPORTED && secure && !!location.hostname,
+      passkeyReason: !Sb.ready() ? "config" : !PASSKEY_SUPPORTED ? "unsupported"
+        : !secure ? "insecure" : !location.hostname ? "origin" : "",
+      email      : Sb.ready() && CONFIG.emailLogin !== false,
+      emailReason: !Sb.ready() ? "config" : "off"
+    };
+  },
+
+  /* ---- رمز الدخول ---- */
+  async pinLogin(pin){
+    const hash = await pinDigest(pin);
+    const r = await Sb.rpc("verify_employee_pin", { p_pin_hash: hash, p_terminal_id: Terminal.id() });
+    if(!r || r.ok !== true){
+      const reason = (r && r.reason) || "wrong";
+      throw Sb._err(reason === "locked" ? "locked" : reason === "invalid" ? "invalid" : "wrong", 200,
+        r && r.retry_after ? String(r.retry_after) : "");
+    }
+    return {
+      method:"pin", sessionId: r.session_id || null,
+      employee: r.employee || null,
+      permissions: Array.isArray(r.permissions) ? r.permissions : []
+    };
+  },
+
+  /* ---- مفتاح المرور (WebAuthn) ---- */
+  async passkeyBegin(){
+    return Sb.fn(CONFIG.webauthnFunction, { action:"begin-auth", rpId: location.hostname });
+  },
+  /** يُسأل الخادم أولًا: هل على هذا النطاق مفتاح مسجَّل أصلًا؟ */
+  async passkeyAvailable(){
+    try{
+      const r = await this.passkeyBegin();
+      return { ok: !!(r && r.challenge && (r.allowCredentials || []).length), raw:r };
+    }catch(e){ return { ok:false, error:e }; }
+  },
+  async passkeyLogin(pre){
+    const begin = pre && pre.challenge ? pre : await this.passkeyBegin();
+    if(!begin || !begin.challenge || !(begin.allowCredentials || []).length) throw Sb._err("no-credentials");
+    let cred;
+    try{
+      cred = await navigator.credentials.get({
+        publicKey:{
+          challenge: PasskeyUtil.b64uToBuf(begin.challenge),
+          rpId: location.hostname,
+          timeout: 60000,
+          userVerification: "required",
+          allowCredentials: begin.allowCredentials.map(c => ({
+            id: PasskeyUtil.b64uToBuf(c.id), type:"public-key",
+            transports: Array.isArray(c.transports) && c.transports.length ? c.transports : undefined
+          }))
+        }
+      });
+    }catch(e){
+      throw Sb._err(e && e.name === "NotAllowedError" ? "cancelled" : "passkey-failed", 0, e && e.message);
+    }
+    if(!cred) throw Sb._err("cancelled");
+    const r = await Sb.fn(CONFIG.webauthnFunction, Object.assign(
+      { action:"finish-auth", credentialId: cred.id }, PasskeyUtil.encodeAssertion(cred)));
+    if(!r || r.ok !== true) throw Sb._err("passkey-rejected", 0, (r && r.message) || "");
+    // الخادم أعاد هوية الموظف؛ نفتح له جلسة تشغيل على هذا الجهاز لتُسجَّل مثل غيرها.
+    let sessionId = null;
+    try{
+      sessionId = await Sb.rpc("app_session_start", {
+        p_terminal_id: Terminal.id(), p_platform:"web", p_app_version: CONFIG.appVersion,
+        p_device_name: Terminal.name(), p_os: Terminal.os(), p_meta:{ source:"passkey" }
+      });
+    }catch(_){ }
+    return {
+      method:"passkey", sessionId: typeof sessionId === "string" ? sessionId : null,
+      employee:{ id: r.employeeRef || "", name: r.employeeName || "", role:"" },
+      permissions: []
+    };
+  },
+
+  /* ---- البريد + رمز لمرة واحدة (Supabase Auth) ---- */
+  async emailSend(email){
+    // create_user:false — الدخول لا يُنشئ حسابات. الحسابات تُنشأ في الإعداد وحده.
+    await Sb.auth("otp", { email: String(email).trim().toLowerCase(), create_user:false });
+    return { ok:true, expiresIn: CONFIG.otpTtl };
+  },
+  async emailVerify(email, code){
+    let r;
+    try{
+      r = await Sb.auth("verify", { type:"email", email:String(email).trim().toLowerCase(), token:String(code) });
+    }catch(e){
+      if(e.code === "unauthorized" || (e.code === "server" && e.status === 400)) throw Sb._err("wrong");
+      throw e;
+    }
+    if(!r || !r.access_token || !r.user) throw Sb._err("wrong");
+    // الهوية والدور يقرآن من قاعدة البيانات بجلسة المستخدم نفسه — تحكمها RLS.
+    let profile = null;
+    try{
+      const rows = await Sb.select(
+        "profiles?select=id,display_name,full_name,role,status&id=eq." + encodeURIComponent(r.user.id) + "&limit=1",
+        r.access_token);
+      profile = Array.isArray(rows) ? rows[0] : null;
+    }catch(_){ }
+    if(profile && profile.status && profile.status !== "active") throw Sb._err("disabled");
+    const role = (profile && profile.role) || "";
+    return {
+      method:"email", sessionId:null, token:r.access_token,
+      employee:{
+        id: r.user.id,
+        name: (profile && (profile.display_name || profile.full_name)) || r.user.email || "",
+        role, email: r.user.email || ""
+      },
+      permissions: PERMISSIONS_FOR(role)
+    };
+  },
+
+  /* ---- إنهاء الجلسة على الخادم ---- */
+  async endSession(sessionId, reason){
+    if(!sessionId) return;
+    try{ await Sb.rpc("app_session_end", { p_session_id: sessionId, p_reason: reason || "logout" }); }catch(_){ }
+  },
+  async ping(sessionId){
+    const r = await Sb.rpc("app_session_ping", { p_session_id: sessionId });
+    return !!(r && r.ok === true);
+  },
+  /** اختياري: إن نُشرت الدالة المرافقة، عادت الهوية من الخادم بدل التخزين المحلي. */
+  async whoami(sessionId){
+    try{
+      const r = await Sb.rpc("app_session_whoami", { p_session_id: sessionId });
+      return (r && r.ok === true) ? r : null;
+    }catch(_){ return null; }
+  }
+};
+
+/**
+ * مرآة `permissions_for(role)` في قاعدة البيانات — تُستعمل لعرض الأقسام فقط.
+ * مصدر الحقيقة هو الخادم: RLS والدوال هي التي تمنع أو تسمح، والواجهة تُخفي
+ * ما لا يخصّ المستخدم لتريحه لا لتحميه.
+ */
+const PERMISSION_MATRIX = {
+  ADMIN  : ["dashboard","pos","returns","inventory","shortages","vaults","customers","analytics","settings","repairs","expenses","purchases"],
+  MANAGER: ["dashboard","pos","returns","customers","inventory","shortages","analytics","purchases"],
+  CASHIER: ["pos"]
+};
+const PERMISSIONS_FOR = role => PERMISSION_MATRIX[String(role || "").toUpperCase()] || PERMISSION_MATRIX.CASHIER;
+
+/* ترميز ردّ WebAuthn عند الدخول (التسجيل له ترميزه في PasskeyUtil.encode). */
+PasskeyUtil.encodeAssertion = function(cred){
+  return {
+    clientDataJSON   : this.bufToB64u(cred.response.clientDataJSON),
+    authenticatorData: this.bufToB64u(cred.response.authenticatorData),
+    signature        : this.bufToB64u(cred.response.signature)
+  };
+};
+
+/* ==========================================================================
+   14.d) AuthSession — «موثَّق» حالة مستقلة عن «الإعداد مكتمل»
+   --------------------------------------------------------------------------
+   لا يُحفظ في المتصفح رمز وصول ولا رمز تحديث ولا رمز دخول ولا كلمة سر.
+   المحفوظ مؤشّر جلسة (`app_sessions.id`) والهوية التي أصدرها الخادم معها؛
+   وعند كل إقلاع يسأل البرنامج الخادم إن كانت الجلسة ما تزال حيّة، فإن قال
+   لا — رجع المستخدم إلى البوابة. التخزين ذاكرة راحة، لا مصدر صلاحية.
+   ========================================================================== */
+const AuthSession = {
+  key:"soufyan.erp.session.v1",
+  data:null,          // { sessionId, method, at, employee, permissions, offline }
+  token:null,         // رمز وصول توثيق البريد — في الذاكرة وحدها، لا يُكتب أبدًا
+  _subs:[],
+  subscribe(fn){ this._subs.push(fn); },
+  _emit(){ this._subs.forEach(f => { try{ f(this.data); }catch(_){ } }); },
+
+  isAuthenticated(){ return !!(this.data && this.data.employee); },
+  employee(){ return this.data ? this.data.employee : null; },
+  permissions(){ return (this.data && this.data.permissions) || []; },
+  can(mod){ return this.permissions().includes(mod); },
+
+  begin(result){
+    this.token = result.token || null;
+    this.data = {
+      sessionId  : result.sessionId || null,
+      method     : result.method,
+      at         : nowISO(),
+      employee   : result.employee,
+      permissions: (result.permissions && result.permissions.length)
+        ? result.permissions : PERMISSIONS_FOR(result.employee && result.employee.role),
+      offline    : false
+    };
+    Terminal.markSeen();
+    this._persist();
+    this._emit();
+    window.dispatchEvent(new CustomEvent("erp:session-start", { detail:this.snapshot() }));
+    return this.data;
+  },
+  _persist(){
+    // ما يُكتب: مؤشّر ودور. ما لا يُكتب أبدًا: رمز وصول، رمز تحديث، PIN، كلمة سر.
+    if(!this.data || !this.data.sessionId){ this._forget(); return; }
+    try{
+      localStorage.setItem(this.key, JSON.stringify({
+        v:1, sessionId:this.data.sessionId, method:this.data.method, at:this.data.at,
+        employee:{ id:this.data.employee.id, name:this.data.employee.name, role:this.data.employee.role || "" },
+        permissions:this.data.permissions, terminal:Terminal.id()
+      }));
+    }catch(_){ }
+  },
+  _forget(){ try{ localStorage.removeItem(this.key); }catch(_){ } },
+  _read(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(this.key) || "null");
+      if(!raw || raw.v !== 1 || !raw.sessionId || !raw.employee) return null;
+      if(raw.terminal && raw.terminal !== Terminal.id()) return null;   // نُقلت الحالة إلى جهاز آخر
+      return raw;
+    }catch(_){ return null; }
+  },
+
+  /**
+   * استئناف جلسة عند الإقلاع. الخادم هو الحَكَم:
+   *  • قال «مغلقة/مجهولة»  ⇒ تُمسح الجلسة ويعود المستخدم إلى الدخول.
+   *  • لم يُجب (بلا اتصال) ⇒ مهلة سماح قصيرة وحالة «بلا اتصال» ظاهرة، ثم يُعاد السؤال.
+   *  • أجاب ومعه هوية      ⇒ تُعتمد هويته هو لا المحفوظة محليًا.
+   */
+  async restore(){
+    const raw = this._read();
+    if(!raw) return null;
+    const age = Date.now() - new Date(raw.at).getTime();
+    if(!(age >= 0) || age > CONFIG.sessionMaxHours * 3600e3){ this._forget(); return null; }
+    let alive = false, offline = false;
+    try{ alive = await AuthService.ping(raw.sessionId); }
+    catch(e){
+      if(e.code !== "offline") { this._forget(); return null; }
+      offline = true;
+      if(age > CONFIG.offlineGraceMinutes * 60e3){ this._forget(); return null; }
+    }
+    if(!offline && !alive){ this._forget(); return null; }
+    const who = offline ? null : await AuthService.whoami(raw.sessionId);
+    this.data = {
+      sessionId : raw.sessionId,
+      method    : raw.method,
+      at        : raw.at,
+      employee  : who && who.employee ? who.employee : raw.employee,
+      permissions: who && Array.isArray(who.permissions) ? who.permissions : raw.permissions,
+      offline
+    };
+    this._emit();
+    return this.data;
+  },
+
+  /** نبضة دورية: الخادم يعرف أن الجهاز ما يزال مفتوحًا، ونعرف أن الجلسة ما تزال صالحة. */
+  startHeartbeat(){
+    this.stopHeartbeat();
+    if(!this.data || !this.data.sessionId) return;
+    this._hb = setInterval(async () => {
+      if(!this.data || !this.data.sessionId) return this.stopHeartbeat();
+      try{
+        const ok = await AuthService.ping(this.data.sessionId);
+        if(!ok){ this.stopHeartbeat(); Router.sessionLost(); return; }
+        if(this.data.offline){ this.data.offline = false; this._emit(); Chrome.actions(); }
+      }catch(e){
+        if(e.code === "offline" && this.data && !this.data.offline){ this.data.offline = true; this._emit(); Chrome.actions(); }
+      }
+    }, CONFIG.heartbeatSeconds * 1000);
+  },
+  stopHeartbeat(){ clearInterval(this._hb); this._hb = null; },
+
+  /** خروج: تُنهى الجلسة على الخادم وتُمحى من المتصفح — ولا يُمَسّ أي إعداد أو بيانات. */
+  async end(reason){
+    const id = this.data && this.data.sessionId;
+    this.stopHeartbeat();
+    this.data = null; this.token = null;
+    this._forget();
+    this._emit();
+    window.dispatchEvent(new CustomEvent("erp:session-end", { detail:{ reason: reason || "logout" } }));
+    await AuthService.endSession(id, reason);
+  },
+  snapshot(){
+    if(!this.data) return null;
+    return { method:this.data.method, at:this.data.at, offline:!!this.data.offline,
+      employee:Object.assign({}, this.data.employee), permissions:this.data.permissions.slice() };
+  }
+};
+
+/* ==========================================================================
+   14.e) PinInput — حقل رمز الدخول
+   --------------------------------------------------------------------------
+   حقل واحد مقنَّع بطول ٤–٦ أرقام (لا ست خانات ثابتة: طول الرمز يقرّره المحل)،
+   ومعه صفّ نقاط يعكس ما أُدخل دون كشفه. النقاط زينة لقارئ الشاشة، والحقل
+   نفسه هو ما يُعلن ويُركَّز.
+   ========================================================================== */
+class PinInput {
+  constructor({ mount, min = 4, max = 6, onSubmit, onChange }){
+    this.min = min; this.max = max; this.onSubmit = onSubmit; this.onChange = onChange;
+    this.root = mount; this.root.className = "pin-wrap"; this.root.dataset.state = "waiting";
+    this.root.innerHTML =
+      `<div class="pin-dots" aria-hidden="true">${Array.from({ length:max }, () => "<i></i>").join("")}</div>
+       <input class="pin-input" type="password" inputmode="numeric" autocomplete="off"
+         maxlength="${max}" aria-label="${esc(t("pinLabel"))}" aria-describedby="pinHint" enterkeyhint="go">
+       <p class="hint" id="pinHint">${esc(t("pinHint", { a: fmtNum(min), b: fmtNum(max) }))}</p>`;
+    this.input = $(".pin-input", this.root);
+    this.dots  = $$(".pin-dots i", this.root);
+    this.input.addEventListener("input", () => {
+      this.input.value = this.input.value.replace(/\D/g, "").slice(0, this.max);
+      if(this.root.dataset.state === "invalid") this.setState("waiting");
+      this._paint();
+      if(this.onChange) this.onChange(this.value());
+    });
+    this.input.addEventListener("keydown", e => {
+      if(e.key === "Enter"){ e.preventDefault(); if(this.valid() && this.onSubmit) this.onSubmit(this.value()); }
+    });
+  }
+  _paint(){
+    const n = this.value().length;
+    this.dots.forEach((d, i) => { d.dataset.on = i < n ? "1" : ""; });
+    if(n) SetupIllustration.setState("interaction");
+  }
+  value(){ return this.input.value; }
+  valid(){ const v = this.value(); return v.length >= this.min && v.length <= this.max; }
+  clear(){ this.input.value = ""; this._paint(); }
+  focus(){ try{ this.input.focus(); }catch(_){ } }
+  disable(v){ this.input.disabled = !!v; }
+  /** waiting · verifying · verified · invalid */
+  setState(s){
+    this.root.dataset.state = s;
+    if(s === "verifying") SetupIllustration.triggerProcessing();
+    if(s === "verified") SetupIllustration.triggerSuccess();
+    if(s === "invalid"){
+      SetupIllustration.triggerShake("lock");
+      if(HAS_GSAP && !reducedMotion())
+        gsap.timeline().to(this.root, { keyframes:{ x:[-8, 8, -6, 6, -3, 3, 0] }, duration:.5, ease:"none" })
+          .set(this.root, { clearProps:"x" });
+    }
+  }
+}
+
+/* ==========================================================================
+   14.f) Screen — مسرح واحد لكل الشاشات
+   --------------------------------------------------------------------------
+   البوابة والدخول يُرسمان في مسرح الإعداد نفسه: العنوان والشرح والرسمة
+   والحركة والتركيز والإعلان كما هي، فلا تخطيط ثانٍ ولا حركة ثانية ولا هوية
+   بصرية ثانية. ما يخصّ الإعداد وحده — شريط المراحل وشريط التنقّل — يختفي.
+   ========================================================================== */
+const Screen = {
+  cleanups:[], _first:true,
+  registerCleanup(fn){ this.cleanups.push(fn); },
+  _runCleanups(){ this.cleanups.forEach(f => { try{ f(); }catch(_){ } }); this.cleanups = []; },
+  render(o){
+    this._runCleanups();
+    const host = $("#stepHost");
+    const useGsap = HAS_GSAP && !reducedMotion();
+    host.innerHTML = `<section class="step" data-step="${o.id}"${!useGsap ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
+      ${o.eyebrow ? `<span class="step-eyebrow">${ico(o.icon || "shield")}<span>${esc(o.eyebrow)}</span></span>` : ""}
+      <h1 id="stepTitle" tabindex="-1">${esc(o.title)}</h1>
+      ${o.lede ? `<p class="lede">${esc(o.lede)}</p>` : ""}
+      <div class="step-body step-scroll">${o.body}</div>
+    </section>`;
+    const root = $(".step", host);
+    if(o.mount) o.mount(root);
+    if(useGsap){ Wizard.root = root; Wizard.animateIn(); }
+    SetupIllustration.show(o.svg, o.title);
+    // أول رسم بعد فتح الصفحة لا يخطف التركيز، فيبقى رابط «تخطّي إلى المحتوى»
+    // أول ما يصله Tab. ما بعده تغييرُ شاشةٍ داخل التطبيق، فينتقل التركيز مع الشاشة.
+    if(!Screen._first) setTimeout(() => { const h = $("#stepTitle"); if(h) h.focus({ preventScroll:true }); }, 120);
+    Screen._first = false;
+    announce(o.announce || o.title);
+    window.scrollTo({ top:0, behavior: reducedMotion() ? "auto" : "smooth" });
+    return root;
+  }
+};
+
+/* ==========================================================================
+   14.g) Chrome — رأس الصفحة بحسب السطح
+   ========================================================================== */
+const Chrome = {
+  render(){
+    $("#brandName").textContent = t("appName");
+    $("#brandSub").textContent  = t(Router.surface === "setup" ? "appSub"
+      : Router.surface === "erp" ? "appErp" : "appGate");
+    const skip = $(".skip-link"); if(skip) skip.textContent = t("skipToContent");
+    document.title = t("appName") + " — " + $("#brandSub").textContent;
+    this.actions();
+  },
+  /** شارة الوضع + الجلسة + اللغة والمظهر. الإجراءات الخطرة تظهر حيث تعني فقط. */
+  actions(){
+    const host = $("#hActions"); if(!host) return;
+    const s = AuthSession.data;
+    const connected = Sb.ready();
+    const flagKey = s && s.offline ? "offlineMode" : connected ? "serverMode" : "localMode";
+    const flagTip = s && s.offline ? "offlineModeTip" : connected ? "serverModeTip" : "localModeTip";
+    host.innerHTML = `
+      ${s ? `<div class="sess" title="${esc(s.employee.name)}">
+        <span class="avatar" aria-hidden="true">${esc(initials(s.employee.name))}</span>
+        <span class="s-who"><b>${esc(s.employee.name)}</b><span>${esc(roleName(s.employee.role))}</span></span>
+      </div>` : `<span class="mode-flag" data-mode="${s && s.offline ? "local" : connected ? "server" : "local"}"
+        title="${esc(t(flagTip))}">${ico(connected && !(s && s.offline) ? "shieldCheck" : "alert")}${esc(t(flagKey))}</span>`}
+      ${s ? `<button class="icon-btn" id="switchBtn" aria-label="${esc(t("switchUser"))}" title="${esc(t("switchUser"))}">${ico("swap")}</button>
+             <button class="icon-btn" id="logoutBtn" aria-label="${esc(t("logout"))}" title="${esc(t("logout"))}">${ico("lock")}</button>` : ""}
+      <button class="icon-btn lang-btn" id="langBtn" aria-label="${esc(t("langToggle"))}">${LANG === "ar" ? "EN" : "ع"}</button>
+      <button class="icon-btn" id="themeBtn" aria-label="${esc(t("themeToggle"))}"></button>
+      ${Router.surface === "setup" ? `<button class="icon-btn" id="resetBtn" aria-label="${esc(t("resetSetup"))}" title="${esc(t("resetSetup"))}">${ico("reset")}</button>` : ""}`;
+    $("#langBtn").addEventListener("click", () => Lang.toggle());
+    $("#themeBtn").addEventListener("click", () => Theme.cycle());
+    const rb = $("#resetBtn");   if(rb) rb.addEventListener("click", () => Wizard.confirmReset());
+    const lb = $("#logoutBtn");  if(lb) lb.addEventListener("click", () => Router.confirmLogout());
+    const sb = $("#switchBtn");  if(sb) sb.addEventListener("click", () => Router.switchUser());
+    Theme.apply(SetupState.data.preferences.theme);
+  }
+};
+
+const roleName = r => {
+  const k = String(r || "").toUpperCase();
+  return L["role_" + k] ? t("role_" + k) : (r || t("role_MEMBER"));
+};
+
+/* ==========================================================================
+   14.h) رسائل الخطأ — ماذا حدث، ولماذا، وماذا أفعل
+   ========================================================================== */
+const authError = (code, detail) => {
+  const map = {
+    offline      : ["errOfflineT","errOfflineB"],
+    config       : ["errConfigT","errConfigB"],
+    insecure     : ["errInsecureT","errInsecureB"],
+    locked       : ["errLockedT","errLockedB"],
+    wrong        : ["errWrongT","errWrongB"],
+    invalid      : ["errInvalidT","errInvalidB"],
+    expired      : ["errExpiredT","errExpiredB"],
+    "expired-session": ["errExpired-sessionT","errExpired-sessionB"],
+    emailUnknown : ["errEmailUnknownT","errEmailUnknownB"],
+    rate         : ["errRateT","errRateB"],
+    unauthorized : ["errAuthT","errAuthB"],
+    disabled     : ["errDisabledT","errDisabledB"],
+    unsupported  : ["errPkUnsupT","errPkUnsupB"],
+    origin       : ["errOriginT","errOriginB"],
+    "no-credentials": ["errNoCredT","errNoCredB"],
+    cancelled    : ["errCancelT","errCancelB"],
+    "passkey-failed"  : ["errPkFailT","errPkFailB"],
+    "passkey-rejected": ["errPkRejT","errPkRejB"],
+    server       : ["errServerT","errServerB"],
+    off          : ["errOffT","errOffB"]
+  };
+  const pair = map[code] || map.server;
+  return { title: t(pair[0], { d: detail || "" }), body: t(pair[1], { d: detail || "" }) };
+};
+const errBox = (code, detail) => {
+  const e = authError(code, detail);
+  return `<div class="note err" role="alert">${ico("alert")}<div><b>${esc(e.title)}</b><br>${esc(e.body)}</div></div>`;
+};
+
+/* ==========================================================================
+   14.i) AuthUI — البوابة، والدخول، وتسليم النظام
+   --------------------------------------------------------------------------
+   ثلاث تجارب لا تُخلط: البوابة تسأل سؤالًا واحدًا، والدخول يطلب إثباتًا،
+   والإعداد يبني النظام لأول مرة. لا خطوات إعداد في البوابة ولا العكس.
+   ========================================================================== */
+const AuthUI = {
+
+  /* ---------- البوابة ---------- */
+  gate(){
+    const done = Router.setupCompleted();
+    const back = SetupState.data.completedSteps.length > 0 && !done;
+    Screen.render({
+      id:"gate", svg:"welcome", icon:"shield", eyebrow:t("gateEyebrow"),
+      title:t("gateTitle"), lede:t(done ? "gateLedeDone" : "gateLede"),
+      body:`<div class="doors">
+        <button type="button" class="door" data-door="login"${done ? ' data-tone="primary"' : ""}>
+          <span class="d-ico">${ico("lock")}</span>
+          <b>${esc(t("gateHaveT"))}</b>
+          <p>${esc(t("gateHaveD"))}</p>
+          <span class="d-go">${esc(t("gateHaveCta"))}${ico("next")}</span>
+        </button>
+        <button type="button" class="door" data-door="setup"${!done ? ' data-tone="primary"' : ""}>
+          <span class="d-ico">${ico("rocket")}</span>
+          <b>${esc(t(done ? "gateNewTDone" : "gateNewT"))}</b>
+          <p>${esc(t(done ? "gateNewDDone" : back ? "gateNewDBack" : "gateNewD"))}</p>
+          <span class="d-go">${esc(t(back ? "gateNewCtaBack" : "gateNewCta"))}${ico("next")}</span>
+        </button>
+      </div>
+      ${Sb.ready() ? "" : F.note(esc(t("gateLocalNote")), "warn")}`,
+      mount(root){
+        $("[data-door='login']", root).addEventListener("click", () => Router.go("login"));
+        $("[data-door='setup']", root).addEventListener("click", () => Router.startSetup(done));
+      }
+    });
+  },
+
+  /* ---------- الدخول ---------- */
+  login(opts){
+    opts = opts || {};
+    const caps = AuthService.caps();
+    const others = [];
+    if(caps.passkey) others.push({ id:"passkey", icon:"key", t:"mPasskeyT", d:"mPasskeyD" });
+    else others.push({ id:"passkey", icon:"key", t:"mPasskeyT", off:caps.passkeyReason || "unsupported" });
+    if(caps.email) others.push({ id:"email", icon:"mail", t:"mEmailT", d:"mEmailD" });
+    else others.push({ id:"email", icon:"mail", t:"mEmailT", off:caps.emailReason });
+
+    const methodRow = m => `<button type="button" class="method" data-method="${m.id}"${m.off ? " disabled" : ""}>
+      <span class="m-ico">${ico(m.icon)}</span>
+      <span class="m-txt"><b>${esc(t(m.t))}</b><span>${esc(m.off ? authError(m.off).title : t(m.d))}</span></span>
+      ${m.off ? "" : `<span class="m-go">${ico("next")}</span>`}</button>`;
+
+    Screen.render({
+      id:"login", svg:"security", icon:"lock",
+      eyebrow:t(opts.mode === "switch" ? "switchEyebrow" : "loginEyebrow"),
+      title:t(opts.mode === "switch" ? "switchTitle" : "loginTitle"),
+      lede:t(opts.reason === "expired" ? "loginLedeExpired"
+        : opts.reason === "after-setup" ? "loginLedeAfterSetup"
+        : opts.mode === "switch" ? "switchLede"
+        : Terminal.isNew() ? "loginLedeNewDevice" : "loginLede"),
+      body:`
+        <div data-login-err>${opts.reason === "expired" ? errBox("expired-session")
+          : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}</div>
+        ${caps.pin ? `<div data-pin-mount></div>
+          <button type="button" class="btn btn-primary btn-lg btn-block" data-pin-go disabled>
+            <span class="btn-label">${esc(t("loginCta"))}</span>${ico("next")}</button>`
+        : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.pinReason).title)}</b><br>${esc(authError(caps.pinReason).body)}</div></div>`}
+        <p class="hint" id="otherWays">${esc(t("otherWays"))}</p>
+        <div class="methods" aria-labelledby="otherWays">${others.map(methodRow).join("")}</div>
+        <div class="auth-foot">
+          <button type="button" class="btn btn-quiet btn-sm" data-back-gate>${ico("prev")}<span class="btn-label">${esc(t("backToGate"))}</span></button>
+          <span class="sep"></span>
+          <span class="hint">${esc(t("deviceIs", { d: Terminal.name() }))}</span>
+        </div>`,
+      mount(root){
+        const errHost = $("[data-login-err]", root);
+        const go = $("[data-pin-go]", root);
+        let pin = null;
+        if(caps.pin){
+          pin = new PinInput({
+            mount: $("[data-pin-mount]", root),
+            onChange(){ go.disabled = !pin.valid(); },
+            onSubmit(){ submit(); }
+          });
+          setTimeout(() => pin.focus(), 220);
+          go.addEventListener("click", submit);
+        }
+        async function submit(){
+          if(!pin || !pin.valid() || go.dataset.busy === "1") return;
+          go.dataset.busy = "1"; pin.setState("verifying"); pin.disable(true);
+          errHost.innerHTML = "";
+          try{
+            const r = await AuthService.pinLogin(pin.value());
+            pin.setState("verified");
+            await AuthUI.succeed(r);
+          }catch(e){
+            pin.setState("invalid"); pin.disable(false); pin.clear(); pin.focus();
+            errHost.innerHTML = errBox(e.code, e.detail);
+            announce(authError(e.code, e.detail).title);
+          }finally{ go.dataset.busy = ""; go.disabled = !(pin && pin.valid()); }
+        }
+        $$("[data-method]", root).forEach(b => b.addEventListener("click", () => {
+          if(b.dataset.method === "passkey") AuthUI.passkey();
+          else AuthUI.email();
+        }));
+        $("[data-back-gate]", root).addEventListener("click", () => Router.go("gate"));
+      }
+    });
+  },
+
+  /* ---------- مفتاح المرور ---------- */
+  passkey(){
+    Screen.render({
+      id:"passkey", svg:"security", icon:"key", eyebrow:t("loginEyebrow"),
+      title:t("pkTitle"), lede:t("pkLede"),
+      body:`<div data-pk-state><div class="note">${ico("info")}<div>${esc(t("pkChecking"))}</div></div></div>
+        <div class="auth-foot">
+          <button type="button" class="btn btn-quiet btn-sm" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
+        </div>`,
+      mount(root){
+        const host = $("[data-pk-state]", root);
+        $("[data-back]", root).addEventListener("click", () => Router.go("login"));
+        (async () => {
+          const probe = await AuthService.passkeyAvailable();
+          if(!probe.ok){
+            const code = probe.error ? probe.error.code : "no-credentials";
+            host.innerHTML = errBox(code, probe.error && probe.error.detail);
+            announce(authError(code).title);
+            return;
+          }
+          host.innerHTML = `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("pkReady", { n: fmtNum(probe.raw.allowCredentials.length) }))}</div></div>
+            <button type="button" class="btn btn-primary btn-lg btn-block" data-pk-go style="margin-top:12px">
+              ${ico("key")}<span class="btn-label">${esc(t("pkCta"))}</span></button>`;
+          const b = $("[data-pk-go]", host);
+          b.addEventListener("click", async () => {
+            if(b.dataset.busy === "1") return;
+            b.dataset.busy = "1";
+            SetupIllustration.triggerProcessing();
+            try{
+              const r = await AuthService.passkeyLogin(probe.raw);
+              SetupIllustration.triggerSuccess();
+              await AuthUI.succeed(r);
+            }catch(e){
+              b.dataset.busy = "";
+              SetupIllustration.triggerShake("key");
+              host.insertAdjacentHTML("beforeend", errBox(e.code, e.detail));
+              announce(authError(e.code).title);
+            }
+          });
+        })();
+      }
+    });
+  },
+
+  /* ---------- البريد + رمز لمرة واحدة ---------- */
+  email(){
+    let stage = "email", address = "", otp = null, timer = null, left = 0;
+    const render = () => Screen.render({
+      id:"email-login", svg:"email-otp", icon:"mail", eyebrow:t("loginEyebrow"),
+      title:t(stage === "email" ? "emTitle" : "emCodeTitle"),
+      lede:t(stage === "email" ? "emLede" : "emCodeLede", { e: address }),
+      body: stage === "email"
+        ? `${F.text({ name:"loginEmail", label:t("emField"), type:"email", dir:"ltr", nobind:true,
+              required:true, autocomplete:"email", placeholder:"name@example.com", hint:t("emHint") })}
+           <div data-em-err></div>
+           <button type="button" class="btn btn-primary btn-lg btn-block" data-em-send>
+             ${ico("mail")}<span class="btn-label">${esc(t("emSend"))}</span></button>
+           <div class="auth-foot">
+             <button type="button" class="btn btn-quiet btn-sm" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
+           </div>`
+        : `<div data-otp-mount></div>
+           <p class="otp-status" data-em-status role="status"></p>
+           <div class="otp-meta">
+             <span>${ico("clock")}<span class="countdown" data-em-left></span></span>
+             <button type="button" class="btn btn-quiet btn-sm" data-em-again disabled>${ico("refresh")}<span class="btn-label">${esc(t("emAgain"))}</span></button>
+           </div>
+           <div data-em-err></div>
+           <div class="auth-foot">
+             <button type="button" class="btn btn-quiet btn-sm" data-em-edit>${ico("edit")}<span class="btn-label">${esc(t("emEdit"))}</span></button>
+             <span class="sep"></span>
+             <button type="button" class="btn btn-quiet btn-sm" data-back>${esc(t("backToLogin"))}</button>
+           </div>`,
+      mount(root){
+        const errHost = $("[data-em-err]", root);
+        const backBtn = $("[data-back]", root); if(backBtn) backBtn.addEventListener("click", () => Router.go("login"));
+        if(stage === "email"){
+          const field = $("#f_loginEmail", root);
+          field.value = address;
+          setTimeout(() => field.focus(), 220);
+          const send = $("[data-em-send]", root);
+          const run = async () => {
+            const v = field.value.trim();
+            if(!RX.email.test(v)){ showError(root, "loginEmail", t("errEmail")); SetupIllustration.triggerShake("envelope"); return; }
+            clearError(root, "loginEmail"); errHost.innerHTML = "";
+            send.dataset.busy = "1"; send.disabled = true;
+            SetupIllustration.triggerProcessing();
+            try{
+              await AuthService.emailSend(v);
+              address = v; stage = "code"; left = CONFIG.otpTtl; render();
+            }catch(e){
+              send.dataset.busy = ""; send.disabled = false;
+              errHost.innerHTML = errBox(e.code === "unauthorized" ? "emailUnknown" : e.code, e.detail);
+              announce(authError(e.code).title);
+            }
+          };
+          send.addEventListener("click", run);
+          field.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); run(); } });
+          return;
+        }
+        const status = $("[data-em-status]", root);
+        const leftEl = $("[data-em-left]", root);
+        const again  = $("[data-em-again]", root);
+        otp = new OtpInput({ mount: $("[data-otp-mount]", root), onComplete: verify });
+        setTimeout(() => otp.focusFirst(), 220);
+        clearInterval(timer);
+        timer = setInterval(() => {
+          left--;
+          leftEl.textContent = `${pad2(Math.floor(left / 60))}:${pad2(left % 60)}`;
+          if(left <= 0){ clearInterval(timer); again.disabled = false; otp.setState("expired");
+            status.dataset.tone = "warn"; status.innerHTML = `${ico("clock")}${esc(t("emExpired"))}`; }
+        }, 1000);
+        Screen.registerCleanup(() => clearInterval(timer));
+        leftEl.textContent = `${pad2(Math.floor(left / 60))}:${pad2(left % 60)}`;
+        again.addEventListener("click", async () => {
+          again.disabled = true; errHost.innerHTML = "";
+          try{
+            await AuthService.emailSend(address);
+            left = CONFIG.otpTtl; clearInterval(timer); render();
+            Toast.show(t("emResent"), "ok");
+          }catch(e){ again.disabled = false; errHost.innerHTML = errBox(e.code, e.detail); }
+        });
+        $("[data-em-edit]", root).addEventListener("click", () => { clearInterval(timer); stage = "email"; render(); });
+        async function verify(code){
+          otp.setState("verifying"); status.dataset.tone = "busy";
+          status.innerHTML = `<span class="spin"></span>${esc(t("emChecking"))}`;
+          errHost.innerHTML = "";
+          try{
+            const r = await AuthService.emailVerify(address, code);
+            clearInterval(timer);
+            otp.setState("verified");
+            status.dataset.tone = "ok"; status.innerHTML = `${ico("check")}${esc(t("emOk"))}`;
+            await AuthUI.succeed(r);
+          }catch(e){
+            otp.setState(e.code === "expired" ? "expired" : "invalid"); otp.clear(); otp.focusFirst();
+            status.dataset.tone = "err"; status.innerHTML = `${ico("alert")}${esc(authError(e.code).title)}`;
+            errHost.innerHTML = errBox(e.code, e.detail);
+            announce(authError(e.code).title);
+          }
+        }
+      }
+    });
+    render();
+  },
+
+  /* ---------- بعد نجاح التوثيق ---------- */
+  async succeed(result){
+    AuthSession.begin(result);
+    AuthSession.startHeartbeat();
+    Chrome.actions();
+    Toast.show(t("welcomeBack", { n: result.employee.name || "" }), "ok");
+    await wait(reducedMotion() ? 0 : 420);
+    Router.go("erp");
+  },
+
+  /* ---------- تسليم النظام ---------- */
+  erp(){
+    const s = AuthSession.data;
+    if(!s) return Router.go("gate");
+    if(CONFIG.appEntryUrl){
+      window.dispatchEvent(new CustomEvent("erp:enter", { detail:AuthSession.snapshot() }));
+      location.href = CONFIG.appEntryUrl;
+      return;
+    }
+    const mods = s.permissions.length ? s.permissions : PERMISSIONS_FOR(s.employee.role);
+    const setupDone = Router.setupCompleted();
+    Screen.render({
+      id:"erp", svg:"complete", icon:"rocket", eyebrow:t("erpEyebrow"),
+      title:t("erpTitle", { n: s.employee.name || "" }), lede:t("erpLede"),
+      body:`
+        <div class="who">
+          <span class="avatar" aria-hidden="true">${esc(initials(s.employee.name))}</span>
+          <span class="w-txt"><b>${esc(roleName(s.employee.role))}</b>
+            <span>${esc(t("viaMethod_" + s.method))} · ${esc(Terminal.name())}</span></span>
+        </div>
+        <div class="perm-block">
+          <b id="permsT">${esc(t("permsTitle"))}</b>
+          <ul class="perm-list" aria-labelledby="permsT">${mods.map(m => `<li>${esc(moduleName(m))}</li>`).join("")}</ul>
+        </div>
+        ${s.offline ? F.note(esc(t("offlineNote")), "warn") : ""}
+        ${setupDone ? `<div data-prog-host></div>` : F.note(esc(t("erpSetupPending")), "warn")}
+        <div class="hand-grid">
+          <div class="hand-card"><b>${esc(t("handAuthT"))}</b><span>${esc(t("handAuthD"))}</span></div>
+          <div class="hand-card"><b>${esc(t("handRlsT"))}</b><span>${esc(t("handRlsD"))}</span></div>
+        </div>
+        ${F.note(esc(t("erpHandoffNote")), "")}
+        <pre class="code-box mono">window.SETUP_CONFIG = { appEntryUrl: "/app" };</pre>
+        <div class="auth-foot">
+          <button type="button" class="btn btn-ghost" data-switch>${ico("swap")}<span class="btn-label">${esc(t("switchUser"))}</span></button>
+          <button type="button" class="btn btn-quiet" data-logout>${ico("lock")}<span class="btn-label">${esc(t("logout"))}</span></button>
+          ${setupDone ? "" : `<span class="sep"></span><button type="button" class="btn btn-primary" data-finish>${ico("sliders")}<span class="btn-label">${esc(t("finishSetup"))}</span></button>`}
+        </div>`,
+      mount(root){
+        const ph = $("[data-prog-host]", root);
+        if(ph) renderProgressCard(ph, { cta:"primary" });
+        $("[data-switch]", root).addEventListener("click", () => Router.switchUser());
+        $("[data-logout]", root).addEventListener("click", () => Router.confirmLogout());
+        const f = $("[data-finish]", root);
+        if(f) f.addEventListener("click", () => Router.startSetup(false));
+        window.dispatchEvent(new CustomEvent("erp:enter", { detail:AuthSession.snapshot() }));
+      }
+    });
+  }
+};
+
+const moduleName = m => L["mod_" + m] ? t("mod_" + m) : m;
+
+/* ==========================================================================
+   14.j) Router — جلسة صالحة؟ إعداد مكتمل؟ ثم القرار
+   --------------------------------------------------------------------------
+                       تشغيل البرنامج
+                             ↓
+                      جلسة صالحة؟ ── نعم ──▶ النظام
+                             │
+                             لا
+                             ↓
+                   الإعداد مكتمل؟ ── نعم ──▶ الدخول
+                             │
+                             لا
+                             ↓
+                          البوابة
+   ========================================================================== */
+const Router = {
+  surface:null,
+  _setupStarted:false,
+
+  /** «الإعداد مكتمل» حالة مستقلة تمامًا عن «موثَّق». */
+  setupCompleted(){
+    return !!(SetupState.data.setupStatus.completed || LocalDB.get("setup_completed"));
+  },
+
+  async boot(){
+    document.body.dataset.surface = "auth";
+    // شاشة انتظار قصيرة بدل وميض البوابة قبل أن يجيب الخادم عن الجلسة.
+    if(AuthSession._read()){
+      Screen.render({ id:"resume", svg:"security", icon:"shield", title:t("resumeTitle"), lede:t("resumeLede"),
+        body:`<p class="otp-status" data-tone="busy"><span class="spin"></span>${esc(t("resumeWait"))}</p>` });
+      Chrome.render();
+      const s = await AuthSession.restore();
+      if(s){ AuthSession.startHeartbeat(); return this.go("erp"); }
+      // كانت هنا جلسة ورفضها الخادم: صاحبها له حساب بالفعل، فالوجهة الدخول
+      // لا البوابة — والبوابة تبقى على بعد ضغطة من شاشة الدخول.
+      return this.go("login", { reason:"expired" });
+    }
+    if(this.setupCompleted() && Sb.ready()) return this.go("login");
+    return this.go("gate");
+  },
+
+  go(surface, opts){
+    Screen._runCleanups();
+    if(this.surface === "setup" && surface !== "setup") Wizard._runCleanups();
+    this.surface = surface;
+    document.body.dataset.surface = surface === "setup" ? "setup" : "auth";
+    Chrome.render();
+    if(surface === "setup") return this.showSetup();
+    if(surface === "login") return AuthUI.login(opts || {});
+    if(surface === "erp")   return AuthUI.erp();
+    return AuthUI.gate();
+  },
+
+  showSetup(){
+    if(!this._setupStarted){ this._setupStarted = true; Wizard.init(); }
+    else Wizard.renderStep(true);
+    Wizard.renderPhases();
+  },
+
+  /** «مستخدم جديد» على نظام مُعدّ سلفًا قرار يستحق سؤالًا صريحًا. */
+  async startSetup(alreadyDone){
+    if(alreadyDone){
+      const ok = await Modal.confirm({ title:t("reSetupT"), body:t("reSetupB"), confirmLabel:t("reSetupCta") });
+      if(!ok) return;
+    }
+    this.go("setup");
+  },
+
+  async confirmLogout(){
+    const ok = await Modal.confirm({ title:t("logoutT"), body:t("logoutB"), confirmLabel:t("logout") });
+    if(!ok) return;
+    await AuthSession.end("logout");
+    Toast.show(t("logoutDone"), "info");
+    this.go("gate");
+  },
+
+  async switchUser(){
+    await AuthSession.end("logout");
+    this.go("login", { mode:"switch" });
+  },
+
+  /**
+   * نهاية الإعداد. الإعداد يبني النظام، والدخول يفتحه — ولا يُخلط الاثنان:
+   * من أنهى الإعداد للتوّ وهو موثَّق يدخل مباشرة؛ ومن ليس موثَّقًا يُطلب منه
+   * تسجيل الدخول لأول مرة بدل أن يُمنح جلسة لم يصدرها خادم.
+   */
+  enterErp(){
+    SetupState.data.setupStatus.completed = true;
+    SetupState.data.setupStatus.completedAt = SetupState.data.setupStatus.completedAt || nowISO();
+    SetupState.saveNow();
+    LocalDB.put("setup_completed", true);
+    window.dispatchEvent(new CustomEvent("erp:setup-complete", { detail: SetupState.exportConfig() }));
+    if(AuthSession.isAuthenticated()) return this.go("erp");
+    if(Sb.ready()) return this.go("login", { reason:"after-setup" });
+    return false;                       // وضع محلي بلا خادم: يبقى شرح V4 كما هو
+  },
+
+  /** الخادم أنهى الجلسة ونحن نعمل — لا نُبقي المستخدم داخل شاشة لا يملكها. */
+  sessionLost(){
+    AuthSession.data = null; AuthSession.token = null; AuthSession._forget();
+    Toast.show(t("sessionLost"), "err", 6000);
+    this.go("login", { reason:"expired" });
+  }
+};
+
+/* ==========================================================================
+   14.k) نصوص البوابة والدخول — عربي (أساسي) + إنجليزي (ثانوي)
+   --------------------------------------------------------------------------
+   كل رسالة خطأ تجيب ثلاثة أسئلة: ماذا حدث، ولماذا، وماذا أفعل الآن.
+   ========================================================================== */
+Object.assign(L, {
+  appGate:["الدخول","Sign in"],
+  appErp:["النظام","Workspace"],
+  deviceUnknown:["هذا الجهاز","This device"],
+  offlineMode:["بلا اتصال","Offline"],
+  offlineModeTip:["تعذّر الوصول إلى الخادم الآن. الجلسة ستُراجَع تلقائيًا عند عودة الاتصال.",
+    "The server is unreachable right now. The session is re-checked automatically when the connection returns."],
+
+  /* ---- البوابة ---- */
+  gateEyebrow:["بوابة الدخول","Welcome"],
+  gateTitle:["أهلًا بك","Welcome"],
+  gateLede:["اختر البداية المناسبة لك: الدخول إلى حساب موجود، أو تجهيز المتجر لأول مرة.",
+    "Choose where to start: sign in to an existing account, or set the store up for the first time."],
+  gateLedeDone:["هذا المتجر مُعدّ بالفعل. سجّل دخولك للمتابعة.",
+    "This store is already set up. Sign in to continue."],
+  gateHaveT:["لدي حساب","I have an account"],
+  gateHaveD:["ادخل برمز الدخول أو مفتاح المرور أو البريد الإلكتروني.",
+    "Sign in with your code, your passkey, or your email."],
+  gateHaveCta:["تسجيل الدخول","Sign in"],
+  gateNewT:["مستخدم جديد","I'm new here"],
+  gateNewD:["جهّز متجرك خطوة بخطوة: الهوية، ثم المتجر، ثم الفريق، ثم النظام.",
+    "Set your store up stage by stage: identity, store, team, system."],
+  gateNewDBack:["أكمل الإعداد من حيث توقّفت — بياناتك محفوظة.",
+    "Pick the setup up where you left off — your data is saved."],
+  gateNewCta:["بدء الإعداد","Start setup"],
+  gateNewCtaBack:["متابعة الإعداد","Resume setup"],
+  gateNewTDone:["إعداد متجر جديد","Set up a new store"],
+  gateNewDDone:["يفتح المعالج من جديد. لا يُحذف شيء من بيانات المتجر الحالي.",
+    "Reopens the wizard. Nothing in the current store's data is deleted."],
+  gateLocalNote:["الربط بالخادم غير مضبوط في هذه النسخة، فالدخول غير متاح — والإعداد يعمل محليًا للتجربة.",
+    "No server is configured in this build, so signing in is unavailable — setup runs locally as a preview."],
+
+  /* ---- الدخول ---- */
+  loginEyebrow:["تسجيل الدخول","Sign in"],
+  loginTitle:["أدخل رمزك","Enter your code"],
+  loginLede:["رمز الدخول يعرّف صاحبه: النظام يتعرّف عليك منه ويفتح لك ما يخصّك وحده.",
+    "Your code identifies you: the system recognises you from it and opens only what is yours."],
+  loginLedeNewDevice:["هذا الجهاز يُستعمل لأول مرة. أدخل رمزك المعتاد — لا حاجة لإعادة الإعداد.",
+    "This device is being used for the first time. Enter your usual code — no need to set anything up again."],
+  loginLedeExpired:["انتهت جلستك السابقة. أدخل رمزك للمتابعة من حيث كنت.",
+    "Your previous session ended. Enter your code to carry on where you were."],
+  loginCta:["دخول","Sign in"],
+  loginLedeAfterSetup:["اكتمل الإعداد. سجّل دخولك لأول مرة ليصدر الخادم جلستك.",
+    "Setup is complete. Sign in for the first time so the server can issue your session."],
+  afterSetupNote:["تم إعداد النظام. الخطوة الأخيرة هي دخولك أنت — الجلسة يصدرها الخادم لا هذه الصفحة.",
+    "The system is set up. The last step is signing in — the session is issued by the server, not by this page."],
+  otherWays:["طرق أخرى للدخول","Other ways to sign in"],
+  backToGate:["رجوع إلى البداية","Back to start"],
+  backToLogin:["رجوع إلى الدخول","Back to sign in"],
+  deviceIs:["الجهاز: {d}","Device: {d}"],
+  switchEyebrow:["تبديل المستخدم","Switch user"],
+  switchTitle:["من يستلم الجهاز؟","Who is taking over?"],
+  switchLede:["أدخل رمزك لتفتح صلاحياتك أنت. لا يُعاد الإعداد ولا تتغيّر بيانات المتجر.",
+    "Enter your code to open your own permissions. Nothing is set up again and no store data changes."],
+  pinLabel:["رمز الدخول","Access code"],
+  pinHint:["من {a} إلى {b} أرقام. يُتحقَّق منه على الخادم، ولا يُحفظ في هذا الجهاز.",
+    "{a} to {b} digits. It is checked on the server and never stored on this device."],
+  mPasskeyT:["مفتاح المرور","Passkey"],
+  mPasskeyD:["ببصمتك أو وجهك أو رمز الجهاز — بلا كتابة.","With your fingerprint, face, or device code — nothing to type."],
+  mEmailT:["البريد الإلكتروني","Email"],
+  mEmailD:["يصلك رمز من ستة أرقام على بريدك.","A six-digit code arrives in your inbox."],
+  welcomeBack:["أهلًا {n}","Welcome, {n}"],
+  sessionLost:["أُنهيت الجلسة من الخادم. سجّل دخولك من جديد.","The server ended this session. Please sign in again."],
+  logout:["تسجيل الخروج","Sign out"],
+  switchUser:["تبديل المستخدم","Switch user"],
+  logoutT:["تسجيل الخروج؟","Sign out?"],
+  logoutB:["يُغلق الجهاز على حسابك فقط. بيانات المتجر والموظفين والفواتير والإعداد تبقى كما هي.",
+    "This closes your account on this device only. Store, staff, invoice and setup data all stay as they are."],
+  logoutDone:["تم تسجيل الخروج","Signed out"],
+  reSetupT:["فتح معالج الإعداد من جديد؟","Reopen the setup wizard?"],
+  reSetupB:["الإعداد مخصّص لتجهيز النظام لأول مرة. لن يُحذف شيء، لكن إن كنت موظفًا في متجر قائم فالمطلوب تسجيل الدخول لا الإعداد.",
+    "Setup is for preparing the system the first time. Nothing is deleted, but if you work at an existing store you want to sign in, not set up."],
+  reSetupCta:["فتح الإعداد","Open setup"],
+  resumeTitle:["نتحقّق من جلستك","Checking your session"],
+  resumeLede:["نسأل الخادم إن كانت جلستك على هذا الجهاز ما تزال صالحة.",
+    "We're asking the server whether your session on this device is still valid."],
+  resumeWait:["لحظة…","One moment…"],
+
+  /* ---- مفتاح المرور ---- */
+  pkTitle:["الدخول بمفتاح المرور","Sign in with a passkey"],
+  pkLede:["المفتاح لا يغادر جهازك. الخادم يرسل تحدّيًا، وجهازك يوقّعه، والخادم يتحقّق من التوقيع.",
+    "The key never leaves your device. The server issues a challenge, your device signs it, and the server verifies the signature."],
+  pkChecking:["نسأل الخادم عن المفاتيح المسجّلة لهذا النطاق…","Asking the server which keys are registered for this domain…"],
+  pkReady:["مفتاح مسجَّل وجاهز على هذا النطاق: {n}","Keys registered and ready on this domain: {n}"],
+  pkCta:["تأكيد بمفتاح المرور","Confirm with passkey"],
+
+  /* ---- البريد ---- */
+  emTitle:["الدخول بالبريد","Sign in by email"],
+  emLede:["نرسل رمزًا من ستة أرقام إلى بريدك المسجَّل في النظام.",
+    "We'll send a six-digit code to the email registered in the system."],
+  emField:["البريد الإلكتروني","Email address"],
+  emHint:["البريد نفسه المسجَّل في النظام. الدخول لا يُنشئ حسابًا جديدًا.",
+    "The same address registered in the system. Signing in never creates a new account."],
+  emSend:["إرسال الرمز","Send the code"],
+  emCodeTitle:["أدخل الرمز","Enter the code"],
+  emCodeLede:["أرسلنا رمزًا إلى {e}. صلاحيته دقيقتان.","We sent a code to {e}. It is valid for two minutes."],
+  emAgain:["إرسال رمز جديد","Send a new code"],
+  emEdit:["تعديل البريد","Change the address"],
+  emExpired:["انتهت صلاحية الرمز","The code expired"],
+  emResent:["أُرسل رمز جديد","A new code is on the way"],
+  emChecking:["نتحقّق من الرمز…","Checking the code…"],
+  emOk:["تم التحقّق","Verified"],
+
+  /* ---- تسليم النظام ---- */
+  permsTitle:["الأقسام المتاحة لك","Sections open to you"],
+  erpEyebrow:["النظام","Workspace"],
+  erpTitle:["أهلًا {n}","Welcome, {n}"],
+  erpLede:["هذه هي نقطة التسليم إلى النظام: هويتك وصلاحياتها كما أصدرها الخادم.",
+    "This is the hand-off point into the ERP: your identity and its permissions, exactly as the server issued them."],
+  erpSetupPending:["الإعداد لم يكتمل بعد على هذا النظام.","Setup has not been completed on this system yet."],
+  erpHandoffNote:["اضبط appEntryUrl ليفتح النظام مباشرة بعد الدخول بدل هذه الشاشة.",
+    "Set appEntryUrl to open the ERP directly after sign-in instead of this screen."],
+  finishSetup:["إكمال الإعداد","Finish setup"],
+  handAuthT:["من أين جاءت هذه الهوية","Where this identity came from"],
+  handAuthD:["من ردّ الخادم على طلب الدخول — لا من هذا المتصفح. لم يُحفظ في الجهاز رمز دخول ولا كلمة سر ولا رمز وصول.",
+    "From the server's answer to the sign-in request — not from this browser. No code, password or access token was stored on the device."],
+  handRlsT:["أين تُطبَّق الصلاحيات","Where permissions are enforced"],
+  handRlsD:["في قاعدة البيانات: سياسات RLS ودوال الخادم. ما تراه هنا إخفاء للأقسام غير المعنيّة، لا حماية بذاته.",
+    "In the database: RLS policies and server functions. What you see here hides irrelevant sections; it is not protection in itself."],
+  offlineNote:["نعمل الآن بلا اتصال بالخادم. الجلسة ستُراجَع تلقائيًا عند عودة الاتصال، وقد تُغلق حينها.",
+    "Working without a server connection right now. The session is re-checked when the connection returns, and may close then."],
+  viaMethod_pin:["دخول برمز","signed in with a code"],
+  viaMethod_passkey:["دخول بمفتاح مرور","signed in with a passkey"],
+  viaMethod_email:["دخول بالبريد","signed in by email"],
+
+  /* ---- الأدوار والأقسام ---- */
+  role_ADMIN:["مدير النظام","Administrator"],
+  role_MANAGER:["مدير","Manager"],
+  role_CASHIER:["كاشير","Cashier"],
+  role_MEMBER:["عضو الفريق","Team member"],
+  mod_dashboard:["اللوحة","Dashboard"], mod_pos:["المبيعات","Sales"], mod_returns:["المرتجعات","Returns"],
+  mod_inventory:["المخزون","Inventory"], mod_shortages:["النواقص","Shortages"], mod_vaults:["الصناديق","Vaults"],
+  mod_customers:["الزبائن","Customers"], mod_analytics:["التقارير","Analytics"], mod_settings:["الإعدادات","Settings"],
+  mod_repairs:["الصيانة","Repairs"], mod_expenses:["المصاريف","Expenses"], mod_purchases:["المشتريات","Purchases"],
+
+  /* ---- الأخطاء ---- */
+  errOfflineT:["تعذّر الوصول إلى الخادم","Could not reach the server"],
+  errOfflineB:["الاتصال بالإنترنت منقطع أو الخادم لا يستجيب. تحقّق من الاتصال ثم أعد المحاولة.",
+    "The internet connection is down or the server is not responding. Check the connection and try again."],
+  errConfigT:["الربط بالخادم غير مضبوط","The server link is not configured"],
+  errConfigB:["الدخول يحتاج supabaseUrl و supabaseAnonKey في SETUP_CONFIG. بغيرهما لا يوجد من يتحقّق من هويتك.",
+    "Signing in needs supabaseUrl and supabaseAnonKey in SETUP_CONFIG. Without them nothing can verify who you are."],
+  errInsecureT:["هذه الصفحة ليست على اتصال آمن","This page is not on a secure connection"],
+  errInsecureB:["أدوات التعمية لا تعمل إلا على https أو localhost. افتح البرنامج من عنوان آمن ليعمل الدخول.",
+    "Cryptography is only available over https or localhost. Open the app from a secure address to sign in."],
+  errLockedT:["الإدخال موقوف مؤقتًا","Entry is paused for now"],
+  errLockedB:["محاولات خاطئة كثيرة من هذا الجهاز. انتظر دقيقتين ثم حاول، أو ادخل بمفتاح المرور أو البريد.",
+    "Too many wrong attempts from this device. Wait two minutes and retry, or use a passkey or your email."],
+  errWrongT:["الرمز غير صحيح","That code is not right"],
+  errWrongB:["لم يطابق أي حساب نشِط. تأكّد من الرمز، وإن نسيته فاطلب من مدير النظام إعادة ضبطه.",
+    "It matched no active account. Check the code, and if you've forgotten it ask an administrator to reset it."],
+  errInvalidT:["صيغة الرمز غير مقبولة","That code's format is not accepted"],
+  errInvalidB:["الرمز أرقام فقط، من أربعة إلى ستة. أعد إدخاله.","The code is digits only, four to six of them. Please re-enter it."],
+  errExpiredT:["انتهت صلاحية الرمز","The code has expired"],
+  errExpiredB:["الرمز يصلح دقيقتين فقط. اطلب رمزًا جديدًا.","A code is valid for two minutes only. Request a new one."],
+  "errExpired-sessionT":["انتهت جلستك","Your session ended"],
+  "errExpired-sessionB":["الخادم لم يعد يعترف بجلسة هذا الجهاز. سجّل دخولك من جديد للمتابعة.",
+    "The server no longer recognises this device's session. Sign in again to continue."],
+  errRateT:["محاولات كثيرة في وقت قصير","Too many attempts in a short time"],
+  errRateB:["الخادم يحدّ من عدد الطلبات حمايةً للحسابات. انتظر قليلًا ثم أعد المحاولة.",
+    "The server limits requests to protect accounts. Wait a little and try again."],
+  errAuthT:["رُفض الطلب","The request was refused"],
+  errAuthB:["الخادم لم يقبل هذا الطلب. تأكّد من بياناتك، وإن تكرّر الرفض فراجع مدير النظام.",
+    "The server did not accept this request. Check your details, and if it keeps happening contact an administrator."],
+  errEmailUnknownT:["هذا البريد غير مسجَّل","That email is not registered"],
+  errEmailUnknownB:["الدخول لا يُنشئ حسابات. استعمل البريد المسجَّل في النظام، أو اطلب من المدير إضافتك.",
+    "Signing in never creates accounts. Use the address registered in the system, or ask an administrator to add you."],
+  errDisabledT:["الحساب موقوف","This account is suspended"],
+  errDisabledB:["حسابك غير نشِط حاليًا. راجع مدير النظام لتفعيله.",
+    "Your account is not active right now. Ask an administrator to re-enable it."],
+  errPkUnsupT:["مفاتيح المرور غير مدعومة هنا","Passkeys aren't supported here"],
+  errPkUnsupB:["هذا المتصفح لا يوفّر WebAuthn. استعمل رمز الدخول أو البريد.",
+    "This browser doesn't provide WebAuthn. Use your access code or email instead."],
+  errOriginT:["لا يمكن استعمال مفاتيح المرور من ملف محلي","Passkeys can't be used from a local file"],
+  errOriginB:["مفتاح المرور مرتبط بنطاق الموقع، والصفحة مفتوحة بلا نطاق. افتحها عبر خادم (http://localhost مثلًا).",
+    "A passkey is bound to a site's domain, and this page has none. Open it through a server (http://localhost, for example)."],
+  errNoCredT:["لا يوجد مفتاح مسجَّل على هذا النطاق","No passkey is registered for this domain"],
+  errNoCredB:["يُسجَّل المفتاح من داخل النظام بعد الدخول. استعمل رمز الدخول أو البريد الآن.",
+    "A passkey is enrolled from inside the system after signing in. Use your access code or email for now."],
+  errCancelT:["أُلغي التأكيد","The confirmation was cancelled"],
+  errCancelB:["لم يكتمل تأكيد الجهاز. أعد المحاولة، أو ادخل برمزك.",
+    "The device confirmation didn't complete. Try again, or sign in with your code."],
+  errPkFailT:["تعذّر استعمال مفتاح المرور","The passkey could not be used"],
+  errPkFailB:["لم يستطع الجهاز إكمال التوقيع. أعد المحاولة، أو ادخل برمزك.",
+    "Your device could not complete the signature. Try again, or sign in with your code."],
+  errPkRejT:["رفض الخادم مفتاح المرور","The server rejected the passkey"],
+  errPkRejB:["التوقيع لم يجتز التحقّق على الخادم. أعد المحاولة، وإن تكرّر فسجّل مفتاحًا جديدًا من داخل النظام.",
+    "The signature failed verification on the server. Try again, and if it repeats enrol a new key from inside the system."],
+  errServerT:["تعذّر إكمال العملية","The operation could not be completed"],
+  errServerB:["الخادم ردّ بخطأ غير متوقّع. أعد المحاولة، وإن تكرّر فراجع مدير النظام.",
+    "The server returned an unexpected error. Try again, and if it repeats contact an administrator."],
+  errOffT:["الدخول بالبريد غير مفعَّل","Email sign-in is switched off"],
+  errOffB:["فعّله بضبط emailLogin في SETUP_CONFIG.","Turn it on by setting emailLogin in SETUP_CONFIG."]
+});
+
+/* ==========================================================================
    16) الإقلاع
    ========================================================================== */
 (function boot(){
@@ -5190,13 +6506,32 @@ document.addEventListener("pointerdown", e => {
   Theme.apply(SetupState.data.preferences.theme || "light");
   SetupIllustration.init($("#illus"));
   if(restored) Secrets.rehydrate();
-  Wizard.init();
-  if(restored && SetupState.data.completedSteps.length) setTimeout(() => Toast.show(t("restored"), "info"), 600);
+
   window.ERPSetup = { state:SetupState, wizard:Wizard, employees:Employees, permissions:Permissions,
-    services:{ OtpService, SetupService, InvoiceTemplate }, config:CONFIG,
+    services:{ OtpService, SetupService, InvoiceTemplate, AuthService }, config:CONFIG,
     flow:Flow, progress:() => Flow.snapshot(), progressCard:renderProgressCard,
+    // الجلسة والتوجيه — يقرؤهما النظام بعد الدخول ليعرف من الموجود وما صلاحياته.
+    auth:{ session:AuthSession, service:AuthService, router:Router, terminal:Terminal,
+      isAuthenticated:() => AuthSession.isAuthenticated(), user:() => AuthSession.snapshot(),
+      can:m => AuthSession.can(m), logout:() => Router.confirmLogout(), switchUser:() => Router.switchUser() },
     illustration:{ el:SetupIllustration, live:LiveSVG,
       setIllustrationState, triggerShake, triggerSuccess, triggerProcessing, triggerAttention } };
+
+  // جلسة صالحة ⇒ النظام. إعداد مكتمل بلا جلسة ⇒ الدخول. غير ذلك ⇒ البوابة.
+  Router.boot();
+  if(restored && SetupState.data.completedSteps.length && !Router.setupCompleted())
+    setTimeout(() => Toast.show(t("restored"), "info"), 900);
+
+  // إغلاق التبويب يُنهي جلسة التشغيل على الخادم بدل تركها مفتوحة إلى أن تُكنس.
+  window.addEventListener("pagehide", () => {
+    const id = AuthSession.data && AuthSession.data.sessionId;
+    if(!id || !navigator.sendBeacon || !Sb.ready()) return;
+    try{
+      navigator.sendBeacon(Sb._base() + "/rest/v1/rpc/app_session_end?apikey=" +
+        encodeURIComponent(CONFIG.supabaseAnonKey),
+        new Blob([JSON.stringify({ p_session_id:id, p_reason:"normal" })], { type:"application/json" }));
+    }catch(_){ }
+  });
 })();
 </script>
 </body>
