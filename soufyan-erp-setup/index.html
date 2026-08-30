@@ -852,8 +852,10 @@ body[data-surface="auth"] .s-nav{display:none}
 body[data-surface="auth"] .step{max-width:560px}
 /* البوابة والدخول محتواهما أقصر من خطوة الإعداد، فيُوسَّط المسرح رأسيًا بدل
    أن يتعلّق أعلى الشاشة وتحته فراغ لا يفعل شيئًا. */
-body[data-surface="auth"] .stage-grid{align-items:center; min-height:calc(100dvh - 210px)}
 body[data-surface="auth"] .illus{position:static; max-width:min(100%,440px); margin-inline:auto}
+@media (min-width:1001px){
+  body[data-surface="auth"] .stage-grid{align-items:center; min-height:calc(100dvh - 210px)}
+}
 
 /* ---- البابان: «لدي حساب» و«مستخدم جديد» ---- */
 .doors{display:grid; gap:12px}
@@ -5966,12 +5968,14 @@ const AuthUI = {
         : opts.mode === "switch" ? "switchLede"
         : Terminal.isNew() ? "loginLedeNewDevice" : "loginLede"),
       body:`
-        <div data-login-err id="loginErr">${opts.reason === "expired" ? errBox("expired-session")
-          : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}</div>
+        ${opts.reason === "expired" ? errBox("expired-session")
+          : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}
         ${caps.pin ? `<div data-pin-mount></div>
+          <div data-login-err id="loginErr"></div>
           <button type="button" class="btn btn-primary btn-lg btn-block" data-pin-go>
             <span class="btn-label">${esc(t("loginCta"))}</span>${ico("next")}</button>`
-        : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.pinReason).title)}</b><br>${esc(authError(caps.pinReason).body)}</div></div>`}
+        : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.pinReason).title)}</b><br>${esc(authError(caps.pinReason).body)}</div></div>
+           <div data-login-err id="loginErr"></div>`}
         ${caps.configured ? `<p class="hint" id="otherWays">${esc(t("otherWays"))}</p>
         <ul class="methods" aria-labelledby="otherWays">${others.map(methodRow).join("")}</ul>` : ""}
         <div class="auth-foot">
