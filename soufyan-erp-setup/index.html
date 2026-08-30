@@ -871,7 +871,7 @@ body[data-surface="auth"] .illus{position:static; max-width:min(100%,440px); mar
 .door .d-ico svg{width:23px; height:23px}
 @media (hover:hover){ .door:hover .d-ico{background:var(--accent); color:var(--accent-on)} }
 .door b{font-size:1.06rem; font-weight:700; line-height:1.35; letter-spacing:-.01em}
-.door p{font-size:.84rem; color:var(--text-2); line-height:1.6}
+.door .d-desc{display:block; font-size:.84rem; color:var(--text-2); line-height:1.6}
 .door .d-go{display:inline-flex; align-items:center; gap:7px; margin-top:auto; padding-top:4px;
   font-size:.84rem; font-weight:600; color:var(--accent-text)}
 .door .d-go svg{width:15px; height:15px}
@@ -880,22 +880,24 @@ html[dir="rtl"] .door .d-go svg{transform:scaleX(-1)}
 .door[data-tone="primary"] .d-ico{background:var(--accent-solid); color:var(--accent-on)}
 
 /* ---- قائمة طرق الدخول ---- */
-.methods{display:grid; gap:10px}
+.methods{display:grid; gap:10px; list-style:none; margin:0; padding:0}
+.methods li{display:block}
 .method{display:flex; align-items:center; gap:13px; text-align:start; width:100%; padding:14px 15px;
   border-radius:var(--r-lg); background:var(--clay); border:1.5px solid var(--line-soft);
   box-shadow:var(--shadow-clay); color:inherit;
   transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease), transform var(--t-med) var(--ease)}
-@media (hover:hover){ .method:not(:disabled):hover{border-color:var(--accent); transform:translateY(-1px)} }
-.method:active:not(:disabled){transform:scale(.98)}
-.method:disabled{cursor:not-allowed; opacity:1; background:transparent; border-style:dashed; box-shadow:none}
+@media (hover:hover){ button.method:hover{border-color:var(--accent); transform:translateY(-1px)} }
+button.method:active{transform:scale(.98)}
+/* طريقة لا تعمل ليست زرًّا معطّلًا بل سطر يشرح السبب: يُقرأ ولا يُلتقط في مسار Tab. */
+.method[data-off="1"]{background:transparent; border-style:dashed; box-shadow:none}
 .method .m-ico{width:40px; height:40px; border-radius:13px; flex:none; display:grid; place-items:center;
   background:var(--clay-2); color:var(--accent-text)}
 .method .m-ico svg{width:20px; height:20px}
-.method:disabled .m-ico{background:var(--surface-3); color:var(--text-3)}
+.method[data-off="1"] .m-ico{background:var(--surface-3); color:var(--text-3)}
 .method .m-txt{flex:1; min-width:0}
 .method .m-txt b{display:block; font-size:.94rem; font-weight:600; line-height:1.45}
 .method .m-txt span{display:block; font-size:.79rem; color:var(--text-2); line-height:1.55; margin-top:1px}
-.method:disabled .m-txt b{color:var(--text-2)}
+.method[data-off="1"] .m-txt b{color:var(--text-2)}
 .method .m-go{flex:none; color:var(--text-3)}
 .method .m-go svg{width:16px; height:16px}
 html[dir="rtl"] .method .m-go svg{transform:scaleX(-1)}
@@ -903,7 +905,8 @@ html[dir="rtl"] .method .m-go svg{transform:scaleX(-1)}
 /* ---- إدخال رمز الدخول ---- */
 /* الحقل يأخذ عرض الزر الذي تحته فتستقيم الحافتان، والرمز نفسه يبقى موسَّطًا
    داخله لأنه بؤرة الشاشة. النقاط والتلميح يتبعان الحقل لا العكس. */
-.pin-wrap{display:grid; gap:10px; justify-items:stretch; padding:4px 0}
+.pin-wrap{display:grid; gap:8px; justify-items:stretch; padding:4px 0}
+.pin-label{font-size:.86rem; font-weight:600; text-align:center}
 .pin-wrap .pin-dots{justify-content:center}
 .pin-wrap .hint{text-align:center; max-width:none}
 .pin-dots{display:flex; gap:10px; direction:ltr}
@@ -932,6 +935,14 @@ html[dir="rtl"] .method .m-go svg{transform:scaleX(-1)}
 .perm-list{display:flex; flex-wrap:wrap; gap:6px; list-style:none; margin:0; padding:0}
 .perm-list li{display:inline-flex; align-items:center; padding:5px 11px; border-radius:var(--r-pill);
   font-size:.76rem; font-weight:600; background:var(--surface); border:1px solid var(--line-soft); color:var(--text-2)}
+
+/* عند العروض الضيّقة جدًّا يحمل الرأس شارة الجلسة وزرَّيها فوق أزرار اللغة
+   والمظهر، فيتجاوز أضيقُ عرضٍ ممكنٍ له الشاشةَ. السماح بالالتفاف يحلّ ذلك
+   عند المنبع بدل إخفاء أدوات يحتاجها المستخدم. */
+@media (max-width:430px){
+  .s-header .row{flex-wrap:wrap; row-gap:8px}
+  .h-actions{flex-wrap:wrap; justify-content:flex-end}
+}
 
 /* ---- شريط الجلسة في الرأس ---- */
 .sess{display:flex; align-items:center; gap:9px; padding:5px 6px 5px 12px; border-radius:var(--r-pill);
@@ -5727,9 +5738,10 @@ class PinInput {
     this.min = min; this.max = max; this.onSubmit = onSubmit; this.onChange = onChange;
     this.root = mount; this.root.className = "pin-wrap"; this.root.dataset.state = "waiting";
     this.root.innerHTML =
-      `<div class="pin-dots" aria-hidden="true">${Array.from({ length:max }, () => "<i></i>").join("")}</div>
-       <input class="pin-input" type="password" inputmode="numeric" autocomplete="off"
-         maxlength="${max}" aria-label="${esc(t("pinLabel"))}" aria-describedby="pinHint" enterkeyhint="go">
+      `<label class="pin-label" for="pinField">${esc(t("pinLabel"))}</label>
+       <div class="pin-dots" aria-hidden="true">${Array.from({ length:max }, () => "<i></i>").join("")}</div>
+       <input class="pin-input" id="pinField" name="pin" type="password" inputmode="numeric" autocomplete="off"
+         maxlength="${max}" aria-describedby="pinHint" enterkeyhint="go">
        <p class="hint" id="pinHint">${esc(t("pinHint", { a: fmtNum(min), b: fmtNum(max) }))}</p>`;
     this.input = $(".pin-input", this.root);
     this.dots  = $$(".pin-dots i", this.root);
@@ -5756,6 +5768,14 @@ class PinInput {
   /** waiting · verifying · verified · invalid */
   setState(s){
     this.root.dataset.state = s;
+    // الحالة تُقال للحقل نفسه، فيسمعها قارئ الشاشة عند العودة إليه — لا لونًا وحده.
+    if(s === "invalid"){
+      this.input.setAttribute("aria-invalid", "true");
+      this.input.setAttribute("aria-describedby", "pinHint loginErr");
+    }else{
+      this.input.removeAttribute("aria-invalid");
+      this.input.setAttribute("aria-describedby", "pinHint");
+    }
     if(s === "verifying") SetupIllustration.triggerProcessing();
     if(s === "verified") SetupIllustration.triggerSuccess();
     if(s === "invalid"){
@@ -5899,13 +5919,13 @@ const AuthUI = {
         <button type="button" class="door" data-door="login"${done ? ' data-tone="primary"' : ""}>
           <span class="d-ico">${ico("lock")}</span>
           <b>${esc(t("gateHaveT"))}</b>
-          <p>${esc(t("gateHaveD"))}</p>
+          <span class="d-desc">${esc(t("gateHaveD"))}</span>
           <span class="d-go">${esc(t("gateHaveCta"))}${ico("next")}</span>
         </button>
         <button type="button" class="door" data-door="setup"${!done ? ' data-tone="primary"' : ""}>
           <span class="d-ico">${ico("rocket")}</span>
           <b>${esc(t(done ? "gateNewTDone" : "gateNewT"))}</b>
-          <p>${esc(t(done ? "gateNewDDone" : back ? "gateNewDBack" : "gateNewD"))}</p>
+          <span class="d-desc">${esc(t(done ? "gateNewDDone" : back ? "gateNewDBack" : "gateNewD"))}</span>
           <span class="d-go">${esc(t(back ? "gateNewCtaBack" : "gateNewCta"))}${ico("next")}</span>
         </button>
       </div>
@@ -5927,28 +5947,33 @@ const AuthUI = {
     if(caps.email) others.push({ id:"email", icon:"mail", t:"mEmailT", d:"mEmailD" });
     else others.push({ id:"email", icon:"mail", t:"mEmailT", off:caps.emailReason });
 
-    const methodRow = m => `<button type="button" class="method" data-method="${m.id}"${m.off ? " disabled" : ""}>
-      <span class="m-ico">${ico(m.icon)}</span>
-      <span class="m-txt"><b>${esc(t(m.t))}</b><span>${esc(m.off ? authError(m.off).title : t(m.d))}</span></span>
-      ${m.off ? "" : `<span class="m-go">${ico("next")}</span>`}</button>`;
+    const methodRow = m => `<li>${m.off
+      ? `<div class="method" data-off="1">
+          <span class="m-ico">${ico(m.icon)}</span>
+          <span class="m-txt"><b>${esc(t(m.t))}</b><span>${esc(authError(m.off).title)}</span></span></div>`
+      : `<button type="button" class="method" data-method="${m.id}">
+          <span class="m-ico">${ico(m.icon)}</span>
+          <span class="m-txt"><b>${esc(t(m.t))}</b><span>${esc(t(m.d))}</span></span>
+          <span class="m-go">${ico("next")}</span></button>`}</li>`;
 
     Screen.render({
       id:"login", svg:"security", icon:"lock",
       eyebrow:t(opts.mode === "switch" ? "switchEyebrow" : "loginEyebrow"),
-      title:t(opts.mode === "switch" ? "switchTitle" : "loginTitle"),
-      lede:t(opts.reason === "expired" ? "loginLedeExpired"
+      title:t(!caps.configured ? "loginTitleOff" : opts.mode === "switch" ? "switchTitle" : "loginTitle"),
+      lede:t(!caps.configured ? "loginLedeOff"
+        : opts.reason === "expired" ? "loginLedeExpired"
         : opts.reason === "after-setup" ? "loginLedeAfterSetup"
         : opts.mode === "switch" ? "switchLede"
         : Terminal.isNew() ? "loginLedeNewDevice" : "loginLede"),
       body:`
-        <div data-login-err>${opts.reason === "expired" ? errBox("expired-session")
+        <div data-login-err id="loginErr">${opts.reason === "expired" ? errBox("expired-session")
           : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}</div>
         ${caps.pin ? `<div data-pin-mount></div>
-          <button type="button" class="btn btn-primary btn-lg btn-block" data-pin-go disabled>
+          <button type="button" class="btn btn-primary btn-lg btn-block" data-pin-go>
             <span class="btn-label">${esc(t("loginCta"))}</span>${ico("next")}</button>`
         : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.pinReason).title)}</b><br>${esc(authError(caps.pinReason).body)}</div></div>`}
-        <p class="hint" id="otherWays">${esc(t("otherWays"))}</p>
-        <div class="methods" aria-labelledby="otherWays">${others.map(methodRow).join("")}</div>
+        ${caps.configured ? `<p class="hint" id="otherWays">${esc(t("otherWays"))}</p>
+        <ul class="methods" aria-labelledby="otherWays">${others.map(methodRow).join("")}</ul>` : ""}
         <div class="auth-foot">
           <button type="button" class="btn btn-quiet btn-sm" data-back-gate>${ico("prev")}<span class="btn-label">${esc(t("backToGate"))}</span></button>
           <span class="sep"></span>
@@ -5961,14 +5986,22 @@ const AuthUI = {
         if(caps.pin){
           pin = new PinInput({
             mount: $("[data-pin-mount]", root),
-            onChange(){ go.disabled = !pin.valid(); },
+            onChange(){ if(errHost.dataset.short === "1"){ errHost.innerHTML = ""; errHost.dataset.short = ""; } },
             onSubmit(){ submit(); }
           });
           setTimeout(() => pin.focus(), 220);
           go.addEventListener("click", submit);
         }
         async function submit(){
-          if(!pin || !pin.valid() || go.dataset.busy === "1") return;
+          if(!pin || go.dataset.busy === "1") return;
+          // الزر يبقى مفعّلًا: من ضغطه يستحقّ سببًا، لا زرًّا ميتًا بلا تفسير.
+          if(!pin.valid()){
+            errHost.dataset.short = "1";
+            errHost.innerHTML = errBox("invalid");
+            pin.setState("invalid"); pin.focus();
+            announce(authError("invalid").title);
+            return;
+          }
           go.dataset.busy = "1"; pin.setState("verifying"); pin.disable(true);
           errHost.innerHTML = "";
           try{
@@ -5979,7 +6012,7 @@ const AuthUI = {
             pin.setState("invalid"); pin.disable(false); pin.clear(); pin.focus();
             errHost.innerHTML = errBox(e.code, e.detail);
             announce(authError(e.code, e.detail).title);
-          }finally{ go.dataset.busy = ""; go.disabled = !(pin && pin.valid()); }
+          }finally{ go.dataset.busy = ""; }
         }
         $$("[data-method]", root).forEach(b => b.addEventListener("click", () => {
           if(b.dataset.method === "passkey") AuthUI.passkey();
@@ -6139,7 +6172,7 @@ const AuthUI = {
     AuthSession.begin(result);
     AuthSession.startHeartbeat();
     Chrome.actions();
-    Toast.show(t("welcomeBack", { n: result.employee.name || "" }), "ok");
+    // بلا تنبيه ترحيب: الشاشة التالية تقول الاسم نفسه، والتكرار ضجيج لا تأكيد.
     await wait(reducedMotion() ? 0 : 420);
     Router.go("erp");
   },
@@ -6348,6 +6381,9 @@ Object.assign(L, {
   loginLedeExpired:["انتهت جلستك السابقة. أدخل رمزك للمتابعة من حيث كنت.",
     "Your previous session ended. Enter your code to carry on where you were."],
   loginCta:["دخول","Sign in"],
+  loginTitleOff:["الدخول غير متاح","Signing in is unavailable"],
+  loginLedeOff:["لا يوجد خادم يتحقّق من هويتك في هذه النسخة، فلا نطلب منك رمزًا لن يقبله أحد.",
+    "No server can verify who you are in this build, so we won't ask you for a code nothing would accept."],
   loginLedeAfterSetup:["اكتمل الإعداد. سجّل دخولك لأول مرة ليصدر الخادم جلستك.",
     "Setup is complete. Sign in for the first time so the server can issue your session."],
   afterSetupNote:["تم إعداد النظام. الخطوة الأخيرة هي دخولك أنت — الجلسة يصدرها الخادم لا هذه الصفحة.",
@@ -6367,7 +6403,6 @@ Object.assign(L, {
   mPasskeyD:["ببصمتك أو وجهك أو رمز الجهاز — بلا كتابة.","With your fingerprint, face, or device code — nothing to type."],
   mEmailT:["البريد الإلكتروني","Email"],
   mEmailD:["يصلك رمز من ستة أرقام على بريدك.","A six-digit code arrives in your inbox."],
-  welcomeBack:["أهلًا {n}","Welcome, {n}"],
   sessionLost:["أُنهيت الجلسة من الخادم. سجّل دخولك من جديد.","The server ended this session. Please sign in again."],
   logout:["تسجيل الخروج","Sign out"],
   switchUser:["تبديل المستخدم","Switch user"],
@@ -6425,8 +6460,8 @@ Object.assign(L, {
   handRlsT:["أين تُطبَّق الصلاحيات","Where permissions are enforced"],
   handRlsD:["في قاعدة البيانات: سياسات RLS ودوال الخادم. ما تراه هنا إخفاء للأقسام غير المعنيّة، لا حماية بذاته.",
     "In the database: RLS policies and server functions. What you see here hides irrelevant sections; it is not protection in itself."],
-  offlineNote:["نعمل الآن بلا اتصال بالخادم. الجلسة ستُراجَع تلقائيًا عند عودة الاتصال، وقد تُغلق حينها.",
-    "Working without a server connection right now. The session is re-checked when the connection returns, and may close then."],
+  offlineNote:["لا يوجد اتصال بالخادم الآن. تُراجَع الجلسة تلقائيًا عند عودة الاتصال، وقد تُغلق حينها.",
+    "There is no server connection right now. The session is re-checked when the connection returns, and may close then."],
   viaMethod_pin:["دخول برمز","signed in with a code"],
   viaMethod_passkey:["دخول بمفتاح مرور","signed in with a passkey"],
   viaMethod_email:["دخول بالبريد","signed in by email"],

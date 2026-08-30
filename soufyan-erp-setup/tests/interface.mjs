@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium } from './pw.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
@@ -29,7 +29,7 @@ const b=await chromium.launch({executablePath:EXE});
 
 /* ===== الاستجابة: لا فيض أفقي في أي عرض ===== */
 console.log('\n— الاستجابة —');
-for(const w of [360,390,430,768,1024,1280,1440,1920]){
+for(const w of [320,360,390,430,768,1024,1280,1440,1920]){
   const ctx=await b.newContext({viewport:{width:w,height:820}}); const p=await ctx.newPage(); await stub(p);
   await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(700);
   const g=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
@@ -40,6 +40,34 @@ for(const w of [360,390,430,768,1024,1280,1440,1920]){
   const e=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   if(w===390) if(SHOTS) await p.screenshot({path:SHOTS+'m-erp.png'});
   ok(g<=0&&l<=0&&e<=0, `${w}px — بلا فيض أفقي (بوابة ${g} · دخول ${l} · نظام ${e})`);
+  await ctx.close();
+}
+
+/* ===== التكبير 200% ===== */
+{
+  const ctx=await b.newContext({viewport:{width:1280,height:900},deviceScaleFactor:1}); const p=await ctx.newPage(); await stub(p);
+  await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(600);
+  await p.evaluate(()=>{ document.documentElement.style.zoom='200%'; });
+  await p.waitForTimeout(400);
+  const g=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  ok(g<=1, `تكبير 200% — بلا فيض أفقي (${g})`);
+  await ctx.close();
+}
+
+/* ===== بنية الأزرار: لا محتوى كتلة داخل زر ===== */
+{
+  const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
+  await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(600);
+  const bad=await p.$$eval('button', bs=>bs.filter(x=>x.querySelector('p,div,ul,ol,h1,h2,h3,section,article,button,a')).map(x=>x.className));
+  ok(bad.length===0,'لا عنصر كتلة داخل زر (HTML صالحة): '+JSON.stringify(bad));
+  await p.click('[data-door="login"]'); await p.waitForTimeout(600);
+  const bad2=await p.$$eval('button', bs=>bs.filter(x=>x.querySelector('p,div,ul,ol,h1,h2,h3,section,article,button,a')).map(x=>x.className));
+  ok(bad2.length===0,'وكذلك في شاشة الدخول: '+JSON.stringify(bad2));
+  const named=await p.$$eval('button, input, a[href]', els=>els.filter(e=>{
+    const n=(e.getAttribute('aria-label')||e.getAttribute('title')||e.textContent||'').trim();
+    const lbl=e.id?document.querySelector(`label[for="${e.id}"]`):null;
+    return !n && !lbl; }).map(e=>e.className||e.tagName));
+  ok(named.length===0,'كل عنصر تفاعلي له اسم منطوق: '+JSON.stringify(named));
   await ctx.close();
 }
 

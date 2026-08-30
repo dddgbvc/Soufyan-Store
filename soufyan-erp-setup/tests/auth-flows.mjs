@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium } from './pw.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
@@ -78,7 +78,10 @@ const b = await chromium.launch({ executablePath:EXE });
   await p.click('[data-door="login"]'); await p.waitForTimeout(700);
   ok(await p.isVisible('.pin-input'),'شاشة الدخول تعرض حقل رمز الدخول');
   ok(await p.evaluate(()=>document.activeElement?.classList.contains('pin-input')),'التركيز ينتقل تلقائيًا إلى حقل الرمز');
-  ok(await p.isDisabled('[data-pin-go]'),'زر الدخول معطّل قبل اكتمال الرمز');
+  ok(await p.isEnabled('[data-pin-go]'),'زر الدخول يبقى مفعّلًا — التحقّق عند الضغط لا قبله');
+  await p.click('[data-pin-go]'); await p.waitForTimeout(400);
+  ok((await p.textContent('[data-login-err]')).includes('أرقام فقط'),'الضغط برمز ناقص يشرح المطلوب بدل زرّ ميت');
+  ok(await p.getAttribute('.pin-input','aria-invalid')==='true','الحقل يحمل aria-invalid بعد الخطأ');
   if(SHOTS) await p.screenshot({path:SHOTS+'login.png'});
   await p.fill('.pin-input','9999'); await p.click('[data-pin-go]'); await p.waitForTimeout(700);
   ok((await p.textContent('[data-login-err]')).includes('غير صحيح'),'رمز خاطئ ⇒ رسالة صريحة');

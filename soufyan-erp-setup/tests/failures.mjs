@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium } from './pw.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
@@ -37,7 +37,7 @@ console.log('\n— الإيقاف بعد محاولات كثيرة —');
     body:JSON.stringify({ok:false, reason:'locked', retry_after:120})}));
   await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(700);
   await p.click('[data-door="login"]'); await p.waitForTimeout(600);
-  await p.fill('.pin-input','1234'); await p.press('.pin-input','Enter'); await p.waitForTimeout(900);
+  await p.fill('.pin-input','1234'); await p.press('.pin-input','Enter'); await p.waitForTimeout(1000);
   const txt=await p.textContent('[data-login-err]');
   ok(txt.includes('موقوف مؤقتًا'),'الإيقاف يُعرض كإيقاف لا كرمز خاطئ');
   ok(txt.includes('دقيقتين')&&txt.includes('مفتاح المرور'),'يقترح الانتظار وطريقًا بديلًا');
@@ -55,7 +55,8 @@ console.log('\n— بلا ربط —');
   const txt=await p.textContent('.step-body');
   ok(!(await p.isVisible('.pin-input')),'لا يُعرض حقل رمز لا يستطيع أحد التحقّق منه');
   ok(txt.includes('supabaseUrl'),'ويقول ما الذي ينقص بالضبط');
-  ok((await p.$$eval('.method[disabled]',n=>n.length))===2,'الطريقتان الأخريان معطّلتان بسببهما الحقيقي');
+  ok((await p.$$eval('.method',n=>n.length))===0,'لا تُعرض «طرق أخرى» حين لا توجد طريقة واحدة تعمل');
+  ok((await p.textContent('#stepTitle'))==='الدخول غير متاح','العنوان لا يطلب رمزًا لن يقبله أحد');
   if(SHOTS) await p.screenshot({path:SHOTS+'err-noconfig.png'});
   await ctx.close();
 }
@@ -91,7 +92,7 @@ console.log('\n— انقطاع مؤقّت أثناء الاستئناف —');
   await p.route('**/rest/v1/rpc/**', r=>r.abort());          // الخادم صامت
   await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1500);
   ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','الصمت المؤقّت لا يطرد المستخدم خلال مهلة السماح');
-  ok((await p.textContent('.step-body')).includes('بلا اتصال'),'الحالة معلنة على الشاشة لا مخفيّة');
+  ok((await p.textContent('.step-body')).includes('لا يوجد اتصال بالخادم'),'الحالة معلنة على الشاشة لا مخفيّة');
   if(SHOTS) await p.screenshot({path:SHOTS+'offline-session.png'});
   // ...لكن الرفض الصريح يطرد فورًا
   await p.unroute('**/rest/v1/rpc/**');

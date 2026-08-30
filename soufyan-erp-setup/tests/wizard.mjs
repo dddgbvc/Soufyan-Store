@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium } from './pw.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
