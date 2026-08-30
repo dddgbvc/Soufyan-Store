@@ -43,6 +43,37 @@ for(const w of [320,360,390,430,768,1024,1280,1440,1920]){
   await ctx.close();
 }
 
+/* ===== وزن الصفحة: المحرّك ثلاثي الأبعاد عند الطلب لا دائمًا ===== */
+console.log('\n— الوزن والتحميل عند الطلب —');
+{
+  const weigh=async cfg=>{
+    const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
+    if(cfg) await p.addInitScript(c=>{window.SETUP_CONFIG=c;}, cfg);
+    let bytes=0;
+    p.on('response', async r=>{ try{ bytes+=(await r.body()).length; }catch{} });
+    await p.goto(URL,{waitUntil:'load'}); await p.waitForSelector('#stepTitle'); await p.waitForTimeout(1200);
+    const out={ kb:Math.round(bytes/1024), three:await p.evaluate(()=>typeof THREE!=='undefined'),
+      mode:await p.evaluate(()=>SetupIllustration.mode), canvas:await p.evaluate(()=>!!document.querySelector('.illus-canvas')),
+      title:await p.textContent('#stepTitle') };
+    await ctx.close(); return out;
+  };
+  const def=await weigh(null);
+  ok(def.three===false, `الوضع الافتراضي لا يحمّل three.js إطلاقًا (${def.kb} KB)`);
+  ok(def.mode==='svg', 'ويعمل بالرسوم الحيّة');
+  const three=await weigh({illustration:'3d'});
+  ok(three.three===true && three.canvas===true, `طلب الوضع ثلاثي الأبعاد يحمّله ويبني المشهد (${three.kb} KB)`);
+  ok(three.kb-def.kb>500, `الفرق ${three.kb-def.kb} KB — هذا ما توفّره الصفحة الافتراضية`);
+  // فشل تحميل المحرّك لا يترك شاشة فارغة
+  const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
+  await p.addInitScript(()=>{window.SETUP_CONFIG={illustration:'3d'};});
+  await p.route('**/three.min.js', r=>r.abort());
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(1400);
+  ok((await p.textContent('#stepTitle'))==='أهلًا بك','فشل تحميل المحرّك ⇒ الرسوم الحيّة، لا شاشة فارغة');
+  ok(errs.length===0,'وبلا أخطاء JavaScript');
+  await ctx.close();
+}
+
 /* ===== التكبير 200% ===== */
 {
   const ctx=await b.newContext({viewport:{width:1280,height:900},deviceScaleFactor:1}); const p=await ctx.newPage(); await stub(p);
