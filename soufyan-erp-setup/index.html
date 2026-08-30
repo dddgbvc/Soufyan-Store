@@ -5657,20 +5657,27 @@ const AuthSession = {
    الإخفاء الافتراضي يحمي من النظرة العابرة، والإظهار يمنع الخطأ الصامت.
    الزر يعلن حالته (`aria-pressed`) فيعرف قارئ الشاشة إن كانت ظاهرة أم لا.
    ========================================================================== */
-function passwordField(o){
+/**
+ * حقول شاشة الدخول بلا وسم «مطلوب» ولا «(اختياري)»: كلّها مطلوبة بداهةً، والنجمة
+ * هنا ضجيج لا معلومة. (حقول الإعداد تبقى على وسومها لأن فيها ما هو اختياري فعلًا.)
+ */
+function authField(o){
+  const peek = o.type === "password";
+  const input = `<input class="control" id="f_${o.name}" name="${o.name}" type="${o.type || "text"}"
+        autocomplete="${o.autocomplete || "off"}" dir="ltr" enterkeyhint="go"
+        ${o.inputmode ? `inputmode="${o.inputmode}"` : ""}
+        ${o.placeholder ? `placeholder="${esc(o.placeholder)}"` : ""}
+        ${o.hint ? `aria-describedby="h_${o.name}"` : ""}>`;
   return `<div class="field" data-fw="${o.name}">
     <label for="f_${o.name}">${esc(o.label)}</label>
-    <div class="pwd-row">
-      <input class="control" id="f_${o.name}" name="${o.name}" type="password"
-        autocomplete="${o.autocomplete || "current-password"}" dir="ltr"
-        ${o.hint ? `aria-describedby="h_${o.name}"` : ""} enterkeyhint="go">
+    ${peek ? `<div class="pwd-row">${input}
       <button type="button" class="mini-btn pwd-peek" data-peek="${o.name}"
-        aria-pressed="false" aria-label="${esc(t("pwdShow"))}">${ico("eye")}</button>
-    </div>
+        aria-pressed="false" aria-label="${esc(t("pwdShow"))}">${ico("eye")}</button></div>` : input}
     ${o.hint ? `<p class="hint" id="h_${o.name}">${esc(o.hint)}</p>` : ""}
     <p class="err-msg" data-err="${o.name}" hidden>${ico("alert")}<span></span></p>
   </div>`;
 }
+const passwordField = o => authField(Object.assign({ type:"password", autocomplete:"current-password" }, o));
 /** يربط أزرار الإظهار داخل جذر ما — يُستدعى بعد رسم أي شاشة فيها كلمة مرور. */
 function bindPeek(root){
   $$("[data-peek]", root).forEach(b => b.addEventListener("click", () => {
@@ -5843,8 +5850,8 @@ const AuthUI = {
           : opts.reason === "recover-failed" ? errBox("recover-failed")
           : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}
         ${caps.configured ? `
-          ${F.text({ name:"loginEmail", label:t("emField"), type:"email", dir:"ltr", nobind:true,
-              required:true, autocomplete:"username", placeholder:"name@example.com" })}
+          ${authField({ name:"loginEmail", label:t("emField"), type:"email",
+              autocomplete:"username", inputmode:"email", placeholder:"name@example.com" })}
           ${passwordField({ name:"loginPassword", label:t("pwdField") })}
           <div class="auth-row">
             <button type="button" class="btn btn-quiet btn-sm" data-forgot>${esc(t("forgotCta"))}</button>
@@ -5920,8 +5927,8 @@ const AuthUI = {
              <span class="sep"></span>
              <button type="button" class="btn btn-quiet btn-sm" data-again>${ico("refresh")}<span class="btn-label">${esc(t("recAgain"))}</span></button>
            </div>`
-        : `${F.text({ name:"recEmail", label:t("emField"), type:"email", dir:"ltr", nobind:true,
-              required:true, autocomplete:"username", placeholder:"name@example.com", hint:t("recHint") })}
+        : `${authField({ name:"recEmail", label:t("emField"), type:"email",
+              autocomplete:"username", inputmode:"email", placeholder:"name@example.com", hint:t("recHint") })}
            <div data-rec-err></div>
            <button type="button" class="btn btn-primary btn-lg btn-block" data-send>
              ${ico("mail")}<span class="btn-label">${esc(t("recSend"))}</span></button>

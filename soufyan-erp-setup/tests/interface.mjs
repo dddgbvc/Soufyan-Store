@@ -55,23 +55,28 @@ for(const w of [320,360,390,430,768,1024,1280,1440,1920]){
 /* ===== وزن الصفحة: المحرّك ثلاثي الأبعاد عند الطلب لا دائمًا ===== */
 console.log('\n— الوزن والتحميل عند الطلب —');
 {
+  // نعدّ الطلبات لا البايتات: قراءة أجسام الردود تتسابق مع إغلاق الصفحة فتتذبذب.
   const weigh=async cfg=>{
     const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
     if(cfg) await p.addInitScript(c=>{window.SETUP_CONFIG=c;}, cfg);
-    let bytes=0;
-    p.on('response', async r=>{ try{ bytes+=(await r.body()).length; }catch{} });
-    await p.goto(URL,{waitUntil:'load'}); await p.waitForSelector('#stepTitle'); await p.waitForTimeout(1200);
-    const out={ kb:Math.round(bytes/1024), three:await p.evaluate(()=>typeof THREE!=='undefined'),
-      mode:await p.evaluate(()=>SetupIllustration.mode), canvas:await p.evaluate(()=>!!document.querySelector('.illus-canvas')),
-      title:await p.textContent('#stepTitle') };
+    let threeBytes=0, askedForThree=false;
+    p.on('request', r=>{ if(r.url().includes('three.min.js')) askedForThree=true; });
+    p.on('response', async r=>{ if(!r.url().includes('three.min.js')) return;
+      try{ threeBytes=(await r.body()).length; }catch{} });
+    await p.goto(URL,{waitUntil:'load'}); await p.waitForSelector('#stepTitle'); await p.waitForTimeout(1500);
+    const out={ askedForThree, kb:Math.round(threeBytes/1024),
+      three:await p.evaluate(()=>typeof THREE!=='undefined'),
+      mode:await p.evaluate(()=>SetupIllustration.mode),
+      canvas:await p.evaluate(()=>!!document.querySelector('.illus-canvas')) };
     await ctx.close(); return out;
   };
   const def=await weigh(null);
-  ok(def.three===false, `الوضع الافتراضي لا يحمّل three.js إطلاقًا (${def.kb} KB)`);
-  ok(def.mode==='svg', 'ويعمل بالرسوم الحيّة');
+  ok(def.askedForThree===false && def.three===false,'الوضع الافتراضي لا يطلب three.js ولا يحمّله');
+  ok(def.mode==='svg','ويعمل بالرسوم الحيّة');
   const three=await weigh({illustration:'3d'});
-  ok(three.three===true && three.canvas===true, `طلب الوضع ثلاثي الأبعاد يحمّله ويبني المشهد (${three.kb} KB)`);
-  ok(three.kb-def.kb>500, `الفرق ${three.kb-def.kb} KB — هذا ما توفّره الصفحة الافتراضية`);
+  ok(three.askedForThree===true && three.three===true && three.canvas===true,
+    `طلب الوضع ثلاثي الأبعاد يحمّله ويبني مشهدًا حقيقيًا (${three.kb} KB)`);
+  ok(three.kb>500,`ما توفّره الصفحة الافتراضية: ${three.kb} KB لا تُحمَّل`);
   // فشل تحميل المحرّك لا يترك شاشة فارغة
   const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
   await p.addInitScript(()=>{window.SETUP_CONFIG={illustration:'3d'};});
