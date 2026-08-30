@@ -88,6 +88,43 @@ console.log('\n— الوزن والتحميل عند الطلب —');
   await ctx.close();
 }
 
+/* ===== تفاصيل بصرية تنكسر بصمت ===== */
+console.log('\n— تفاصيل الاتّجاه والتراكب —');
+{
+  const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
+  await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(800);
+  await p.click('[data-door="login"]'); await p.waitForTimeout(700);
+  // السهم الاتّجاهي ينقلب مع اتّجاه القراءة
+  const flip=sel=>p.$eval(sel+' svg',e=>getComputedStyle(e).transform);
+  ok((await flip('[data-go]')).startsWith('matrix(-1'),'سهم «دخول» ينقلب في العربية');
+  ok((await flip('[data-back-gate]')).startsWith('matrix(-1'),'وسهم «رجوع» كذلك');
+  // زرّ إظهار كلمة المرور لا يجلس فوق النص
+  const box=await p.evaluate(()=>{
+    const i=document.querySelector('#f_loginPassword'), b=document.querySelector('.pwd-peek');
+    const a=i.getBoundingClientRect(), c=b.getBoundingClientRect(), st=getComputedStyle(i);
+    const padStart=parseFloat(st.paddingInlineStart), padEnd=parseFloat(st.paddingInlineEnd);
+    const ltr=st.direction==='ltr';
+    // أول موضع يبدأ عنده النص
+    const textStart = ltr ? a.left+padStart : a.right-padStart;
+    return { overlap: c.left-1 <= textStart && textStart <= c.right+1, padEnd, btn:[c.left,c.right] };
+  });
+  ok(!box.overlap && box.padEnd>=40,'الزرّ عند نهاية النص لا فوق بدايته، والحشوة تقابله');
+  // الهوية لا تُكرَّر
+  ok(await p.evaluate(()=>getComputedStyle(document.querySelector('.s-header .brand')).visibility)==='hidden',
+    'هوية الرأس مخفيّة لأن البطاقة تحملها');
+  // علامة الهوية ثابتة بين الشاشات
+  const m1=await p.$eval('.auth-brand .mark svg path',e=>e.getAttribute('d'));
+  await p.click('[data-forgot]'); await p.waitForTimeout(700);
+  const m2=await p.$eval('.auth-brand .mark svg path',e=>e.getAttribute('d'));
+  ok(m1===m2,'علامة الهوية نفسها في كل شاشة — البراند لا يتبدّل');
+  // بطاقة واحدة موسَّطة بلا رسمة
+  ok(!(await p.isVisible('#illus')),'لا رسمة في شاشات التوثيق');
+  const c=await p.evaluate(()=>{const e=document.querySelector('.auth-card').getBoundingClientRect();
+    return Math.abs((e.left+e.right)/2 - innerWidth/2)<2;});
+  ok(c,'البطاقة موسَّطة أفقيًا');
+  await ctx.close();
+}
+
 /* ===== التكبير 200% ===== */
 {
   const ctx=await b.newContext({viewport:{width:1280,height:900},deviceScaleFactor:1}); const p=await ctx.newPage(); await stub(p);
@@ -186,38 +223,80 @@ console.log('\n— المظهر واللغة —');
   await ctx.close();
 }
 
-/* ===== التباين على النصوص الجديدة ===== */
+/* ===== التباين على كل نصّ في شاشات التوثيق والنظام ===== */
 console.log('\n— التباين —');
 {
-  globalThis.lum=c=>{const [r,g,bb]=c.map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return 0.2126*r+0.7152*g+0.0722*bb;};
-  globalThis.ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);};
+  const lum=c=>{const [r,g,bb]=c.map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});
+    return 0.2126*r+0.7152*g+0.0722*bb;};
+  const ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);};
+
+  /** يجمع كل عقدة نصّية مع خلفيتها **المركَّبة** — الأسطح الزجاجية شبه شفّافة. */
+  const collect = p => p.evaluate(()=>{
+    const num=s=>(s.match(/[\d.]+/g)||[]).map(Number);
+    const bgOf=el=>{
+      const stack=[]; let n=el;
+      while(n && n!==document.documentElement){
+        const c=getComputedStyle(n).backgroundColor;
+        if(c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)){
+          const v=num(c); const a=v.length>3?v[3]:1;
+          stack.push([v[0],v[1],v[2],a]);
+          if(a>=1) break;
+        }
+        n=n.parentElement;
+      }
+      const base=num(getComputedStyle(document.body).backgroundColor);
+      let out=[base[0]??255, base[1]??255, base[2]??255];
+      for(let i=stack.length-1;i>=0;i--){ const [r,g,b,a]=stack[i];
+        out=[r*a+out[0]*(1-a), g*a+out[1]*(1-a), b*a+out[2]*(1-a)]; }
+      return out;
+    };
+    const out=[];
+    document.querySelectorAll(
+      '.auth-brand b, .auth-brand span, .auth-card h1, .auth-card .lede, .auth-card .field > label,'+
+      '.auth-card .hint, .auth-card .link, .auth-alt, .auth-back .btn, .door b, .door .d-desc,'+
+      '.step .who b, .step .who .w-txt > span, .step .perm-list li, .step .hand-card b,'+
+      '.step .hand-card span, .step .lede, .step h1, .note b, .note div, .perm-block > b')
+      .forEach(el=>{ const st=getComputedStyle(el); const r=el.getBoundingClientRect();
+        if(!r.width || !(el.textContent||'').trim()) return;   // عقدة بلا نصّ لا تُقاس
+        out.push({ size:parseFloat(st.fontSize), weight:st.fontWeight,
+          fg:num(st.color).slice(0,3), bg:bgOf(el).map(Math.round),
+          txt:(el.textContent||'').trim().slice(0,20) }); });
+    return out;
+  });
+
   for(const theme of ['light','dark']){
     const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
-    await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(600);
-    await p.evaluate(t=>Theme.apply(t), theme); await p.waitForTimeout(300);
-    await doLogin(p);
-    const nodes=await p.evaluate(()=>{
-      const px=s=>s.match(/\d+/g).slice(0,3).map(Number);
-      const bgOf=el=>{ let n=el; while(n&&n!==document.documentElement){ const c=getComputedStyle(n).backgroundColor;
-        if(c&&!/rgba\(0, 0, 0, 0\)|transparent/.test(c)&&!/, 0\)$/.test(c)) return c; n=n.parentElement; }
-        return getComputedStyle(document.body).backgroundColor; };
-      const out=[];
-      document.querySelectorAll('.step .perm-list li, .step .who b, .step .who .w-txt > span, .step .hand-card b, .step .hand-card span, .step .lede, .step h1, .method .m-txt b, .method .m-txt span, .door b, .door p, .door .d-go, .sess .s-who b, .sess .s-who span, .note b, .note div, .step-eyebrow span, .perm-block > b')
-        .forEach(el=>{ const s=getComputedStyle(el); const r=el.getBoundingClientRect(); if(!r.width) return;
-          out.push({sel:el.className||el.tagName, size:parseFloat(s.fontSize), weight:s.fontWeight, fg:px(s.color), bg:px(bgOf(el)), txt:(el.textContent||'').trim().slice(0,18)}); });
-      return out;
-    });
-    let worst={r:99}; let bad=0;
-    for(const n of nodes){ const r=ratio(n.fg,n.bg); const large=n.size>=24||(n.size>=18.66&&+n.weight>=700);
-      const need=large?3:4.5; if(r<need){bad++; console.log('    ↓',n.txt,r.toFixed(2),'<',need,n.sel);}
-      if(r<worst.r) worst={r,txt:n.txt}; }
-    ok(bad===0, `${theme}: ${nodes.length} عقدة نصّية — راسب ${bad} · الأدنى ${worst.r.toFixed(2)}:1 («${worst.txt}»)`);
+    await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(700);
+    // المظهر يُضبط بالتفضيل لا بالتطبيق المباشر: الرأس يعيد تطبيق التفضيل مع كل
+    // انتقال، فاستدعاء Theme.apply وحده يُلغى عند أول تنقّل ويقيس الفاتح مرّتين.
+    await p.evaluate(t=>{ SetupState.set("preferences","theme",t); Theme.apply(t); }, theme);
+    await p.waitForTimeout(300);
+    const nodes=[];
+    nodes.push(...await collect(p));                                  // البوابة
+    await p.click('[data-door="login"]'); await p.waitForTimeout(700);
+    nodes.push(...await collect(p));                                  // الدخول
+    await p.click('[data-forgot]'); await p.waitForTimeout(700);
+    nodes.push(...await collect(p));                                  // الاسترجاع
+    await p.click('[data-back]'); await p.waitForTimeout(700);
+    await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword','S3cret-pass');
+    await p.click('[data-go]'); await p.waitForTimeout(1500);
+    nodes.push(...await collect(p));                                  // النظام
+    const actually=await p.evaluate(()=>document.documentElement.dataset.theme);
+    ok(actually===theme, `المظهر أثناء القياس هو «${theme}» فعلًا (وجدنا «${actually}»)`);
+    let worst={r:99,txt:''}, bad=0;
+    for(const n of nodes){
+      const r=ratio(n.fg,n.bg);
+      const large=n.size>=24||(n.size>=18.66&&+n.weight>=700);
+      const need=large?3:4.5;
+      if(r<need){ bad++; console.log('    ↓','«'+n.txt+'»',r.toFixed(2),'<',need,`${n.size}px/${n.weight}`); }
+      if(r<worst.r) worst={r,txt:n.txt};
+    }
+    ok(bad===0, `${theme}: ${nodes.length} عقدة نصّية عبر أربع شاشات — راسب ${bad} · الأدنى ${worst.r.toFixed(2)}:1 («${worst.txt}»)`);
     await ctx.close();
   }
-}
-{ // نص أبيض فوق تدرّج الهوية — يُقاس على الطرف الأفتح من التدرّج
   const white=[255,255,255], lightEnd=[0x45,0x69,0xF1];
-  ok(ratio(white,lightEnd)>=4.5, `نص الصور الرمزية: أبيض على أفتح نقطة في تدرّج الهوية = ${ratio(white,lightEnd).toFixed(2)}:1`);
+  ok(ratio(white,lightEnd)>=4.5, `نص فوق تدرّج الهوية: ${ratio(white,lightEnd).toFixed(2)}:1`);
 }
+
 console.log(`\n${pass} pass · ${fail} fail`);
 await b.close(); process.exit(fail?1:0);

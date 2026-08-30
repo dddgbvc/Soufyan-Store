@@ -664,6 +664,9 @@ html[dir="ltr"] .tok{padding:6px 12px 6px 8px}
 .flow-a svg{width:14px; height:14px}
 html[dir="rtl"] .flow-a svg{transform:scaleX(-1)}
 html[dir="rtl"] [data-next] svg,html[dir="rtl"] [data-back] svg{transform:scaleX(-1)}
+/* السهم الاتّجاهي يتبع اتّجاه القراءة: «التالي» إلى اليسار في العربية، و«رجوع»
+   إلى اليمين. يُعلَن بالصنف لا بالسمة، فيصحّ أينما وُضع. */
+html[dir="rtl"] svg.i-dir{transform:scaleX(-1)}
 
 /* قوة كلمة المرور */
 .pwd-meter{display:flex; align-items:center; gap:5px; margin-top:-6px}
@@ -839,63 +842,106 @@ html[data-theme-swap="1"] *,html[data-theme-swap="1"] *::before,html[data-theme-
 
 @media print{ .s-header,.s-nav,.illus{display:none} }
 /* ==========================================================================
-   AuthGate · Login · Session — بوابة الدخول
+   AuthGate · Login · Recover — تجربة التوثيق
    --------------------------------------------------------------------------
-   الشاشات الثلاث تشترك في مسرح الإعداد نفسه (الرأس، اللوحة، الرسمة) فتبقى
-   الهوية واحدة بلا نسخة ثانية من التخطيط. ما يلي هو ما تحتاجه البوابة وحدها.
+   التوثيق ليس إعدادًا، فلا يُعرض كإعداد: عمود واحد موسَّط، هوية المحل فوق
+   بطاقة واحدة، بلا شريط مراحل وبلا رسمة. الرسمة الحيّة تبقى بطلة المعالج —
+   هناك تشرح وترافق، وهنا تشتّت. سؤال واحد على الشاشة، ومساحة تتنفّس حوله.
    ========================================================================== */
+:root{ --auth-w:432px }
 
-/* شارة الوضع في الرأس تتبدّل بحسب السطح، وشريط المراحل والتذييل يختفيان
-   خارج الإعداد: البوابة ليست خطوة من الإعداد ولا تُعرض كأنها كذلك. */
 body[data-surface="auth"] #phases,
-body[data-surface="auth"] .s-nav{display:none}
-body[data-surface="auth"] .step{max-width:560px}
-/* البوابة والدخول محتواهما أقصر من خطوة الإعداد، فيُوسَّط المسرح رأسيًا بدل
-   أن يتعلّق أعلى الشاشة وتحته فراغ لا يفعل شيئًا. */
-body[data-surface="auth"] .illus{position:static; max-width:min(100%,440px); margin-inline:auto}
-@media (min-width:1001px){
-  body[data-surface="auth"] .stage-grid{align-items:center; min-height:calc(100dvh - 210px)}
-}
+body[data-surface="auth"] .s-nav,
+body[data-surface="erp"]  #phases,
+body[data-surface="erp"]  .s-nav{display:none}
 
-/* ---- البابان: «لدي حساب» و«مستخدم جديد» ---- */
-.doors{display:grid; gap:12px}
-@media (min-width:760px){ .doors{grid-template-columns:repeat(2,minmax(0,1fr))} }
-.door{display:flex; flex-direction:column; align-items:flex-start; gap:12px; text-align:start; width:100%;
-  padding:20px; border-radius:var(--r-xl); background:var(--clay); border:1.5px solid var(--line-soft);
-  box-shadow:var(--shadow-clay); color:inherit;
-  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease),
-    transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease)}
-@media (hover:hover){ .door:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-md)} }
-.door:active{transform:scale(.98)}
-.door .d-ico{width:46px; height:46px; border-radius:15px; display:grid; place-items:center; flex:none;
+/* عمود واحد موسَّط رأسيًا وأفقيًا — والرسمة تخرج من المشهد تمامًا. */
+body[data-surface="auth"] .illus{display:none}
+/* الهوية معروضة داخل البطاقة، فتكرارها في الرأس ضجيج ومنافس بصري لها. */
+body[data-surface="auth"] .s-header .brand{visibility:hidden}
+body[data-surface="auth"] .stage-grid{
+  grid-template-columns:minmax(0,1fr); align-items:center; justify-items:center;
+  min-height:calc(100dvh - 172px); padding-block:clamp(16px,4vh,40px)}
+body[data-surface="auth"] .panel{width:100%}
+body[data-surface="auth"] .step{max-width:none}
+
+.auth-stage{width:min(100%,var(--auth-w)); margin-inline:auto; display:grid; gap:16px}
+
+/* ---- هوية المحل فوق البطاقة: تقول للمستخدم أين هو قبل أن يكتب شيئًا ---- */
+.auth-brand{display:grid; justify-items:center; gap:9px; text-align:center; margin-bottom:2px}
+.auth-brand .mark{width:54px; height:54px; border-radius:17px; display:grid; place-items:center;
+  background:var(--accent-solid); color:var(--accent-on);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 8px 20px -10px rgba(47,79,216,.85)}
+.auth-brand .mark svg{width:26px; height:26px}
+.auth-brand b{font-size:1.02rem; font-weight:700; letter-spacing:-.01em; line-height:1.35}
+.auth-brand span{font-size:.78rem; color:var(--text-2); line-height:1.4}
+
+/* ---- البطاقة: نصف قطر متراكز (36 = 22 حشوة + 14 للحقل داخلها) ---- */
+.auth-card{padding:22px; border-radius:var(--r-2xl);
+  background:var(--glass-bg-strong); border:1px solid var(--glass-border);
+  backdrop-filter:blur(30px) saturate(150%); -webkit-backdrop-filter:blur(30px) saturate(150%);
+  box-shadow:inset 0 1px 0 var(--glass-hl), 0 1px 2px rgba(16,32,80,.05),
+    0 18px 40px -22px rgba(16,32,80,.42), 0 44px 90px -50px rgba(16,32,80,.4)}
+html[data-theme="dark"] .auth-card{
+  box-shadow:inset 0 1px 0 var(--glass-hl), 0 20px 44px -22px rgba(0,0,0,.7), 0 50px 100px -55px rgba(0,0,0,.9)}
+.auth-card h1{font-size:1.34rem; letter-spacing:-.018em; line-height:1.35; margin-bottom:6px}
+.auth-card .lede{font-size:.86rem; color:var(--text-2); line-height:1.6; margin-bottom:20px; max-width:none}
+.auth-card .step-body{gap:14px}
+.auth-card .field > label{font-size:.82rem}
+
+/* ---- سطر التسمية ومعه رابط ثانوي في محاذاته ---- */
+.lbl-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px}
+.lbl-row label{margin:0}
+.link{background:none; padding:0; font-size:.78rem; font-weight:600; color:var(--accent-text);
+  text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px;
+  text-decoration-color:color-mix(in srgb, var(--accent-text) 35%, transparent);
+  transition:text-decoration-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease)}
+@media (hover:hover){ .link:hover{text-decoration-color:currentColor} }
+.link:active{transform:scale(.96)}
+
+/* ---- زر إظهار كلمة المرور داخل الحقل لا بجانبه (6 حشوة + 8 = 14 للحقل) ---- */
+/* الحقل نفسه يكتب من اليسار (بريد/كلمة مرور)، فالصفّ يتّجه معه: الزرّ عند نهاية
+   النص لا فوق بدايته. بغير ذلك تصطدم الحشوة في جهة والزرّ في الجهة المقابلة. */
+.pwd-row{position:relative; display:block; direction:ltr}
+.pwd-row .control{padding-inline-end:48px}
+.pwd-peek{position:absolute; inset-inline-end:6px; inset-block:6px; width:38px; height:auto;
+  border:0; border-radius:8px; background:transparent; box-shadow:none; color:var(--text-3);
+  display:grid; place-items:center;
+  transition:color var(--t-fast) var(--ease), background var(--t-fast) var(--ease)}
+.pwd-peek::after{content:""; position:absolute; inset:-4px}
+@media (hover:hover){ .pwd-peek:hover{color:var(--text); background:var(--clay-2)} }
+.pwd-peek[aria-pressed="true"]{color:var(--accent-text); background:var(--clay-on)}
+.pwd-peek svg{width:18px; height:18px}
+
+/* ---- الإجراء الرئيسي يملأ عرض البطاقة، والثانوي سطر هادئ تحتها ---- */
+.auth-card .btn-block{margin-top:4px}
+.auth-alt{text-align:center; font-size:.85rem; color:var(--text-2); line-height:1.7}
+.auth-alt .link{font-size:.85rem}
+.auth-back{display:flex; justify-content:center}
+.auth-back .btn{color:var(--text-3)}
+
+/* ---- البابان داخل البطاقة ---- */
+.doors{display:grid; gap:10px}
+.door{display:flex; align-items:center; gap:13px; text-align:start; width:100%; padding:15px;
+  border-radius:var(--r-lg); background:var(--clay); color:inherit;
+  box-shadow:inset 0 0 0 1px var(--line-soft), var(--shadow-clay);
+  transition:box-shadow var(--t-med) var(--ease), background var(--t-med) var(--ease),
+    transform var(--t-med) var(--ease)}
+@media (hover:hover){ .door:hover{background:var(--clay-2);
+  box-shadow:inset 0 0 0 1.5px var(--accent), 0 10px 22px -14px rgba(47,79,216,.7); transform:translateY(-1px)} }
+.door:active{transform:scale(.96)}
+.door .d-ico{width:42px; height:42px; border-radius:14px; display:grid; place-items:center; flex:none;
   background:var(--clay-2); color:var(--accent-text);
   transition:background var(--t-med) var(--ease), color var(--t-med) var(--ease)}
-.door .d-ico svg{width:23px; height:23px}
-@media (hover:hover){ .door:hover .d-ico{background:var(--accent); color:var(--accent-on)} }
-.door b{font-size:1.06rem; font-weight:700; line-height:1.35; letter-spacing:-.01em}
-.door .d-desc{display:block; font-size:.84rem; color:var(--text-2); line-height:1.6}
-.door .d-go{display:inline-flex; align-items:center; gap:7px; margin-top:auto; padding-top:4px;
-  font-size:.84rem; font-weight:600; color:var(--accent-text)}
-.door .d-go svg{width:15px; height:15px}
-html[dir="rtl"] .door .d-go svg{transform:scaleX(-1)}
-.door[data-tone="primary"]{background:var(--clay-on); border-color:var(--accent)}
+.door .d-ico svg{width:21px; height:21px}
+.door .d-txt{flex:1; min-width:0}
+.door b{display:block; font-size:.96rem; font-weight:600; line-height:1.4}
+.door .d-desc{display:block; font-size:.79rem; color:var(--text-2); line-height:1.55; margin-top:1px}
+.door .d-go{flex:none; color:var(--text-3); display:grid; place-items:center}
+.door .d-go svg{width:17px; height:17px}
+.door[data-tone="primary"]{background:var(--clay-on); box-shadow:inset 0 0 0 1.5px var(--accent), var(--shadow-clay)}
 .door[data-tone="primary"] .d-ico{background:var(--accent-solid); color:var(--accent-on)}
-
-/* ---- حقل كلمة المرور ---- */
-.pwd-row{display:flex; align-items:stretch; gap:8px}
-.pwd-row .control{flex:1; min-width:0}
-.pwd-peek{flex:none; width:44px; height:auto; border-radius:var(--r-md);
-  background:var(--clay); border:1.5px solid var(--field-border)}
-.pwd-peek[aria-pressed="true"]{background:var(--clay-on); color:var(--accent-text); border-color:var(--accent)}
-
-/* «نسيت كلمة المرور؟» تجلس تحت الحقل الذي تخصّه، محاذية لنهايته. */
-.auth-row{display:flex; justify-content:flex-end; margin-top:-8px}
-
-/* «ابدأ الآن» مخرج هادئ لمن ليس عنده حساب — لا ينافس الإجراء الرئيسي. */
-.new-here{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-  margin-top:6px; padding:14px 16px; border-radius:var(--r-lg);
-  background:var(--clay); border:1px dashed var(--line)}
-.new-here > span{font-size:.86rem; color:var(--text-2)}
+.door[data-tone="primary"] .d-go{color:var(--accent-text)}
 
 /* ---- بطاقة الهوية بعد التحقّق ---- */
 .who{display:flex; align-items:center; gap:14px; padding:15px 16px; border-radius:var(--r-lg);
@@ -5668,10 +5714,14 @@ function authField(o){
         ${o.inputmode ? `inputmode="${o.inputmode}"` : ""}
         ${o.placeholder ? `placeholder="${esc(o.placeholder)}"` : ""}
         ${o.hint ? `aria-describedby="h_${o.name}"` : ""}>`;
+  // الرابط الثانوي يجلس في سطر التسمية نفسه — مقترنًا بالحقل الذي يخصّه، وبلا سطر زائد.
+  const label = o.aside
+    ? `<div class="lbl-row"><label for="f_${o.name}">${esc(o.label)}</label>${o.aside}</div>`
+    : `<label for="f_${o.name}">${esc(o.label)}</label>`;
   return `<div class="field" data-fw="${o.name}">
-    <label for="f_${o.name}">${esc(o.label)}</label>
+    ${label}
     ${peek ? `<div class="pwd-row">${input}
-      <button type="button" class="mini-btn pwd-peek" data-peek="${o.name}"
+      <button type="button" class="pwd-peek" data-peek="${o.name}"
         aria-pressed="false" aria-label="${esc(t("pwdShow"))}">${ico("eye")}</button></div>` : input}
     ${o.hint ? `<p class="hint" id="h_${o.name}">${esc(o.hint)}</p>` : ""}
     <p class="err-msg" data-err="${o.name}" hidden>${ico("alert")}<span></span></p>
@@ -5702,20 +5752,48 @@ const Screen = {
   cleanups:[], _first:true,
   registerCleanup(fn){ this.cleanups.push(fn); },
   _runCleanups(){ this.cleanups.forEach(f => { try{ f(); }catch(_){ } }); this.cleanups = []; },
+  /** اسم المحل إن عرفناه — يعطي الشاشة إحساس المكان قبل أن يكتب المستخدم شيئًا. */
+  brandName(){
+    const d = SetupState.data.storeData;
+    return (d.storeName || d.shopName || "").trim();
+  },
   render(o){
     this._runCleanups();
     const host = $("#stepHost");
     const useGsap = HAS_GSAP && !reducedMotion();
-    host.innerHTML = `<section class="step" data-step="${o.id}"${!useGsap ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
-      ${o.eyebrow ? `<span class="step-eyebrow">${ico(o.icon || "shield")}<span>${esc(o.eyebrow)}</span></span>` : ""}
-      <h1 id="stepTitle" tabindex="-1">${esc(o.title)}</h1>
-      ${o.lede ? `<p class="lede">${esc(o.lede)}</p>` : ""}
-      <div class="step-body step-scroll">${o.body}</div>
-    </section>`;
+    if(o.layout === "auth"){
+      const shop = this.brandName();
+      host.innerHTML = `<section class="step auth-stage" data-step="${o.id}"${!useGsap ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
+        <div class="auth-brand">
+          <span class="mark" aria-hidden="true">${ico("phone")}</span>
+          <b>${esc(shop || t("appName"))}</b>
+          <span>${esc(shop ? t("appName") : t("appSub"))}</span>
+        </div>
+        <div class="auth-card">
+          <h1 id="stepTitle" tabindex="-1">${esc(o.title)}</h1>
+          ${o.lede ? `<p class="lede">${esc(o.lede)}</p>` : ""}
+          <div class="step-body">${o.body}</div>
+        </div>
+        ${o.alt || ""}
+        ${o.back || ""}
+      </section>`;
+    }else{
+      host.innerHTML = `<section class="step" data-step="${o.id}"${!useGsap ? ' data-enter="1"' : ""} aria-labelledby="stepTitle">
+        ${o.eyebrow ? `<span class="step-eyebrow">${ico(o.icon || "shield")}<span>${esc(o.eyebrow)}</span></span>` : ""}
+        <h1 id="stepTitle" tabindex="-1">${esc(o.title)}</h1>
+        ${o.lede ? `<p class="lede">${esc(o.lede)}</p>` : ""}
+        <div class="step-body step-scroll">${o.body}</div>
+      </section>`;
+    }
     const root = $(".step", host);
     if(o.mount) o.mount(root);
-    if(useGsap){ Wizard.root = root; Wizard.animateIn(); }
-    SetupIllustration.show(o.svg, o.title);
+    // البطاقة تدخل ككتلة واحدة: حركة واحدة لشاشة واحدة، بلا تتابع على العناصر.
+    if(useGsap && o.layout === "auth"){
+      gsap.killTweensOf(root.children);
+      gsap.fromTo(root.children, { y:14, opacity:0 },
+        { y:0, opacity:1, duration:.5, ease:"clay", stagger:.05, clearProps:"transform,opacity" });
+    }else if(useGsap){ Wizard.root = root; Wizard.animateIn(); }
+    if(o.layout !== "auth") SetupIllustration.show(o.svg, o.title);
     // أول رسم بعد فتح الصفحة لا يخطف التركيز، فيبقى رابط «تخطّي إلى المحتوى»
     // أول ما يصله Tab. ما بعده تغييرُ شاشةٍ داخل التطبيق، فينتقل التركيز مع الشاشة.
     if(!Screen._first) setTimeout(() => { const h = $("#stepTitle"); if(h) h.focus({ preventScroll:true }); }, 120);
@@ -5743,14 +5821,17 @@ const Chrome = {
     const host = $("#hActions"); if(!host) return;
     const s = AuthSession.data;
     const connected = Sb.ready();
-    const flagKey = s && s.offline ? "offlineMode" : connected ? "serverMode" : "localMode";
-    const flagTip = s && s.offline ? "offlineModeTip" : connected ? "serverModeTip" : "localModeTip";
+    const offline = !!(s && s.offline);
+    // شارة «متصل بالخادم» الخضراء ضجيج للمستخدم: الاتصال هو المتوقَّع. الشارة
+    // تظهر حين تحمل خبرًا فعلًا — انقطاع، أو وضع محلي بلا خادم.
+    const warn = offline ? { key:"offlineMode", tip:"offlineModeTip" }
+      : !connected ? { key:"localMode", tip:"localModeTip" } : null;
     host.innerHTML = `
       ${s ? `<div class="sess" title="${esc(s.employee.name)}">
         <span class="avatar" aria-hidden="true">${esc(initials(s.employee.name))}</span>
         <span class="s-who"><b>${esc(s.employee.name)}</b><span>${esc(roleName(s.employee.role))}</span></span>
-      </div>` : `<span class="mode-flag" data-mode="${s && s.offline ? "local" : connected ? "server" : "local"}"
-        title="${esc(t(flagTip))}">${ico(connected && !(s && s.offline) ? "shieldCheck" : "alert")}${esc(t(flagKey))}</span>`}
+      </div>` : ""}
+      ${warn ? `<span class="mode-flag" data-mode="local" title="${esc(t(warn.tip))}">${ico("alert")}${esc(t(warn.key))}</span>` : ""}
       ${s ? `<button class="icon-btn" id="switchBtn" aria-label="${esc(t("switchUser"))}" title="${esc(t("switchUser"))}">${ico("swap")}</button>
              <button class="icon-btn" id="logoutBtn" aria-label="${esc(t("logout"))}" title="${esc(t("logout"))}">${ico("lock")}</button>` : ""}
       <button class="icon-btn lang-btn" id="langBtn" aria-label="${esc(t("langToggle"))}">${LANG === "ar" ? "EN" : "ع"}</button>
@@ -5807,22 +5888,19 @@ const AuthUI = {
   gate(){
     const done = Router.setupCompleted();
     const back = SetupState.data.completedSteps.length > 0 && !done;
+    const door = (id, tone, icon, title, desc, cta) => `<button type="button" class="door" data-door="${id}"${tone ? ' data-tone="primary"' : ""}>
+      <span class="d-ico">${ico(icon)}</span>
+      <span class="d-txt"><b>${esc(title)}</b><span class="d-desc">${esc(desc)}</span></span>
+      <span class="d-go" aria-hidden="true">${ico("next", "i-dir")}</span>
+      <span class="sr-only">${esc(cta)}</span>
+    </button>`;
     Screen.render({
-      id:"gate", svg:"welcome", icon:"shield", eyebrow:t("gateEyebrow"),
+      id:"gate", layout:"auth", icon:"phone",
       title:t("gateTitle"), lede:t(done ? "gateLedeDone" : "gateLede"),
       body:`<div class="doors">
-        <button type="button" class="door" data-door="login"${done ? ' data-tone="primary"' : ""}>
-          <span class="d-ico">${ico("lock")}</span>
-          <b>${esc(t("gateHaveT"))}</b>
-          <span class="d-desc">${esc(t("gateHaveD"))}</span>
-          <span class="d-go">${esc(t("gateHaveCta"))}${ico("next")}</span>
-        </button>
-        <button type="button" class="door" data-door="setup"${!done ? ' data-tone="primary"' : ""}>
-          <span class="d-ico">${ico("rocket")}</span>
-          <b>${esc(t(done ? "gateNewTDone" : "gateNewT"))}</b>
-          <span class="d-desc">${esc(t(done ? "gateNewDDone" : back ? "gateNewDBack" : "gateNewD"))}</span>
-          <span class="d-go">${esc(t(back ? "gateNewCtaBack" : "gateNewCta"))}${ico("next")}</span>
-        </button>
+        ${door("login", done, "lock", t("gateHaveT"), t("gateHaveD"), t("gateHaveCta"))}
+        ${door("setup", !done, "rocket", t(done ? "gateNewTDone" : "gateNewT"),
+          t(done ? "gateNewDDone" : back ? "gateNewDBack" : "gateNewD"), t(back ? "gateNewCtaBack" : "gateNewCta"))}
       </div>
       ${Sb.ready() ? "" : F.note(esc(t("gateLocalNote")), "warn")}`,
       mount(root){
@@ -5837,13 +5915,12 @@ const AuthUI = {
     opts = opts || {};
     const caps = AuthService.caps();
     Screen.render({
-      id:"login", svg:"owner", icon:"lock",
-      eyebrow:t(opts.mode === "switch" ? "switchEyebrow" : "loginEyebrow"),
+      id:"login", layout:"auth", icon: opts.mode === "switch" ? "swap" : "lock",
       title:t(!caps.configured ? "loginTitleOff" : opts.mode === "switch" ? "switchTitle" : "loginTitle"),
       lede:t(!caps.configured ? "loginLedeOff"
         : opts.reason === "expired" ? "loginLedeExpired"
         : opts.reason === "after-setup" ? "loginLedeAfterSetup"
-        : opts.reason === "password-changed" ? "loginLedeChanged"
+        : opts.reason === "recover-failed" ? "loginLedeRecoverFailed"
         : opts.mode === "switch" ? "switchLede" : "loginLede"),
       body:`
         ${opts.reason === "expired" ? errBox("expired-session")
@@ -5852,24 +5929,18 @@ const AuthUI = {
         ${caps.configured ? `
           ${authField({ name:"loginEmail", label:t("emField"), type:"email",
               autocomplete:"username", inputmode:"email", placeholder:"name@example.com" })}
-          ${passwordField({ name:"loginPassword", label:t("pwdField") })}
-          <div class="auth-row">
-            <button type="button" class="btn btn-quiet btn-sm" data-forgot>${esc(t("forgotCta"))}</button>
-          </div>
+          ${authField({ name:"loginPassword", label:t("pwdField"), type:"password",
+              autocomplete:"current-password",
+              aside:`<button type="button" class="link" data-forgot>${esc(t("forgotCta"))}</button>` })}
           <div data-login-err id="loginErr"></div>
           <button type="button" class="btn btn-primary btn-lg btn-block" data-go>
-            <span class="btn-label">${esc(t("loginCta"))}</span>${ico("next")}</button>`
+            <span class="btn-label">${esc(t("loginCta"))}</span>${ico("next", "i-dir")}</button>`
         : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.reason).title)}</b><br>${esc(authError(caps.reason).body)}</div></div>
-           <div data-login-err id="loginErr"></div>`}
-        <div class="new-here">
-          <span>${esc(t("noAccountYet"))}</span>
-          <button type="button" class="btn btn-ghost" data-start>${ico("rocket")}<span class="btn-label">${esc(t("startNow"))}</span></button>
-        </div>
-        <div class="auth-foot">
-          <button type="button" class="btn btn-quiet btn-sm" data-back-gate>${ico("prev")}<span class="btn-label">${esc(t("backToGate"))}</span></button>
-          <span class="sep"></span>
-          <span class="hint">${esc(t("deviceIs", { d: Terminal.name() }))}</span>
-        </div>`,
+           <div data-login-err id="loginErr"></div>`}`,
+      alt:`<p class="auth-alt">${esc(t("noAccountYet"))}
+        <button type="button" class="link" data-start>${esc(t("startNow"))}</button></p>`,
+      back:`<div class="auth-back"><button type="button" class="btn btn-quiet btn-sm" data-back-gate>
+        ${ico("prev", "i-dir")}<span class="btn-label">${esc(t("backToGate"))}</span></button></div>`,
       mount(root){
         const errHost = $("[data-login-err]", root);
         $("[data-back-gate]", root).addEventListener("click", () => Router.go("gate"));
@@ -5878,7 +5949,7 @@ const AuthUI = {
         bindPeek(root);
         const mail = $("#f_loginEmail", root), pwd = $("#f_loginPassword", root), go = $("[data-go]", root);
         mail.value = opts.email || "";
-        setTimeout(() => (mail.value ? pwd : mail).focus(), 220);
+        setTimeout(() => (mail.value ? pwd : mail).focus(), 260);
         $("[data-forgot]", root).addEventListener("click", () => AuthUI.recover(mail.value.trim()));
         [mail, pwd].forEach(el => {
           el.addEventListener("input", () => { clearError(root, el.name); errHost.innerHTML = ""; el.removeAttribute("aria-invalid"); });
@@ -5892,20 +5963,17 @@ const AuthUI = {
           const errs = {};
           if(!RX.email.test(mail.value.trim())) errs.loginEmail = t("errEmail");
           if(!pwd.value) errs.loginPassword = t("errPwdEmpty");
-          if(!paintErrors(root, errs)){ SetupIllustration.triggerShake("lock"); return; }
+          if(!paintErrors(root, errs)) return;
           go.dataset.busy = "1"; go.disabled = true; errHost.innerHTML = "";
-          SetupIllustration.triggerProcessing();
           try{
             const r = await AuthService.passwordLogin(mail.value.trim(), pwd.value);
             pwd.value = "";                      // لا تبقى كلمة المرور في الحقل بعد نجاحها
-            SetupIllustration.triggerSuccess();
             await AuthUI.succeed(r);
           }catch(e){
             errHost.innerHTML = errBox(e.code, e.detail);
             pwd.setAttribute("aria-invalid", "true");
             pwd.setAttribute("aria-describedby", "loginErr");
             pwd.value = ""; pwd.focus();
-            SetupIllustration.triggerShake("lock");
             announce(authError(e.code, e.detail).title);
           }finally{ go.dataset.busy = ""; go.disabled = false; }
         }
@@ -5917,46 +5985,42 @@ const AuthUI = {
   recover(prefill){
     let sent = false, address = prefill || "";
     const render = () => Screen.render({
-      id:"recover", svg:"email-otp", icon:"mail", eyebrow:t("loginEyebrow"),
+      id:"recover", layout:"auth", icon:"mail",
       title:t(sent ? "recSentTitle" : "recTitle"), lede:t(sent ? "recSentLede" : "recLede"),
       body: sent
         ? `<div class="note ok">${ico("mail")}<div>${esc(t("recSentBody", { e: address }))}</div></div>
            ${F.note(esc(t("recSpam")), "")}
-           <div class="auth-foot">
-             <button type="button" class="btn btn-primary" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
-             <span class="sep"></span>
-             <button type="button" class="btn btn-quiet btn-sm" data-again>${ico("refresh")}<span class="btn-label">${esc(t("recAgain"))}</span></button>
-           </div>`
-        : `${authField({ name:"recEmail", label:t("emField"), type:"email",
-              autocomplete:"username", inputmode:"email", placeholder:"name@example.com", hint:t("recHint") })}
+           <button type="button" class="btn btn-primary btn-block" data-back>
+             ${ico("prev", "i-dir")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>`
+        : `${authField({ name:"recEmail", label:t("emField"), type:"email", autocomplete:"username",
+              inputmode:"email", placeholder:"name@example.com", hint:t("recHint") })}
            <div data-rec-err></div>
            <button type="button" class="btn btn-primary btn-lg btn-block" data-send>
-             ${ico("mail")}<span class="btn-label">${esc(t("recSend"))}</span></button>
-           <div class="auth-foot">
-             <button type="button" class="btn btn-quiet btn-sm" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
-           </div>`,
+             ${ico("mail")}<span class="btn-label">${esc(t("recSend"))}</span></button>`,
+      alt: sent
+        ? `<p class="auth-alt">${esc(t("recNothing"))}
+             <button type="button" class="link" data-again>${esc(t("recAgain"))}</button></p>`
+        : `<p class="auth-alt">${esc(t("recRemembered"))}
+             <button type="button" class="link" data-back>${esc(t("backToLogin"))}</button></p>`,
       mount(root){
-        $("[data-back]", root).addEventListener("click", () => Router.go("login", { email: address }));
+        $$("[data-back]", root).forEach(x => x.addEventListener("click", () => Router.go("login", { email: address })));
         const again = $("[data-again]", root);
         if(again) again.addEventListener("click", () => { sent = false; render(); });
         const send = $("[data-send]", root);
         if(!send) return;
         const field = $("#f_recEmail", root), errHost = $("[data-rec-err]", root);
         field.value = address;
-        setTimeout(() => field.focus(), 220);
+        setTimeout(() => field.focus(), 260);
         field.addEventListener("input", () => { clearError(root, "recEmail"); errHost.innerHTML = ""; });
         field.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); run(); } });
         send.addEventListener("click", run);
         async function run(){
           const v = field.value.trim();
-          if(!RX.email.test(v)){ showError(root, "recEmail", t("errEmail")); SetupIllustration.triggerShake("envelope"); return; }
+          if(!RX.email.test(v)){ showError(root, "recEmail", t("errEmail")); return; }
           send.dataset.busy = "1"; send.disabled = true; errHost.innerHTML = "";
-          SetupIllustration.triggerProcessing();
           try{
             await AuthService.recover(v);
-            address = v; sent = true;
-            SetupIllustration.triggerSuccess();
-            render();
+            address = v; sent = true; render();
           }catch(e){
             send.dataset.busy = ""; send.disabled = false;
             errHost.innerHTML = errBox(e.code, e.detail);
@@ -5971,12 +6035,14 @@ const AuthUI = {
   /* ---------- كلمة مرور جديدة (من رابط الاسترجاع) ---------- */
   resetPassword(token, user){
     Screen.render({
-      id:"reset", svg:"security", icon:"key", eyebrow:t("loginEyebrow"),
+      id:"reset", layout:"auth", icon:"key",
       title:t("resetTitle"), lede:t("resetLede", { e: (user && user.email) || "" }),
       body:`
-        ${passwordField({ name:"newPwd", label:t("newPwdField"), autocomplete:"new-password", hint:t("newPwdHint") })}
+        ${authField({ name:"newPwd", label:t("newPwdField"), type:"password",
+          autocomplete:"new-password", hint:t("newPwdHint") })}
         <div class="pwd-meter" data-meter aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span data-meter-label></span></div>
-        ${passwordField({ name:"newPwd2", label:t("newPwd2Field"), autocomplete:"new-password" })}
+        ${authField({ name:"newPwd2", label:t("newPwd2Field"), type:"password",
+          autocomplete:"new-password" })}
         <div data-reset-err></div>
         <button type="button" class="btn btn-primary btn-lg btn-block" data-save>
           ${ico("shieldCheck")}<span class="btn-label">${esc(t("resetCta"))}</span></button>`,
@@ -5985,7 +6051,7 @@ const AuthUI = {
         const p1 = $("#f_newPwd", root), p2 = $("#f_newPwd2", root);
         const save = $("[data-save]", root), errHost = $("[data-reset-err]", root);
         const meter = $("[data-meter]", root);
-        setTimeout(() => p1.focus(), 220);
+        setTimeout(() => p1.focus(), 260);
         const paint = () => {
           const sc = pwdScore(p1.value);
           $$("i", meter).forEach((b, i) => b.dataset.on = i < sc ? "1" : "");
@@ -6001,12 +6067,10 @@ const AuthUI = {
           const errs = {};
           if(p1.value.length < 8) errs.newPwd = t("errPwdShort");
           else if(p1.value !== p2.value) errs.newPwd2 = t("errPwdMatch");
-          if(!paintErrors(root, errs)){ SetupIllustration.triggerShake("lock"); return; }
+          if(!paintErrors(root, errs)) return;
           save.dataset.busy = "1"; save.disabled = true; errHost.innerHTML = "";
-          SetupIllustration.triggerProcessing();
           try{
             const r = await AuthService.updatePassword(token, p1.value);
-            SetupIllustration.triggerSuccess();
             // الرمز الذي أذن بالتغيير يصلح للدخول، فلا نطلب كتابتها من جديد.
             const session = await AuthService.sessionFromToken(token, r.user);
             p1.value = p2.value = "";
@@ -6129,7 +6193,7 @@ const Router = {
     if(rec){
       this.surface = "login"; Chrome.render();
       if(rec.error) return this.go("login", { reason:"recover-failed" });
-      Screen.render({ id:"resume", svg:"security", icon:"shield", title:t("resumeTitle"),
+      Screen.render({ id:"resume", layout:"auth", icon:"key", title:t("resumeTitle"),
         lede:t("recCheckLede"), body:`<p class="otp-status" data-tone="busy"><span class="spin"></span>${esc(t("resumeWait"))}</p>` });
       let user = null;
       try{ user = await AuthService.me(rec.token); }catch(_){ }
@@ -6138,7 +6202,7 @@ const Router = {
     }
     // شاشة انتظار قصيرة بدل وميض البوابة قبل أن يجيب الخادم عن الجلسة.
     if(AuthSession._read()){
-      Screen.render({ id:"resume", svg:"security", icon:"shield", title:t("resumeTitle"), lede:t("resumeLede"),
+      Screen.render({ id:"resume", layout:"auth", icon:"shield", title:t("resumeTitle"), lede:t("resumeLede"),
         body:`<p class="otp-status" data-tone="busy"><span class="spin"></span>${esc(t("resumeWait"))}</p>` });
       Chrome.render();
       const s = await AuthSession.restore();
@@ -6155,7 +6219,7 @@ const Router = {
     Screen._runCleanups();
     if(this.surface === "setup" && surface !== "setup") Wizard._runCleanups();
     this.surface = surface;
-    document.body.dataset.surface = surface === "setup" ? "setup" : "auth";
+    document.body.dataset.surface = surface === "setup" ? "setup" : surface === "erp" ? "erp" : "auth";
     Chrome.render();
     if(surface === "setup") return this.showSetup();
     if(surface === "login") return AuthUI.login(opts || {});
@@ -6240,8 +6304,7 @@ Object.assign(L, {
     "Sign in with your email address and your password."],
   gateHaveCta:["تسجيل الدخول","Sign in"],
   gateNewT:["مستخدم جديد","I'm new here"],
-  gateNewD:["جهّز متجرك خطوة بخطوة: الهوية، ثم المتجر، ثم الفريق، ثم النظام.",
-    "Set your store up stage by stage: identity, store, team, system."],
+  gateNewD:["جهّز متجرك في أربع مراحل قصيرة.","Set your store up in four short stages."],
   gateNewDBack:["أكمل الإعداد من حيث توقّفت — بياناتك محفوظة.",
     "Pick the setup up where you left off — your data is saved."],
   gateNewCta:["بدء الإعداد","Start setup"],
@@ -6268,7 +6331,10 @@ Object.assign(L, {
   forgotCta:["نسيت كلمة المرور؟","Forgot your password?"],
   noAccountYet:["ليس لديك حساب بعد؟","No account yet?"],
   startNow:["ابدأ الآن","Start now"],
-  loginLedeChanged:["حُدِّثت كلمة مرورك. سجّل دخولك بها.","Your password is updated. Sign in with it."],
+  loginLedeRecoverFailed:["اطلب رابط استرجاع جديدًا من «نسيت كلمة المرور؟».",
+    "Request a fresh reset link from \u201cForgot your password?\u201d."],
+  recRemembered:["تذكّرتها؟","Remembered it?"],
+  recNothing:["لم تصلك الرسالة؟","Nothing arrived?"],
 
   /* ---- نسيت كلمة المرور ---- */
   recTitle:["استرجاع كلمة المرور","Reset your password"],
