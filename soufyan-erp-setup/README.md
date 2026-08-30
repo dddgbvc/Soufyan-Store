@@ -107,25 +107,40 @@ supabase/migrations/                ← مهاجرة واحدة اختيارية
 الأساسي، ويتحوّل الباب الثاني إلى «إعداد متجر جديد» ويسأل سؤالًا صريحًا قبل أن يفتح
 المعالج — لأن من يفتح معالج الإعداد على متجر يعمل غالبًا يريد الدخول لا الإعداد.
 
-### الدخول — ثلاث طرق، والخادم هو الحَكَم
+### الدخول — بريد وكلمة مرور، والخادم هو الحَكَم
 
-| الطريقة | ما ينفّذه الخادم فعلًا | الحالة اليوم |
-|---|---|---|
-| **رمز الدخول** | `rpc verify_employee_pin` — يطابق بصمة الرمز بـ bcrypt، يحدّ المحاولات (٥ خاطئة لكل جهاز في دقيقتين · ١٠ لكل IP في ١٠ دقائق)، يفتح صفًّا في `app_sessions`، ويعيد الموظف وصلاحيات دوره من `permissions_for()` | **جاهز ويعمل** — ينقصه تسجيل رموز للموظفين |
-| **مفتاح المرور** | دالة الحافة `webauthn`: تولّد التحدّي وتحرقه، وتتحقّق من التوقيع مقابل مفتاح استخرجه الخادم بنفسه من شهادة التسجيل | **موصولة** — وتُعرض معطّلة بسببها الحقيقي ما دام لا يوجد مفتاح مسجَّل على النطاق |
-| **البريد + رمز** | `‎/auth/v1/otp` ثم `‎/auth/v1/verify` عبر Supabase Auth (وقالب الرسالة من `auth-email`)، ثم قراءة الملف الشخصي للمستخدم نفسه تحت RLS | **موصول** — بـ `create_user:false` فلا يُنشئ الدخول حسابًا أبدًا |
+شاشة الدخول تطلب شيئين اثنين لا غير: **البريد وكلمة المرور**. ومعهما **«نسيت كلمة
+المرور؟»** و**«ابدأ الآن»** لمن ليس عنده حساب بعد.
+
+| ما يجري | ما ينفّذه الخادم |
+|---|---|
+| **الدخول** | `POST /auth/v1/token?grant_type=password` — Supabase Auth يتحقّق من كلمة المرور ويصدر الجلسة |
+| **الهوية والدور** | `GET /rest/v1/profiles` بجلسة المستخدم نفسه — تحكمها RLS، والدور مصدره قاعدة البيانات |
+| **جلسة الجهاز** | `rpc app_session_start` — تُسجَّل جلسة التشغيل على هذا الجهاز مثل غيرها |
+| **نسيت كلمة المرور** | `POST /auth/v1/recover` — الرسالة تصل بقالب `auth-email` العربي عبر Resend |
+| **كلمة مرور جديدة** | `PUT /auth/v1/user` برمز الاسترجاع الذي عاد مع الرابط |
 
 نقاط تخصّ كلًّا منها:
 
-* **الرمز لا يغادر الجهاز.** يُحسب `SHA-256` منه في المتصفح ويُرسل الملخّص، والخادم
-  يقارنه بـ bcrypt. غيّر الخوارزمية بـ `SETUP_CONFIG.pinDigest` إن كان نظامك يشتقّ
-  البصمة بطريقة أخرى — يجب أن تطابق ما تكتبه دالة `set_employee_pin`.
-* **الرمز يعرّف صاحبه.** لا قائمة موظفين تُعرض قبل الدخول: الخادم يستنتج من الرمز
-  من أنت. فلا تُسرَّب أسماء الفريق لمن يقف أمام الشاشة.
-* **الصلاحيات تأتي من ردّ الخادم** لا من جدول في الواجهة. ما في الواجهة مرآة
+* **لا يُقارَن شيء في المتصفح.** كلمة المرور تُرسل إلى Supabase Auth ولا تُخزَّن ولا
+  تُسجَّل، وتُفرَّغ من الحقل فور نجاح الدخول أو فشله.
+* **الردّ على «نسيت كلمة المرور» محايد دائمًا:** «إن كان هذا البريد مسجَّلًا فالرابط في
+  طريقه إليه». كشفُ أن بريدًا ما مسجَّل يمنح من يجرّب العناوين قائمةً بمن يملك حسابًا.
+* **«نسيت» ليست طريقًا مسدودًا.** الرابط يعود إلى الصفحة نفسها ومعه رمز في hash
+  العنوان؛ يلتقطه البرنامج، **ويمحوه من شريط العنوان ومن سجلّ التصفّح فورًا**، ويفتح
+  شاشة «اختر كلمة مرور جديدة». وبعد الحفظ يدخل المستخدم مباشرةً — الرمز الذي أذن
+  بالتغيير يكفي للدخول، فلا يُطلب منه كتابتها من جديد.
+* **رابط منتهٍ أو مستعمَل** يُعرض كسبب صريح على شاشة الدخول مع طريق لطلب رابط جديد.
+* **الصلاحيات تأتي من دور المستخدم** كما هو في `profiles`. ما في الواجهة مرآة
   لـ `permissions_for()` تُستعمل للعرض فقط، والتطبيق الحقيقي في RLS ودوال الخادم.
-* **ما لا يستطيع الخادم إثباته يُعرض معطّلًا بسببه**، لا مُحاكى: «لا يوجد مفتاح
-  مسجَّل على هذا النطاق»، «هذه الصفحة ليست على اتصال آمن»، «الربط بالخادم غير مضبوط».
+* **«ابدأ الآن»** مخرج هادئ لمن فتح شاشة الدخول وهو ليس صاحب حساب — يقود إلى معالج
+  الإعداد. إجراء رئيسي واحد لكل شاشة، وبلا طريق مسدود.
+
+> **رمز الدخول (PIN) ومفتاح المرور ليسا جزءًا من شاشة الدخول.** حُذفا منها عمدًا
+> لتبقى الشاشة سؤالًا واحدًا واضحًا. الدالتان `verify_employee_pin` و`webauthn` ما
+> تزالان قائمتين على المشروع لاستعمال النظام نفسه، ومسار ربطهما محفوظ في تاريخ
+> المستودع (commit `a7e93d3`). أما خطوة **الحماية** داخل معالج الإعداد فباقية كما
+> هي في V4: هي سياسة المحل لا شاشة دخول.
 
 ### الجلسة — ماذا يُحفظ، وماذا لا يُحفظ
 
@@ -178,14 +193,16 @@ window.SETUP_CONFIG = {
   supabaseUrl     : "https://<project>.supabase.co",
   supabaseAnonKey : "<المفتاح العلني anon>",   // علني بطبيعته — لا مفتاح خدمة في الواجهة
   appEntryUrl     : "/app",        // وجهة النظام بعد الدخول؛ بدونها تُعرض شاشة تسليم
-  emailLogin      : true,          // الدخول برمز البريد (لا يُنشئ حسابات)
-  webauthnFunction: "webauthn",
-  pinDigest       : "SHA-256",     // يجب أن يطابق ما يكتبه set_employee_pin
+  recoveryRedirect: "",            // وجهة رابط الاسترجاع (فارغ = هذه الصفحة نفسها)
   sessionMaxHours : 12,
   offlineGraceMinutes: 60,
   heartbeatSeconds: 180
 };
 ```
+
+**مهمّ:** `recoveryRedirect` — أو عنوان هذه الصفحة إن تُرك فارغًا — يجب أن يكون ضمن
+**Redirect URLs** المسموح بها في لوحة Supabase (Authentication ← URL Configuration)،
+وإلّا أعاد الخادم المستخدم إلى Site URL بدلها ولم تفتح شاشة كلمة المرور الجديدة.
 
 وواجهة برمجية للنظام بعد الدخول:
 
@@ -218,12 +235,12 @@ SHOTS=/tmp/shots/ node tests/run.mjs   # مع حفظ لقطات الشاشة
 
 | المجموعة | ماذا تغطّي | العدد |
 |---|---|---|
-| `auth-flows` | البوابة، البابان، الدخول برمز صحيح وخاطئ، الهوية والصلاحيات من الخادم، ما يُكتب وما لا يُكتب في المتصفح، الاستئناف والرفض، الخروج، تبديل المستخدم، مفتاح المرور، البريد ورمزه | 36 |
+| `auth-flows` | البوابة، البابان، شكل شاشة الدخول (بلا أي أثر لرمز أو مفتاح مرور)، إظهار كلمة المرور، التحقّق والأخطاء، الهوية والصلاحيات من الخادم، ما يُكتب وما لا يُكتب في المتصفح، الاستئناف، الخروج، التبديل، «نسيت كلمة المرور» والردّ المحايد، رابط الاسترجاع وكلمة المرور الجديدة، الرابط المنتهي، و«ابدأ الآن» | 53 |
 | `wizard` | خطوات المعالج الستّ عشرة واحدة واحدة، المراحل الأربع، الإلزامي والاختياري، التخطّي و«إكمال لاحقًا»، الإعداد المتكيّف، بطاقة الإكمال، خطأ الفاتورة بلا بديل مرسوم، ونهاية الإعداد | 17 |
 | `interface` | تسعة عروض من 320 إلى 1920 بلا فيض أفقي، تكبير 200%، مساحات اللمس، لوحة المفاتيح وترتيب التركيز وحصره، صلاحية بنية الأزرار والأسماء المنطوقة، وزن الصفحة والتحميل عند الطلب، المظهر الداكن، الإنجليزية و LTR، تقليل الحركة، وقياس التباين على كل نص جديد | 37 |
-| `failures` | انقطاع الشبكة، الإيقاف بعد محاولات كثيرة، غياب الربط بالخادم، الوضع المحلي، مهلة السماح والرفض الصريح، ونقل التخزين إلى جهاز آخر | 19 |
+| `failures` | انقطاع الشبكة، البريد غير المؤكَّد، حدّ المحاولات، غياب الربط بالخادم، الوضع المحلي، مهلة السماح والرفض الصريح، نقل التخزين إلى جهاز آخر، والاسترجاع بلا اتصال | 24 |
 
-المجموع **109 فحصًا**، كلها تمرّ.
+المجموع **١٣١ فحصًا**، كلها تمرّ.
 
 ## المراحل الأربع — وما هو إلزامي وما يمكن تأجيله
 
@@ -476,31 +493,27 @@ window.SETUP_CONFIG = {
 |---|---|---|
 | `setup-invoice` | منشورة ونشِطة (`verify_jwt: true`) | **مستعملة فعلًا** — هي التي تعرض قالب الفاتورة في خطوة الفواتير وفي المراجعة |
 | `docgen` | منشورة | مصدر القالب نفسه؛ `setup-invoice` تستورد منه `buildInvoice` و`buildDocumentPdf` مثبَّتين على commit محدّد |
-| `webauthn` | منشورة (`verify_jwt: false`) | خادم مفاتيح مرور حقيقي (`begin-register` · `finish-register` · `begin-auth` · `finish-auth`)، يولّد التحدّي ويحرقه ويتحقّق من التوقيع مقابل مفتاح استخرجه الخادم بنفسه. **موصولة في V5** بشاشة الدخول (`begin-auth` و`finish-auth` فقط — لا تسجيل مفاتيح من هنا) |
-| `auth-email` | منشورة | خطّاف رسائل Supabase Auth: يرسل رموز التحقق برسالة عربية عبر Resend. **موصول في V5**: الدخول بالبريد يمرّ عبر `‎/auth/v1/otp` و`‎/auth/v1/verify` فيصل الرمز بهذا القالب |
+| `webauthn` | منشورة (`verify_jwt: false`) | خادم مفاتيح مرور حقيقي، يولّد التحدّي ويحرقه ويتحقّق من التوقيع مقابل مفتاح استخرجه الخادم بنفسه. **غير مستعملة من شاشة الدخول** — الدخول بالبريد وكلمة المرور وحده |
+| `auth-email` | منشورة | خطّاف رسائل Supabase Auth: يرسل رسائله بقالب عربي عبر Resend. **موصول في V5**: رسالة «نسيت كلمة المرور» تصل بهذا القالب |
 
 ودوال قاعدة البيانات التي يستعملها الدخول — وكلها كانت موجودة قبل V5 ولم تُعدَّل:
 
 | الدالة | ما تفعله | متاحة لـ |
 |---|---|---|
-| `verify_employee_pin(p_pin_hash, p_terminal_id)` | تطابق بصمة الرمز بـ bcrypt عبر `employee_by_pin`، تسجّل المحاولة في `pin_attempts`، تفتح جلسة، وتعيد الموظف وصلاحياته | `anon` |
-| `pin_attempts_blocked(...)` | حدّ المحاولات: ٥ خاطئة لكل جهاز في دقيقتين، ١٠ لكل IP في ١٠ دقائق | داخليًا |
-| `app_session_start / ping / end` | جلسة التشغيل على هذا الجهاز | `anon` |
+| `app_session_start / ping / end` | جلسة التشغيل على هذا الجهاز: فتحها، ونبضها، وإنهاؤها | `anon` |
 | `permissions_for(role)` | مصدر الحقيقة للصلاحيات: ADMIN · MANAGER · CASHIER | داخليًا |
+
+وحدّ المحاولات هنا يفرضه **Supabase Auth** نفسه (يردّ `429`)، وتترجمه الواجهة إلى
+رسالة تفسّر ولا تتّهم.
 
 ### ما لم يُنفَّذ ولماذا
 
-* **لا رمز دخول مسجَّل لأي موظف بعد** (`employees.pin_hash` فارغ للأربعة)، **ولا مفتاح
-  مرور مسجَّل** (`webauthn_credentials` صفر صفوف). فمسار الدخول موصول وجاهز، لكن
-  أول دخول فعلي يحتاج أن يسجّل مديرُ النظام رمزًا عبر `set_employee_pin` (وهي تتطلّب
-  جلسة توثيق لمدير نشِط). هذا تسجيل بيانات اعتماد على مشروع إنتاج — قرار صاحب المشروع.
-* **اشتقاق بصمة الرمز** المفترض هنا هو `SHA-256` بالنظام الست عشري (٦٤ محرفًا، ضمن
-  المدى الذي يقبله الخادم: ٣٢–١٢٨). لم يكن في المستودع عميلُ ERP يكشف الاشتقاق
-  المستعمل فعلًا، ولا يجوز استنتاجه بتخمين رموز موظفين حقيقيين. إن اختلف، غيّره من
-  `SETUP_CONFIG.pinDigest` — القاعدة الوحيدة أن يطابق ما تكتبه `set_employee_pin`.
+* **الحسابان الموجودان جاهزان للدخول:** كلاهما مؤكَّد البريد ويحمل كلمة مرور فعلية
+  ومزوّده `email`، فمسار الدخول يعمل عليهما اليوم كما هو.
+* **يجب إضافة وجهة رابط الاسترجاع** إلى Redirect URLs في لوحة Supabase قبل أن تعمل
+  «نسيت كلمة المرور» من نطاق التشغيل الحقيقي.
 * **لم يُجرَّب المسار حيًّا مقابل `*.supabase.co`**: الشبكة إليها محجوبة من بيئة العمل.
-  اختُبر العميل مقابل عقود هذه الدوال كما قُرئت من قاعدة البيانات نفسها (`tests/`)،
-  وقُرئ مصدر دالة `webauthn` سطرًا سطرًا لمطابقة الترميز والحقول.
+  اختُبر العميل مقابل عقود Supabase Auth و PostgREST كما هي على هذا المشروع (`tests/`).
 * **لم تُغيَّر قاعدة البيانات إطلاقًا**: لا دالة أُنشئت، ولا صلاحية مُنحت، ولا صفّ كُتب.
   المهاجرة الوحيدة في المستودع اختيارية وغير مطبَّقة.
 
@@ -523,15 +536,15 @@ window.SETUP_CONFIG = {
 
 أُضيف في V5:
 
-* **لا رمز دخول ولا بصمته ولا رمز وصول ولا رمز تحديث في المتصفح.** المحفوظ مؤشّر
-  جلسة أصدرها الخادم والهوية التي أصدرها معها. رمز وصول توثيق البريد يبقى في ذاكرة
-  الصفحة وحدها. (مُتحقَّق منه آليًا بعد دخول كامل.)
+* **لا كلمة مرور ولا رمز وصول ولا رمز تحديث في المتصفح.** المحفوظ مؤشّر جلسة أصدرها
+  الخادم والهوية التي أصدرها معها. رمز الوصول يبقى في ذاكرة الصفحة وحدها، وحقل كلمة
+  المرور يُفرَّغ فور نجاح الدخول أو فشله. (مُتحقَّق منه آليًا بعد دخول كامل.)
 * **الخادم هو الحَكَم في كل إقلاع.** لا تُستأنف جلسة قبل أن يؤكّدها `app_session_ping`،
   وتُمحى فور أن ينفيها. وتحرير `localStorage` لا يصنع جلسة: المؤشّر يجب أن يعرفه الخادم،
   ومربوط بمعرّف هذا الجهاز، وله عمر أقصى.
-* **لا قائمة موظفين قبل الدخول** — الخادم يستنتج الهوية من الرمز، فلا تُعرض أسماء
-  الفريق لمن يقف أمام الشاشة.
-* **تحديد المحاولات على الخادم** لا في الواجهة، والإيقاف يُعرض كإيقاف مع بديل واضح.
+* **لا كشف عن الحسابات:** «نسيت كلمة المرور» تردّ الردّ نفسه سواء كان البريد مسجَّلًا
+  أو لا، ورمز الاسترجاع يُمحى من شريط العنوان ومن سجلّ التصفّح فور التقاطه.
+* **تحديد المحاولات على الخادم** لا في الواجهة، ويُعرض كتفسير لا كاتّهام.
 * **الصلاحيات للعرض لا للحماية.** ما تخفيه الواجهة تريح به المستخدم؛ المنع الحقيقي
   في RLS ودوال قاعدة البيانات، وهذا مكتوب في شاشة تسليم النظام نفسها لا في التوثيق فقط.
 * **الخروج لا يمسّ البيانات:** يُنهي الجلسة على الخادم ويمحوها محليًا، ويترك المتجر
@@ -655,22 +668,25 @@ Setup builds the system, sign-in opens an existing account, and the two are neve
 `setup_completed` and `authenticated` are independent states, and finishing setup never
 grants a session.
 
-Sign-in is the real backend. The access code is SHA-256'd in the browser and sent to the
-existing `verify_employee_pin` RPC, which bcrypt-matches it, rate-limits per terminal and
-IP, opens an `app_sessions` row and returns the employee plus the permissions
-`permissions_for()` derives — nothing is compared client-side. Passkeys go to the deployed
-`webauthn` edge function, which mints and burns its own challenge and verifies the
-signature against a key it extracted from the attestation itself; with no key enrolled for
-the domain the option is shown disabled with that exact reason rather than simulated.
-Email sign-in uses Supabase Auth with `create_user:false`, then reads the caller's own
-profile row under RLS.
+Sign-in asks for two things and nothing else: **email and password**, with **forgot your
+password?** and **start now** beside them. There is deliberately no PIN and no passkey on
+this screen. The password goes to Supabase Auth (`grant_type=password`); identity and role
+are then read from the caller's own `profiles` row under RLS, and an `app_sessions` row
+records the terminal — nothing is compared client-side.
 
-The browser stores a session pointer and the server-issued identity — never a code, a
-password, an OTP, or an access/refresh token — and every launch revalidates it with
-`app_session_ping` before trusting it. Sign-out ends the session server-side and clears it
-locally, leaving store, staff, permissions, invoice and setup state untouched; switch-user
-re-authenticates without re-running setup. `node tests/run.mjs` runs 95 checks in real
-Chromium against contracts read from the live database.
+Forgot-password is not a dead end. `/auth/v1/recover` sends the link through the project's
+Arabic `auth-email` template, the answer is always neutral so no one can discover which
+addresses are registered, and the returning link's token is picked out of the URL hash and
+**erased from the address bar and history immediately**, opening a "choose a new password"
+screen. Saving it signs you straight in, because the token that authorised the change is
+proof enough.
+
+The browser stores a session pointer and the server-issued identity — never a password or
+an access/refresh token — and every launch revalidates it with `app_session_ping` before
+trusting it. Sign-out ends the session server-side and clears it locally, leaving store,
+staff, permissions, invoice and setup state untouched; switch-user re-authenticates without
+re-running setup. `node tests/run.mjs` runs 131 checks in real Chromium against the
+contracts Supabase Auth and PostgREST actually return on this project.
 
 Open `index.html` in any modern browser — no build step, no network. Motion is powered by three
 vendored libraries in `vendor/`: **Three.js** (the matte-clay 3D stage, one scene per step),

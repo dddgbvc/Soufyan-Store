@@ -70,7 +70,7 @@ ok(!/فاتورة تجريبية|mock/i.test(inv), 'لا فاتورة بديلة
 console.log('\n— نهاية الإعداد —');
 await p.evaluate(()=>{ SetupState.data.setupStatus.completed=true; SetupState.saveNow(); LocalDB.put('setup_completed',true); });
 await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1200);
-ok(await p.textContent('#stepTitle')==='أدخل رمزك','إعداد مكتمل بلا جلسة ⇒ شاشة الدخول مباشرة');
+ok(await p.textContent('#stepTitle')==='سجّل دخولك','إعداد مكتمل بلا جلسة ⇒ شاشة الدخول مباشرة');
 ok(await p.evaluate(()=>ERPSetup.auth.isAuthenticated())===false,'لا جلسة موثَّقة تُمنح لمجرد اكتمال الإعداد');
 await p.click('[data-back-gate]'); await p.waitForTimeout(700);
 ok((await p.textContent('.door[data-door="setup"] b'))==='إعداد متجر جديد','البوابة تتكيّف: «إعداد متجر جديد» بدل «مستخدم جديد»');

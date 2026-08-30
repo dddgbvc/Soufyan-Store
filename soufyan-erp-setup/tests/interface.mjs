@@ -7,23 +7,31 @@ let pass=0,fail=0; const ok=(c,m)=>{c?pass++:fail++;console.log((c?'  PASS ':'  
 const sha=async s=>{const c=await import('node:crypto');return c.createHash('sha256').update(s).digest('hex');};
 const GOOD=await sha('4271');
 
-async function stub(page){
+const TOKEN='eyJhbGciOiJIUzI1NiJ9.fake';
+const USER={ id:'1504114c-71ec-4345-a1ba-7c815c71e6c4', email:'assn42357@gmail.com' };
+const PROFILE={ id:USER.id, display_name:'سفيان يوسف', role:'ADMIN', status:'active' };
+async function stub(page, o={}){
   await page.route('**/fonts.googleapis.com/**', r=>r.abort());
-  await page.route('**/rest/v1/rpc/**', async route=>{
-    const fn=route.request().url().split('/rpc/')[1].split('?')[0];
-    const body=JSON.parse(route.request().postData()||'{}');
-    if(fn==='verify_employee_pin') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(
-      body.p_pin_hash===GOOD?{ok:true,session_id:SESSION,employee:{id:'x',name:'سفيان يوسف',role:'ADMIN'},
-        permissions:['dashboard','pos','returns','inventory','shortages','vaults','customers','analytics','settings','repairs','expenses','purchases']}:{ok:false,reason:'wrong'})});
-    if(fn==='app_session_ping') return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
-    if(fn==='app_session_end') return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
-    return route.fulfill({status:404,body:'{}'});
+  await page.route('**/auth/v1/**', r=>{
+    const url=r.request().url();
+    const body=r.request().postData()? JSON.parse(r.request().postData()) : {};
+    const json=(s,b)=>r.fulfill({status:s,contentType:'application/json',body:JSON.stringify(b)});
+    if(url.includes('/token')) return (body.password==='S3cret-pass')
+      ? json(200,{access_token:TOKEN, refresh_token:'rt', user:USER})
+      : json(400,{error_code:'invalid_credentials', msg:'Invalid login credentials'});
+    return json(200,{...USER});
   });
-  await page.route('**/functions/v1/**', r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"challenge":null,"allowCredentials":[]}'}));
-  await page.route('**/auth/v1/**', r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));
+  await page.route('**/rest/v1/profiles**', r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify([PROFILE])}));
+  await page.route('**/rest/v1/rpc/**', r=>{
+    const fn=r.request().url().split('/rpc/')[1].split('?')[0];
+    if(fn==='app_session_start') return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(SESSION)});
+    if(fn==='app_session_ping')  return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:o.pingOk!==false})});
+    return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
+  });
 }
-const login=async p=>{ await p.click('[data-door="login"]'); await p.waitForTimeout(600);
-  await p.fill('.pin-input','4271'); await p.press('.pin-input','Enter'); await p.waitForTimeout(1300); };
+const doLogin=async(p,pw='S3cret-pass')=>{ await p.click('[data-door="login"]'); await p.waitForTimeout(650);
+  await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword',pw);
+  await p.click('[data-go]'); await p.waitForTimeout(1500); };
 
 const b=await chromium.launch({executablePath:EXE});
 
@@ -33,10 +41,11 @@ for(const w of [320,360,390,430,768,1024,1280,1440,1920]){
   const ctx=await b.newContext({viewport:{width:w,height:820}}); const p=await ctx.newPage(); await stub(p);
   await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(700);
   const g=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
-  await p.click('[data-door="login"]'); await p.waitForTimeout(600);
+  await p.click('[data-door="login"]'); await p.waitForTimeout(650);
   const l=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   if(w===390) if(SHOTS) await p.screenshot({path:SHOTS+'m-login.png'});
-  await p.fill('.pin-input','4271'); await p.press('.pin-input','Enter'); await p.waitForTimeout(1300);
+  await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword','S3cret-pass');
+  await p.click('[data-go]'); await p.waitForTimeout(1500);
   const e=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   if(w===390) if(SHOTS) await p.screenshot({path:SHOTS+'m-erp.png'});
   ok(g<=0&&l<=0&&e<=0, `${w}px — بلا فيض أفقي (بوابة ${g} · دخول ${l} · نظام ${e})`);
@@ -110,8 +119,8 @@ console.log('\n— الوزن والتحميل عند الطلب —');
     const r=e.getBoundingClientRect(); return r.width>0 && (r.height<24||r.width<24);
   }).map(e=>(e.id||e.className||e.tagName)+' '+Math.round(e.getBoundingClientRect().height)));
   ok(small.length===0, 'لا عنصر تفاعلي أصغر من 24px في البوابة: '+JSON.stringify(small));
-  await p.click('[data-door="login"]'); await p.waitForTimeout(600);
-  const h=await p.$eval('[data-pin-go]',e=>e.getBoundingClientRect().height);
+  await p.click('[data-door="login"]'); await p.waitForTimeout(650);
+  const h=await p.$eval('[data-go]',e=>e.getBoundingClientRect().height);
   ok(h>=44, `زر الدخول الرئيسي ${Math.round(h)}px ≥ 44px`);
   await ctx.close();
 }
@@ -130,9 +139,10 @@ console.log('\n— لوحة المفاتيح —');
   const ring=await p.evaluate(()=>{const s=getComputedStyle(document.activeElement);return s.outlineWidth+' / '+s.outlineStyle;});
   ok(!/^0px|none/.test(ring),'حلقة تركيز ظاهرة على الباب: '+ring);
   await p.keyboard.press('Enter'); await p.waitForTimeout(700);
-  ok(await p.isVisible('.pin-input'),'Enter على الباب يفتح شاشة الدخول');
+  ok(await p.isVisible('#f_loginPassword'),'Enter على الباب يفتح شاشة الدخول');
   // حصر التركيز داخل حوار الخروج
-  await p.fill('.pin-input','4271'); await p.press('.pin-input','Enter'); await p.waitForTimeout(1300);
+  await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword','S3cret-pass');
+  await p.click('[data-go]'); await p.waitForTimeout(1500);
   await p.click('[data-logout]'); await p.waitForTimeout(500);
   ok(await p.evaluate(()=>$('.shell').inert===true),'الخلفية inert أثناء الحوار');
   await p.keyboard.press('Escape'); await p.waitForTimeout(400);
@@ -153,7 +163,7 @@ console.log('\n— المظهر واللغة —');
   ok(await p.evaluate(()=>getComputedStyle(document.body).backgroundColor)!=='rgb(234, 240, 252)','الخلفية داكنة فعلًا');
   await p.click('#langBtn'); await p.waitForTimeout(700);
   ok(await p.evaluate(()=>document.documentElement.dir)==='ltr','الإنجليزية تقلب الاتجاه إلى LTR');
-  ok((await p.textContent('#stepTitle')).trim()==='Enter your code','النص الإنجليزي معروض');
+  ok((await p.textContent('#stepTitle')).trim()==='Sign in','النص الإنجليزي معروض');
   const ov=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   ok(ov<=0,'لا فيض أفقي في الوضع الإنجليزي الداكن');
   if(SHOTS) await p.screenshot({path:SHOTS+'en-dark-login.png'});
@@ -165,7 +175,7 @@ console.log('\n— المظهر واللغة —');
   const ctx=await b.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'}); const p=await ctx.newPage(); await stub(p);
   const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(700);
-  await login(p);
+  await doLogin(p);
   ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','المسار كامل يعمل مع prefers-reduced-motion');
   ok(errs.length===0,'بلا أخطاء مع تقليل الحركة');
   await ctx.close();
@@ -180,14 +190,14 @@ console.log('\n— التباين —');
     const ctx=await b.newContext({viewport:{width:1280,height:900}}); const p=await ctx.newPage(); await stub(p);
     await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(600);
     await p.evaluate(t=>Theme.apply(t), theme); await p.waitForTimeout(300);
-    await login(p);
+    await doLogin(p);
     const nodes=await p.evaluate(()=>{
       const px=s=>s.match(/\d+/g).slice(0,3).map(Number);
       const bgOf=el=>{ let n=el; while(n&&n!==document.documentElement){ const c=getComputedStyle(n).backgroundColor;
         if(c&&!/rgba\(0, 0, 0, 0\)|transparent/.test(c)&&!/, 0\)$/.test(c)) return c; n=n.parentElement; }
         return getComputedStyle(document.body).backgroundColor; };
       const out=[];
-      document.querySelectorAll('.step .perm-list li, .step .who b, .step .who .w-txt > span, .step .hand-card b, .step .hand-card span, .step .lede, .step h1, .method .m-txt b, .method .m-txt span, .door b, .door p, .door .d-go, .pin-wrap .hint, .sess .s-who b, .sess .s-who span, .note b, .note div, .step-eyebrow span, .perm-block > b')
+      document.querySelectorAll('.step .perm-list li, .step .who b, .step .who .w-txt > span, .step .hand-card b, .step .hand-card span, .step .lede, .step h1, .method .m-txt b, .method .m-txt span, .door b, .door p, .door .d-go, .sess .s-who b, .sess .s-who span, .note b, .note div, .step-eyebrow span, .perm-block > b')
         .forEach(el=>{ const s=getComputedStyle(el); const r=el.getBoundingClientRect(); if(!r.width) return;
           out.push({sel:el.className||el.tagName, size:parseFloat(s.fontSize), weight:s.fontWeight, fg:px(s.color), bg:px(bgOf(el)), txt:(el.textContent||'').trim().slice(0,18)}); });
       return out;

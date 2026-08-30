@@ -881,50 +881,21 @@ html[dir="rtl"] .door .d-go svg{transform:scaleX(-1)}
 .door[data-tone="primary"]{background:var(--clay-on); border-color:var(--accent)}
 .door[data-tone="primary"] .d-ico{background:var(--accent-solid); color:var(--accent-on)}
 
-/* ---- قائمة طرق الدخول ---- */
-.methods{display:grid; gap:10px; list-style:none; margin:0; padding:0}
-.methods li{display:block}
-.method{display:flex; align-items:center; gap:13px; text-align:start; width:100%; padding:14px 15px;
-  border-radius:var(--r-lg); background:var(--clay); border:1.5px solid var(--line-soft);
-  box-shadow:var(--shadow-clay); color:inherit;
-  transition:background var(--t-med) var(--ease), border-color var(--t-med) var(--ease), transform var(--t-med) var(--ease)}
-@media (hover:hover){ button.method:hover{border-color:var(--accent); transform:translateY(-1px)} }
-button.method:active{transform:scale(.98)}
-/* طريقة لا تعمل ليست زرًّا معطّلًا بل سطر يشرح السبب: يُقرأ ولا يُلتقط في مسار Tab. */
-.method[data-off="1"]{background:transparent; border-style:dashed; box-shadow:none}
-.method .m-ico{width:40px; height:40px; border-radius:13px; flex:none; display:grid; place-items:center;
-  background:var(--clay-2); color:var(--accent-text)}
-.method .m-ico svg{width:20px; height:20px}
-.method[data-off="1"] .m-ico{background:var(--surface-3); color:var(--text-3)}
-.method .m-txt{flex:1; min-width:0}
-.method .m-txt b{display:block; font-size:.94rem; font-weight:600; line-height:1.45}
-.method .m-txt span{display:block; font-size:.79rem; color:var(--text-2); line-height:1.55; margin-top:1px}
-.method[data-off="1"] .m-txt b{color:var(--text-2)}
-.method .m-go{flex:none; color:var(--text-3)}
-.method .m-go svg{width:16px; height:16px}
-html[dir="rtl"] .method .m-go svg{transform:scaleX(-1)}
+/* ---- حقل كلمة المرور ---- */
+.pwd-row{display:flex; align-items:stretch; gap:8px}
+.pwd-row .control{flex:1; min-width:0}
+.pwd-peek{flex:none; width:44px; height:auto; border-radius:var(--r-md);
+  background:var(--clay); border:1.5px solid var(--field-border)}
+.pwd-peek[aria-pressed="true"]{background:var(--clay-on); color:var(--accent-text); border-color:var(--accent)}
 
-/* ---- إدخال رمز الدخول ---- */
-/* الحقل يأخذ عرض الزر الذي تحته فتستقيم الحافتان، والرمز نفسه يبقى موسَّطًا
-   داخله لأنه بؤرة الشاشة. النقاط والتلميح يتبعان الحقل لا العكس. */
-.pin-wrap{display:grid; gap:8px; justify-items:stretch; padding:4px 0}
-.pin-label{font-size:.86rem; font-weight:600; text-align:center}
-.pin-wrap .pin-dots{justify-content:center}
-.pin-wrap .hint{text-align:center; max-width:none}
-.pin-dots{display:flex; gap:10px; direction:ltr}
-.pin-dots i{width:12px; height:12px; border-radius:50%; background:var(--clay-2);
-  border:1.5px solid var(--field-border); display:block;
-  transition:background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease)}
-.pin-dots i[data-on="1"]{background:var(--accent); border-color:transparent; transform:scale(1.12)}
-.pin-input{width:100%; text-align:center; font-family:var(--font-mono); font-size:1.5rem;
-  font-weight:600; letter-spacing:.42em; text-indent:.42em; padding:14px; border-radius:var(--r-lg);
-  background:var(--field); border:1.5px solid var(--field-border); box-shadow:var(--shadow-sm);
-  transition:border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease)}
-.pin-input:focus-visible{outline:none; border-color:var(--focus); box-shadow:0 0 0 4px var(--ring)}
-.pin-wrap[data-state="invalid"] .pin-input{border-color:var(--danger); box-shadow:0 0 0 4px rgba(206,59,84,.16)}
-.pin-wrap[data-state="invalid"] .pin-dots i{border-color:var(--danger)}
-.pin-wrap[data-state="verified"] .pin-input{border-color:var(--success); background:var(--success-soft)}
-.pin-wrap[data-state="verifying"] .pin-input{pointer-events:none; opacity:.7}
+/* «نسيت كلمة المرور؟» تجلس تحت الحقل الذي تخصّه، محاذية لنهايته. */
+.auth-row{display:flex; justify-content:flex-end; margin-top:-8px}
+
+/* «ابدأ الآن» مخرج هادئ لمن ليس عنده حساب — لا ينافس الإجراء الرئيسي. */
+.new-here{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  margin-top:6px; padding:14px 16px; border-radius:var(--r-lg);
+  background:var(--clay); border:1px dashed var(--line)}
+.new-here > span{font-size:.86rem; color:var(--text-2)}
 
 /* ---- بطاقة الهوية بعد التحقّق ---- */
 .who{display:flex; align-items:center; gap:14px; padding:15px 16px; border-radius:var(--r-lg);
@@ -1597,9 +1568,9 @@ const CONFIG = Object.assign({
   passkey    : null,               // null = كشف تلقائي لدعم المتصفح
 
   /* ---- الدخول (V5) ---- */
-  webauthnFunction   : "webauthn", // دالة الحافة التي تولّد التحدّي وتتحقّق من التوقيع
-  emailLogin         : true,       // الدخول برمز البريد عبر Supabase Auth (لا يُنشئ حسابات)
-  pinDigest          : "SHA-256",  // بصمة رمز الدخول قبل إرساله — يقارنها الخادم بـ bcrypt
+  // وجهة رابط استرجاع كلمة المرور. يجب أن تكون ضمن Redirect URLs المسموح بها
+  // في لوحة Supabase، وإلا أعاد الخادم المستخدم إلى Site URL بدلها.
+  recoveryRedirect   : "",         // فارغ = عنوان هذه الصفحة نفسها
   requestTimeout     : 15000,      // مهلة كل طلب (ms)
   sessionMaxHours    : 12,         // أقصى عمر لجلسة مستأنَفة قبل طلب الدخول من جديد
   offlineGraceMinutes: 60,         // مهلة سماح حين لا يُجيب الخادم — لا حين يرفض
@@ -5342,23 +5313,31 @@ const Sb = {
   _err(code, status, detail){
     const e = new Error(code); e.code = code; e.status = status || 0; e.detail = detail || ""; return e;
   },
-  async _send(url, body, token){
+  /** رسالة الخادم التقنية تُلتقط للترجمة، ولا تُعرض للمستخدم كما هي. */
+  _detail(data){
+    if(!data) return "";
+    return String(data.error_code || data.msg || data.error_description || data.message || data.error || "");
+  },
+  async send(method, path, body, token){
     if(!this.ready()) throw this._err("config");
+    const url = /^https?:/.test(path) ? path : this._base() + path;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), CONFIG.requestTimeout);
     let res;
     try{
-      res = await fetch(url, { method:"POST", headers:this._headers(token), body:JSON.stringify(body), signal:ctrl.signal });
+      res = await fetch(url, { method, headers:this._headers(token),
+        body: body === undefined ? undefined : JSON.stringify(body), signal:ctrl.signal });
     }catch(_){
       throw this._err("offline");            // شبكة مقطوعة أو مهلة — ليست رفضًا من الخادم
     }finally{ clearTimeout(timer); }
     let data = null;
     try{ data = await res.json(); }catch(_){ }
-    if(res.status === 429) throw this._err("rate", 429, (data && (data.msg || data.error_description)) || "");
-    if(res.status === 401 || res.status === 403) throw this._err("unauthorized", res.status);
-    if(!res.ok) throw this._err("server", res.status, (data && (data.message || data.msg || data.error_description || data.error)) || "");
+    if(res.status === 429) throw this._err("rate", 429, this._detail(data));
+    if(res.status === 401 || res.status === 403) throw this._err("unauthorized", res.status, this._detail(data));
+    if(!res.ok) throw this._err("server", res.status, this._detail(data));
     return data;
   },
+  _send(url, body, token){ return this.send("POST", url, body, token); },
   /** دالة قاعدة بيانات عبر PostgREST. */
   rpc(fn, args, token){ return this._send(this._base() + "/rest/v1/rpc/" + fn, args || {}, token); },
   /** دالة حافة. */
@@ -5383,7 +5362,7 @@ const Sb = {
 /* ==========================================================================
    14.b) Terminal — هوية الجهاز (لا هوية المستخدم)
    --------------------------------------------------------------------------
-   الخادم يحدّ محاولات رمز الدخول لكل جهاز، ويسجّل جلسات التشغيل لكل جهاز.
+   الخادم يسجّل جلسات التشغيل لكل جهاز ويحدّ المحاولات به.
    لذلك يحتاج معرّفًا ثابتًا للجهاز — وهو ليس سرًّا ولا يمنح أي صلاحية.
    ========================================================================== */
 const Terminal = {
@@ -5426,125 +5405,54 @@ const Terminal = {
 };
 
 /* ==========================================================================
-   14.c) AuthService — توثيق حقيقي، أو لا شيء
+   14.c) AuthService — توثيق حقيقي عبر Supabase Auth
    --------------------------------------------------------------------------
-   لا يوجد في هذا الملف أي مقارنة رمز في المتصفح ولا `isLoggedIn = true`.
-   كل طريقة تسأل الخادم، والخادم وحده يقرّر:
+   طريق واحد للدخول: **بريد وكلمة مرور**، ومعه استرجاعها حين تُنسى. لا مقارنة
+   في المتصفح ولا `isLoggedIn = true`؛ كل سؤال يُطرح على الخادم وحده:
 
-     رمز الدخول  →  rpc verify_employee_pin   (bcrypt + تحديد محاولات + جلسة)
-     مفتاح مرور  →  functions/webauthn        (تحدٍّ يُولَّد ويُحرَق على الخادم)
-     بريد + رمز  →  auth/v1/otp + verify      (Supabase Auth، ثم قراءة الملف الشخصي)
+     الدخول        →  POST /auth/v1/token?grant_type=password
+     نسيت كلمتي    →  POST /auth/v1/recover      (الرسالة عبر خطّاف auth-email)
+     كلمة مرور جديدة→ PUT  /auth/v1/user         (برمز الاسترجاع الذي عاد بالرابط)
+     الهوية والدور →  GET  /rest/v1/profiles     (تحكمها RLS بجلسة المستخدم نفسه)
 
-   ما لا يملك الخادم إجابته يُعرض معطّلًا بسببه الحقيقي، ولا يُحاكى.
+   جلسة التشغيل على هذا الجهاز تُفتح بعدها في `app_sessions` لتُسجَّل مثل غيرها.
    ========================================================================== */
-
-/** بصمة رمز الدخول تُحسب في المتصفح ولا يغادر الرمز نفسه الجهاز أبدًا.
- *  الخادم يقارنها بـ bcrypt، فهي «كلمة السر» من منظوره لا الرمز الخام. */
-async function pinDigest(pin){
-  if(!(window.crypto && crypto.subtle)) throw Sb._err("insecure");
-  const buf = await crypto.subtle.digest(CONFIG.pinDigest, new TextEncoder().encode(String(pin)));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
 const AuthService = {
   /** ما تدعمه هذه البيئة فعلًا — يُسأل عنه ولا يُفترض. */
   caps(){
-    const secure = !!(window.isSecureContext && window.crypto && crypto.subtle);
     return {
       configured : Sb.ready(),
-      secure,
-      pin        : Sb.ready() && secure,
-      pinReason  : !Sb.ready() ? "config" : !secure ? "insecure" : "",
-      passkey    : Sb.ready() && PASSKEY_SUPPORTED && secure && !!location.hostname,
-      passkeyReason: !Sb.ready() ? "config" : !PASSKEY_SUPPORTED ? "unsupported"
-        : !secure ? "insecure" : !location.hostname ? "origin" : "",
-      email      : Sb.ready() && CONFIG.emailLogin !== false,
-      emailReason: !Sb.ready() ? "config" : "off"
+      reason     : !Sb.ready() ? "config" : ""
     };
   },
 
-  /* ---- رمز الدخول ---- */
-  async pinLogin(pin){
-    const hash = await pinDigest(pin);
-    const r = await Sb.rpc("verify_employee_pin", { p_pin_hash: hash, p_terminal_id: Terminal.id() });
-    if(!r || r.ok !== true){
-      const reason = (r && r.reason) || "wrong";
-      throw Sb._err(reason === "locked" ? "locked" : reason === "invalid" ? "invalid" : "wrong", 200,
-        r && r.retry_after ? String(r.retry_after) : "");
-    }
-    return {
-      method:"pin", sessionId: r.session_id || null,
-      employee: r.employee || null,
-      permissions: Array.isArray(r.permissions) ? r.permissions : []
-    };
-  },
-
-  /* ---- مفتاح المرور (WebAuthn) ---- */
-  async passkeyBegin(){
-    return Sb.fn(CONFIG.webauthnFunction, { action:"begin-auth", rpId: location.hostname });
-  },
-  /** يُسأل الخادم أولًا: هل على هذا النطاق مفتاح مسجَّل أصلًا؟ */
-  async passkeyAvailable(){
-    try{
-      const r = await this.passkeyBegin();
-      return { ok: !!(r && r.challenge && (r.allowCredentials || []).length), raw:r };
-    }catch(e){ return { ok:false, error:e }; }
-  },
-  async passkeyLogin(pre){
-    const begin = pre && pre.challenge ? pre : await this.passkeyBegin();
-    if(!begin || !begin.challenge || !(begin.allowCredentials || []).length) throw Sb._err("no-credentials");
-    let cred;
-    try{
-      cred = await navigator.credentials.get({
-        publicKey:{
-          challenge: PasskeyUtil.b64uToBuf(begin.challenge),
-          rpId: location.hostname,
-          timeout: 60000,
-          userVerification: "required",
-          allowCredentials: begin.allowCredentials.map(c => ({
-            id: PasskeyUtil.b64uToBuf(c.id), type:"public-key",
-            transports: Array.isArray(c.transports) && c.transports.length ? c.transports : undefined
-          }))
-        }
-      });
-    }catch(e){
-      throw Sb._err(e && e.name === "NotAllowedError" ? "cancelled" : "passkey-failed", 0, e && e.message);
-    }
-    if(!cred) throw Sb._err("cancelled");
-    const r = await Sb.fn(CONFIG.webauthnFunction, Object.assign(
-      { action:"finish-auth", credentialId: cred.id }, PasskeyUtil.encodeAssertion(cred)));
-    if(!r || r.ok !== true) throw Sb._err("passkey-rejected", 0, (r && r.message) || "");
-    // الخادم أعاد هوية الموظف؛ نفتح له جلسة تشغيل على هذا الجهاز لتُسجَّل مثل غيرها.
-    let sessionId = null;
-    try{
-      sessionId = await Sb.rpc("app_session_start", {
-        p_terminal_id: Terminal.id(), p_platform:"web", p_app_version: CONFIG.appVersion,
-        p_device_name: Terminal.name(), p_os: Terminal.os(), p_meta:{ source:"passkey" }
-      });
-    }catch(_){ }
-    return {
-      method:"passkey", sessionId: typeof sessionId === "string" ? sessionId : null,
-      employee:{ id: r.employeeRef || "", name: r.employeeName || "", role:"" },
-      permissions: []
-    };
-  },
-
-  /* ---- البريد + رمز لمرة واحدة (Supabase Auth) ---- */
-  async emailSend(email){
-    // create_user:false — الدخول لا يُنشئ حسابات. الحسابات تُنشأ في الإعداد وحده.
-    await Sb.auth("otp", { email: String(email).trim().toLowerCase(), create_user:false });
-    return { ok:true, expiresIn: CONFIG.otpTtl };
-  },
-  async emailVerify(email, code){
+  /* ---- الدخول ---- */
+  async passwordLogin(email, password){
     let r;
     try{
-      r = await Sb.auth("verify", { type:"email", email:String(email).trim().toLowerCase(), token:String(code) });
+      r = await Sb.auth("token?grant_type=password",
+        { email: String(email).trim().toLowerCase(), password: String(password) });
     }catch(e){
-      if(e.code === "unauthorized" || (e.code === "server" && e.status === 400)) throw Sb._err("wrong");
-      throw e;
+      throw Sb._err(this._loginCode(e), e.status, e.detail);
     }
-    if(!r || !r.access_token || !r.user) throw Sb._err("wrong");
-    // الهوية والدور يقرآن من قاعدة البيانات بجلسة المستخدم نفسه — تحكمها RLS.
+    if(!r || !r.access_token || !r.user) throw Sb._err("badLogin");
+    return this._identify(r);
+  },
+  /** رسائل GoTrue تُترجَم إلى سبب واحد تعرفه الواجهة — بلا تسريب نصّ الخادم. */
+  _loginCode(e){
+    const d = String(e.detail || "").toLowerCase();
+    if(e.code === "rate") return "rate";
+    if(d.includes("email_not_confirmed") || d.includes("not confirmed")) return "unconfirmed";
+    if(d.includes("invalid_credentials") || d.includes("invalid login") || d.includes("invalid_grant")) return "badLogin";
+    if(e.code === "unauthorized" || e.status === 400) return "badLogin";
+    return e.code || "server";
+  },
+
+  /**
+   * الهوية بعد التوثيق تُقرأ من قاعدة البيانات بجلسة المستخدم نفسه، فتحكمها RLS.
+   * الدور مصدره الخادم، وما في الواجهة مرآة لعرض الأقسام لا لمنعها.
+   */
+  async _identify(r){
     let profile = null;
     try{
       const rows = await Sb.select(
@@ -5554,8 +5462,18 @@ const AuthService = {
     }catch(_){ }
     if(profile && profile.status && profile.status !== "active") throw Sb._err("disabled");
     const role = (profile && profile.role) || "";
+    // جلسة تشغيل على هذا الجهاز — تُسجَّل ويُنبَض عليها، وهي ما يُستأنف بعد التحديث.
+    let sessionId = null;
+    try{
+      sessionId = await Sb.rpc("app_session_start", {
+        p_terminal_id: Terminal.id(), p_platform:"web", p_app_version: CONFIG.appVersion,
+        p_device_name: Terminal.name(), p_os: Terminal.os(), p_meta:{ source:"password" }
+      });
+    }catch(_){ }
     return {
-      method:"email", sessionId:null, token:r.access_token,
+      method:"password",
+      sessionId: typeof sessionId === "string" ? sessionId : null,
+      token: r.access_token,
       employee:{
         id: r.user.id,
         name: (profile && (profile.display_name || profile.full_name)) || r.user.email || "",
@@ -5565,6 +5483,31 @@ const AuthService = {
     };
   },
 
+  /* ---- نسيت كلمة المرور ---- */
+  /**
+   * الردّ محايد دائمًا ولا يقول إن كان البريد مسجّلًا أو لا: كشف ذلك يمنح من
+   * يجرّب عناوين قائمةً بمن يملك حسابًا. وهذا ما يفعله الخادم أصلًا (200 دائمًا).
+   */
+  async recover(email){
+    const to = CONFIG.recoveryRedirect || (location.origin + location.pathname);
+    await Sb.auth("recover?redirect_to=" + encodeURIComponent(to),
+      { email: String(email).trim().toLowerCase() });
+    return { ok:true };
+  },
+  /** رمز الاسترجاع الذي عاد مع الرابط هو ما يأذن بتغيير كلمة المرور. */
+  async updatePassword(token, password){
+    const r = await Sb.send("PUT", "/auth/v1/user", { password: String(password) }, token);
+    if(!r || !r.id) throw Sb._err("server");
+    return { user:r };
+  },
+  /** بعد تغيير كلمة المرور نملك رمزًا صالحًا، فالدخول يكتمل بلا طلب ثانٍ. */
+  async sessionFromToken(token, user){
+    return this._identify({ access_token: token, user });
+  },
+
+  /** من صاحب رمز الاسترجاع؟ يُسأل الخادم قبل عرض شاشة كلمة المرور الجديدة. */
+  async me(token){ return Sb.send("GET", "/auth/v1/user", undefined, token); },
+
   /* ---- إنهاء الجلسة على الخادم ---- */
   async endSession(sessionId, reason){
     if(!sessionId) return;
@@ -5573,18 +5516,6 @@ const AuthService = {
   async ping(sessionId){
     const r = await Sb.rpc("app_session_ping", { p_session_id: sessionId });
     return !!(r && r.ok === true);
-  },
-  /**
-   * اختياري: إن نُشرت `app_session_whoami` عادت الهوية والصلاحيات من الخادم
-   * فلا يبقى للتخزين المحلي رأي فيهما. وإن لم تُنشر عاد `{missing:true}`
-   * ويُقال ذلك في التقرير بدل ادّعاء تحقّق لم يحدث.
-   * المهاجرة الجاهزة: supabase/migrations/0001_app_session_whoami.sql
-   */
-  async whoami(sessionId){
-    try{
-      const r = await Sb.rpc("app_session_whoami", { p_session_id: sessionId });
-      return (r && typeof r === "object") ? r : { missing:true };
-    }catch(_){ return { missing:true }; }
   }
 };
 
@@ -5599,15 +5530,6 @@ const PERMISSION_MATRIX = {
   CASHIER: ["pos"]
 };
 const PERMISSIONS_FOR = role => PERMISSION_MATRIX[String(role || "").toUpperCase()] || PERMISSION_MATRIX.CASHIER;
-
-/* ترميز ردّ WebAuthn عند الدخول (التسجيل له ترميزه في PasskeyUtil.encode). */
-PasskeyUtil.encodeAssertion = function(cred){
-  return {
-    clientDataJSON   : this.bufToB64u(cred.response.clientDataJSON),
-    authenticatorData: this.bufToB64u(cred.response.authenticatorData),
-    signature        : this.bufToB64u(cred.response.signature)
-  };
-};
 
 /* ==========================================================================
    14.d) AuthSession — «موثَّق» حالة مستقلة عن «الإعداد مكتمل»
@@ -5687,15 +5609,9 @@ const AuthSession = {
       if(age > CONFIG.offlineGraceMinutes * 60e3){ this._forget(); return null; }
     }
     if(!offline && !alive){ this._forget(); return null; }
-    const who = offline ? { missing:true } : await AuthService.whoami(raw.sessionId);
-    if(who && who.ok === false){ this._forget(); return null; }   // الخادم نفى الجلسة صراحةً
     this.data = {
-      sessionId : raw.sessionId,
-      method    : raw.method,
-      at        : raw.at,
-      employee  : who && who.employee ? who.employee : raw.employee,
-      permissions: who && Array.isArray(who.permissions) ? who.permissions : raw.permissions,
-      offline
+      sessionId : raw.sessionId, method: raw.method, at: raw.at,
+      employee : raw.employee, permissions: raw.permissions, offline
     };
     this._emit();
     return this.data;
@@ -5736,64 +5652,36 @@ const AuthSession = {
 };
 
 /* ==========================================================================
-   14.e) PinInput — حقل رمز الدخول
+   14.e) حقل كلمة المرور — إظهار وإخفاء
    --------------------------------------------------------------------------
-   حقل واحد مقنَّع بطول ٤–٦ أرقام (لا ست خانات ثابتة: طول الرمز يقرّره المحل)،
-   ومعه صفّ نقاط يعكس ما أُدخل دون كشفه. النقاط زينة لقارئ الشاشة، والحقل
-   نفسه هو ما يُعلن ويُركَّز.
+   الإخفاء الافتراضي يحمي من النظرة العابرة، والإظهار يمنع الخطأ الصامت.
+   الزر يعلن حالته (`aria-pressed`) فيعرف قارئ الشاشة إن كانت ظاهرة أم لا.
    ========================================================================== */
-class PinInput {
-  constructor({ mount, min = 4, max = 6, onSubmit, onChange }){
-    this.min = min; this.max = max; this.onSubmit = onSubmit; this.onChange = onChange;
-    this.root = mount; this.root.className = "pin-wrap"; this.root.dataset.state = "waiting";
-    this.root.innerHTML =
-      `<label class="pin-label" for="pinField">${esc(t("pinLabel"))}</label>
-       <div class="pin-dots" aria-hidden="true">${Array.from({ length:max }, () => "<i></i>").join("")}</div>
-       <input class="pin-input" id="pinField" name="pin" type="password" inputmode="numeric" autocomplete="off"
-         maxlength="${max}" aria-describedby="pinHint" enterkeyhint="go">
-       <p class="hint" id="pinHint">${esc(t("pinHint", { a: fmtNum(min), b: fmtNum(max) }))}</p>`;
-    this.input = $(".pin-input", this.root);
-    this.dots  = $$(".pin-dots i", this.root);
-    this.input.addEventListener("input", () => {
-      this.input.value = this.input.value.replace(/\D/g, "").slice(0, this.max);
-      if(this.root.dataset.state === "invalid") this.setState("waiting");
-      this._paint();
-      if(this.onChange) this.onChange(this.value());
-    });
-    this.input.addEventListener("keydown", e => {
-      if(e.key === "Enter"){ e.preventDefault(); if(this.valid() && this.onSubmit) this.onSubmit(this.value()); }
-    });
-  }
-  _paint(){
-    const n = this.value().length;
-    this.dots.forEach((d, i) => { d.dataset.on = i < n ? "1" : ""; });
-    if(n) SetupIllustration.setState("interaction");
-  }
-  value(){ return this.input.value; }
-  valid(){ const v = this.value(); return v.length >= this.min && v.length <= this.max; }
-  clear(){ this.input.value = ""; this._paint(); }
-  focus(){ try{ this.input.focus(); }catch(_){ } }
-  disable(v){ this.input.disabled = !!v; }
-  /** waiting · verifying · verified · invalid */
-  setState(s){
-    this.root.dataset.state = s;
-    // الحالة تُقال للحقل نفسه، فيسمعها قارئ الشاشة عند العودة إليه — لا لونًا وحده.
-    if(s === "invalid"){
-      this.input.setAttribute("aria-invalid", "true");
-      this.input.setAttribute("aria-describedby", "pinHint loginErr");
-    }else{
-      this.input.removeAttribute("aria-invalid");
-      this.input.setAttribute("aria-describedby", "pinHint");
-    }
-    if(s === "verifying") SetupIllustration.triggerProcessing();
-    if(s === "verified") SetupIllustration.triggerSuccess();
-    if(s === "invalid"){
-      SetupIllustration.triggerShake("lock");
-      if(HAS_GSAP && !reducedMotion())
-        gsap.timeline().to(this.root, { keyframes:{ x:[-8, 8, -6, 6, -3, 3, 0] }, duration:.5, ease:"none" })
-          .set(this.root, { clearProps:"x" });
-    }
-  }
+function passwordField(o){
+  return `<div class="field" data-fw="${o.name}">
+    <label for="f_${o.name}">${esc(o.label)}</label>
+    <div class="pwd-row">
+      <input class="control" id="f_${o.name}" name="${o.name}" type="password"
+        autocomplete="${o.autocomplete || "current-password"}" dir="ltr"
+        ${o.hint ? `aria-describedby="h_${o.name}"` : ""} enterkeyhint="go">
+      <button type="button" class="mini-btn pwd-peek" data-peek="${o.name}"
+        aria-pressed="false" aria-label="${esc(t("pwdShow"))}">${ico("eye")}</button>
+    </div>
+    ${o.hint ? `<p class="hint" id="h_${o.name}">${esc(o.hint)}</p>` : ""}
+    <p class="err-msg" data-err="${o.name}" hidden>${ico("alert")}<span></span></p>
+  </div>`;
+}
+/** يربط أزرار الإظهار داخل جذر ما — يُستدعى بعد رسم أي شاشة فيها كلمة مرور. */
+function bindPeek(root){
+  $$("[data-peek]", root).forEach(b => b.addEventListener("click", () => {
+    const el = $("#f_" + b.dataset.peek, root);
+    if(!el) return;
+    const show = el.type === "password";
+    el.type = show ? "text" : "password";
+    b.setAttribute("aria-pressed", show ? "true" : "false");
+    b.setAttribute("aria-label", t(show ? "pwdHide" : "pwdShow"));
+    el.focus();
+  }));
 }
 
 /* ==========================================================================
@@ -5882,24 +5770,15 @@ const authError = (code, detail) => {
   const map = {
     offline      : ["errOfflineT","errOfflineB"],
     config       : ["errConfigT","errConfigB"],
-    insecure     : ["errInsecureT","errInsecureB"],
-    locked       : ["errLockedT","errLockedB"],
-    wrong        : ["errWrongT","errWrongB"],
-    invalid      : ["errInvalidT","errInvalidB"],
-    expired      : ["errExpiredT","errExpiredB"],
+    badLogin     : ["errBadLoginT","errBadLoginB"],
+    unconfirmed  : ["errUnconfirmedT","errUnconfirmedB"],
+    disabled     : ["errDisabledT","errDisabledB"],
+    recExpired   : ["errRecExpiredT","errRecExpiredB"],
+    "recover-failed": ["errRecoverFailedT","errRecoverFailedB"],
     "expired-session": ["errExpired-sessionT","errExpired-sessionB"],
-    emailUnknown : ["errEmailUnknownT","errEmailUnknownB"],
     rate         : ["errRateT","errRateB"],
     unauthorized : ["errAuthT","errAuthB"],
-    disabled     : ["errDisabledT","errDisabledB"],
-    unsupported  : ["errPkUnsupT","errPkUnsupB"],
-    origin       : ["errOriginT","errOriginB"],
-    "no-credentials": ["errNoCredT","errNoCredB"],
-    cancelled    : ["errCancelT","errCancelB"],
-    "passkey-failed"  : ["errPkFailT","errPkFailB"],
-    "passkey-rejected": ["errPkRejT","errPkRejB"],
-    server       : ["errServerT","errServerB"],
-    off          : ["errOffT","errOffB"]
+    server       : ["errServerT","errServerB"]
   };
   const pair = map[code] || map.server;
   return { title: t(pair[0], { d: detail || "" }), body: t(pair[1], { d: detail || "" }) };
@@ -5946,45 +5825,39 @@ const AuthUI = {
     });
   },
 
-  /* ---------- الدخول ---------- */
+  /* ---------- الدخول: بريد وكلمة مرور ---------- */
   login(opts){
     opts = opts || {};
     const caps = AuthService.caps();
-    const others = [];
-    if(caps.passkey) others.push({ id:"passkey", icon:"key", t:"mPasskeyT", d:"mPasskeyD" });
-    else others.push({ id:"passkey", icon:"key", t:"mPasskeyT", off:caps.passkeyReason || "unsupported" });
-    if(caps.email) others.push({ id:"email", icon:"mail", t:"mEmailT", d:"mEmailD" });
-    else others.push({ id:"email", icon:"mail", t:"mEmailT", off:caps.emailReason });
-
-    const methodRow = m => `<li>${m.off
-      ? `<div class="method" data-off="1">
-          <span class="m-ico">${ico(m.icon)}</span>
-          <span class="m-txt"><b>${esc(t(m.t))}</b><span>${esc(authError(m.off).title)}</span></span></div>`
-      : `<button type="button" class="method" data-method="${m.id}">
-          <span class="m-ico">${ico(m.icon)}</span>
-          <span class="m-txt"><b>${esc(t(m.t))}</b><span>${esc(t(m.d))}</span></span>
-          <span class="m-go">${ico("next")}</span></button>`}</li>`;
-
     Screen.render({
-      id:"login", svg:"security", icon:"lock",
+      id:"login", svg:"owner", icon:"lock",
       eyebrow:t(opts.mode === "switch" ? "switchEyebrow" : "loginEyebrow"),
       title:t(!caps.configured ? "loginTitleOff" : opts.mode === "switch" ? "switchTitle" : "loginTitle"),
       lede:t(!caps.configured ? "loginLedeOff"
         : opts.reason === "expired" ? "loginLedeExpired"
         : opts.reason === "after-setup" ? "loginLedeAfterSetup"
-        : opts.mode === "switch" ? "switchLede"
-        : Terminal.isNew() ? "loginLedeNewDevice" : "loginLede"),
+        : opts.reason === "password-changed" ? "loginLedeChanged"
+        : opts.mode === "switch" ? "switchLede" : "loginLede"),
       body:`
         ${opts.reason === "expired" ? errBox("expired-session")
+          : opts.reason === "recover-failed" ? errBox("recover-failed")
           : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}
-        ${caps.pin ? `<div data-pin-mount></div>
+        ${caps.configured ? `
+          ${F.text({ name:"loginEmail", label:t("emField"), type:"email", dir:"ltr", nobind:true,
+              required:true, autocomplete:"username", placeholder:"name@example.com" })}
+          ${passwordField({ name:"loginPassword", label:t("pwdField") })}
+          <div class="auth-row">
+            <button type="button" class="btn btn-quiet btn-sm" data-forgot>${esc(t("forgotCta"))}</button>
+          </div>
           <div data-login-err id="loginErr"></div>
-          <button type="button" class="btn btn-primary btn-lg btn-block" data-pin-go>
+          <button type="button" class="btn btn-primary btn-lg btn-block" data-go>
             <span class="btn-label">${esc(t("loginCta"))}</span>${ico("next")}</button>`
-        : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.pinReason).title)}</b><br>${esc(authError(caps.pinReason).body)}</div></div>
+        : `<div class="note warn">${ico("alert")}<div><b>${esc(authError(caps.reason).title)}</b><br>${esc(authError(caps.reason).body)}</div></div>
            <div data-login-err id="loginErr"></div>`}
-        ${caps.configured ? `<p class="hint" id="otherWays">${esc(t("otherWays"))}</p>
-        <ul class="methods" aria-labelledby="otherWays">${others.map(methodRow).join("")}</ul>` : ""}
+        <div class="new-here">
+          <span>${esc(t("noAccountYet"))}</span>
+          <button type="button" class="btn btn-ghost" data-start>${ico("rocket")}<span class="btn-label">${esc(t("startNow"))}</span></button>
+        </div>
         <div class="auth-foot">
           <button type="button" class="btn btn-quiet btn-sm" data-back-gate>${ico("prev")}<span class="btn-label">${esc(t("backToGate"))}</span></button>
           <span class="sep"></span>
@@ -5992,183 +5865,93 @@ const AuthUI = {
         </div>`,
       mount(root){
         const errHost = $("[data-login-err]", root);
-        const go = $("[data-pin-go]", root);
-        let pin = null;
-        if(caps.pin){
-          pin = new PinInput({
-            mount: $("[data-pin-mount]", root),
-            onChange(){ if(errHost.dataset.short === "1"){ errHost.innerHTML = ""; errHost.dataset.short = ""; } },
-            onSubmit(){ submit(); }
-          });
-          setTimeout(() => pin.focus(), 220);
-          go.addEventListener("click", submit);
-        }
+        $("[data-back-gate]", root).addEventListener("click", () => Router.go("gate"));
+        $("[data-start]", root).addEventListener("click", () => Router.startSetup(Router.setupCompleted()));
+        if(!caps.configured) return;
+        bindPeek(root);
+        const mail = $("#f_loginEmail", root), pwd = $("#f_loginPassword", root), go = $("[data-go]", root);
+        mail.value = opts.email || "";
+        setTimeout(() => (mail.value ? pwd : mail).focus(), 220);
+        $("[data-forgot]", root).addEventListener("click", () => AuthUI.recover(mail.value.trim()));
+        [mail, pwd].forEach(el => {
+          el.addEventListener("input", () => { clearError(root, el.name); errHost.innerHTML = ""; el.removeAttribute("aria-invalid"); });
+          el.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); submit(); } });
+        });
+        go.addEventListener("click", submit);
+
         async function submit(){
-          if(!pin || go.dataset.busy === "1") return;
-          // الزر يبقى مفعّلًا: من ضغطه يستحقّ سببًا، لا زرًّا ميتًا بلا تفسير.
-          if(!pin.valid()){
-            errHost.dataset.short = "1";
-            errHost.innerHTML = errBox("invalid");
-            pin.setState("invalid"); pin.focus();
-            announce(authError("invalid").title);
-            return;
-          }
-          go.dataset.busy = "1"; pin.setState("verifying"); pin.disable(true);
-          errHost.innerHTML = "";
+          if(go.dataset.busy === "1") return;
+          // التحقّق عند الضغط لا قبله: الزر يبقى مفعّلًا ويشرح ما ينقص.
+          const errs = {};
+          if(!RX.email.test(mail.value.trim())) errs.loginEmail = t("errEmail");
+          if(!pwd.value) errs.loginPassword = t("errPwdEmpty");
+          if(!paintErrors(root, errs)){ SetupIllustration.triggerShake("lock"); return; }
+          go.dataset.busy = "1"; go.disabled = true; errHost.innerHTML = "";
+          SetupIllustration.triggerProcessing();
           try{
-            const r = await AuthService.pinLogin(pin.value());
-            pin.setState("verified");
+            const r = await AuthService.passwordLogin(mail.value.trim(), pwd.value);
+            pwd.value = "";                      // لا تبقى كلمة المرور في الحقل بعد نجاحها
+            SetupIllustration.triggerSuccess();
             await AuthUI.succeed(r);
           }catch(e){
-            pin.setState("invalid"); pin.disable(false); pin.clear(); pin.focus();
             errHost.innerHTML = errBox(e.code, e.detail);
+            pwd.setAttribute("aria-invalid", "true");
+            pwd.setAttribute("aria-describedby", "loginErr");
+            pwd.value = ""; pwd.focus();
+            SetupIllustration.triggerShake("lock");
             announce(authError(e.code, e.detail).title);
-          }finally{ go.dataset.busy = ""; }
+          }finally{ go.dataset.busy = ""; go.disabled = false; }
         }
-        $$("[data-method]", root).forEach(b => b.addEventListener("click", () => {
-          if(b.dataset.method === "passkey") AuthUI.passkey();
-          else AuthUI.email();
-        }));
-        $("[data-back-gate]", root).addEventListener("click", () => Router.go("gate"));
       }
     });
   },
 
-  /* ---------- مفتاح المرور ---------- */
-  passkey(){
-    Screen.render({
-      id:"passkey", svg:"security", icon:"key", eyebrow:t("loginEyebrow"),
-      title:t("pkTitle"), lede:t("pkLede"),
-      body:`<div data-pk-state><div class="note">${ico("info")}<div>${esc(t("pkChecking"))}</div></div></div>
-        <div class="auth-foot">
-          <button type="button" class="btn btn-quiet btn-sm" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
-        </div>`,
-      mount(root){
-        const host = $("[data-pk-state]", root);
-        $("[data-back]", root).addEventListener("click", () => Router.go("login"));
-        (async () => {
-          const probe = await AuthService.passkeyAvailable();
-          if(!probe.ok){
-            const code = probe.error ? probe.error.code : "no-credentials";
-            host.innerHTML = errBox(code, probe.error && probe.error.detail);
-            announce(authError(code).title);
-            return;
-          }
-          host.innerHTML = `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("pkReady", { n: fmtNum(probe.raw.allowCredentials.length) }))}</div></div>
-            <button type="button" class="btn btn-primary btn-lg btn-block" data-pk-go style="margin-top:12px">
-              ${ico("key")}<span class="btn-label">${esc(t("pkCta"))}</span></button>`;
-          const b = $("[data-pk-go]", host);
-          b.addEventListener("click", async () => {
-            if(b.dataset.busy === "1") return;
-            b.dataset.busy = "1";
-            SetupIllustration.triggerProcessing();
-            try{
-              const r = await AuthService.passkeyLogin(probe.raw);
-              SetupIllustration.triggerSuccess();
-              await AuthUI.succeed(r);
-            }catch(e){
-              b.dataset.busy = "";
-              SetupIllustration.triggerShake("key");
-              host.insertAdjacentHTML("beforeend", errBox(e.code, e.detail));
-              announce(authError(e.code).title);
-            }
-          });
-        })();
-      }
-    });
-  },
-
-  /* ---------- البريد + رمز لمرة واحدة ---------- */
-  email(){
-    let stage = "email", address = "", otp = null, timer = null, left = 0;
+  /* ---------- نسيت كلمة المرور ---------- */
+  recover(prefill){
+    let sent = false, address = prefill || "";
     const render = () => Screen.render({
-      id:"email-login", svg:"email-otp", icon:"mail", eyebrow:t("loginEyebrow"),
-      title:t(stage === "email" ? "emTitle" : "emCodeTitle"),
-      lede:t(stage === "email" ? "emLede" : "emCodeLede", { e: address }),
-      body: stage === "email"
-        ? `${F.text({ name:"loginEmail", label:t("emField"), type:"email", dir:"ltr", nobind:true,
-              required:true, autocomplete:"email", placeholder:"name@example.com", hint:t("emHint") })}
-           <div data-em-err></div>
-           <button type="button" class="btn btn-primary btn-lg btn-block" data-em-send>
-             ${ico("mail")}<span class="btn-label">${esc(t("emSend"))}</span></button>
+      id:"recover", svg:"email-otp", icon:"mail", eyebrow:t("loginEyebrow"),
+      title:t(sent ? "recSentTitle" : "recTitle"), lede:t(sent ? "recSentLede" : "recLede"),
+      body: sent
+        ? `<div class="note ok">${ico("mail")}<div>${esc(t("recSentBody", { e: address }))}</div></div>
+           ${F.note(esc(t("recSpam")), "")}
+           <div class="auth-foot">
+             <button type="button" class="btn btn-primary" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
+             <span class="sep"></span>
+             <button type="button" class="btn btn-quiet btn-sm" data-again>${ico("refresh")}<span class="btn-label">${esc(t("recAgain"))}</span></button>
+           </div>`
+        : `${F.text({ name:"recEmail", label:t("emField"), type:"email", dir:"ltr", nobind:true,
+              required:true, autocomplete:"username", placeholder:"name@example.com", hint:t("recHint") })}
+           <div data-rec-err></div>
+           <button type="button" class="btn btn-primary btn-lg btn-block" data-send>
+             ${ico("mail")}<span class="btn-label">${esc(t("recSend"))}</span></button>
            <div class="auth-foot">
              <button type="button" class="btn btn-quiet btn-sm" data-back>${ico("prev")}<span class="btn-label">${esc(t("backToLogin"))}</span></button>
-           </div>`
-        : `<div data-otp-mount></div>
-           <p class="otp-status" data-em-status role="status"></p>
-           <div class="otp-meta">
-             <span>${ico("clock")}<span class="countdown" data-em-left></span></span>
-             <button type="button" class="btn btn-quiet btn-sm" data-em-again disabled>${ico("refresh")}<span class="btn-label">${esc(t("emAgain"))}</span></button>
-           </div>
-           <div data-em-err></div>
-           <div class="auth-foot">
-             <button type="button" class="btn btn-quiet btn-sm" data-em-edit>${ico("edit")}<span class="btn-label">${esc(t("emEdit"))}</span></button>
-             <span class="sep"></span>
-             <button type="button" class="btn btn-quiet btn-sm" data-back>${esc(t("backToLogin"))}</button>
            </div>`,
       mount(root){
-        const errHost = $("[data-em-err]", root);
-        const backBtn = $("[data-back]", root); if(backBtn) backBtn.addEventListener("click", () => Router.go("login"));
-        if(stage === "email"){
-          const field = $("#f_loginEmail", root);
-          field.value = address;
-          setTimeout(() => field.focus(), 220);
-          const send = $("[data-em-send]", root);
-          const run = async () => {
-            const v = field.value.trim();
-            if(!RX.email.test(v)){ showError(root, "loginEmail", t("errEmail")); SetupIllustration.triggerShake("envelope"); return; }
-            clearError(root, "loginEmail"); errHost.innerHTML = "";
-            send.dataset.busy = "1"; send.disabled = true;
-            SetupIllustration.triggerProcessing();
-            try{
-              await AuthService.emailSend(v);
-              address = v; stage = "code"; left = CONFIG.otpTtl; render();
-            }catch(e){
-              send.dataset.busy = ""; send.disabled = false;
-              errHost.innerHTML = errBox(e.code === "unauthorized" ? "emailUnknown" : e.code, e.detail);
-              announce(authError(e.code).title);
-            }
-          };
-          send.addEventListener("click", run);
-          field.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); run(); } });
-          return;
-        }
-        const status = $("[data-em-status]", root);
-        const leftEl = $("[data-em-left]", root);
-        const again  = $("[data-em-again]", root);
-        otp = new OtpInput({ mount: $("[data-otp-mount]", root), onComplete: verify });
-        setTimeout(() => otp.focusFirst(), 220);
-        clearInterval(timer);
-        timer = setInterval(() => {
-          left--;
-          leftEl.textContent = `${pad2(Math.floor(left / 60))}:${pad2(left % 60)}`;
-          if(left <= 0){ clearInterval(timer); again.disabled = false; otp.setState("expired");
-            status.dataset.tone = "warn"; status.innerHTML = `${ico("clock")}${esc(t("emExpired"))}`; }
-        }, 1000);
-        Screen.registerCleanup(() => clearInterval(timer));
-        leftEl.textContent = `${pad2(Math.floor(left / 60))}:${pad2(left % 60)}`;
-        again.addEventListener("click", async () => {
-          again.disabled = true; errHost.innerHTML = "";
+        $("[data-back]", root).addEventListener("click", () => Router.go("login", { email: address }));
+        const again = $("[data-again]", root);
+        if(again) again.addEventListener("click", () => { sent = false; render(); });
+        const send = $("[data-send]", root);
+        if(!send) return;
+        const field = $("#f_recEmail", root), errHost = $("[data-rec-err]", root);
+        field.value = address;
+        setTimeout(() => field.focus(), 220);
+        field.addEventListener("input", () => { clearError(root, "recEmail"); errHost.innerHTML = ""; });
+        field.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); run(); } });
+        send.addEventListener("click", run);
+        async function run(){
+          const v = field.value.trim();
+          if(!RX.email.test(v)){ showError(root, "recEmail", t("errEmail")); SetupIllustration.triggerShake("envelope"); return; }
+          send.dataset.busy = "1"; send.disabled = true; errHost.innerHTML = "";
+          SetupIllustration.triggerProcessing();
           try{
-            await AuthService.emailSend(address);
-            left = CONFIG.otpTtl; clearInterval(timer); render();
-            Toast.show(t("emResent"), "ok");
-          }catch(e){ again.disabled = false; errHost.innerHTML = errBox(e.code, e.detail); }
-        });
-        $("[data-em-edit]", root).addEventListener("click", () => { clearInterval(timer); stage = "email"; render(); });
-        async function verify(code){
-          otp.setState("verifying"); status.dataset.tone = "busy";
-          status.innerHTML = `<span class="spin"></span>${esc(t("emChecking"))}`;
-          errHost.innerHTML = "";
-          try{
-            const r = await AuthService.emailVerify(address, code);
-            clearInterval(timer);
-            otp.setState("verified");
-            status.dataset.tone = "ok"; status.innerHTML = `${ico("check")}${esc(t("emOk"))}`;
-            await AuthUI.succeed(r);
+            await AuthService.recover(v);
+            address = v; sent = true;
+            SetupIllustration.triggerSuccess();
+            render();
           }catch(e){
-            otp.setState(e.code === "expired" ? "expired" : "invalid"); otp.clear(); otp.focusFirst();
-            status.dataset.tone = "err"; status.innerHTML = `${ico("alert")}${esc(authError(e.code).title)}`;
+            send.dataset.busy = ""; send.disabled = false;
             errHost.innerHTML = errBox(e.code, e.detail);
             announce(authError(e.code).title);
           }
@@ -6178,12 +5961,65 @@ const AuthUI = {
     render();
   },
 
+  /* ---------- كلمة مرور جديدة (من رابط الاسترجاع) ---------- */
+  resetPassword(token, user){
+    Screen.render({
+      id:"reset", svg:"security", icon:"key", eyebrow:t("loginEyebrow"),
+      title:t("resetTitle"), lede:t("resetLede", { e: (user && user.email) || "" }),
+      body:`
+        ${passwordField({ name:"newPwd", label:t("newPwdField"), autocomplete:"new-password", hint:t("newPwdHint") })}
+        <div class="pwd-meter" data-meter aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span data-meter-label></span></div>
+        ${passwordField({ name:"newPwd2", label:t("newPwd2Field"), autocomplete:"new-password" })}
+        <div data-reset-err></div>
+        <button type="button" class="btn btn-primary btn-lg btn-block" data-save>
+          ${ico("shieldCheck")}<span class="btn-label">${esc(t("resetCta"))}</span></button>`,
+      mount(root){
+        bindPeek(root);
+        const p1 = $("#f_newPwd", root), p2 = $("#f_newPwd2", root);
+        const save = $("[data-save]", root), errHost = $("[data-reset-err]", root);
+        const meter = $("[data-meter]", root);
+        setTimeout(() => p1.focus(), 220);
+        const paint = () => {
+          const sc = pwdScore(p1.value);
+          $$("i", meter).forEach((b, i) => b.dataset.on = i < sc ? "1" : "");
+          meter.dataset.level = sc;
+          $("[data-meter-label]", meter).textContent = p1.value ? t("pwd_" + clamp(Math.ceil(sc / 2), 1, 3)) : "";
+        };
+        p1.addEventListener("input", () => { paint(); clearError(root, "newPwd"); errHost.innerHTML = ""; });
+        p2.addEventListener("input", () => clearError(root, "newPwd2"));
+        [p1, p2].forEach(el => el.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); run(); } }));
+        save.addEventListener("click", run);
+        async function run(){
+          if(save.dataset.busy === "1") return;
+          const errs = {};
+          if(p1.value.length < 8) errs.newPwd = t("errPwdShort");
+          else if(p1.value !== p2.value) errs.newPwd2 = t("errPwdMatch");
+          if(!paintErrors(root, errs)){ SetupIllustration.triggerShake("lock"); return; }
+          save.dataset.busy = "1"; save.disabled = true; errHost.innerHTML = "";
+          SetupIllustration.triggerProcessing();
+          try{
+            const r = await AuthService.updatePassword(token, p1.value);
+            SetupIllustration.triggerSuccess();
+            // الرمز الذي أذن بالتغيير يصلح للدخول، فلا نطلب كتابتها من جديد.
+            const session = await AuthService.sessionFromToken(token, r.user);
+            p1.value = p2.value = "";
+            Toast.show(t("resetDone"), "ok");
+            await AuthUI.succeed(session);
+          }catch(e){
+            save.dataset.busy = ""; save.disabled = false;
+            errHost.innerHTML = errBox(e.code === "unauthorized" ? "recExpired" : e.code, e.detail);
+            announce(authError(e.code).title);
+          }
+        }
+      }
+    });
+  },
+
   /* ---------- بعد نجاح التوثيق ---------- */
   async succeed(result){
     AuthSession.begin(result);
     AuthSession.startHeartbeat();
     Chrome.actions();
-    // بلا تنبيه ترحيب: الشاشة التالية تقول الاسم نفسه، والتكرار ضجيج لا تأكيد.
     await wait(reducedMotion() ? 0 : 420);
     Router.go("erp");
   },
@@ -6264,8 +6100,35 @@ const Router = {
     return !!(SetupState.data.setupStatus.completed || LocalDB.get("setup_completed"));
   },
 
+  /**
+   * رابط «نسيت كلمة المرور» يعود بالرمز داخل hash العنوان. يُلتقط ويُمحى من
+   * الشريط ومن سجلّ التصفّح فورًا، فلا يبقى رمز صالح معروضًا على الشاشة.
+   */
+  _recovery(){
+    const raw = String(location.hash || "").replace(/^#/, "");
+    if(!raw) return null;
+    const q = new URLSearchParams(raw);
+    const type = q.get("type"), token = q.get("access_token");
+    const err = q.get("error_description") || q.get("error_code") || q.get("error");
+    if(!type && !err) return null;
+    history.replaceState(null, "", location.pathname + location.search);
+    if(err) return { error:String(err) };
+    return (type === "recovery" && token) ? { token } : null;
+  },
+
   async boot(){
     document.body.dataset.surface = "auth";
+    const rec = this._recovery();
+    if(rec){
+      this.surface = "login"; Chrome.render();
+      if(rec.error) return this.go("login", { reason:"recover-failed" });
+      Screen.render({ id:"resume", svg:"security", icon:"shield", title:t("resumeTitle"),
+        lede:t("recCheckLede"), body:`<p class="otp-status" data-tone="busy"><span class="spin"></span>${esc(t("resumeWait"))}</p>` });
+      let user = null;
+      try{ user = await AuthService.me(rec.token); }catch(_){ }
+      if(!user || !user.id) return this.go("login", { reason:"recover-failed" });
+      return AuthUI.resetPassword(rec.token, user);
+    }
     // شاشة انتظار قصيرة بدل وميض البوابة قبل أن يجيب الخادم عن الجلسة.
     if(AuthSession._read()){
       Screen.render({ id:"resume", svg:"security", icon:"shield", title:t("resumeTitle"), lede:t("resumeLede"),
@@ -6366,8 +6229,8 @@ Object.assign(L, {
   gateLedeDone:["هذا المتجر مُعدّ بالفعل. سجّل دخولك للمتابعة.",
     "This store is already set up. Sign in to continue."],
   gateHaveT:["لدي حساب","I have an account"],
-  gateHaveD:["ادخل برمز الدخول أو مفتاح المرور أو البريد الإلكتروني.",
-    "Sign in with your code, your passkey, or your email."],
+  gateHaveD:["ادخل ببريدك الإلكتروني وكلمة مرورك.",
+    "Sign in with your email address and your password."],
   gateHaveCta:["تسجيل الدخول","Sign in"],
   gateNewT:["مستخدم جديد","I'm new here"],
   gateNewD:["جهّز متجرك خطوة بخطوة: الهوية، ثم المتجر، ثم الفريق، ثم النظام.",
@@ -6384,36 +6247,63 @@ Object.assign(L, {
 
   /* ---- الدخول ---- */
   loginEyebrow:["تسجيل الدخول","Sign in"],
-  loginTitle:["أدخل رمزك","Enter your code"],
-  loginLede:["رمز الدخول يعرّف صاحبه: النظام يتعرّف عليك منه ويفتح لك ما يخصّك وحده.",
-    "Your code identifies you: the system recognises you from it and opens only what is yours."],
-  loginLedeNewDevice:["هذا الجهاز يُستعمل لأول مرة. أدخل رمزك المعتاد — لا حاجة لإعادة الإعداد.",
-    "This device is being used for the first time. Enter your usual code — no need to set anything up again."],
-  loginLedeExpired:["انتهت جلستك السابقة. أدخل رمزك للمتابعة من حيث كنت.",
-    "Your previous session ended. Enter your code to carry on where you were."],
+  loginTitle:["سجّل دخولك","Sign in"],
+  loginLede:["ادخل ببريدك وكلمة مرورك، ويفتح لك النظام ما يخصّ دورك وحده.",
+    "Sign in with your email and password, and the system opens what your role covers."],
+  loginLedeNewDevice:["هذا الجهاز يُستعمل لأول مرة. ادخل ببريدك المعتاد — لا حاجة لإعادة الإعداد.",
+    "This device is being used for the first time. Sign in with your usual email — no need to set anything up again."],
+  loginLedeExpired:["انتهت جلستك السابقة. سجّل دخولك للمتابعة من حيث كنت.",
+    "Your previous session ended. Sign in to carry on where you were."],
   loginCta:["دخول","Sign in"],
+  pwdField:["كلمة المرور","Password"],
+  pwdShow:["إظهار كلمة المرور","Show password"],
+  pwdHide:["إخفاء كلمة المرور","Hide password"],
+  forgotCta:["نسيت كلمة المرور؟","Forgot your password?"],
+  noAccountYet:["ليس لديك حساب بعد؟","No account yet?"],
+  startNow:["ابدأ الآن","Start now"],
+  loginLedeChanged:["حُدِّثت كلمة مرورك. سجّل دخولك بها.","Your password is updated. Sign in with it."],
+
+  /* ---- نسيت كلمة المرور ---- */
+  recTitle:["استرجاع كلمة المرور","Reset your password"],
+  recLede:["أدخل بريدك، ونرسل لك رابطًا تختار منه كلمة مرور جديدة.",
+    "Enter your email and we'll send you a link to choose a new password."],
+  recHint:["البريد المسجَّل في النظام.","The address registered in the system."],
+  recSend:["إرسال الرابط","Send the link"],
+  recCheckLede:["نتحقّق من رابط الاسترجاع قبل أن نطلب كلمة مرور جديدة.",
+    "We're checking the reset link before asking for a new password."],
+  recSentTitle:["تحقّق من بريدك","Check your inbox"],
+  recSentLede:["إن كان هذا البريد مسجَّلًا في النظام، فالرابط في طريقه إليه الآن.",
+    "If that address is registered in the system, the link is on its way to it."],
+  recSentBody:["أرسلنا رابطًا إلى {e} — يفتح شاشة اختيار كلمة مرور جديدة. صلاحيته ساعة واحدة.",
+    "We sent a link to {e} — it opens a screen for choosing a new password. It is valid for one hour."],
+  recSpam:["لم يصل خلال دقيقة؟ راجع مجلّد الرسائل غير المرغوبة، وتأكّد من صحّة العنوان.",
+    "Nothing after a minute? Check the spam folder and make sure the address is right."],
+  recAgain:["إرسال الرابط من جديد","Send the link again"],
+
+  /* ---- كلمة مرور جديدة ---- */
+  resetTitle:["اختر كلمة مرور جديدة","Choose a new password"],
+  resetLede:["كلمة المرور الجديدة لحساب {e}. بعد حفظها يفتح لك النظام مباشرة.",
+    "A new password for {e}. Once it is saved you go straight into the system."],
+  newPwdField:["كلمة المرور الجديدة","New password"],
+  newPwdHint:["ثمانية أحرف على الأقل. الأطول أقوى.","At least eight characters. Longer is stronger."],
+  newPwd2Field:["أعد كتابتها","Repeat it"],
+  resetCta:["حفظ كلمة المرور","Save the password"],
+  resetDone:["تم تحديث كلمة المرور","Your password is updated"],
+  viaMethod_password:["دخول بالبريد","signed in by email"],
   loginTitleOff:["الدخول غير متاح","Signing in is unavailable"],
-  loginLedeOff:["لا يوجد خادم يتحقّق من هويتك في هذه النسخة، فلا نطلب منك رمزًا لن يقبله أحد.",
-    "No server can verify who you are in this build, so we won't ask you for a code nothing would accept."],
+  loginLedeOff:["لا يوجد خادم يتحقّق من هويتك في هذه النسخة، فلا نطلب منك بيانات لن يقبلها أحد.",
+    "No server can verify who you are in this build, so we won't ask for credentials nothing would accept."],
   loginLedeAfterSetup:["اكتمل الإعداد. سجّل دخولك لأول مرة ليصدر الخادم جلستك.",
     "Setup is complete. Sign in for the first time so the server can issue your session."],
   afterSetupNote:["تم إعداد النظام. الخطوة الأخيرة هي دخولك أنت — الجلسة يصدرها الخادم لا هذه الصفحة.",
     "The system is set up. The last step is signing in — the session is issued by the server, not by this page."],
-  otherWays:["طرق أخرى للدخول","Other ways to sign in"],
   backToGate:["رجوع إلى البداية","Back to start"],
   backToLogin:["رجوع إلى الدخول","Back to sign in"],
   deviceIs:["الجهاز: {d}","Device: {d}"],
   switchEyebrow:["تبديل المستخدم","Switch user"],
   switchTitle:["من يستلم الجهاز؟","Who is taking over?"],
-  switchLede:["أدخل رمزك لتفتح صلاحياتك أنت. لا يُعاد الإعداد ولا تتغيّر بيانات المتجر.",
-    "Enter your code to open your own permissions. Nothing is set up again and no store data changes."],
-  pinLabel:["رمز الدخول","Access code"],
-  pinHint:["من {a} إلى {b} أرقام. يُتحقَّق منه على الخادم، ولا يُحفظ في هذا الجهاز.",
-    "{a} to {b} digits. It is checked on the server and never stored on this device."],
-  mPasskeyT:["مفتاح المرور","Passkey"],
-  mPasskeyD:["ببصمتك أو وجهك أو رمز الجهاز — بلا كتابة.","With your fingerprint, face, or device code — nothing to type."],
-  mEmailT:["البريد الإلكتروني","Email"],
-  mEmailD:["يصلك رمز من ستة أرقام على بريدك.","A six-digit code arrives in your inbox."],
+  switchLede:["سجّل دخولك لتفتح صلاحياتك أنت. لا يُعاد الإعداد ولا تتغيّر بيانات المتجر.",
+    "Sign in to open your own permissions. Nothing is set up again and no store data changes."],
   sessionLost:["أُنهيت الجلسة من الخادم. سجّل دخولك من جديد.","The server ended this session. Please sign in again."],
   logout:["تسجيل الخروج","Sign out"],
   switchUser:["تبديل المستخدم","Switch user"],
@@ -6431,29 +6321,9 @@ Object.assign(L, {
   resumeWait:["لحظة…","One moment…"],
 
   /* ---- مفتاح المرور ---- */
-  pkTitle:["الدخول بمفتاح المرور","Sign in with a passkey"],
-  pkLede:["المفتاح لا يغادر جهازك. الخادم يرسل تحدّيًا، وجهازك يوقّعه، والخادم يتحقّق من التوقيع.",
-    "The key never leaves your device. The server issues a challenge, your device signs it, and the server verifies the signature."],
-  pkChecking:["نسأل الخادم عن المفاتيح المسجّلة لهذا النطاق…","Asking the server which keys are registered for this domain…"],
-  pkReady:["مفتاح مسجَّل وجاهز على هذا النطاق: {n}","Keys registered and ready on this domain: {n}"],
-  pkCta:["تأكيد بمفتاح المرور","Confirm with passkey"],
 
   /* ---- البريد ---- */
-  emTitle:["الدخول بالبريد","Sign in by email"],
-  emLede:["نرسل رمزًا من ستة أرقام إلى بريدك المسجَّل في النظام.",
-    "We'll send a six-digit code to the email registered in the system."],
   emField:["البريد الإلكتروني","Email address"],
-  emHint:["البريد نفسه المسجَّل في النظام. الدخول لا يُنشئ حسابًا جديدًا.",
-    "The same address registered in the system. Signing in never creates a new account."],
-  emSend:["إرسال الرمز","Send the code"],
-  emCodeTitle:["أدخل الرمز","Enter the code"],
-  emCodeLede:["أرسلنا رمزًا إلى {e}. صلاحيته دقيقتان.","We sent a code to {e}. It is valid for two minutes."],
-  emAgain:["إرسال رمز جديد","Send a new code"],
-  emEdit:["تعديل البريد","Change the address"],
-  emExpired:["انتهت صلاحية الرمز","The code expired"],
-  emResent:["أُرسل رمز جديد","A new code is on the way"],
-  emChecking:["نتحقّق من الرمز…","Checking the code…"],
-  emOk:["تم التحقّق","Verified"],
 
   /* ---- تسليم النظام ---- */
   permsTitle:["الأقسام المتاحة لك","Sections open to you"],
@@ -6473,9 +6343,6 @@ Object.assign(L, {
     "In the database: RLS policies and server functions. What you see here hides irrelevant sections; it is not protection in itself."],
   offlineNote:["لا يوجد اتصال بالخادم الآن. تُراجَع الجلسة تلقائيًا عند عودة الاتصال، وقد تُغلق حينها.",
     "There is no server connection right now. The session is re-checked when the connection returns, and may close then."],
-  viaMethod_pin:["دخول برمز","signed in with a code"],
-  viaMethod_passkey:["دخول بمفتاح مرور","signed in with a passkey"],
-  viaMethod_email:["دخول بالبريد","signed in by email"],
 
   /* ---- الأدوار والأقسام ---- */
   role_ADMIN:["مدير النظام","Administrator"],
@@ -6494,57 +6361,36 @@ Object.assign(L, {
   errConfigT:["الربط بالخادم غير مضبوط","The server link is not configured"],
   errConfigB:["الدخول يحتاج supabaseUrl و supabaseAnonKey في SETUP_CONFIG. بغيرهما لا يوجد من يتحقّق من هويتك.",
     "Signing in needs supabaseUrl and supabaseAnonKey in SETUP_CONFIG. Without them nothing can verify who you are."],
-  errInsecureT:["هذه الصفحة ليست على اتصال آمن","This page is not on a secure connection"],
-  errInsecureB:["أدوات التعمية لا تعمل إلا على https أو localhost. افتح البرنامج من عنوان آمن ليعمل الدخول.",
-    "Cryptography is only available over https or localhost. Open the app from a secure address to sign in."],
-  errLockedT:["الإدخال موقوف مؤقتًا","Entry is paused for now"],
-  errLockedB:["محاولات خاطئة كثيرة من هذا الجهاز. انتظر دقيقتين ثم حاول، أو ادخل بمفتاح المرور أو البريد.",
-    "Too many wrong attempts from this device. Wait two minutes and retry, or use a passkey or your email."],
-  errWrongT:["الرمز غير صحيح","That code is not right"],
-  errWrongB:["لم يطابق أي حساب نشِط. تأكّد من الرمز، وإن نسيته فاطلب من مدير النظام إعادة ضبطه.",
-    "It matched no active account. Check the code, and if you've forgotten it ask an administrator to reset it."],
-  errInvalidT:["صيغة الرمز غير مقبولة","That code's format is not accepted"],
-  errInvalidB:["الرمز أرقام فقط، من أربعة إلى ستة. أعد إدخاله.","The code is digits only, four to six of them. Please re-enter it."],
-  errExpiredT:["انتهت صلاحية الرمز","The code has expired"],
-  errExpiredB:["الرمز يصلح دقيقتين فقط. اطلب رمزًا جديدًا.","A code is valid for two minutes only. Request a new one."],
   "errExpired-sessionT":["انتهت جلستك","Your session ended"],
   "errExpired-sessionB":["الخادم لم يعد يعترف بجلسة هذا الجهاز. سجّل دخولك من جديد للمتابعة.",
     "The server no longer recognises this device's session. Sign in again to continue."],
+  errPwdEmpty:["اكتب كلمة المرور","Enter your password"],
+  errPwdShort:["اختر كلمة مرور من ثمانية أحرف فأكثر","Choose a password of eight characters or more"],
+  errPwdMatch:["الكلمتان غير متطابقتين. أعد كتابة الثانية","The two entries don't match. Retype the second one"],
+  errBadLoginT:["البريد أو كلمة المرور غير صحيحة","That email or password is not right"],
+  errBadLoginB:["تحقّق من الاثنين وأعد المحاولة. وإن نسيت كلمة المرور فاطلب رابط استرجاع.",
+    "Check both and try again. If you've forgotten the password, request a reset link."],
+  errUnconfirmedT:["البريد غير مؤكَّد بعد","This email is not confirmed yet"],
+  errUnconfirmedB:["افتح رسالة التأكيد التي وصلتك عند إنشاء الحساب، أو اطلب من مدير النظام تأكيده.",
+    "Open the confirmation message you received when the account was created, or ask an administrator to confirm it."],
+  errRecExpiredT:["انتهت صلاحية رابط الاسترجاع","The reset link has expired"],
+  errRecExpiredB:["الرابط يصلح ساعة واحدة ولمرّة واحدة. اطلب رابطًا جديدًا.",
+    "A link is valid for one hour and one use. Request a new one."],
+  errRecoverFailedT:["الرابط لم يعد صالحًا","That link is no longer valid"],
+  errRecoverFailedB:["ربما استُعمل من قبل أو انتهت مدّته. اطلب رابط استرجاع جديدًا من شاشة الدخول.",
+    "It may have been used already or timed out. Request a new reset link from the sign-in screen."],
   errRateT:["محاولات كثيرة في وقت قصير","Too many attempts in a short time"],
   errRateB:["الخادم يحدّ من عدد الطلبات حمايةً للحسابات. انتظر قليلًا ثم أعد المحاولة.",
     "The server limits requests to protect accounts. Wait a little and try again."],
   errAuthT:["رُفض الطلب","The request was refused"],
   errAuthB:["الخادم لم يقبل هذا الطلب. تأكّد من بياناتك، وإن تكرّر الرفض فراجع مدير النظام.",
     "The server did not accept this request. Check your details, and if it keeps happening contact an administrator."],
-  errEmailUnknownT:["هذا البريد غير مسجَّل","That email is not registered"],
-  errEmailUnknownB:["الدخول لا يُنشئ حسابات. استعمل البريد المسجَّل في النظام، أو اطلب من المدير إضافتك.",
-    "Signing in never creates accounts. Use the address registered in the system, or ask an administrator to add you."],
   errDisabledT:["الحساب موقوف","This account is suspended"],
   errDisabledB:["حسابك غير نشِط حاليًا. راجع مدير النظام لتفعيله.",
     "Your account is not active right now. Ask an administrator to re-enable it."],
-  errPkUnsupT:["مفاتيح المرور غير مدعومة هنا","Passkeys aren't supported here"],
-  errPkUnsupB:["هذا المتصفح لا يوفّر WebAuthn. استعمل رمز الدخول أو البريد.",
-    "This browser doesn't provide WebAuthn. Use your access code or email instead."],
-  errOriginT:["لا يمكن استعمال مفاتيح المرور من ملف محلي","Passkeys can't be used from a local file"],
-  errOriginB:["مفتاح المرور مرتبط بنطاق الموقع، والصفحة مفتوحة بلا نطاق. افتحها عبر خادم (http://localhost مثلًا).",
-    "A passkey is bound to a site's domain, and this page has none. Open it through a server (http://localhost, for example)."],
-  errNoCredT:["لا يوجد مفتاح مسجَّل على هذا النطاق","No passkey is registered for this domain"],
-  errNoCredB:["يُسجَّل المفتاح من داخل النظام بعد الدخول. استعمل رمز الدخول أو البريد الآن.",
-    "A passkey is enrolled from inside the system after signing in. Use your access code or email for now."],
-  errCancelT:["أُلغي التأكيد","The confirmation was cancelled"],
-  errCancelB:["لم يكتمل تأكيد الجهاز. أعد المحاولة، أو ادخل برمزك.",
-    "The device confirmation didn't complete. Try again, or sign in with your code."],
-  errPkFailT:["تعذّر استعمال مفتاح المرور","The passkey could not be used"],
-  errPkFailB:["لم يستطع الجهاز إكمال التوقيع. أعد المحاولة، أو ادخل برمزك.",
-    "Your device could not complete the signature. Try again, or sign in with your code."],
-  errPkRejT:["رفض الخادم مفتاح المرور","The server rejected the passkey"],
-  errPkRejB:["التوقيع لم يجتز التحقّق على الخادم. أعد المحاولة، وإن تكرّر فسجّل مفتاحًا جديدًا من داخل النظام.",
-    "The signature failed verification on the server. Try again, and if it repeats enrol a new key from inside the system."],
   errServerT:["تعذّر إكمال العملية","The operation could not be completed"],
   errServerB:["الخادم ردّ بخطأ غير متوقّع. أعد المحاولة، وإن تكرّر فراجع مدير النظام.",
     "The server returned an unexpected error. Try again, and if it repeats contact an administrator."],
-  errOffT:["الدخول بالبريد غير مفعَّل","Email sign-in is switched off"],
-  errOffB:["فعّله بضبط emailLogin في SETUP_CONFIG.","Turn it on by setting emailLogin in SETUP_CONFIG."]
 });
 
 /* ==========================================================================
