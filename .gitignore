@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+
+# مهارات Strix تُثبَّت عند الحاجة بـ:
+#   npx skills add usestrix/strix
+# لا تُلتزم في المستودع: هي تعليمات وكيل من طرف ثالث تعمل بصلاحيات كاملة،
+# وضمّها هنا يجعل كل جلسة لاحقة تحمّلها تلقائيًا. قرار إدخالها لصاحب المشروع.
+soufyan-erp-setup/.agents/
+soufyan-erp-setup/.claude/

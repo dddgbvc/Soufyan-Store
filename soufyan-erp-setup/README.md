@@ -1,4 +1,4 @@
-# نظام إدارة متجر الهواتف — البوابة والإعداد · V5
+# نظام إدارة متجر الهواتف — البوابة والإعداد · V7
 **Auth Gate · Sign-in · Initial Setup — Mobile Store ERP**
 
 معالج إعداد مبنيّ خصيصًا لمتاجر الهواتف: أجهزة بأرقام IMEI، موظفون بصلاحيات دقيقة،
@@ -7,6 +7,41 @@
 المنطق الداخلي ما زال **18 خطوة**، لكن المستخدم لا يرى ثماني عشرة خطوة: يرى
 **أربع مراحل**، ويرى داخل مرحلته موقعه منها وحدها. الخطوات الإلزامية وحدها تمنع
 الدخول إلى النظام؛ والاختيارية يمكن تأجيلها وإكمالها بعد الدخول.
+
+---
+
+## ما الجديد في V7 — من واجهة مقنعة إلى نظام حقيقي
+
+V6 كان يبدو مكتملًا وهو ليس كذلك. ثلاث حقائق تلخّص ما تغيّر:
+
+**١ · الإعداد كان ينجح بلا أي حساب.** `apiBaseUrl` فارغ افتراضيًا، فيتحوّل
+البرنامج إلى توليد رمز OTP **داخل المتصفح** وإعادته في الرد تحت `demoCode`
+ومقارنته بنفسه، ثم يكتب `setup_completed = true` في `localStorage` ويضع
+`passwordSet: true` بلا كلمة مرور على أي خادم. أُزيل هذا المسار بالكامل — لا خلف
+راية تطوير ولا غيرها. الآن: تحقّق البريد **هو** إنشاء الحساب على Supabase Auth،
+وكلمة المرور تُضبط على ذلك الحساب فعلًا، والتهيئة تجري على الخادم.
+
+**٢ · كان يمكن انتحال جلسة إدارية من أدوات المطوّر.** ثلاث خطوات: افتح جلسة
+مجهولة عبر `app_session_start` (متاحة لـ `anon`)، اكتب مؤشّرها في `localStorage`
+مع `role:"ADMIN"` وقائمة صلاحيات كاملة، أعد التحميل. الاستئناف كان يكتفي بـ
+`app_session_ping` الذي يردّ `{ok:true}` بلا هوية، ثم يأخذ الدور والصلاحيات من
+المخزَّن. الآن `app_session_whoami` تفرض على الخادم: ربط الجهاز، والعمر الأقصى،
+وحالة الموظف، ورفض الجلسة المجهولة — وتعيد الهوية والصلاحيات من قاعدة البيانات.
+
+**٣ · «نسيت كلمة المرور» لم يكن يعمل إطلاقًا.** `AuthService.updatePassword`
+تُستدعى ولم تُعرَّف قط، فالنداء يرمي داخل `try` ويُعرض «خطأ غير متوقّع» ولا تتغيّر
+كلمة المرور أبدًا. (صفر نداء `PUT /auth/v1/user` في المسار كاملًا.) أُصلحت،
+ومعها معالجة روابط البريد المنتهية التي لم يكن أحد يقرؤها.
+
+وبالمناسبة: README الخاص بـ V6 يقول «١٤٠ فحصًا، كلها تمرّ». تشغيل مجموعاته على
+النسخة المسلَّمة كما هي يعطي **٥ إخفاقات** في `auth-flows` وحدها. الرقم الحالي
+مقيس لا منقول: **١٨٧ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
+
+**ما لم يتغيّر:** الهوية البصرية، والرسوم الحيّة، والحركة، والمراحل الأربع،
+والإعداد المتكيّف، و RTL/LTR، والوضع الداكن، والاستجابة، والوصولية. لا إعادة
+تصميم — التغيير كلّه خلف الكواليس.
+
+للتفصيل: [`AUDIT-V7.md`](AUDIT-V7.md) · [`SECURITY.md`](SECURITY.md)
 
 ## ما الجديد في V5
 
@@ -119,7 +154,7 @@ supabase/migrations/                ← مهاجرة واحدة اختيارية
 * **بلا رسمة.** الرسوم الحيّة بطلة معالج الإعداد حيث تشرح وترافق؛ فوق شاشة دخول
   من حقلين تصير زينة تنافس المهمّة. وقد أُخرجت منها تمامًا.
 * **شارة «متصل بالخادم» أُزيلت**: الاتصال هو المتوقَّع، فإعلانه ضجيج. الشارة تظهر
-  حين تحمل خبرًا — انقطاع، أو وضع محلي بلا خادم.
+  حين تحمل خبرًا — انقطاع، أو خادم غير مضبوط.
 * **حركة واحدة**: البطاقة تدخل ككتلة، بلا تتابع على كل عنصر.
 
 وتفاصيل تنكسر بصمت وتُختبَر آليًا: **السهم الاتّجاهي ينقلب مع اتّجاه القراءة**
@@ -260,7 +295,19 @@ SHOTS=/tmp/shots/ node tests/run.mjs   # مع حفظ لقطات الشاشة
 | `interface` | تسعة عروض من 320 إلى 1920 بلا فيض أفقي، تكبير 200%، مساحات اللمس، لوحة المفاتيح وترتيب التركيز وحصره، صلاحية بنية الأزرار والأسماء المنطوقة، وزن الصفحة والتحميل عند الطلب، اتّجاه الأسهم وتراكب زرّ كلمة المرور وثبات علامة الهوية وتوسيط البطاقة، المظهر الداكن، الإنجليزية و LTR، تقليل الحركة، وقياس التباين **بخلفية مركَّبة** على ٤٦ عقدة نصّية عبر أربع شاشات في المظهرين | 46 |
 | `failures` | انقطاع الشبكة، البريد غير المؤكَّد، حدّ المحاولات، غياب الربط بالخادم، الوضع المحلي، مهلة السماح والرفض الصريح، نقل التخزين إلى جهاز آخر، والاسترجاع بلا اتصال | 24 |
 
-المجموع **١٤٠ فحصًا**، كلها تمرّ.
+| `security` | انتحال الجلسة من المتصفح، ترقية الدور من التخزين، نسخ الجلسة إلى جهاز آخر، التزوير خلف انقطاع الشبكة، تجاوز خطوات الإعداد ونداء التهيئة مباشرةً، idempotency، ما يُكتب في المتصفح، الحقن النصّي، تسريب الأخطاء، و CSP | 40 |
+
+المجموع **١٨٧ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
+
+```
+auth-flows  55 · wizard 18 · interface 46 · failures 28 · security 40
+```
+
+**مجموعة `security` ليست فحص شكل.** كل قسم فيها يعيد تنفيذ استغلال حقيقي، وقد
+تُحقِّق من أنها **تكشف V6**: تشغيلها على النسخة القديمة يُسقط ١٣ فحصًا على الأقل
+قبل أن تتوقّف — منها «بعد التزوير تبقى صلاحية واحدة» الذي يُظهر على V6 **٨
+صلاحيات** بدل واحدة بعد تحرير `localStorage`. اختبار ينجح على النسخة المكسورة لا
+قيمة له.
 
 ## المراحل الأربع — وما هو إلزامي وما يمكن تأجيله
 
@@ -465,43 +512,72 @@ window.SETUP_CONFIG = {
 
 ---
 
-## الربط بخادم حقيقي
+## الربط بالخادم
 
-> **ملاحظة V5:** ما يلي يخصّ **الإعداد** وحده (توثيق بريد المالك والموظفين، وتهيئة
-> النظام). أما **الدخول** فلا يمرّ بـ `apiBaseUrl` إطلاقًا: هو موصول مباشرةً بدوال
-> Supabase الموجودة على المشروع — انظر [بوابة الدخول](#بوابة-الدخول--v5). والفصل مقصود:
-> الإعداد يحتمل خادمًا مخصّصًا للتهيئة، والدخول يجب أن يمرّ بالنظام الأمني الفعلي.
+> **تغيّر جوهري في V7:** لم يعد هناك `apiBaseUrl` ولا وضع محلي. الإعداد والدخول
+> كلاهما موصول مباشرةً بـ Supabase. **تعذّر الوصول إلى الخادم يوقف العملية ويشرح
+> السبب ويتيح إعادة المحاولة — ولا يُنتج نجاحًا مزيّفًا.**
 
-المعالج يعمل الآن في **وضع محلي بلا خادم**: التحقق يجري داخل المتصفح لتجربة الواجهة فقط،
-ويُعلَن ذلك بوضوح في الشاشة وفي ملخّص الإعداد وفي الملف المُصدَّر (`method: "local-demo"`).
-**ليس توثيقًا حقيقيًا** ولا يُعتمد عليه في التشغيل الفعلي.
-
-لوصل الخادم، أضف قبل نهاية `<body>` (أو عدّل `CONFIG` في أعلى السكربت):
+الضبط كامل:
 
 ```html
 <script>
   window.SETUP_CONFIG = {
-    apiBaseUrl : "https://api.example.com",  // بمجرد ضبطه يتوقف الوضع المحلي تمامًا
-    appEntryUrl: "/app"                      // وجهة زر «دخول إلى النظام»
+    supabaseUrl      : "https://<project>.supabase.co",
+    supabaseAnonKey  : "<المفتاح العلني anon>",  // علني بطبيعته — لا مفتاح خدمة في الواجهة
+    appEntryUrl      : "/app",                   // وجهة «دخول إلى النظام»
+    invoiceFunction  : "setup-invoice",
+    provisionFunction: "setup-provision",
+    sessionMaxHours  : 12,
+    offlineGraceMinutes: 60,
+    heartbeatSeconds : 180
   };
 </script>
 ```
 
-نقاط النهاية المتوقّعة (JSON، وطريقة POST):
+بلا `supabaseUrl` أو المفتاح، تعلن البوابة صراحةً أن الدخول غير متاح وتقول ما
+الذي ينقص بالاسم، ولا تعرض حقلًا لا يستطيع أحد التحقّق منه.
 
-| المسار | الطلب | الرد |
-|---|---|---|
-| `/setup/otp/send` | `{email, scope}` | `{expiresIn}` |
-| `/setup/otp/verify` | `{email, code, scope}` | `{verified:true}` · `400/401` رمز خاطئ · `410` منتهي |
-| `/setup/passkey/challenge` | `{email}` | `PublicKeyCredentialCreationOptions` بترميز base64url |
-| `/setup/passkey/register` | بيانات الاعتماد | `{ok:true}` |
-| `/setup/provision` | `{task, payload}` | `{ok:true}` |
+### ما يستدعيه المعالج
 
-`scope` يساوي `"owner"` لحساب المالك و`"employee:<id>"` للموظف.
-مهام `provision` بالترتيب: `workspace · store · permissions · inventory · products · defaults · finalize`.
+| العملية | النداء |
+|---|---|
+| رمز البريد | `POST /auth/v1/otp` — `should_create_user: true` |
+| تحقّق الرمز | `POST /auth/v1/verify` — نجاحه **ينشئ الحساب** ويؤكّد بريده |
+| كلمة المرور | `PUT /auth/v1/user` بجلسة ذلك التحقّق |
+| التهيئة | `POST /functions/v1/setup-provision` — `{ runKey, task, payload }` |
+| الدخول | `POST /auth/v1/token?grant_type=password` |
+| جلسة التشغيل | `rpc app_session_start_authenticated` |
+| الاستئناف والنبضة | `rpc app_session_whoami` |
+| حالة الإعداد | `rpc setup_status` |
+| قالب الفاتورة | `POST /functions/v1/setup-invoice` |
 
-**PassKey و QR:** لا يظهران فعّالين إلا إذا كان الخادم مضبوطًا (و`PublicKeyCredential` مدعومًا للـ PassKey)؛
-وبغير ذلك يظهران معطّلين مع سبب واضح، بلا أي محاكاة.
+مهام التهيئة بالترتيب — **والترتيب يفرضه الخادم لا المعالج**:
+`workspace · store · permissions · inventory · products · defaults · finalize`.
+استدعاء `finalize` قبل ما قبلها يردّ `409 incomplete` ومعه أسماء ما ينقص.
+
+كل مهمة idempotent عبر `(runKey, task)` الفريد في قاعدة البيانات: انقطاع الشبكة
+في المنتصف ثم إعادة المحاولة يُكمل من حيث توقّف ولا يُنشئ تكرارًا. و`runKey`
+يُولَّد مرة ويُحفظ مع حالة المعالج، فتحديث الصفحة يُكمل نفس التشغيل.
+
+### قبل التشغيل الحقيقي
+
+```bash
+supabase secrets set SETUP_ALLOWED_ORIGINS="https://<نطاق-التشغيل>"
+```
+
+بدونه تسمح `setup-invoice` و`setup-provision` بعناوين التطوير المحلية وحدها،
+فتظهر معاينة الفاتورة بحالة الخطأ المصمَّمة. وأضف نطاق التشغيل إلى
+**Redirect URLs** في لوحة Supabase.
+
+> **فتح `index.html` بنقرة مزدوجة** ما يزال يعمل للاطّلاع على التجربة، لكن
+> `Origin: null` لا تسمح به قائمة CORS، فمعاينة الفاتورة ستظهر بحالة الخطأ. شغّل
+> `python3 -m http.server 8080` للتجربة الكاملة.
+
+**PassKey و QR:** ما زالا معطّلين مع سبب واضح، بلا أي محاكاة. دالة `webauthn`
+موجودة على المشروع وهي WebAuthn حقيقي (تولّد التحدّي وتحرقه وتتحقّق من التوقيع
+مقابل مفتاح استخرجه الخادم)، لكنها **غير موصولة بشاشة الدخول** — انظر
+`SECURITY.md`.
 
 ---
 
@@ -514,35 +590,68 @@ window.SETUP_CONFIG = {
 | `setup-invoice` | منشورة ونشِطة (`verify_jwt: true`) | **مستعملة فعلًا** — هي التي تعرض قالب الفاتورة في خطوة الفواتير وفي المراجعة |
 | `docgen` | منشورة | مصدر القالب نفسه؛ `setup-invoice` تستورد منه `buildInvoice` و`buildDocumentPdf` مثبَّتين على commit محدّد |
 | `webauthn` | منشورة (`verify_jwt: false`) | خادم مفاتيح مرور حقيقي، يولّد التحدّي ويحرقه ويتحقّق من التوقيع مقابل مفتاح استخرجه الخادم بنفسه. **غير مستعملة من شاشة الدخول** — الدخول بالبريد وكلمة المرور وحده |
-| `auth-email` | منشورة | خطّاف رسائل Supabase Auth: يرسل رسائله بقالب عربي عبر Resend. **موصول في V5**: رسالة «نسيت كلمة المرور» تصل بهذا القالب |
+| `auth-email` | منشورة | خطّاف رسائل Supabase Auth: يرسل رسائله بقالب عربي عبر Resend. **موصول**: رسالة «نسيت كلمة المرور» تصل بهذا القالب |
+| `setup-provision` | **جديدة في V7** (`verify_jwt: true`) | تهيئة النظام على الخادم: تحتاج جلسة مستخدم حقيقية، تفرض ترتيب المهام، idempotent، وترقّي المالك إلى ADMIN بمفتاح الخدمة |
 
-ودوال قاعدة البيانات التي يستعملها الدخول — وكلها كانت موجودة قبل V5 ولم تُعدَّل:
+ودوال قاعدة البيانات التي يستعملها الدخول:
 
 | الدالة | ما تفعله | متاحة لـ |
 |---|---|---|
-| `app_session_start / ping / end` | جلسة التشغيل على هذا الجهاز: فتحها، ونبضها، وإنهاؤها | `anon` |
+| `app_session_start / ping / end` | جلسة التشغيل على هذا الجهاز (موجودة قبل V5، لم تُعدَّل) | `anon` |
 | `permissions_for(role)` | مصدر الحقيقة للصلاحيات: ADMIN · MANAGER · CASHIER | داخليًا |
+| **`app_session_whoami`** | **جديدة في V7** — تستأنف الجلسة بعد التحقّق من الجهاز والعمر وحالة الموظف، وتعيد الهوية والصلاحيات من قاعدة البيانات | `anon`, `authenticated` |
+| **`app_session_start_authenticated`** | **جديدة في V7** — تفتح جلسة تشغيل بهوية `auth.uid()`، ولا تقبل معرّف موظف من العميل | `authenticated` |
+| **`setup_status`** | **جديدة في V7** — مصدر الحقيقة لاكتمال الإعداد | `anon`, `authenticated` |
+| `pin_attempts_blocked` | **شُدِّدت في V7** — أُضيف سقف ساعيّ لكل IP وسقف لعدد معرّفات الأجهزة من IP واحد، فأُغلق الالتفاف بتدوير معرّف الجهاز | داخليًا |
 
 وحدّ المحاولات هنا يفرضه **Supabase Auth** نفسه (يردّ `429`)، وتترجمه الواجهة إلى
 رسالة تفسّر ولا تتّهم.
 
-### ما لم يُنفَّذ ولماذا
+### ما طُبِّق فعلًا على قاعدة الإنتاج — V7
 
-* **الحسابان الموجودان جاهزان للدخول:** كلاهما مؤكَّد البريد ويحمل كلمة مرور فعلية
-  ومزوّده `email`، فمسار الدخول يعمل عليهما اليوم كما هو.
-* **يجب إضافة وجهة رابط الاسترجاع** إلى Redirect URLs في لوحة Supabase قبل أن تعمل
-  «نسيت كلمة المرور» من نطاق التشغيل الحقيقي.
-* **لم يُجرَّب المسار حيًّا مقابل `*.supabase.co`**: الشبكة إليها محجوبة من بيئة العمل.
-  اختُبر العميل مقابل عقود Supabase Auth و PostgREST كما هي على هذا المشروع (`tests/`).
-* **لم تُغيَّر قاعدة البيانات إطلاقًا**: لا دالة أُنشئت، ولا صلاحية مُنحت، ولا صفّ كُتب.
-  المهاجرة الوحيدة في المستودع اختيارية وغير مطبَّقة.
+**تغيّر عن V5/V6:** قاعدة البيانات لم تعد بلا تعديل. طُبِّقت مهاجرة واحدة
+(`20260831090000_v7_setup_security_core`) ونُشرت دالتا حافة. كل ما طُبِّق **إضافي**:
+لا جدول أُسقِط، ولا سياسة قائمة غُيِّرت، ولا توقيع دالة يستعملها النظام الحيّ عُدِّل.
+
+| ما أُضيف | النوع |
+|---|---|
+| `app_session_whoami` · `app_session_start_authenticated` · `setup_status` · `log_security_event` · `rate_limit_hit` | دوال جديدة |
+| `pin_attempts_blocked` | استُبدلت بنسخة أشدّ (نفس التوقيع) |
+| `profiles_guard_privileged_columns` | محفّز جديد على `profiles` |
+| `setup_state` · `setup_provision_runs` · `security_events` · `rate_limits` | جداول جديدة، RLS مفعّلة |
+| `employees_user_id_key` وفهارس الحدود | فهارس |
+| `setup-provision` | دالة حافة جديدة |
+| `setup-invoice` | إصدار ٢ — عقد `POST` لم يتغيّر بأي حرف |
+
+وتُحقِّق من كلٍّ منها بتنفيذ فعلي على المشروع، ثم نُظّف أثر الفحص وروجع أن
+الإنتاج لم يُمسّ (٤ موظفين · حسابان · صفر جلسة عالقة).
+
+### ما لم يُجرَّب — بصراحة
+
+* **وصول رسالة OTP فعليًا إلى صندوق بريد** لم يُختبر: يتطلّب إرسال بريد واستقباله.
+* **دورة إعداد كاملة حيّة من المتصفح إلى Supabase** لم تُشغَّل: الشبكة إلى
+  `*.supabase.co` محجوبة من بيئة العمل (البوّابة تردّ 403 على CONNECT)، والوصول
+  إلى المشروع تمّ عبر Supabase MCP وحده.
+* **Strix لم يُشغَّل** — أربعة موانع مستقلّة، مفصَّلة في `SECURITY.md` §15.
+
+الفرق جوهري: منطق الخادم مُتحقَّق منه على الإنتاج، ومنطق العميل مُتحقَّق منه مقابل
+عقود الخادم الحقيقية، **لكن الوصلة الحيّة بينهما لم تُشغَّل من هنا**. أول تشغيل
+حقيقي يجب أن يكون بعين مفتوحة على `security_events` و`setup_provision_runs`.
+
+* **يجب إضافة وجهة رابط الاسترجاع** إلى Redirect URLs في لوحة Supabase.
+* **يجب ضبط `SETUP_ALLOWED_ORIGINS`** لدوال الحافة قبل التشغيل الحقيقي.
 
 ### ملاحظات أمن على المشروع نفسه (خارج نطاق المعالج)
 
-`get_advisors` يعيد 79 ملاحظة على قاعدة البيانات كلها: 55 دالة `SECURITY DEFINER` قابلة
-للتنفيذ من `anon`/`authenticated`، و20 جدولًا بـ RLS مفعّل بلا سياسات، وامتداد في `public`،
-وحماية كلمات المرور المسرَّبة معطّلة. لا شيء منها ناتج عن هذا المعالج ولا عن هذه التعديلات،
-ولم تُغيَّر — تغيير صلاحيات قاعدة بيانات إنتاج فيها 130 منتجًا و36 فاتورة قرار مستقل.
+`get_advisors` يعيد 79 ملاحظة: 55 دالة `SECURITY DEFINER` قابلة للتنفيذ من
+`anon`/`authenticated`، و20 جدولًا بـ RLS مفعّل بلا سياسات، وامتداد `pg_net` في
+`public`، وحماية كلمات المرور المسرَّبة معطّلة.
+
+**نقطة مهمّة قِيست ولم تُستنتج:** `anon` و`authenticated` لا يملكان أي GRANT على
+جداول `public` عدا `SELECT` على `activity_log` و`activity_feed`. فسياسات مثل
+`products_rw … USING (true)` **غير قابلة للوصول** عبر PostgREST — يُرفض الطلب على
+مستوى الصلاحيات قبل تقييم RLS. سطح الوصول الحقيقي كلّه دوال `SECURITY DEFINER`،
+وهو ما تعالجه المهاجرة المؤجَّلة.
 
 ## الأمان
 
@@ -554,19 +663,32 @@ window.SETUP_CONFIG = {
 * الموظف لا يصبح **نشطًا** قبل توثيق بريده فعليًا؛ الحالة مشتقّة لا تُكتب يدويًا.
 * حذف الموظف يُبقي مرجعًا مؤرشفًا، والتعطيل هو الخيار المقترح للحفاظ على السجلات.
 
-أُضيف في V5:
+أُضيف في V7 — وهذا هو جوهر الإصدار:
 
-* **لا كلمة مرور ولا رمز وصول ولا رمز تحديث في المتصفح.** المحفوظ مؤشّر جلسة أصدرها
-  الخادم والهوية التي أصدرها معها. رمز الوصول يبقى في ذاكرة الصفحة وحدها، وحقل كلمة
-  المرور يُفرَّغ فور نجاح الدخول أو فشله. (مُتحقَّق منه آليًا بعد دخول كامل.)
-* **الخادم هو الحَكَم في كل إقلاع.** لا تُستأنف جلسة قبل أن يؤكّدها `app_session_ping`،
-  وتُمحى فور أن ينفيها. وتحرير `localStorage` لا يصنع جلسة: المؤشّر يجب أن يعرفه الخادم،
-  ومربوط بمعرّف هذا الجهاز، وله عمر أقصى.
+* **الهوية والصلاحيات لا تُقرأ من المتصفح إطلاقًا.** `app_session_whoami` تُصدرهما
+  من قاعدة البيانات عند كل إقلاع وكل نبضة. ما في `localStorage` مؤشّر يُفحص، لا سلطة.
+  تحرير الملف ووضع `role:"ADMIN"` فيه لا يغيّر شيئًا.
+* **ربط الجهاز والعمر الأقصى يُفرضان على الخادم** داخل `app_session_whoami`، لا في
+  المتصفح كما كان.
+* **أثناء انقطاع الشبكة لا تُمنح صلاحية.** تُعرض آخر هوية معروفة بشارة «بلا اتصال»،
+  لكن `verified=false` و`can()` تردّ `false` حتى تعود نبضة تؤكّدها — فمن يحرّر التخزين
+  ثم يقطع الشبكة عمدًا لا يكسب شيئًا.
+* **اكتمال الإعداد يقوله الخادم** (`setup_status()`)، لا مفتاح في `localStorage`.
+* **التهيئة تحتاج جلسة مالك حقيقية**، وترتيبها مفروض على الخادم، و idempotent.
+* **سجلّ أحداث أمنية** (`security_events`) للدخول والرفض وتغيير الصلاحيات ومهام
+  التهيئة، بحارس يُسقِط أي مفتاح يشبه السرّ.
+
+بقي من V5 كما هو:
+
+* **لا كلمة مرور ولا رمز وصول ولا رمز تحديث في المتصفح.** رمز الوصول يبقى في ذاكرة
+  الصفحة وحدها، وحقل كلمة المرور يُفرَّغ فور نجاح الدخول أو فشله.
+  (مُتحقَّق منه آليًا على `localStorage` و`sessionStorage` معًا بعد دخول كامل.)
 * **لا كشف عن الحسابات:** «نسيت كلمة المرور» تردّ الردّ نفسه سواء كان البريد مسجَّلًا
   أو لا، ورمز الاسترجاع يُمحى من شريط العنوان ومن سجلّ التصفّح فور التقاطه.
 * **تحديد المحاولات على الخادم** لا في الواجهة، ويُعرض كتفسير لا كاتّهام.
 * **الصلاحيات للعرض لا للحماية.** ما تخفيه الواجهة تريح به المستخدم؛ المنع الحقيقي
-  في RLS ودوال قاعدة البيانات، وهذا مكتوب في شاشة تسليم النظام نفسها لا في التوثيق فقط.
+  في دوال قاعدة البيانات. وفي V7 صارت القائمة المعروضة نفسها تأتي من الخادم، فلا
+  يستطيع المتصفح أن يوسّعها حتى بصريًا.
 * **الخروج لا يمسّ البيانات:** يُنهي الجلسة على الخادم ويمحوها محليًا، ويترك المتجر
   والموظفين والصلاحيات والفاتورة وحالة الإعداد كما هي.
 
@@ -575,8 +697,13 @@ window.SETUP_CONFIG = {
 تُحفظ الحالة في `localStorage` تحت `soufyan.erp.setup.v1` وتصمد أمام: التالي، رجوع، تحديث الصفحة،
 والعودة إلى خطوة سابقة من شاشة المراجعة. أُضيف في V4 حقلان: `currentStepId` (معرّف الخطوة
 بدل رقمها، لأن عدد الخطوات نفسه يتغيّر مع اختيارات المستخدم) و`skippedSteps` (ما أُجّل).
-حجم الحالة بعد إعداد كامل ≈ 2 كيلوبايت. وفي الوضع المحلي تُكتب مخرجات التهيئة تحت `soufyan.erp.*`
-(`workspace · store · permissions · inventory · catalog · defaults · config · setup_completed`).
+حجم الحالة بعد إعداد كامل ≈ 2 كيلوبايت. وأُضيف في V7 حقل `runKey` — مفتاح التشغيل
+الذي يجعل التهيئة قابلة للاستئناف بلا تكرار.
+
+**حُذف في V7:** `LocalDB` ومعه كل مخرجات «التهيئة المحلية» تحت `soufyan.erp.*`
+(`workspace · store · permissions · inventory · catalog · defaults · config ·
+setup_completed`). لم تكن تلك بيانات نظام بل ادّعاء بأن الإعداد جرى. مخرجات
+التهيئة الآن على الخادم في `setup_state`.
 
 ومفتاحان أُضيفا في V5، منفصلان تمامًا عن حالة الإعداد فلا يمسّ أحدهما الآخر:
 
@@ -680,53 +807,61 @@ window.addEventListener("erp:setup-complete", e => console.log(e.detail));
 
 ## Quick English notes
 
-**V5 adds an auth gate in front of the wizard.** On launch the app asks the server, not
-the browser: a session the server still accepts goes straight to the workspace; a session
-it has closed goes to sign-in; a completed setup with no session goes to sign-in;
-otherwise the gate asks the one question it should — *I have an account* or *I'm new here*.
-Setup builds the system, sign-in opens an existing account, and the two are never mixed:
-`setup_completed` and `authenticated` are independent states, and finishing setup never
-grants a session.
+**V7 turns a convincing front end into a real system.** Three things were wrong in V6,
+and all three are fixed:
 
-Sign-in asks for two things and nothing else: **email and password**, with **forgot your
-password?** and **start now** beside them. There is deliberately no PIN and no passkey on
-this screen. The password goes to Supabase Auth (`grant_type=password`); identity and role
-are then read from the caller's own `profiles` row under RLS, and an `app_sessions` row
-records the terminal — nothing is compared client-side.
+1. **Setup completed without ever creating an account.** `apiBaseUrl` was empty by
+   default, so the wizard minted its own six-digit OTP *in the browser*, returned it in
+   the response as `demoCode`, compared it against itself, then wrote
+   `setup_completed = true` to `localStorage` and set `passwordSet: true` with no
+   password on any server. That path is gone entirely — not behind a dev flag. Email
+   verification now **is** account creation on Supabase Auth
+   (`/auth/v1/otp` → `/auth/v1/verify`), the password is really set on that account
+   (`PUT /auth/v1/user`), and provisioning runs server-side.
 
-Forgot-password is not a dead end. `/auth/v1/otp` + `/auth/v1/verify` sends the link through the project's
-Arabic `auth-email` template, the answer is always neutral so no one can discover which
-addresses are registered, and the returning link's token is picked out of the URL hash and
-**erased from the address bar and history immediately**, opening a "choose a new password"
-screen. Saving it signs you straight in, because the token that authorised the change is
-proof enough.
+2. **An admin session could be forged from devtools.** Three steps: call
+   `app_session_start` (granted to `anon`) for a valid session UUID, write it into
+   `localStorage` with `role:"ADMIN"` and a full permission list, reload. Resume only
+   called `app_session_ping`, which returns `{ok:true}` with no identity, and then read
+   the role and permissions straight out of storage. Now `app_session_whoami` enforces
+   terminal binding, max age, employee status and anonymous-session rejection **on the
+   server**, and returns identity and permissions derived from the database.
 
-The browser stores a session pointer and the server-issued identity — never a password or
-an access/refresh token — and every launch revalidates it with `app_session_ping` before
-trusting it. Sign-out ends the session server-side and clears it locally, leaving store,
-staff, permissions, invoice and setup state untouched; switch-user re-authenticates without
-re-running setup. `node tests/run.mjs` runs 140 checks in real Chromium against the
-contracts Supabase Auth and PostgREST actually return on this project.
+3. **Forgot-password never worked.** `AuthService.updatePassword` was called but never
+   defined, so the call threw inside a `try` and the user saw a generic error while the
+   password stayed unchanged — zero `PUT /auth/v1/user` requests in the whole flow. Fixed,
+   along with the expired-email-link hash that nothing was reading.
 
-Open `index.html` in any modern browser — no build step, no network. Motion is powered by three
-vendored libraries in `vendor/`: **Three.js** (the matte-clay 3D stage, one scene per step),
-**GSAP** (step choreography, provisioning sequence, counters) and **Motion** (interaction springs).
-Framer Motion itself is React-only, so this vanilla build uses `motion.dev`, the same team's
-plain-JavaScript library; swapping in `framer-motion` after a React migration is a drop-in change.
-Illustrations default to the **LiveSVG** system: each `assets/setup/*.svg` is inlined and its
-`data-layer` groups are driven by one controller — ambient motion, enter/exit, focus and typing
-reactions, a processing state, a 360-degree success ring with a stroke-drawn checkmark, and a
-targeted error shake. Continuous rotations live on a permanent linear timeline whose `timeScale`
-is modulated by state, so a spin always completes 0-360 and resumes without a jump. Set
-`SETUP_CONFIG.illustration` to `"3d"` for the Three.js stage instead.
-The invoice shown in the Invoices and Review steps is the **existing Supabase invoice template**
-(docgen's `buildInvoice` + `buildDocumentPdf`, imported at the pinned commit by the additive
-`setup-invoice` edge function) rendered live with the wizard's own data — never a redrawn mock-up.
-If Supabase is unreachable the demo shows an explicit error and retry, never a substitute design.
-Deleting `vendor/` degrades cleanly to CSS animations and SVG illustrations. It is an 18-step,
-4-phase first-run setup wizard for a mobile-phone-store ERP: IMEI-level inventory, staff with
-per-module permissions, A4 + 80mm thermal invoices. Arabic/RTL first, English secondary
-(toggle in the header). Drop replacement SVGs into `assets/setup/` using the same filenames.
-Set `window.SETUP_CONFIG.apiBaseUrl` to move OTP, PassKey and provisioning onto a real backend;
-until then the wizard runs in a clearly-labelled local mode and never claims real verification.
-Passwords and PINs are never written to browser storage.
+The browser stores a session pointer, a terminal id, wizard progress, and the last known
+identity for display — **never** a password, PIN, OTP, access token or refresh token
+(asserted automatically across `localStorage` and `sessionStorage` after a full sign-in).
+During an offline grace window the last known identity is shown with an offline badge, but
+`verified` is false and `can()` returns false until a heartbeat confirms it, so editing
+storage and then pulling the network gains nothing.
+
+**Tests actually run.** `node tests/run.mjs` executes **187 checks in real Chromium, 0
+failing** — auth-flows 55, wizard 18, interface 46, failures 28, security 40. The V6 README
+claimed "140 checks, all passing"; running its own suites against the delivered build gives
+5 failures in `auth-flows` alone. The `security` suite replays the real attacks and is
+verified to **catch V6**: run against the old build it fails at least 13 checks, including
+one that shows **8 permissions** instead of 1 after `localStorage` is edited.
+
+**Strix was not run.** Its skills are installed under `.agents/skills/`, but four
+independent blockers apply here: Python is 3.11 (Strix needs ≥3.12), the Docker daemon is
+unavailable, `strix.ai` and `app.strix.ai` are blocked by the egress proxy, and no LLM key
+is configured. `SECURITY.md` §15 records this and gives the exact commands to run it
+elsewhere. No claim is made that it passed.
+
+**Still open, by the owner's decision:** 25 `SECURITY DEFINER` functions are executable by
+`anon` — the whole `purchase_*` API guarded only by a 4–6 digit PIN, `verify_employee_pin`
+as a global PIN oracle, and `sync_push`. Tightening them could stop the live POS or
+purchasing module, whose source is not in this repo, so the migration ships reviewed and
+**unapplied** with a staged rollout and a full rollback section:
+`supabase/migrations/20260831093000_v7_anon_surface_hardening.NOT_APPLIED.sql`.
+This is the highest open item in the project.
+
+**Nothing was redesigned.** The visual identity, LiveSVG illustrations, motion, four-stage
+adaptive wizard, RTL/LTR, dark mode, responsive behaviour and accessibility are unchanged —
+every change is behind the UI. Open `index.html` in any modern browser; serve it over
+`python3 -m http.server 8080` for the live invoice preview, since the CORS allowlist does
+not accept `Origin: null`.

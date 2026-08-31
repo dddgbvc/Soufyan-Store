@@ -488,3 +488,13 @@ create unique index if not exists employees_user_id_key
 create index if not exists pin_attempts_ip_at_idx       on public.pin_attempts (ip, at desc) where ok = false;
 create index if not exists pin_attempts_terminal_at_idx on public.pin_attempts (terminal_id, at desc) where ok = false;
 create index if not exists app_sessions_terminal_open_idx on public.app_sessions (terminal_id) where closed_at is null;
+
+-- ----------------------------------------------------------------------------
+-- 9) دالة المحفّز لا تُستدعى مباشرةً
+-- ----------------------------------------------------------------------------
+-- كشفها مستشار أمان Supabase بعد التطبيق: دالة المحفّز كانت متاحة عبر
+-- /rest/v1/rpc/ لـ anon و authenticated. استدعاؤها خارج سياق المحفّز يفشل،
+-- لكنها لا يجوز أن تكون في سطح الـAPI أصلًا.
+-- (طُبِّقت كمهاجرة منفصلة: v7_revoke_trigger_fn_execute)
+revoke execute on function public.profiles_guard_privileged_columns()
+  from public, anon, authenticated;

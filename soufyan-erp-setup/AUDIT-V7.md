@@ -283,3 +283,80 @@ CONNECT)، والوصول إلى المشروع تمّ عبر Supabase MCP وح�
 يجب أن يكون بعين مفتوحة على `security_events` و`setup_provision_runs`.
 
 كذلك: **Strix لم يُشغَّل** — انظر `SECURITY.md` للتفصيل وللبديل الذي شُغِّل فعلًا.
+
+---
+
+## مصفوفة التحقّق النهائية
+
+`✅ PASS` = مُتحقَّق منه بتشغيل فعلي · `⏸️ DEFERRED` = مؤجَّل بقرار صاحب المشروع ·
+`❌ NOT VERIFIED` = **لم يُختبر** ولا يُدَّعى غير ذلك.
+
+| المجال | الحالة | الدليل |
+|---|---|---|
+| **Auth — دخول** | ✅ PASS | `tests/auth-flows.mjs` (55 فحصًا) + تنفيذ `app_session_start_authenticated` على قاعدة الإنتاج |
+| **Auth — إنشاء حساب حقيقي** | ⚠️ PARTIAL | العميل يستدعي `/auth/v1/otp` ثم `/auth/v1/verify` ثم `PUT /user` ويُختبر مقابل عقود GoTrue؛ **وصول الرسالة إلى صندوق بريد لم يُختبر** |
+| **OTP — إنتاجي** | ✅ PASS | لا توليد في المتصفح، لا `demoCode`، لا مسار محلي. حدّ المحاولات من Supabase Auth (`429`) مترجَم للمستخدم — `tests/failures.mjs` |
+| **Recovery** | ✅ PASS | `updatePassword` المفقودة أُصلحت؛ رابط منتهٍ يُقرأ ويُمحى من العنوان ويُعرض بسبب صريح — `tests/auth-flows.mjs` |
+| **PIN** | ⚠️ PARTIAL | التحقّق على الخادم بـ bcrypt، وحدّ المحاولات شُدِّد (أُغلق تدوير معرّف الجهاز). **البصمة تُحسب في المتصفح وتبقى كلمة السرّ الفعلية** — الإصلاح الجذري في المهاجرة المؤجَّلة |
+| **Passkey** | ⏸️ DEFERRED | دالة `webauthn` على المشروع WebAuthn حقيقي، **غير موصولة بشاشة الدخول** — كما في V6، بلا محاكاة |
+| **QR login** | ⏸️ DEFERRED | معطّل بسبب صريح، بلا محاكاة — كما في V6 |
+| **Session — سلطة الخادم** | ✅ PASS | `app_session_whoami` — PoC على الإنتاج (`anonymous` / `terminal` / `closed`) + `tests/security.mjs` أقسام ١–٤ |
+| **Terminal** | ✅ PASS | الربط يُفرض على الخادم؛ PoC أعاد `reason:"terminal"` |
+| **RLS** | ✅ PASS (مع تصحيح) | قِيس أن `anon`/`authenticated` بلا GRANT على `public`، فالسياسات المشكوك فيها غير قابلة للوصول. جداول V7 مغلقة. قفل تصعيد الصلاحية مُتحقَّق منه: `42501 not authorised to change role or status` |
+| **API / Edge Functions** | ✅ PASS | `setup-provision` تحتاج JWT مستخدم حقيقي وتفرض ترتيب المهام؛ `setup-invoice` v2 (CORS مقيّد، GET محذوف، بلا تسريب) |
+| **Provisioning — idempotent** | ✅ PASS | `(run_key, task)` فريد في قاعدة البيانات + `tests/security.mjs` قسم ٦ |
+| **تجاوز منطق الأعمال** | ✅ PASS | استدعاء `finalize` مباشرةً يُرفض (بلا جلسة، وبجلسة يردّ `409 incomplete`) — `tests/security.mjs` قسم ٥ |
+| **Invoice** | ✅ PASS | نفس قالب Supabase، عقد `POST` لم يتغيّر؛ تعذّر الوصول ⇒ خطأ صريح بلا بديل مرسوم — `tests/wizard.mjs` |
+| **الأسرار** | ✅ PASS | لا كلمة مرور ولا PIN ولا OTP ولا رمز وصول/تحديث في `localStorage` أو `sessionStorage` — `tests/security.mjs` قسم ٧ |
+| **XSS** | ✅ PASS | حمولة `<img onerror>` في اسم المحل والمالك والموظف لا تُنفَّذ ولا تُركَّب — `tests/security.mjs` قسم ٨ |
+| **تسريب الأخطاء** | ✅ PASS | خطأ يحمل SQL ومسار ملف ورمزًا داخليًا لا يظهر منه شيء — `tests/security.mjs` قسم ٩ |
+| **CSP / الترويسات** | ✅ PASS | CSP في `<meta>` بـ `connect-src` مثبَّتة؛ الترويسات الكاملة في `deploy/security-headers.conf` — `tests/security.mjs` قسم ١٠ |
+| **تحديد المحاولات** | ✅ PASS | Supabase Auth + `pin_attempts_blocked` المشدَّدة + `rate_limit_hit` — كلها على الخادم |
+| **Accessibility** | ✅ PASS | `tests/interface.mjs` (46 فحصًا): لوحة المفاتيح، حصر التركيز، ARIA، تقليل الحركة، والتباين مقيسًا بخلفية مركَّبة على ٣٦ عقدة نصّية × مظهرين |
+| **Responsive** | ✅ PASS | تسعة عروض من 320 إلى 1920 بلا فيض أفقي — `tests/interface.mjs` |
+| **Build** | ✅ PASS | بلا خطوة بناء؛ فحص صيغة JS نظيف |
+| **Tests — تشغيل فعلي** | ✅ PASS | **187 فحصًا · صفر إخفاق** في Chromium حقيقي |
+| **Strix** | ❌ NOT VERIFIED | **لم يُشغَّل.** Python 3.11 (يحتاج ≥3.12) · Docker غير متاح · `strix.ai` و`app.strix.ai` محجوبان · بلا مفتاح LLM. التفصيل في `SECURITY.md` §15 |
+| **تكامل Supabase حيّ** | ❌ NOT VERIFIED | الشبكة إلى `*.supabase.co` محجوبة من بيئة العمل؛ الوصول عبر MCP وحده. منطق الخادم مُتحقَّق منه على الإنتاج، ومنطق العميل مقابل العقود، **لكن الوصلة الحيّة لم تُشغَّل** |
+| **سطح دوال anon** | ⏸️ DEFERRED | ٢٥ دالة `SECURITY DEFINER` متاحة لـ`anon` — المهاجرة جاهزة وغير مطبَّقة بقرار المالك. **أعلى بند مفتوح** |
+
+### نتائج التشغيل
+
+```
+auth-flows  55 pass · 0 fail
+wizard      18 pass · 0 fail
+interface   46 pass · 0 fail
+failures    28 pass · 0 fail
+security    40 pass · 0 fail
+────────────────────────────
+المجموع    187 pass · 0 fail
+```
+
+### الأهمّ: الاختبارات تكشف V6
+
+تشغيل `tests/security.mjs` على نسخة V6 الأصلية يُسقط **١٣ فحصًا على الأقل** قبل
+أن تتوقّف المجموعة، من بينها:
+
+```
+FAIL بعد التزوير تبقى صلاحية واحدة كما قال الخادم (8)   ← V6 يعرض ٨ صلاحيات
+FAIL و«الإعدادات» ما تزال ممنوعة                        ← can('settings') = true
+FAIL والدور المعروض هو دور الخادم لا دور التخزين          ← يعرض ADMIN
+FAIL مؤشّر منسوخ من جهاز آخر يرفضه الخادم                ← الفحص كان في المتصفح
+FAIL استدعاء التهيئة بلا جلسة مالك يُرفض                  ← كانت تعمل بلا توثيق
+```
+
+على V7 تمرّ الأربعون. **اختبار ينجح على النسخة المكسورة لا قيمة له** — وهذه ليست كذلك.
+
+### أثر التطبيق على الإنتاج
+
+قبل وبعد، بعد تنظيف كل أثر فحص:
+
+```
+products 130 · invoices 36 · customers 18 · employees 4 · profiles 2
+profiles بدور غير CASHIER: 0   ·   app_sessions: 0   ·   security_events: 0
+```
+
+مستشارو الأمان: 79 → 89 ملاحظة. الزيادة العشر كلها من إضافات V7 ومقصودة
+(دوال يجب أن تكون قابلة للنداء، وجداول مغلقة عمدًا بلا سياسة) — **عدا واحدة**:
+`profiles_guard_privileged_columns()` كانت متاحة عبر `/rest/v1/rpc/`. كشفها
+المستشار بعد التطبيق، وسُحبت صلاحيتها في مهاجرة تالية.
