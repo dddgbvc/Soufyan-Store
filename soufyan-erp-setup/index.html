@@ -6483,11 +6483,21 @@ const Router = {
     return !!(this._serverSetup && this._serverSetup.completed);
   },
 
-  /** يُسأل الخادم مرة واحدة عند الإقلاع. تعذّر الوصول ⇒ لا ندّعي الاكتمال. */
+  /**
+   * يُسأل الخادم مرة واحدة عند الإقلاع. تعذّر الوصول ⇒ لا ندّعي الاكتمال.
+   *
+   * مهلة قصيرة خاصة بهذا النداء (لا `requestTimeout` الكامل): النتيجة تُصحّح
+   * وجهةً معروضة سلفًا، وتصحيح يصل بعد خمس عشرة ثانية يقفز بالمستخدم من شاشة
+   * إلى أخرى بلا سبب مفهوم. إن لم يُجب الخادم سريعًا تبقى البوابة — وهي
+   * الوجهة المحايدة التي تحمل البابين.
+   */
   async loadSetupStatus(){
     if(!Sb.ready()){ this._serverSetup = null; return null; }
     try{
-      const r = await Sb.rpc("setup_status");
+      const r = await Promise.race([
+        Sb.rpc("setup_status"),
+        new Promise((_, reject) => setTimeout(() => reject(Sb._err("offline")), 6000))
+      ]);
       this._serverSetup = (r && typeof r === "object") ? r : null;
     }catch(_){ this._serverSetup = null; }
     return this._serverSetup;
@@ -6514,24 +6524,53 @@ const Router = {
     return String(code).toLowerCase();
   },
 
+  /**
+   * الإقلاع لا ينتظر الشبكة قبل أن يرسم شيئًا.
+   *
+   * كان `await this.loadSetupStatus()` أول ما يجري هنا، فإن كان الخادم بطيئًا
+   * أو صامتًا بقيت الصفحة **فارغة حتى `requestTimeout`** (١٥ ثانية) — وهو ما
+   * يبدو للمستخدم أن البرنامج لا يعمل. حالة الإعداد قرار توجيه لا قرار أمني،
+   * فلا يصحّ أن تحجب أول رسم.
+   *
+   * الترتيب الآن: ارسم فورًا بما نعرفه، ثم صحّح الوجهة إن جاء ردّ الخادم.
+   * أما الجلسة — وهي القرار الأمني — فتُنتظر خلف شاشة انتظار صريحة كما كانت.
+   */
   async boot(){
     document.body.dataset.surface = "auth";
     const linkErr = this._hashError();
-    await this.loadSetupStatus();
-    if(linkErr) return this.go("login", { reason:"link-expired" });
-    // شاشة انتظار قصيرة بدل وميض البوابة قبل أن يجيب الخادم عن الجلسة.
+
+    if(linkErr){
+      this.go("login", { reason:"link-expired" });
+      this.loadSetupStatus().catch(() => {});
+      return;
+    }
+
+    // جلسة محفوظة: شاشة انتظار صريحة (بمؤشّر دوّار) بدل صفحة فارغة.
     if(AuthSession._read()){
       Screen.render({ id:"resume", layout:"auth", icon:"shield", title:t("resumeTitle"), lede:t("resumeLede"),
         body:`<p class="otp-status" data-tone="busy"><span class="spin"></span>${esc(t("resumeWait"))}</p>` });
       Chrome.render();
+      this.loadSetupStatus().catch(() => {});      // بالتوازي، لا قبله
       const s = await AuthSession.restore();
       if(s){ AuthSession.startHeartbeat(); return this.go("erp"); }
       // كانت هنا جلسة ورفضها الخادم: صاحبها له حساب بالفعل، فالوجهة الدخول
       // لا البوابة — والبوابة تبقى على بعد ضغطة من شاشة الدخول.
       return this.go("login", { reason:"expired" });
     }
-    if(this.setupCompleted() && Sb.ready()) return this.go("login");
-    return this.go("gate");
+
+    // لا جلسة: البوابة تظهر فورًا. وهي الوجهة المحايدة الصحيحة على أي حال —
+    // فيها البابان معًا، فلا ضرر إن تأخّر الخادم أو لم يُجب إطلاقًا.
+    this.go("gate");
+
+    // ثم يُصحَّح التوجيه إن قال الخادم إن الإعداد مكتمل، وبشرط أن يكون
+    // المستخدم ما يزال على البوابة ولم يفتح بابًا بنفسه.
+    this.loadSetupStatus()
+      .then(() => {
+        if(this.surface !== "gate") return;
+        if(this.setupCompleted() && Sb.ready()) this.go("login");
+        else Chrome.render();          // البوابة تتكيّف مع حالة الإعداد
+      })
+      .catch(() => {});
   },
 
   go(surface, opts){

@@ -35,7 +35,7 @@ V6 كان يبدو مكتملًا وهو ليس كذلك. ثلاث حقائق ت
 
 وبالمناسبة: README الخاص بـ V6 يقول «١٤٠ فحصًا، كلها تمرّ». تشغيل مجموعاته على
 النسخة المسلَّمة كما هي يعطي **٥ إخفاقات** في `auth-flows` وحدها. الرقم الحالي
-مقيس لا منقول: **١٨٧ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
+مقيس لا منقول: **١٩٠ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
 
 **ما لم يتغيّر:** الهوية البصرية، والرسوم الحيّة، والحركة، والمراحل الأربع،
 والإعداد المتكيّف، و RTL/LTR، والوضع الداكن، والاستجابة، والوصولية. لا إعادة
@@ -297,10 +297,10 @@ SHOTS=/tmp/shots/ node tests/run.mjs   # مع حفظ لقطات الشاشة
 
 | `security` | انتحال الجلسة من المتصفح، ترقية الدور من التخزين، نسخ الجلسة إلى جهاز آخر، التزوير خلف انقطاع الشبكة، تجاوز خطوات الإعداد ونداء التهيئة مباشرةً، idempotency، ما يُكتب في المتصفح، الحقن النصّي، تسريب الأخطاء، و CSP | 40 |
 
-المجموع **١٨٧ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
+المجموع **١٩٠ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
 
 ```
-auth-flows  55 · wizard 18 · interface 46 · failures 28 · security 40
+auth-flows  55 · wizard 18 · interface 46 · failures 31 · security 40
 ```
 
 **مجموعة `security` ليست فحص شكل.** كل قسم فيها يعيد تنفيذ استغلال حقيقي، وقد
@@ -839,8 +839,8 @@ During an offline grace window the last known identity is shown with an offline 
 `verified` is false and `can()` returns false until a heartbeat confirms it, so editing
 storage and then pulling the network gains nothing.
 
-**Tests actually run.** `node tests/run.mjs` executes **187 checks in real Chromium, 0
-failing** — auth-flows 55, wizard 18, interface 46, failures 28, security 40. The V6 README
+**Tests actually run.** `node tests/run.mjs` executes **190 checks in real Chromium, 0
+failing** — auth-flows 55, wizard 18, interface 46, failures 31, security 40. The V6 README
 claimed "140 checks, all passing"; running its own suites against the delivered build gives
 5 failures in `auth-flows` alone. The `security` suite replays the real attacks and is
 verified to **catch V6**: run against the old build it fails at least 13 checks, including

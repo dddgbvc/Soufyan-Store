@@ -128,6 +128,30 @@ console.log('\n— انقطاع مؤقّت —');
   await ctx.close();
 }
 
+/* ===== 6.b) الإقلاع لا ينتظر الشبكة قبل أن يرسم =====
+   انحدار حقيقي وقع في V7: كان boot() ينتظر setup_status قبل أي رسم، فتبقى
+   الصفحة فارغة حتى requestTimeout (١٥ ثانية) على شبكة صامتة — ويبدو للمستخدم
+   أن البرنامج لا يعمل. حالة الإعداد قرار توجيه لا قرار أمني. */
+console.log('\n— الإقلاع على شبكة صامتة —');
+{
+  const {ctx,p}=await page();
+  // خادم لا يردّ إطلاقًا: أسوأ من الانقطاع الصريح لأنه لا يفشل سريعًا.
+  await p.route('**/*.supabase.co/**', async () => {});
+  const t0 = Date.now();
+  await p.goto(URL,{waitUntil:'domcontentloaded'});
+  let ms = null;
+  for(let i=0;i<24;i++){
+    const title = await p.evaluate(()=>document.querySelector('#stepTitle')?.textContent?.trim()||'');
+    if(title){ ms = Date.now()-t0; break; }
+    await p.waitForTimeout(250);
+  }
+  ok(ms !== null && ms < 3000, `البوابة تظهر بلا انتظار الشبكة (${ms===null?'لم تظهر':ms+'ms'})`);
+  ok(await p.textContent('#stepTitle')==='أهلًا بك','والوجهة هي البوابة المحايدة بالبابين');
+  ok(await p.isVisible('[data-door="login"]') && await p.isVisible('[data-door="setup"]'),
+     'وكلا البابين متاح رغم صمت الخادم');
+  await ctx.close();
+}
+
 /* ===== 7) الجلسة لا تُنقل بين الأجهزة بنسخ التخزين ===== */
 console.log('\n— نقل التخزين إلى جهاز آخر —');
 {
