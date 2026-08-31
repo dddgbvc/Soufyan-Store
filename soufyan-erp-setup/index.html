@@ -1631,6 +1631,27 @@ window.Stage3D = window.buildStage3D();
    0) نقاط الربط — عدّل هذا الكائن لوصل النظام بخادمك الحقيقي
    ========================================================================== */
 const CONFIG = Object.assign({
+  /* ==========================================================================
+     الوضع التجريبي — مفتاح واحد
+     --------------------------------------------------------------------------
+       demoMode: true   ← بلا خادم. لا Supabase، ولا حسابات، ولا بيانات حقيقية.
+                          كل شيء داخل هذا المتصفح، ويُعلَن ذلك في كل شاشة.
+       demoMode: false  ← التشغيل الحقيقي على Supabase.
+
+     هذا الملف مُسلَّم بـ true بطلب صريح من صاحب المشروع لتجربة الواجهة.
+     **قبل أي تشغيل حقيقي اجعله false.** الفرق ليس تجميليًا:
+
+       true  ⇒ رمز البريد يُولَّد في المتصفح ويُعرض على الشاشة (لا يُرسل بريد)،
+               والدخول يقبل أي بريد وكلمة مرور، و«التهيئة» تكتب في هذا
+               المتصفح وحده. **ليس توثيقًا، ولا يحمي شيئًا.**
+       false ⇒ حساب حقيقي على Supabase Auth، وجلسة يصدرها الخادم،
+               وتهيئة على الخادم. وتعذّر الوصول يوقف العملية ولا يزيّف نجاحًا.
+
+     الوضع التجريبي يكتب تحت `soufyan.erp.demo.*` وحدها، فلا تختلط بحالة
+     حقيقية أبدًا، ويمسحها زرّ «إعادة ضبط الإعداد».
+     ========================================================================== */
+  demoMode   : true,
+
   appEntryUrl: "",                 // وجهة "دخول إلى النظام" بعد اكتمال الإعداد
   assetsBase : "assets/setup/",    // مجلد رسوم الإعداد (SVG)
   storageKey : "soufyan.erp.setup.v1",
@@ -1664,7 +1685,9 @@ const CONFIG = Object.assign({
  * القاعدة الآن: تعذّر الوصول إلى الخادم ⇒ توقّف وأعلن السبب وأتِح إعادة
  * المحاولة. لا نجاح مزيّف، ولا مسار بديل يعمل داخل المتصفح.
  */
-const HAS_SERVER = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
+/** الوضع التجريبي يُلغي الربط بالخادم تمامًا — لا نداء واحد يغادر الصفحة. */
+const DEMO = CONFIG.demoMode === true;
+const HAS_SERVER = !DEMO && !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 const PASSKEY_SUPPORTED = CONFIG.passkey !== null ? !!CONFIG.passkey
   : (typeof window.PublicKeyCredential === "function" && !!(navigator.credentials && navigator.credentials.create));
 
@@ -1927,6 +1950,8 @@ const SetupState = {
     const d = this.data;
     return {
       generatedAt: nowISO(),
+      // الملف المُصدَّر يقول بأي وضع أُنتج. ملف تجريبي لا يُخلط بحقيقي.
+      mode: DEMO ? "demo" : "server",
       setupCompleted: d.setupStatus.completed,
       store: d.storeData,
       owner: { name:d.ownerData.name, email:d.ownerData.email, phone:d.ownerData.phone },
@@ -1951,6 +1976,87 @@ Object.assign(L, { storageFull:["تعذّر الحفظ في هذا المتصف�
 /* ==========================================================================
    4) طبقة الخدمات — نقاط ربط نظيفة بالخادم (بلا توثيق وهمي)
    ========================================================================== */
+/* ==========================================================================
+   4.a) الوضع التجريبي — بديل معلَن للخادم، لا محاكاة صامتة
+   --------------------------------------------------------------------------
+   الفرق الجوهري عن «الوضع المحلي» في V6: ذاك كان **الافتراضي الصامت** الذي
+   يعمل حين ينسى أحد ضبط الخادم، فينتج إعدادًا يبدو ناجحًا بلا أي حساب. وهذا
+   مفتاح صريح، واحد، مكتوب في أعلى الملف، ويُعلَن أثره في كل شاشة.
+
+   ما يفعله: يستبدل الخادم بمخزن داخل هذا المتصفح تحت `soufyan.erp.demo.*`.
+   ما لا يفعله: لا يدّعي أنه توثيق، ولا يكتب مفتاحًا يقرؤه النظام الحقيقي.
+   ========================================================================== */
+const Demo = {
+  ns:"soufyan.erp.demo.",
+  _otp:new Map(),
+
+  get(k, d){ try{ const v = localStorage.getItem(this.ns + k); return v === null ? d : JSON.parse(v); }catch(_){ return d; } },
+  put(k, v){ try{ localStorage.setItem(this.ns + k, JSON.stringify(v)); }catch(_){ } },
+  clear(){
+    try{
+      Object.keys(localStorage).filter(k => k.startsWith(this.ns)).forEach(k => localStorage.removeItem(k));
+    }catch(_){ }
+    this._otp.clear();
+  },
+
+  /** تأخير صغير حتى تُرى حالات الانتظار كما ستبدو مع خادم حقيقي. */
+  lag(ms){ return wait(ms + Math.random() * 180); },
+
+  /** رمز من ٦ خانات بمولّد عشوائي حقيقي — يُعرض على الشاشة عمدًا. */
+  makeOtp(email, scope){
+    let n;
+    if(window.crypto && window.crypto.getRandomValues){
+      const b = new Uint32Array(1); crypto.getRandomValues(b); n = b[0];
+    }else n = Math.floor(Math.random() * 4294967295);
+    const code = String(n % 1000000).padStart(6, "0");
+    this._otp.set(scope + "|" + String(email).toLowerCase().trim(),
+      { code, exp: Date.now() + CONFIG.otpTtl * 1000 });
+    return code;
+  },
+  checkOtp(email, code, scope){
+    const key = scope + "|" + String(email).toLowerCase().trim();
+    const rec = this._otp.get(key);
+    if(!rec) return "expired";
+    if(Date.now() > rec.exp){ this._otp.delete(key); return "expired"; }
+    if(rec.code !== String(code).trim()) return "invalid";
+    this._otp.delete(key);
+    return "ok";
+  },
+
+  /** «حساب» تجريبي — اسم ودور، بلا كلمة مرور مخزَّنة إطلاقًا. */
+  account(email, name){
+    const a = this.get("account") || {
+      id:"demo-" + uid(), email:String(email || "demo@example.com").toLowerCase(),
+      name:name || "المالك", role:"ADMIN", createdAt:nowISO()
+    };
+    if(email) a.email = String(email).toLowerCase();
+    if(name)  a.name  = name;
+    this.put("account", a);
+    return a;
+  },
+
+  /** جلسة تجريبية. تُفحص عند الاستئناف كما تُفحص الحقيقية — بلا امتياز. */
+  startSession(method){
+    const a = this.account();
+    const s = { sessionId:"demo-" + uid(), employeeId:a.id, name:a.name, role:a.role,
+      method:method || "password", terminal:Terminal.id(), at:Date.now() };
+    this.put("session", s);
+    return s;
+  },
+  whoami(sessionId){
+    const s = this.get("session");
+    if(!s || s.sessionId !== sessionId) return { ok:false, reason:"closed" };
+    if(s.terminal !== Terminal.id())    return { ok:false, reason:"terminal" };
+    if(Date.now() - s.at > CONFIG.sessionMaxHours * 3600e3) return { ok:false, reason:"expired" };
+    return {
+      ok:true, method:s.method, session_id:s.sessionId,
+      employee:{ id:s.employeeId, name:s.name, role:s.role },
+      permissions: PERMISSIONS_FOR(s.role)
+    };
+  },
+  endSession(){ this.put("session", null); }
+};
+
 /**
  * AuthFlow — رموز الوصول أثناء الإعداد، في الذاكرة وحدها.
  *
@@ -1983,6 +2089,13 @@ const OtpService = {
 
   /** حدّ المحاولات والتبريد يفرضهما Supabase Auth (يردّ 429)، ونترجمه للمستخدم. */
   async send(email, scope = "owner"){
+    if(DEMO){
+      await Demo.lag(500);
+      // الرمز يُعرض على الشاشة عمدًا: لا بريد يُرسل، وإخفاؤه يجعل الوضع
+      // التجريبي طريقًا مسدودًا بلا فائدة.
+      return { ok:true, mode:"demo", expiresIn: CONFIG.otpTtl,
+               demoCode: Demo.makeOtp(email, scope) };
+    }
     if(!HAS_SERVER) throw Sb._err("config");
     const normalized = String(email).trim().toLowerCase();
     await Sb.auth("otp", {
@@ -2000,6 +2113,15 @@ const OtpService = {
    * والموظف تُستهلك وتُنسى فورًا حتى لا تُزيح جلسة المالك.
    */
   async verify(email, code, scope = "owner"){
+    if(DEMO){
+      await Demo.lag(450);
+      const r = Demo.checkOtp(email, code, scope);
+      if(r !== "ok") return { ok:false, mode:"demo", reason:r };
+      const a = Demo.account(scope === "owner" ? email : null,
+                             scope === "owner" ? (SetupState.data.ownerData.name || null) : null);
+      return { ok:true, mode:"demo", scope,
+               session:{ token:"demo-token", userId:a.id, email:a.email } };
+    }
     if(!HAS_SERVER) throw Sb._err("config");
     const normalized = String(email).trim().toLowerCase();
     const token = String(code).replace(/\D/g, "").slice(0, 6);
@@ -2020,6 +2142,12 @@ const OtpService = {
 
   /** كلمة مرور المالك تُضبط على Supabase Auth بجلسة التحقّق، لا في الواجهة. */
   async setPassword(password){
+    if(DEMO){
+      // لا تُخزَّن كلمة المرور ولا بصمتها. الوضع التجريبي يقبل أي كلمة لاحقًا،
+      // وهذا معلَن — فادّعاء غير ذلك أسوأ من الوضوح.
+      await Demo.lag(400);
+      return { ok:true, mode:"demo" };
+    }
     if(!AuthFlow.token) throw Sb._err("unauthorized", 401);
     await Sb.send("PUT", "/auth/v1/user", { password: String(password) }, AuthFlow.token);
     return { ok:true };
@@ -2071,6 +2199,20 @@ const SetupService = {
   },
 
   async run(taskId, state){
+    if(DEMO){
+      await Demo.lag(380);
+      const runKey = this.runKey();
+      const done = Demo.get("runs", {});
+      if(done[runKey + "|" + taskId]) return { ok:true, task:taskId, idempotent:true, mode:"demo" };
+      Demo.put(taskId, this.payloadFor(taskId, state));
+      done[runKey + "|" + taskId] = nowISO();
+      Demo.put("runs", done);
+      if(taskId === "finalize"){
+        Demo.put("setup", { completed:true, completedAt:nowISO(),
+          storeName: state.storeData.storeName || state.storeData.shopName || "" });
+      }
+      return { ok:true, task:taskId, idempotent:false, mode:"demo" };
+    }
     if(!HAS_SERVER) throw Sb._err("config");
     const token = AuthFlow.token || AuthSession.token;
     // بلا جلسة مالك لا تهيئة. هذا هو ما يمنع «إنهاء الإعداد» من متصفّح مجهول.
@@ -2100,6 +2242,9 @@ const SetupService = {
    محاولة — ولا تُستبدل الفاتورة بتصميم بديل إطلاقًا.
    ========================================================================== */
 const InvoiceTemplate = {
+  /* في الوضع التجريبي لا يوجد خادم يولّد الفاتورة. لا تُرسم فاتورة بديلة
+     إطلاقًا — يُقال السبب صراحةً، تمامًا كما في حالة تعذّر الوصول. */
+  demoBlocked: DEMO,
   _cache:null,          // { key, url, bytes }
   _inflight:null,
 
@@ -2269,6 +2414,12 @@ function renderInvoicePreview(host, opts){
   };
 
   const paint = async force => {
+    // الوضع التجريبي: القالب يعيش على Supabase، ولا بديل يُرسم محليًا.
+    // يُقال السبب صراحةً بدل عرض فاتورة مخترَعة تُوهم أن القالب يعمل.
+    if(InvoiceTemplate.demoBlocked){
+      msg("warn", ico("alert"), t("iv_demoT"), esc(t("iv_demoB")));
+      return;
+    }
     if(!InvoiceTemplate.configured()){
       msg("warn", ico("alert"), t("iv_offT"), esc(t("iv_offB")));
       return;
@@ -3608,7 +3759,11 @@ STEPS.push({
     const renderWaiting = res => {
       endAt = Date.now() + (res.expiresIn || CONFIG.otpTtl) * 1000;
       stage.innerHTML = `
-        <p class="sent-to">${t("s4_sentTo", { e:`<b class="mono">${esc(S.ownerData.email)}</b>` })}</p>
+        <p class="sent-to">${res.mode === "demo"
+          ? esc(t("s4_demoSent"))
+          : t("s4_sentTo", { e:`<b class="mono">${esc(S.ownerData.email)}</b>` })}</p>
+        ${res.demoCode ? `<div class="demo-code">${ico("alert")}<div><b>${esc(t("s4_demoTitle"))}</b>
+            <span class="mono demo-val">${esc(res.demoCode)}</span><p>${esc(t("s4_demoBody"))}</p></div></div>` : ""}
         <div data-otp-mount></div>
         <div class="otp-status" data-status data-tone="busy"></div>
         <div class="otp-meta">
@@ -4281,6 +4436,8 @@ const EmployeeVerification = {
             Employees.setVerification(emp.id, { status:"sent", sentAt:nowISO() });
             endAt = Date.now() + (res.expiresIn || CONFIG.otpTtl) * 1000;
             stage.innerHTML = `
+              ${res.demoCode ? `<div class="demo-code">${ico("alert")}<div><b>${esc(t("s4_demoTitle"))}</b>
+                  <span class="mono demo-val">${esc(res.demoCode)}</span><p>${esc(t("s4_demoBody"))}</p></div></div>` : ""}
               <div data-otp-mount></div>
               <div class="otp-status" data-status data-tone="busy"></div>
               <div class="otp-meta"><span>${ico("clock")} ${esc(t("s4_expiresIn"))} <b class="countdown" data-count>--:--</b></span>
@@ -4900,8 +5057,18 @@ Object.assign(L, {
   s5_pwdRate:["محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.","Too many attempts. Wait a moment, then try again."],
   s4_rate:["محاولات كثيرة على هذا البريد. انتظر قليلًا قبل طلب رمز جديد.","Too many attempts for this address. Wait a moment before requesting a new code."],
 
-  s4_demoTitle:["رمز تجريبي — وضع محلي","Trial code — local mode"],
-  s4_demoBody:["يظهر هنا لأن الإعداد يعمل بلا خادم. مع خادم حقيقي لن يُعرض الرمز إطلاقًا.","Shown because setup is running without a server. With a real server the code is never displayed."],
+  demoMode:["وضع تجريبي — بلا خادم","Demo mode — no server"],
+  demoModeTip:["هذه نسخة لتجربة الواجهة. لا يوجد اتصال بـSupabase، ولا يُنشأ حساب، ولا يُرسل بريد، ولا تُحفظ بيانات خارج هذا المتصفح. الدخول يقبل أي بريد وكلمة مرور. اجعل demoMode = false للتشغيل الحقيقي.",
+    "This build is for trying the interface. There is no Supabase connection, no account is created, no email is sent, and nothing is stored outside this browser. Sign-in accepts any email and password. Set demoMode = false to run for real."],
+  iv_demoT:["معاينة الفاتورة تحتاج الخادم","Invoice preview needs the server"],
+  iv_demoB:["قالب الفاتورة يعيش على Supabase ويُولَّد هناك. في الوضع التجريبي لا يُرسم قالب بديل — لأن أي بديل لن يكون الفاتورة التي يطبعها محلّك فعلًا. اجعل demoMode = false لرؤيتها.",
+    "The invoice template lives on Supabase and is generated there. Demo mode draws no substitute, because a substitute would not be the invoice your shop actually prints. Set demoMode = false to see it."],
+  demoBanner:["وضع تجريبي: لا حساب حقيقي ولا بيانات محفوظة — للتجربة فقط",
+    "Demo mode: no real account, nothing saved — for trying the interface only"],
+  s4_demoSent:["لم يُرسل بريد. الرمز معروض أدناه لأن هذه نسخة تجريبية.",
+    "No email was sent. The code is shown below because this is a demo build."],
+  s4_demoTitle:["رمز تجريبي","Demo code"],
+  s4_demoBody:["يظهر هنا لأن هذه نسخة تجريبية بلا خادم. في التشغيل الحقيقي يصل الرمز بالبريد ولا يُعرض على الشاشة إطلاقًا.","Shown because this is a demo build with no server. In real operation the code arrives by email and is never displayed."],
   s4_localRecord:["تم التوثيق في الوضع المحلي، وسيُسجَّل في ملخّص الإعداد أنه ليس توثيقًا حقيقيًا.","Verified in local mode; the summary records that this is not real verification."],
 
   /* 05 — الحماية */
@@ -5454,6 +5621,7 @@ const Wizard = {
     if(!ok) return;
     Secrets.ownerPassword = ""; Secrets.ownerPin = ""; Secrets.empPin = {};
     AuthFlow.clear();
+    if(DEMO) Demo.clear();          // بيانات الوضع التجريبي تُمحى معه
     // إعادة الضبط تمسح تقدّم المعالج في هذا المتصفح وحده. ما أنشأه الخادم
     // (حساب، حالة إعداد) لا يُحذف من هنا — حذفه قرار إداري لا زرّ في معالج.
     SetupState.reset();
@@ -5601,6 +5769,7 @@ const Terminal = {
 const AuthService = {
   /** ما تدعمه هذه البيئة فعلًا — يُسأل عنه ولا يُفترض. */
   caps(){
+    if(DEMO) return { configured:true, reason:"" };
     return {
       configured : Sb.ready(),
       reason     : !Sb.ready() ? "config" : ""
@@ -5609,6 +5778,18 @@ const AuthService = {
 
   /* ---- الدخول ---- */
   async passwordLogin(email, password){
+    if(DEMO){
+      await Demo.lag(600);
+      // يقبل أي بريد صحيح الصيغة وأي كلمة مرور ٨ محارف فأكثر. هذا ليس
+      // تحقّقًا — هو باب لتجربة الشاشات التي بعده، ومعلَن في كل شاشة.
+      if(!RX.email.test(String(email).trim())) throw Sb._err("badLogin");
+      if(String(password).length < 8) throw Sb._err("badLogin");
+      Demo.account(email, SetupState.data.ownerData.name || null);
+      const s = Demo.startSession("password");
+      return { method:"password", sessionId:s.sessionId, token:"demo-token",
+        employee:{ id:s.employeeId, name:s.name, role:s.role, email:String(email).trim().toLowerCase() },
+        permissions: PERMISSIONS_FOR(s.role) };
+    }
     let r;
     try{
       r = await Sb.auth("token?grant_type=password",
@@ -5634,6 +5815,13 @@ const AuthService = {
    * الدور مصدره الخادم، وما في الواجهة مرآة لعرض الأقسام لا لمنعها.
    */
   async _identify(r){
+    if(DEMO){
+      const a = Demo.account(r.user && r.user.email);
+      const s = Demo.startSession("password");
+      return { method:"password", sessionId:s.sessionId, token:"demo-token",
+        employee:{ id:s.employeeId, name:s.name, role:s.role, email:a.email },
+        permissions: PERMISSIONS_FOR(s.role) };
+    }
     /**
      * V6 كان يقرأ الهوية بـ `GET /rest/v1/profiles`. لكن الدورين `anon`
      * و`authenticated` لا يملكان أي GRANT على `public.profiles` على هذا
@@ -5678,6 +5866,10 @@ const AuthService = {
   async recover(email){
     const normalized = String(email).trim().toLowerCase();
     if(!normalized) throw Sb._err("server");
+    if(DEMO){
+      await Demo.lag(500);
+      return { ok:true, expiresIn: CONFIG.otpTtl, demoCode: Demo.makeOtp(normalized, "recovery") };
+    }
     // Supabase Auth OTP: the recovery email template must expose {{ .Token }}.
     await Sb.auth("otp", {
       email: normalized,
@@ -5688,6 +5880,13 @@ const AuthService = {
   },
   async verifyRecoveryOtp(email, code){
     const normalized = String(email).trim().toLowerCase();
+    if(DEMO){
+      await Demo.lag(450);
+      const r = Demo.checkOtp(normalized, code, "recovery");
+      if(r !== "ok") return { ok:false, reason:r };
+      const a = Demo.account(normalized);
+      return { ok:true, token:"demo-token", refreshToken:"", user:{ id:a.id, email:a.email }, expiresIn:3600 };
+    }
     try{
       const r = await Sb.auth("verify", {
         type: "recovery",
@@ -5712,6 +5911,7 @@ const AuthService = {
    * (مُتحقَّق منه: صفر نداء PUT /auth/v1/user في المسار كاملًا.)
    */
   async updatePassword(token, password){
+    if(DEMO){ await Demo.lag(400); const a = Demo.account(); return { user:{ id:a.id, email:a.email } }; }
     if(!token) throw Sb._err("unauthorized", 401);
     const user = await Sb.send("PUT", "/auth/v1/user", { password: String(password) }, token);
     return { user: (user && user.id) ? user : { id:(user && user.id) || "", email:(user && user.email) || "" } };
@@ -5727,10 +5927,12 @@ const AuthService = {
 
   /* ---- إنهاء الجلسة على الخادم ---- */
   async endSession(sessionId, reason){
+    if(DEMO){ Demo.endSession(); return; }
     if(!sessionId) return;
     try{ await Sb.rpc("app_session_end", { p_session_id: sessionId, p_reason: reason || "logout" }); }catch(_){ }
   },
   async ping(sessionId){
+    if(DEMO) return Demo.whoami(sessionId).ok === true;
     const r = await Sb.rpc("app_session_ping", { p_session_id: sessionId });
     return !!(r && r.ok === true);
   },
@@ -5741,6 +5943,7 @@ const AuthService = {
    * وحدها هذه الدالة مصدر الصلاحيات بعد الإقلاع.
    */
   async whoami(sessionId){
+    if(DEMO){ await Demo.lag(200); return Demo.whoami(sessionId); }
     const r = await Sb.rpc("app_session_whoami", {
       p_session_id: sessionId,
       p_terminal_id: Terminal.id(),
@@ -6069,7 +6272,8 @@ const Chrome = {
     const offline = !!(s && s.offline);
     // شارة «متصل بالخادم» الخضراء ضجيج للمستخدم: الاتصال هو المتوقَّع. الشارة
     // تظهر حين تحمل خبرًا فعلًا — انقطاع، أو وضع محلي بلا خادم.
-    const warn = offline ? { key:"offlineMode", tip:"offlineModeTip" }
+    const warn = DEMO ? { key:"demoMode", tip:"demoModeTip" }
+      : offline ? { key:"offlineMode", tip:"offlineModeTip" }
       : !connected ? { key:"localMode", tip:"localModeTip" } : null;
     host.innerHTML = `
       ${s ? `<div class="sess" title="${esc(s.employee.name)}">
@@ -6492,6 +6696,14 @@ const Router = {
    * الوجهة المحايدة التي تحمل البابين.
    */
   async loadSetupStatus(){
+    if(DEMO){
+      const d = Demo.get("setup");
+      this._serverSetup = { completed: !!(d && d.completed),
+        completed_at:(d && d.completedAt) || null,
+        store_name:(d && d.storeName) || null,
+        has_accounts: !!Demo.get("account") };
+      return this._serverSetup;
+    }
     if(!Sb.ready()){ this._serverSetup = null; return null; }
     try{
       const r = await Promise.race([
@@ -6875,16 +7087,29 @@ Object.assign(L, {
     document.head.appendChild(tag);
   }
 
-  // إغلاق التبويب يُنهي جلسة التشغيل على الخادم بدل تركها مفتوحة إلى أن تُكنس.
-  window.addEventListener("pagehide", () => {
-    const id = AuthSession.data && AuthSession.data.sessionId;
-    if(!id || !navigator.sendBeacon || !Sb.ready()) return;
-    try{
-      navigator.sendBeacon(Sb._base() + "/rest/v1/rpc/app_session_end?apikey=" +
-        encodeURIComponent(CONFIG.supabaseAnonKey),
-        new Blob([JSON.stringify({ p_session_id:id, p_reason:"normal" })], { type:"application/json" }));
-    }catch(_){ }
-  });
+  /* ==========================================================================
+     أُزيلت نبضة الإغلاق (`pagehide` + `sendBeacon` → `app_session_end`)
+     --------------------------------------------------------------------------
+     كانت تهدف إلى ألا تبقى جلسة التشغيل مفتوحة بعد إغلاق التبويب. لكن
+     `pagehide` **يقع عند تحديث الصفحة أيضًا**، لا عند الإغلاق وحده. فالنتيجة
+     أن كل تحديث كان:
+
+         pagehide → app_session_end (closed_at = now)
+         الإقلاع  → app_session_whoami → {"ok":false,"reason":"closed"}
+         ⇒ المستخدم يعود إلى شاشة الدخول بعد كل F5
+
+     مُتحقَّق منه على قاعدة الإنتاج مباشرةً، لا استنتاجًا:
+       app_session_start → app_session_end → app_session_whoami
+       ⇒ {"ok": false, "reason": "closed"}
+
+     ولم يكشفه أي اختبار لأن المجموعات تعترض النداءات وتردّ بنجاح ثابت، فلا
+     يوجد فيها خادم يتذكّر أن الجلسة أُغلقت. (عولج: `tests/contracts.mjs` صار
+     يحفظ الحالة، ومعه اختبار «التحديث لا يُخرج المستخدم».)
+
+     التنظيف مغطًّى أصلًا بلا هذه النبضة: `app_session_start` يُغلق أي جلسة
+     سابقة مفتوحة على الجهاز نفسه، و`last_seen_at` مع النبضة الدورية تُبقي
+     الحالة حيّة، ومهاجرة `cron_close_stale_sessions` تكنس المهملة.
+     ========================================================================== */
 })();
 </script>
 </body>

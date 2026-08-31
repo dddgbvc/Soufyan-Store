@@ -8,6 +8,9 @@ const ctx=await b.newContext({viewport:{width:1280,height:900}});
 const p=await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 p.on('console',m=>{ if(m.type()==='error'&&!/net::|404/.test(m.text())) errs.push('console: '+m.text()); });
+await p.addInitScript(() => {
+  window.SETUP_CONFIG = Object.assign({ demoMode: false }, window.SETUP_CONFIG || {});
+});
 await p.route('**/fonts.googleapis.com/**', r=>r.abort());
 await p.route('**/*.supabase.co/**', r=>r.abort());   // بلا خادم: نختبر مسار الإعداد المحلي كما في V4
 

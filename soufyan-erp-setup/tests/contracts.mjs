@@ -45,6 +45,17 @@ export const employeeOf = (profile = PROFILE) => ({
  * @param o.setupDone    حالة setup_status().completed
  * @param o.hasAccounts  حالة setup_status().has_accounts
  */
+/**
+ * حالة خادم صغيرة تُحفظ بين النداءات.
+ *
+ * كانت الردود ثابتة، فكان `app_session_end` بلا أثر و`whoami` ينجح دائمًا.
+ * وهذا أخفى عيبًا حقيقيًا: نبضة `pagehide` كانت تُنهي الجلسة عند كل تحديث
+ * صفحة، فيخرج المستخدم — ولا اختبار يراه لأن المحاكاة لا تتذكّر شيئًا.
+ * الخادم الحقيقي يتذكّر، فالمحاكاة يجب أن تتذكّر.
+ */
+const serverState = { closed: new Set() };
+export const resetServerState = () => serverState.closed.clear();
+
 export function rpcResponse(fn, args, o = {}) {
   const profile = o.profile === null ? null : (o.profile || PROFILE);
   const perms = PERMISSIONS[(profile && profile.role) || 'CASHIER'] || PERMISSIONS.CASHIER;
@@ -64,10 +75,13 @@ export function rpcResponse(fn, args, o = {}) {
     case 'app_session_start_authenticated':
       if (!profile) return { ok: false, reason: 'disabled' };
       if (profile.status && profile.status !== 'active') return { ok: false, reason: 'disabled' };
+      serverState.closed.delete(SESSION);          // دخول جديد يفتح الجلسة
       return { ok: true, session_id: SESSION, employee: employeeOf(profile), permissions: perms };
 
     case 'app_session_whoami': {
       if (o.pingOk === false) return { ok: false, reason: 'closed' };
+      // جلسة أُنهيت فعلًا لا تُستأنف — كما على الخادم الحقيقي.
+      if (args && serverState.closed.has(args.p_session_id)) return { ok: false, reason: 'closed' };
       // الربط بالجهاز يُفرض على الخادم: مؤشّر منسوخ إلى جهاز آخر يُرفض.
       if (o.terminal && args && args.p_terminal_id !== o.terminal) {
         return { ok: false, reason: 'terminal' };
@@ -82,9 +96,11 @@ export function rpcResponse(fn, args, o = {}) {
     }
 
     case 'app_session_ping':
+      if (args && serverState.closed.has(args.p_session_id)) return { ok: false, at: new Date().toISOString() };
       return { ok: o.pingOk !== false, at: new Date().toISOString() };
 
     case 'app_session_end':
+      if (args && args.p_session_id) serverState.closed.add(args.p_session_id);
       return { ok: true };
 
     default:
@@ -94,6 +110,12 @@ export function rpcResponse(fn, args, o = {}) {
 
 /** يركّب اعتراض نداءات Supabase على صفحة Playwright. */
 export async function routeSupabase(page, o = {}, seen = []) {
+  /* المجموعات تختبر المسار الحقيقي (Supabase)، فتُثبِّت الوضع صراحةً بدل
+     الاعتماد على الافتراضي المُسلَّم — وهو حاليًا الوضع التجريبي بطلب المالك.
+     ما يضبطه الاختبار بنفسه يبقى له الأولوية. */
+  await page.addInitScript(() => {
+    window.SETUP_CONFIG = Object.assign({ demoMode: false }, window.SETUP_CONFIG || {});
+  });
   await page.route('**/fonts.googleapis.com/**', r => r.abort());
   await page.route('**/fonts.gstatic.com/**', r => r.abort());
 

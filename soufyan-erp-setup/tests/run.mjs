@@ -35,7 +35,7 @@ const server = createServer(async (req, res) => {
 await new Promise(r => server.listen(PORT, '127.0.0.1', r));
 
 const only = process.argv[2];
-const suites = ['auth-flows', 'wizard', 'interface', 'failures', 'security'].filter(s => !only || s.includes(only));
+const suites = ['auth-flows', 'wizard', 'interface', 'failures', 'security', 'demo'].filter(s => !only || s.includes(only));
 let failed = 0;
 for(const s of suites){
   console.log(`\n════ ${s} ════`);

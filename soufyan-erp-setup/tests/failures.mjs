@@ -7,9 +7,12 @@ const PROFILE={ id:USER.id, display_name:'سفيان يوسف', full_name:'سف�
 let pass=0,fail=0; const ok=(c,m)=>{c?pass++:fail++;console.log((c?'  PASS ':'  FAIL ')+m);};
 
 const b=await chromium.launch({executablePath:EXE});
+/* هذه المجموعة تختبر المسار الحقيقي (Supabase)، فتُثبِّت الوضع صراحةً:
+   الافتراضي المُسلَّم هو الوضع التجريبي بطلب المالك، وفيه لا خادم يُستدعى
+   أصلًا فتفقد فحوص «بلا اتصال» و«حدّ المحاولات» معناها. */
 const page=async cfg=>{ const ctx=await b.newContext({viewport:{width:1100,height:900}}); const p=await ctx.newPage();
   await p.route('**/fonts.googleapis.com/**', r=>r.abort());
-  if(cfg) await p.addInitScript(c=>{ window.SETUP_CONFIG=c; }, cfg);
+  await p.addInitScript(c=>{ window.SETUP_CONFIG=Object.assign({ demoMode:false }, c||{}); }, cfg||null);
   return {ctx,p}; };
 const authOk=(p,o={})=>routeSupabase(p,{profile:PROFILE,...o});
 const gotoLogin=async p=>{ await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(800);
@@ -149,6 +152,37 @@ console.log('\n— الإقلاع على شبكة صامتة —');
   ok(await p.textContent('#stepTitle')==='أهلًا بك','والوجهة هي البوابة المحايدة بالبابين');
   ok(await p.isVisible('[data-door="login"]') && await p.isVisible('[data-door="setup"]'),
      'وكلا البابين متاح رغم صمت الخادم');
+  await ctx.close();
+}
+
+/* ===== 6.c) تحديث الصفحة لا يُخرج المستخدم =====
+   عيب حقيقي ورثه V7 عن V6: نبضة `pagehide` + `sendBeacon` كانت تستدعي
+   app_session_end. و`pagehide` يقع عند **تحديث الصفحة** لا عند الإغلاق وحده،
+   فكل F5 كان يُنهي الجلسة على الخادم ثم يردّ الاستئناف {"ok":false,"reason":"closed"}.
+
+   مُتحقَّق منه على قاعدة الإنتاج: start → end → whoami ⇒ reason "closed".
+   لم يكشفه اختبار لأن المحاكاة كانت بلا ذاكرة؛ صارت tests/contracts.mjs
+   تحفظ الجلسات المغلقة، فلو عادت النبضة سقط هذا الفحص. */
+console.log('\n— تحديث الصفحة —');
+{
+  const {ctx,p}=await page(); await authOk(p);
+  await gotoLogin(p); await fill(p);
+  ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','دخول ناجح');
+
+  await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1600);
+  ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','التحديث يُبقي المستخدم داخل النظام');
+  ok(await p.evaluate(()=>ERPSetup.auth.isAuthenticated())===true,'والجلسة ما تزال موثَّقة');
+
+  await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1600);
+  ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','وتحديث ثانٍ كذلك');
+
+  // والخروج الصريح — وحده — يُنهي الجلسة فعلًا. والوجهة بعده البوابة لا
+  // الدخول: من خرج عمدًا قد يسلّم الجهاز لغيره، فيُسأل السؤال من أوّله.
+  await p.evaluate(()=>ERPSetup.auth.session.end('logout'));
+  await p.waitForTimeout(600);
+  await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1600);
+  ok(await p.evaluate(()=>ERPSetup.auth.isAuthenticated())===false,'أما الخروج الصريح فيُنهيها');
+  ok(await p.textContent('#stepTitle')==='أهلًا بك','والوجهة بعده البوابة');
   await ctx.close();
 }
 

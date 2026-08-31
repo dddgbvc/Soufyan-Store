@@ -10,6 +10,34 @@
 
 ---
 
+## ⚠️ هذه النسخة تعمل بالوضع التجريبي
+
+الملف مُسلَّم بـ `demoMode: true` بطلب صاحب المشروع لتجربة الواجهة. المفتاح في
+أعلى `index.html`:
+
+```js
+window.SETUP_CONFIG = { demoMode: false };   // للتشغيل الحقيقي
+```
+
+| | `demoMode: true` (الآن) | `demoMode: false` |
+|---|---|---|
+| Supabase | **مفصول تمامًا** — صفر نداء | متصل |
+| رمز البريد | يُولَّد في المتصفح ويُعرض على الشاشة | يصل بالبريد من Supabase Auth |
+| الدخول | **يقبل أي بريد وكلمة مرور ٨ محارف** | كلمة المرور الحقيقية على Supabase Auth |
+| الحساب | لا يُنشأ حساب | حساب حقيقي في `auth.users` |
+| التهيئة | داخل المتصفح تحت `soufyan.erp.demo.*` | دالة الحافة `setup-provision` |
+| الفاتورة | تُقال إنها تحتاج الخادم — **ولا يُرسم بديل** | قالب Supabase الحقيقي |
+
+**الوضع التجريبي ليس توثيقًا ولا يحمي شيئًا.** الفرق عن «الوضع المحلي» في V6
+أن ذاك كان الافتراضي **الصامت** الذي يعمل حين ينسى أحد ضبط الخادم، فينتج
+إعدادًا يبدو ناجحًا. وهذا مفتاح واحد صريح، وشارة «وضع تجريبي» ظاهرة في كل
+شاشة، وبيانات معزولة، والملف المُصدَّر يحمل `mode: "demo"`.
+
+مغطًّى بمجموعة اختبار خاصة (`tests/demo.mjs`، ١٥ فحصًا) تتحقّق من أنه لا نداء
+واحد يغادر الصفحة، وأن الشارة لا تختفي، وأن بيانات التجربة لا تختلط بحالة حقيقية.
+
+---
+
 ## ما الجديد في V7 — من واجهة مقنعة إلى نظام حقيقي
 
 V6 كان يبدو مكتملًا وهو ليس كذلك. ثلاث حقائق تلخّص ما تغيّر:
@@ -35,7 +63,7 @@ V6 كان يبدو مكتملًا وهو ليس كذلك. ثلاث حقائق ت
 
 وبالمناسبة: README الخاص بـ V6 يقول «١٤٠ فحصًا، كلها تمرّ». تشغيل مجموعاته على
 النسخة المسلَّمة كما هي يعطي **٥ إخفاقات** في `auth-flows` وحدها. الرقم الحالي
-مقيس لا منقول: **١٩٠ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
+مقيس لا منقول: **٢١١ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
 
 **ما لم يتغيّر:** الهوية البصرية، والرسوم الحيّة، والحركة، والمراحل الأربع،
 والإعداد المتكيّف، و RTL/LTR، والوضع الداكن، والاستجابة، والوصولية. لا إعادة
@@ -297,10 +325,10 @@ SHOTS=/tmp/shots/ node tests/run.mjs   # مع حفظ لقطات الشاشة
 
 | `security` | انتحال الجلسة من المتصفح، ترقية الدور من التخزين، نسخ الجلسة إلى جهاز آخر، التزوير خلف انقطاع الشبكة، تجاوز خطوات الإعداد ونداء التهيئة مباشرةً، idempotency، ما يُكتب في المتصفح، الحقن النصّي، تسريب الأخطاء، و CSP | 40 |
 
-المجموع **١٩٠ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
+المجموع **٢١١ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
 
 ```
-auth-flows  55 · wizard 18 · interface 46 · failures 31 · security 40
+auth-flows  55 · wizard 18 · interface 46 · failures 37 · security 40 · demo 15
 ```
 
 **مجموعة `security` ليست فحص شكل.** كل قسم فيها يعيد تنفيذ استغلال حقيقي، وقد
@@ -839,8 +867,8 @@ During an offline grace window the last known identity is shown with an offline 
 `verified` is false and `can()` returns false until a heartbeat confirms it, so editing
 storage and then pulling the network gains nothing.
 
-**Tests actually run.** `node tests/run.mjs` executes **190 checks in real Chromium, 0
-failing** — auth-flows 55, wizard 18, interface 46, failures 31, security 40. The V6 README
+**Tests actually run.** `node tests/run.mjs` executes **211 checks in real Chromium, 0
+failing** — auth-flows 55, wizard 18, interface 46, failures 37, security 40, demo 15. The V6 README
 claimed "140 checks, all passing"; running its own suites against the delivered build gives
 5 failures in `auth-flows` alone. The `security` suite replays the real attacks and is
 verified to **catch V6**: run against the old build it fails at least 13 checks, including
