@@ -1,34 +1,15 @@
 import { chromium } from './pw.mjs';
+import { routeSupabase, SESSION, TOKEN, USER } from './contracts.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
-const SESSION='11111111-2222-3333-4444-555555555555';
 let pass=0,fail=0; const ok=(c,m)=>{c?pass++:fail++;console.log((c?'  PASS ':'  FAIL ')+m);};
 const sha=async s=>{const c=await import('node:crypto');return c.createHash('sha256').update(s).digest('hex');};
 const GOOD=await sha('4271');
 
-const TOKEN='eyJhbGciOiJIUzI1NiJ9.fake';
-const USER={ id:'1504114c-71ec-4345-a1ba-7c815c71e6c4', email:'assn42357@gmail.com' };
-const PROFILE={ id:USER.id, display_name:'سفيان يوسف', role:'ADMIN', status:'active' };
-async function stub(page, o={}){
-  await page.route('**/fonts.googleapis.com/**', r=>r.abort());
-  await page.route('**/auth/v1/**', r=>{
-    const url=r.request().url();
-    const body=r.request().postData()? JSON.parse(r.request().postData()) : {};
-    const json=(s,b)=>r.fulfill({status:s,contentType:'application/json',body:JSON.stringify(b)});
-    if(url.includes('/token')) return (body.password==='S3cret-pass')
-      ? json(200,{access_token:TOKEN, refresh_token:'rt', user:USER})
-      : json(400,{error_code:'invalid_credentials', msg:'Invalid login credentials'});
-    return json(200,{...USER});
-  });
-  await page.route('**/rest/v1/profiles**', r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify([PROFILE])}));
-  await page.route('**/rest/v1/rpc/**', r=>{
-    const fn=r.request().url().split('/rpc/')[1].split('?')[0];
-    if(fn==='app_session_start') return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(SESSION)});
-    if(fn==='app_session_ping')  return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:o.pingOk!==false})});
-    return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
-  });
-}
+const PROFILE={ id:USER.id, display_name:'سفيان يوسف', full_name:'سفيان يوسف', role:'ADMIN', status:'active' };
+/** العقود نفسها المشتركة مع بقية المجموعات — منسوخة عن نواتج قاعدة الإنتاج. */
+const stub = (page, o={}) => routeSupabase(page, { profile:PROFILE, ...o });
 const doLogin=async(p,pw='S3cret-pass')=>{ await p.click('[data-door="login"]'); await p.waitForTimeout(650);
   await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword',pw);
   await p.click('[data-go]'); await p.waitForTimeout(1500); };

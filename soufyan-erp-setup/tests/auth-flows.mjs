@@ -1,47 +1,16 @@
 import { chromium } from './pw.mjs';
+import { routeSupabase, SESSION, TOKEN, USER, PROFILE, PERMISSIONS } from './contracts.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
-const SESSION='11111111-2222-3333-4444-555555555555';
-const TOKEN='eyJhbGciOiJIUzI1NiJ9.fake-access-token';
-const USER={ id:'1504114c-71ec-4345-a1ba-7c815c71e6c4', email:'assn42357@gmail.com' };
-const PROFILE={ id:USER.id, display_name:'سفيان يوسف', full_name:'سفيان يوسف', role:'ADMIN', status:'active' };
 let pass=0, fail=0;
 const ok=(c,m)=>{ c?pass++:fail++; console.log((c?'  PASS ':'  FAIL ')+m); };
 
 const seen=[];
-/** يردّ بالعقود نفسها التي يعيدها Supabase Auth و PostgREST على هذا المشروع. */
-async function stub(page, o={}){
-  await page.route('**/fonts.googleapis.com/**', r=>r.abort());
-  await page.route('**/auth/v1/**', async route=>{
-    const url=route.request().url(), method=route.request().method();
-    const body=route.request().postData()? JSON.parse(route.request().postData()) : {};
-    seen.push({url:url.split('/auth/v1/')[1].split('?')[0], method, body});
-    const json=(s,b)=>route.fulfill({status:s,contentType:'application/json',body:JSON.stringify(b)});
-    if(url.includes('/token')){
-      if(o.unconfirmed) return json(400,{error_code:'email_not_confirmed',msg:'Email not confirmed'});
-      return (body.email===USER.email && body.password===(o.password||'S3cret-pass'))
-        ? json(200,{access_token:TOKEN, refresh_token:'rt', token_type:'bearer', expires_in:3600, user:USER})
-        : json(400,{error_code:'invalid_credentials', msg:'Invalid login credentials'});
-    }
-    if(url.includes('/otp')) return json(200,{message_id:'otp-test',expires_in:120});
-    if(url.includes('/verify')) return body.type==='recovery' && body.email===USER.email && body.token==='123456'
-      ? json(200,{access_token:TOKEN, refresh_token:'rt', token_type:'bearer', expires_in:3600, user:USER})
-      : json(403,{error_code:'otp_expired',msg:'Token has expired or is invalid'});
-    if(url.includes('/user'))    return json(200,{...USER, updated_at:new Date().toISOString()});
-    return json(404,{});
-  });
-  await page.route('**/rest/v1/profiles**', r=>r.fulfill({status:200,contentType:'application/json',
-    body:JSON.stringify(o.profile===null?[]:[o.profile||PROFILE])}));
-  await page.route('**/rest/v1/rpc/**', r=>{
-    const fn=r.request().url().split('/rpc/')[1].split('?')[0];
-    seen.push({rpc:fn});
-    if(fn==='app_session_start') return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(SESSION)});
-    if(fn==='app_session_ping')  return r.fulfill({status:200,contentType:'application/json',
-      body:JSON.stringify({ok:o.pingOk!==false})});
-    return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
-  });
-}
+/** يردّ بالعقود نفسها التي يعيدها Supabase Auth و PostgREST على هذا المشروع.
+ *  التعريف نفسه في tests/contracts.mjs، منسوخ عن نواتج حقيقية من قاعدة الإنتاج. */
+const stub = (page, o={}) => routeSupabase(page, o, seen);
+
 const signIn=async(p,pw='S3cret-pass')=>{ await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword',pw);
   await p.click('[data-go]'); await p.waitForTimeout(1500); };
 
@@ -121,7 +90,13 @@ console.log('\n— دخول ناجح —');
   ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','الاسم من ملف المستخدم على الخادم');
   const tags=await p.$$eval('.perm-list li',n=>n.map(x=>x.textContent));
   ok(tags.length===12 && tags.includes('الإعدادات'),`الصلاحيات من الدور الذي أرسله الخادم (${tags.length} قسمًا)`);
-  ok(seen.some(x=>x.rpc==='app_session_start'),'تُفتح جلسة تشغيل على الخادم بعد التوثيق');
+  // V7: الجلسة تُفتح بهوية المستخدم الموثَّق نفسه (auth.uid())، لا بنداء مجهول.
+  // app_session_start كانت تُفتح بلا employee_id فتبقى الجلسة مجهولة على الخادم.
+  const started=seen.find(x=>x.rpc==='app_session_start_authenticated');
+  ok(!!started,'تُفتح جلسة تشغيل موسومة بالهوية على الخادم بعد التوثيق');
+  ok(!!started && typeof started.args.p_terminal_id==='string' && started.args.p_terminal_id.length>=8,
+     'ومعها معرّف هذا الجهاز');
+  ok(!seen.some(x=>x.rpc==='app_session_start'),'ولا تُفتح جلسة مجهولة بعد الدخول');
   const store=await p.evaluate(()=>{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);o[k]=localStorage.getItem(k);}return o;});
   const dump=JSON.stringify(store);
   ok(!dump.includes('S3cret-pass'),'كلمة المرور لا تُكتب في المتصفح');
@@ -130,7 +105,12 @@ console.log('\n— دخول ناجح —');
   if(SHOTS) await p.screenshot({path:SHOTS+'erp.png'});
   await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1500);
   ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','الجلسة تُستأنف بعد تحديث الصفحة');
-  ok(seen.some(x=>x.rpc==='app_session_ping'),'والاستئناف يسأل الخادم أولًا');
+  // V7: الاستئناف يسأل whoami لا ping — ping يردّ {ok:true} بلا هوية،
+  // فكان العميل يأخذ الدور والصلاحيات من localStorage.
+  const who=seen.find(x=>x.rpc==='app_session_whoami');
+  ok(!!who,'والاستئناف يسأل الخادم عن الهوية لا عن حياة الجلسة فقط');
+  ok(!!who && who.args.p_session_id===SESSION && typeof who.args.p_terminal_id==='string',
+     'ويرسل مؤشّر الجلسة ومعرّف الجهاز ليفحصهما الخادم');
   ok(errs.length===0,'بلا أخطاء JavaScript: '+errs.join(' | '));
   await ctx.close();
 }

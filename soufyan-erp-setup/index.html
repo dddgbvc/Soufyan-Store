@@ -6,6 +6,37 @@
 <meta name="color-scheme" content="light dark">
 <title>الإعداد الأولي — نظام إدارة متجر الهواتف</title>
 <meta name="description" content="معالج الإعداد الأولي لنظام ERP مخصص لمتاجر الهواتف: هوية المتجر، توثيق البريد، المخزون و IMEI، الموظفون والصلاحيات، الفواتير والطباعة.">
+<!--
+  Content Security Policy
+  ---------------------------------------------------------------------------
+  connect-src مثبَّتة على مشروع Supabase وحده: حتى لو نجح حقن نصّ في الصفحة،
+  لا يستطيع إرسال شيء إلى خادم آخر. غيّر هذا السطر إن غيّرت supabaseUrl.
+
+  script-src يحمل 'unsafe-inline' عن قصد: التطبيق ملف واحد بلا خطوة بناء،
+  وهذه خاصيّة أساسية فيه (يُفتح بنقرة مزدوجة). البديل الأقوى — بصمات SHA-256
+  لكل نص مضمَّن — متاح عبر `node tools/build-csp.mjs`، وهو يستبدل هذا السطر
+  ببصمات فعلية. لا توجد أي معالِجات أحداث سطرية (`onclick=`) في الصفحة، فالبصمات
+  تكفي وحدها متى شُغّلت الأداة.
+
+  frame-ancestors لا تعمل داخل <meta> — تُضبط كترويسة HTTP على الخادم.
+  الترويسات الكاملة في `deploy/security-headers.conf`.
+-->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  base-uri 'self';
+  object-src 'none';
+  form-action 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: blob:;
+  frame-src 'self' blob:;
+  connect-src 'self' https://tyfidwamnlraysqrfdgb.supabase.co;
+  worker-src 'none';
+  manifest-src 'self';
+  upgrade-insecure-requests
+">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -1600,7 +1631,6 @@ window.Stage3D = window.buildStage3D();
    0) نقاط الربط — عدّل هذا الكائن لوصل النظام بخادمك الحقيقي
    ========================================================================== */
 const CONFIG = Object.assign({
-  apiBaseUrl : "",                 // مثال: "https://api.example.com" — فارغ = وضع محلي بلا خادم
   appEntryUrl: "",                 // وجهة "دخول إلى النظام" بعد اكتمال الإعداد
   assetsBase : "assets/setup/",    // مجلد رسوم الإعداد (SVG)
   storageKey : "soufyan.erp.setup.v1",
@@ -1611,6 +1641,7 @@ const CONFIG = Object.assign({
   supabaseUrl     : "https://tyfidwamnlraysqrfdgb.supabase.co",
   supabaseAnonKey : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Zmlkd2FtbmxyYXlzcXJmZGdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTI1MjEsImV4cCI6MjA4ODYyODUyMX0.DpLQRqW5GOj4YBffGYcQ785Mf1OmBVGmfohKJWhWz2w",
   invoiceFunction : "setup-invoice",
+  provisionFunction: "setup-provision",   // التهيئة تجري على الخادم لا في المتصفح
   passkey    : null,               // null = كشف تلقائي لدعم المتصفح
 
   /* ---- الدخول (V5) ---- */
@@ -1622,7 +1653,18 @@ const CONFIG = Object.assign({
   threeUrl           : "vendor/three.min.js"   // يُحمَّل عند الطلب فقط (illustration ≠ "svg")
 }, window.SETUP_CONFIG || {});
 
-const HAS_SERVER = !!CONFIG.apiBaseUrl;
+/**
+ * V7: لم يعد هناك «وضع محلي». الخادم موجود أو لا شيء يعمل.
+ *
+ * في V6 كان `HAS_SERVER = !!CONFIG.apiBaseUrl`، وكان فارغًا افتراضيًا، فيتحوّل
+ * البرنامج تلقائيًا إلى توليد رمز OTP داخل المتصفح والتحقّق منه بنفسه، ثم يكتب
+ * `setup_completed = true` في localStorage. أي أن التسليم الافتراضي كان إعدادًا
+ * ينجح دائمًا بلا حساب حقيقي.
+ *
+ * القاعدة الآن: تعذّر الوصول إلى الخادم ⇒ توقّف وأعلن السبب وأتِح إعادة
+ * المحاولة. لا نجاح مزيّف، ولا مسار بديل يعمل داخل المتصفح.
+ */
+const HAS_SERVER = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 const PASSKEY_SUPPORTED = CONFIG.passkey !== null ? !!CONFIG.passkey
   : (typeof window.PublicKeyCredential === "function" && !!(navigator.credentials && navigator.credentials.create));
 
@@ -1769,9 +1811,9 @@ Object.assign(L, {
   resetBody:["ستُحذف كل البيانات المُدخلة في المعالج من هذا المتصفح ويعود الإعداد إلى نقطة البداية. لا يمكن التراجع.","All wizard data stored in this browser will be erased and setup restarts from the beginning. This cannot be undone."],
   resetDone:["تمت إعادة ضبط الإعداد","Setup has been reset"],
   phase1:["الهوية","Identity"], phase2:["إعداد المتجر","Store Setup"], phase3:["الفريق","Team"], phase4:["النظام","System"],
-  localMode:["وضع محلي بلا خادم","Local mode · no server"],
+  localMode:["الخادم غير مضبوط","Server not configured"],
   serverMode:["متصل بالخادم","Connected to server"],
-  localModeTip:["لم يُضبط عنوان خادم في CONFIG.apiBaseUrl. التحقق يعمل محليًا داخل المتصفح لأغراض التجربة فقط ولا يُعتبر توثيقًا حقيقيًا، وسيُسجَّل ذلك بوضوح في ملخّص الإعداد.","No server URL is set in CONFIG.apiBaseUrl. Verification runs locally in the browser for trial purposes only; it is not real authentication and is recorded as such in the setup summary."],
+  localModeTip:["لم يُضبط supabaseUrl أو المفتاح العلني في CONFIG، فلا يمكن إنشاء حساب ولا توثيق بريد. الإعداد يتوقف هنا عمدًا بدل أن يدّعي نجاحًا لا أثر له على أي خادم.","supabaseUrl or the publishable key is not set in CONFIG, so no account can be created and no email verified. Setup stops here on purpose rather than claiming a success that reached no server."],
   errRequired:["هذا الحقل مطلوب","This field is required"],
   errEmail:["صيغة البريد غير صحيحة","Invalid email format"],
   errPhone:["رقم الهاتف غير صحيح","Invalid phone number"],
@@ -1909,108 +1951,142 @@ Object.assign(L, { storageFull:["تعذّر الحفظ في هذا المتصف�
 /* ==========================================================================
    4) طبقة الخدمات — نقاط ربط نظيفة بالخادم (بلا توثيق وهمي)
    ========================================================================== */
-const Api = {
-  base(){ return CONFIG.apiBaseUrl.replace(/\/+$/, ""); },
-  async post(path, body){
-    if(!HAS_SERVER){ const e = new Error("no-server"); e.code = "no-server"; throw e; }
-    const res = await fetch(this.base() + path, {
-      method:"POST", headers:{ "Content-Type":"application/json" },
-      credentials:"include", body: JSON.stringify(body)
+/**
+ * AuthFlow — رموز الوصول أثناء الإعداد، في الذاكرة وحدها.
+ *
+ * رمز المالك يصدر عن تحقّق OTP ويُستعمل لضبط كلمة المرور ولنداءات التهيئة.
+ * لا يُكتب في localStorage ولا sessionStorage ولا IndexedDB، ويختفي مع
+ * تحديث الصفحة — وعندها يُطلب التحقّق من جديد بدل ادّعاء أنه تمّ.
+ */
+const AuthFlow = {
+  token:null,          // access_token للمالك — ذاكرة فقط
+  userId:null,
+  email:"",
+  clear(){ this.token = null; this.userId = null; this.email = ""; }
+};
+
+/**
+ * OtpService — رمز بريد حقيقي من Supabase Auth. لا رمز يُولَّد في المتصفح.
+ *
+ * V6 كان يولّد الرمز محليًا ويعيده في الرد تحت `demoCode` حين لا يوجد خادم،
+ * ثم يقارنه بنفسه. أُزيل ذلك المسار كاملًا: التحقّق يجري على Supabase، ولا
+ * يمرّ الرمز في أي رد ولا سجلّ.
+ *
+ *   إرسال  →  POST /auth/v1/otp     { email, should_create_user }
+ *   تحقّق  →  POST /auth/v1/verify  { type:"email", email, token }
+ *
+ * نجاح التحقّق يعني أن Supabase أنشأ الحساب فعلًا وأكّد بريده وأصدر جلسة.
+ * فـ«توثيق البريد» و«إنشاء الحساب» صارا حدثًا واحدًا لا ادّعاءً في الواجهة.
+ */
+const OtpService = {
+  mode: "server",
+
+  /** حدّ المحاولات والتبريد يفرضهما Supabase Auth (يردّ 429)، ونترجمه للمستخدم. */
+  async send(email, scope = "owner"){
+    if(!HAS_SERVER) throw Sb._err("config");
+    const normalized = String(email).trim().toLowerCase();
+    await Sb.auth("otp", {
+      email: normalized,
+      // المالك والموظف كلاهما يحتاج حسابًا حقيقيًا ليصير للتوثيق معنى.
+      should_create_user: true,
+      data: { setup_scope: scope }
     });
-    let data = null; try{ data = await res.json(); }catch(_){}
-    if(!res.ok){ const e = new Error("http-" + res.status); e.code = "http"; e.status = res.status; e.data = data; throw e; }
-    return data || {};
+    return { ok:true, mode:"server", expiresIn: CONFIG.otpTtl };
+  },
+
+  /**
+   * يعيد `{ ok, session }` حيث session تحمل رمز الوصول ومعرّف المستخدم.
+   * المستدعي هو من يقرّر ماذا يفعل بها: المالك يحتفظ بها في AuthFlow،
+   * والموظف تُستهلك وتُنسى فورًا حتى لا تُزيح جلسة المالك.
+   */
+  async verify(email, code, scope = "owner"){
+    if(!HAS_SERVER) throw Sb._err("config");
+    const normalized = String(email).trim().toLowerCase();
+    const token = String(code).replace(/\D/g, "").slice(0, 6);
+    if(token.length !== 6) return { ok:false, mode:"server", reason:"invalid" };
+    try{
+      const r = await Sb.auth("verify", { type:"email", email: normalized, token });
+      if(!r || !r.access_token || !r.user) return { ok:false, mode:"server", reason:"invalid" };
+      return { ok:true, mode:"server", scope,
+        session:{ token:r.access_token, userId:r.user.id, email:r.user.email || normalized } };
+    }catch(e){
+      if(e.code === "rate") return { ok:false, mode:"server", reason:"rate" };
+      const d = String(e.detail || "").toLowerCase();
+      if(d.includes("expired") || e.status === 410) return { ok:false, mode:"server", reason:"expired" };
+      if(e.status === 400 || e.status === 401 || e.status === 403) return { ok:false, mode:"server", reason:"invalid" };
+      throw e;
+    }
+  },
+
+  /** كلمة مرور المالك تُضبط على Supabase Auth بجلسة التحقّق، لا في الواجهة. */
+  async setPassword(password){
+    if(!AuthFlow.token) throw Sb._err("unauthorized", 401);
+    await Sb.send("PUT", "/auth/v1/user", { password: String(password) }, AuthFlow.token);
+    return { ok:true };
   }
 };
 
 /**
- * OtpService
- *  - مع خادم: كل شيء يجري على الخادم، ولا يُعرض الرمز ولا يُسجَّل أبدًا.
- *  - بلا خادم: وضع محلي معلَن بوضوح — تجربة الواجهة فقط، ويُسجَّل في الملخّص أنه ليس توثيقًا حقيقيًا.
+ * SetupService — التهيئة تجري على الخادم، وتحتمل الانقطاع
+ * ---------------------------------------------------------------------------
+ * V6 كان ينفّذ «التهيئة» داخل الصفحة: يكتب في localStorage تحت `soufyan.erp.*`
+ * ويضع `setup_completed = true`. فمن يفتح أدوات المطوّر يستطيع أن يكتب المفتاح
+ * بنفسه، ومن يفقد الاتصال يحصل على «إعداد ناجح» بلا أي أثر على أي خادم.
+ *
+ * الآن كل مهمة نداء إلى دالة الحافة `setup-provision`:
+ *   • تحتاج جلسة Supabase حقيقية — مفتاح anon وحده لا يكفي.
+ *   • idempotent عبر (runKey, task): إعادة المحاولة بعد انقطاع لا تُكرّر شيئًا.
+ *   • ترتيب المهام مفروض على الخادم، فلا يمكن استدعاء finalize مباشرةً.
  */
-const OtpService = {
-  mode: HAS_SERVER ? "server" : "local",
-  _local: new Map(),
-  _key(scope, email){ return scope + "|" + String(email).toLowerCase().trim(); },
-  async send(email, scope = "owner"){
-    if(HAS_SERVER){
-      const r = await Api.post("/setup/otp/send", { email, scope });
-      return { ok:true, mode:"server", expiresIn: r.expiresIn || CONFIG.otpTtl };
-    }
-    await wait(600);
-    let n;
-    if(window.crypto && window.crypto.getRandomValues){ const b = new Uint32Array(1); window.crypto.getRandomValues(b); n = b[0]; }
-    else n = Math.floor(Math.random() * 4294967295);
-    const code = String(n % 1000000).padStart(6, "0");
-    this._local.set(this._key(scope, email), { code, exp: Date.now() + CONFIG.otpTtl * 1000, tries:0 });
-    return { ok:true, mode:"local", expiresIn: CONFIG.otpTtl, demoCode: code };
-  },
-  async verify(email, code, scope = "owner"){
-    if(HAS_SERVER){
-      try{
-        const r = await Api.post("/setup/otp/verify", { email, code, scope });
-        return r.verified ? { ok:true, mode:"server" } : { ok:false, mode:"server", reason: r.reason || "invalid" };
-      }catch(e){
-        if(e.status === 410) return { ok:false, mode:"server", reason:"expired" };
-        if(e.status === 400 || e.status === 401) return { ok:false, mode:"server", reason:"invalid" };
-        throw e;
-      }
-    }
-    await wait(700);
-    const rec = this._local.get(this._key(scope, email));
-    if(!rec) return { ok:false, mode:"local", reason:"expired" };
-    if(Date.now() > rec.exp){ this._local.delete(this._key(scope, email)); return { ok:false, mode:"local", reason:"expired" }; }
-    if(rec.code !== String(code)){ rec.tries++; return { ok:false, mode:"local", reason:"invalid" }; }
-    this._local.delete(this._key(scope, email));
-    return { ok:true, mode:"local" };
-  }
-};
-
-/** SetupService — تنفيذ عمليات التهيئة (عمل حقيقي محليًا، أو استدعاء الخادم إن وُجد) */
 const SetupService = {
-  async run(taskId, state){
-    if(HAS_SERVER){
-      const r = await Api.post("/setup/provision", { task: taskId, payload: SetupState.exportConfig() });
-      return r || { ok:true };
+  /**
+   * مفتاح تشغيل ثابت لعملية الإعداد الواحدة. يُولَّد مرة ويُحفظ مع الحالة،
+   * فإعادة تحميل الصفحة في منتصف التهيئة تُكمل نفس التشغيل بدل بدء آخر.
+   */
+  runKey(){
+    const st = SetupState.data.setupStatus;
+    if(!st.runKey){
+      const b = new Uint8Array(16);
+      (window.crypto || {}).getRandomValues ? crypto.getRandomValues(b) : b.forEach((_, i) => b[i] = Math.random() * 256);
+      st.runKey = "run-" + Array.from(b).map(x => x.toString(16).padStart(2, "0")).join("");
+      SetupState.saveNow();
     }
-    await wait(420 + Math.random() * 380);
-    const d = state;
-    switch(taskId){
-      case "workspace": {
-        const ws = { id:"ws_" + uid(), createdAt: nowISO(), name: d.storeData.storeName || d.storeData.shopName || "workspace",
-          locale: d.preferences.language, timezone: d.preferences.timezone };
-        LocalDB.put("workspace", ws); return { ok:true, id: ws.id };
-      }
-      case "store": LocalDB.put("store", Object.assign({}, d.storeData, { branches: d.storeData.branch ? [d.storeData.branch] : [] })); return { ok:true };
-      case "permissions": {
-        const map = {};
-        d.employees.forEach(e => { map[e.id] = Permissions.effective(e); });
-        map.__owner = Permissions.roleMatrix("manager");
-        LocalDB.put("permissions", map); return { ok:true, count: Object.keys(map).length };
-      }
-      case "inventory": LocalDB.put("inventory", Object.assign({}, d.inventorySettings, {
-        schema:{ device:["imei","serial","condition","brand","model","storage","color","cost","price"] } })); return { ok:true };
-      case "products": LocalDB.put("catalog", { brands:d.productSettings.brands, storages:d.productSettings.storages,
-        colors:d.productSettings.colors, categories:d.productSettings.categories,
-        tree:"brand>model>storage>color>device>imei>condition" }); return { ok:true };
-      case "defaults": LocalDB.put("defaults", { sales:d.salesSettings, customers:d.customerSettings,
-        invoices:d.invoiceSettings, preferences:d.preferences, business:d.businessSettings }); return { ok:true };
-      case "finalize": {
-        const cfg = SetupState.exportConfig();
-        LocalDB.put("config", cfg); LocalDB.put("setup_completed", true);
-        return { ok:true };
-      }
-      default: return { ok:true };
-    }
-  }
-};
+    return st.runKey;
+  },
 
-/** تخزين محلي منفصل عن حالة المعالج — يمثّل "قاعدة بيانات" النظام في الوضع المحلي */
-const LocalDB = {
-  ns:"soufyan.erp.",
-  put(k, v){ try{ localStorage.setItem(this.ns + k, JSON.stringify(v)); }catch(_){ } },
-  get(k){ try{ return JSON.parse(localStorage.getItem(this.ns + k)); }catch(_){ return null; } },
-  del(k){ try{ localStorage.removeItem(this.ns + k); }catch(_){ } }
+  /** ما يُرسَل لكل مهمة — الحقول التي تخصّها وحدها، لا الحالة كاملة. */
+  payloadFor(taskId, d){
+    switch(taskId){
+      case "workspace": return { name: d.storeData.storeName || d.storeData.shopName || "",
+        locale: d.preferences.language, timezone: d.preferences.timezone };
+      case "store":     return { storeName:d.storeData.storeName, shopName:d.storeData.shopName,
+        phone:d.storeData.phone, whatsapp:d.storeData.whatsapp, city:d.storeData.city,
+        address:d.storeData.address, branch:d.storeData.branch };
+      case "inventory": return d.inventorySettings;
+      case "products":  return d.productSettings;
+      case "defaults":  return { sales:d.salesSettings, customers:d.customerSettings,
+        invoices:d.invoiceSettings, preferences:d.preferences, business:d.businessSettings };
+      default: return {};
+    }
+  },
+
+  async run(taskId, state){
+    if(!HAS_SERVER) throw Sb._err("config");
+    const token = AuthFlow.token || AuthSession.token;
+    // بلا جلسة مالك لا تهيئة. هذا هو ما يمنع «إنهاء الإعداد» من متصفّح مجهول.
+    if(!token) throw Sb._err("unauthorized", 401);
+
+    const r = await Sb.fn(CONFIG.provisionFunction, {
+      runKey: this.runKey(), task: taskId, payload: this.payloadFor(taskId, state)
+    }, token);
+
+    if(!r || r.ok !== true){
+      const e = Sb._err("provision", 0, (r && r.error) || "");
+      e.missing = (r && r.missing) || [];
+      throw e;
+    }
+    return r;
+  }
 };
 
 
@@ -3491,7 +3567,6 @@ STEPS.push({
           <div><b>${esc(t("s4_done"))}</b><span class="mono">${esc(email)}</span>
           <p class="hint">${esc(t("s4_doneAt", { d:new Date(ev.verifiedAt).toLocaleString(LANG === "en" ? "en-GB" : "ar-IQ") }))}</p></div>
         </div>
-        ${ev.method === "local-demo" ? F.note(esc(t("s4_localRecord")), "warn") : ""}
         <div class="otp-actions"><button type="button" class="btn btn-quiet btn-sm" data-change-email>${ico("edit")}<span class="btn-label">${esc(t("s4_change"))}</span></button></div>`;
     }
     return `<div class="email-line">
@@ -3534,8 +3609,6 @@ STEPS.push({
       endAt = Date.now() + (res.expiresIn || CONFIG.otpTtl) * 1000;
       stage.innerHTML = `
         <p class="sent-to">${t("s4_sentTo", { e:`<b class="mono">${esc(S.ownerData.email)}</b>` })}</p>
-        ${res.mode === "local" ? `<div class="demo-code">${ico("alert")}<div><b>${esc(t("s4_demoTitle"))}</b>
-            <span class="mono demo-val">${esc(res.demoCode)}</span><p>${esc(t("s4_demoBody"))}</p></div></div>` : ""}
         <div data-otp-mount></div>
         <div class="otp-status" data-status data-tone="busy"></div>
         <div class="otp-meta">
@@ -3583,16 +3656,28 @@ STEPS.push({
         const res = await OtpService.verify(S.ownerData.email, otp.value(), "owner");
         if(res.ok){
           clearInterval(timer);
+          /**
+           * نجاح التحقّق هنا يعني أن Supabase Auth **أنشأ حساب المالك فعلًا**
+           * وأكّد بريده وأصدر جلسة. لم يعد «توثيق البريد» علامةً في الواجهة:
+           * هو إنشاء الحساب الحقيقي. رمز الوصول يبقى في الذاكرة وحدها،
+           * ويُستعمل لضبط كلمة المرور ولنداءات التهيئة.
+           */
+          AuthFlow.token  = res.session.token;
+          AuthFlow.userId = res.session.userId;
+          AuthFlow.email  = res.session.email;
+
           otp.setState("verified"); otp.disable(true);
           SetupState.set("emailVerification", null, { email:S.ownerData.email, status:"verified",
-            verifiedAt:nowISO(), method: res.mode === "server" ? "server" : "local-demo" });
+            verifiedAt:nowISO(), method:"server" });
           status("ok", t("s4_ok"));
           Toast.show(t("s4_ok"), "ok");
           Wizard.refreshNav();
           setTimeout(() => Wizard.next(), 900);
         }else{
           otp.setState(res.reason === "expired" ? "expired" : "invalid");
-          status("err", res.reason === "expired" ? t("s4_expired") : t("s4_invalid"));
+          status("err", res.reason === "expired" ? t("s4_expired")
+                      : res.reason === "rate"    ? t("s4_rate")
+                      : t("s4_invalid"));
           otp.clear(); otp.focusFirst();
           if(vb) vb.disabled = true;
         }
@@ -3698,11 +3783,45 @@ STEPS.push({
     else if(n1 !== n2) e.pin2 = t("errPinMatch");
     return e;
   },
-  onNext(root){
-    Secrets.ownerPassword = $("#f_pwd1", root).value;
-    Secrets.ownerPin = $("#f_pin1", root).value;
+  /**
+   * V6 كان يكتب `passwordSet: true` وينتقل — علامة في الواجهة بلا أي أثر على
+   * أي خادم. الآن كلمة المرور تُضبط فعلًا على حساب Supabase Auth الذي أنشأه
+   * تحقّق البريد، وبجلسة ذلك التحقّق. فشل النداء يوقف الخطوة ولا يدّعي نجاحًا.
+   */
+  async onNext(root){
+    const pwd = $("#f_pwd1", root).value;
+    const pin = $("#f_pin1", root).value;
+
+    if(!AuthFlow.token){
+      // لا جلسة تحقّق: البريد لم يُوثَّق، أو حُدّثت الصفحة فاختفى الرمز من
+      // الذاكرة. نعيد المستخدم إلى خطوة التوثيق بدل ضبط كلمة مرور بلا حساب.
+      showError(root, "pwd1", t("s5_needVerify"));
+      Toast.show(t("s5_needVerify"), "err");
+      return false;
+    }
+
+    const btn = $("[data-next]");
+    if(btn) btn.disabled = true;
+    try{
+      await OtpService.setPassword(pwd);
+    }catch(err){
+      const code = err && err.code;
+      showError(root, "pwd1",
+        code === "offline" ? t("s5_pwdOffline") :
+        code === "rate"    ? t("s5_pwdRate")    :
+        code === "unauthorized" ? t("s5_needVerify") : t("s5_pwdFail"));
+      Toast.show(t("s5_pwdFail"), "err");
+      SetupIllustration.triggerShake("lock");
+      return false;
+    }finally{
+      if(btn) btn.disabled = false;
+    }
+
+    Secrets.ownerPassword = pwd;
+    Secrets.ownerPin = pin;
+    // pinSet يبقى محليًا حتى التهيئة: بصمة الرمز تُكتب على الخادم هناك.
     SetupState.patch("securityData", { passwordSet:true, pinSet:true, needsReentry:false,
-      passwordStrength: pwdScore(Secrets.ownerPassword) });
+      passwordStrength: pwdScore(pwd) });
     return true;
   }
 });
@@ -4132,15 +4251,24 @@ const EmployeeVerification = {
           try{
             const res = await OtpService.verify(emp.email, otp.value(), "employee:" + emp.id);
             if(res.ok){
+              /**
+               * تحقّق الموظف يُصدر جلسةً للموظف لا للمالك. نستهلكها ونطرحها
+               * فورًا: لو حُفظت لأزاحت جلسة المالك من ذاكرة المعالج وأكمل
+               * الإعداد بهوية موظف. ما يهمّنا هو إثبات ملكيته للبريد فقط.
+               */
+              if(res.session) res.session.token = null;
+
               clearInterval(timer); otp.setState("verified"); otp.disable(true);
-              Employees.setVerification(emp.id, { status:"verified", method: res.mode === "server" ? "server" : "local-demo", verifiedAt:nowISO() });
+              Employees.setVerification(emp.id, { status:"verified", method:"server", verifiedAt:nowISO() });
               status("ok", t("s12_verified"));
               Toast.show(t("s12_verifiedFor", { n:emp.name }), "ok");
               setTimeout(() => { Modal.close(); Wizard.renderStep(false);
                 if(!emp.pinSet) setTimeout(() => EmployeeUI.pin(Employees.get(emp.id)), 320); }, 800);
             }else{
               otp.setState(res.reason === "expired" ? "expired" : "invalid");
-              status("err", res.reason === "expired" ? t("s4_expired") : t("s4_invalid"));
+              status("err", res.reason === "expired" ? t("s4_expired")
+                          : res.reason === "rate"    ? t("s4_rate")
+                          : t("s4_invalid"));
               otp.clear(); otp.focusFirst();
             }
           }catch(_){ otp.setState("invalid"); status("err", t("s4_netFail")); }
@@ -4152,8 +4280,7 @@ const EmployeeVerification = {
             const res = await OtpService.send(emp.email, "employee:" + emp.id);
             Employees.setVerification(emp.id, { status:"sent", sentAt:nowISO() });
             endAt = Date.now() + (res.expiresIn || CONFIG.otpTtl) * 1000;
-            stage.innerHTML = `${res.mode === "local" ? `<div class="demo-code">${ico("alert")}<div><b>${esc(t("s4_demoTitle"))}</b>
-                <span class="mono demo-val">${esc(res.demoCode)}</span><p>${esc(t("s4_demoBody"))}</p></div></div>` : ""}
+            stage.innerHTML = `
               <div data-otp-mount></div>
               <div class="otp-status" data-status data-tone="busy"></div>
               <div class="otp-meta"><span>${ico("clock")} ${esc(t("s4_expiresIn"))} <b class="countdown" data-count>--:--</b></span>
@@ -4298,7 +4425,7 @@ const REVIEW = () => {
       [t("f_ownerPhone"), d.ownerData.phone || "—", 1] ] },
     { id:"email", step:"email-otp", icon:"mail", title:t("rv_email"), lines:[
       [t("rv_status"), ev.status === "verified" ? t("st_verified") : t("st_pending")],
-      [t("rv_method"), ev.method === "server" ? t("rv_server") : ev.method === "local-demo" ? t("rv_demo") : "—"],
+      [t("rv_method"), ev.method === "server" ? t("rv_server") : "—"],
       [t("rv_at"), ev.verifiedAt ? new Date(ev.verifiedAt).toLocaleString(LANG === "en" ? "en-GB" : "ar-IQ") : "—"] ] },
     { id:"security", step:"security", icon:"shield", title:t("rv_sec"), lines:[
       [t("f_pwd"), b(d.securityData.passwordSet)], [t("f_pin"), b(d.securityData.pinSet)],
@@ -4363,7 +4490,6 @@ STEPS.push({
       <h3 class="sub-h">${esc(t("s16_inv"))}</h3>
       <p class="hint" style="margin:-6px 0 12px">${esc(t("s16_invH"))}</p>
       <div data-doc-host></div>
-      ${SetupState.data.emailVerification.method === "local-demo" ? F.note(esc(t("s16_demoWarn")), "warn") : ""}
       ${F.note(esc(t("s16_note")))}`;
   },
   mount(root){
@@ -4497,11 +4623,12 @@ STEPS.push({
       <div data-prog-host></div>
       <div class="stat-grid">${stats.map(s => `<div class="stat"><span class="c-ico">${ico(s.i)}</span>
         <b data-count="${s.n}">${esc(s.v)}</b><span>${esc(s.l)}</span></div>`).join("")}</div>
-      ${d.emailVerification.method === "local-demo" ? F.note(esc(t("s18_demoNote")), "warn") : F.note(esc(t("s18_note")), "ok")}
+      ${F.note(esc(t("s18_note")), "ok")}
       <button type="button" class="btn btn-quiet btn-sm" data-restart>${ico("reset")}<span class="btn-label">${esc(t("resetSetup"))}</span></button>`;
   },
   mount(root){
-    LocalDB.put("setup_completed", true);
+    // اكتمال الإعداد سجّله الخادم في مهمة `finalize`. لا يُكتب هنا مفتاح محلي
+    // يدّعي ذلك: المتصفح لا يقرّر أن النظام صار مُعدًّا.
     renderProgressCard($("[data-prog-host]", root), {});
     $("[data-enter]", root).addEventListener("click", () => {
       if(CONFIG.appEntryUrl){ location.href = CONFIG.appEntryUrl; return; }
@@ -4694,7 +4821,7 @@ function stageChecklist(){
 Object.assign(L, {
   stepShort:["خطوة {a}/{b}","Step {a}/{b}"],
   yes:["نعم","Yes"], no:["لا","No"], days:["يوم","days"],
-  serverModeTip:["الطلبات تُرسَل إلى الخادم المضبوط في CONFIG.apiBaseUrl، ولا يُنشأ أي رمز داخل المتصفح.","Requests go to the server configured in CONFIG.apiBaseUrl; no code is generated in the browser."],
+  serverModeTip:["رمز التوثيق يصدر عن Supabase Auth ويُتحقَّق منه هناك. لا يُولَّد رمز داخل المتصفح ولا يُعرض في أي رد.","The code is issued and verified by Supabase Auth. None is generated in the browser or returned in any response."],
 
   /* 01 — ترحيب */
   w_eyebrow:["البداية","Getting started"],
@@ -4766,6 +4893,13 @@ Object.assign(L, {
   s4_done:["البريد موثّق","Email verified"],
   s4_doneAt:["تم التوثيق في {d}","Verified on {d}"],
   s4_serverNote:["يتولّى الخادم إنشاء الرمز والتحقق منه؛ لا يمرّ الرمز عبر واجهة المتصفح.","The server issues and checks the code; it never passes through the browser UI."],
+  /* V7 — ضبط كلمة المرور صار نداءً حقيقيًا، فلكلّ فشل رسالة تقول ماذا يفعل المستخدم */
+  s5_needVerify:["وثّق بريدك أولًا — كلمة المرور تُضبط على الحساب الذي ينشئه التوثيق","Verify your email first — the password is set on the account that verification creates"],
+  s5_pwdFail:["تعذّر حفظ كلمة المرور على الخادم. لم يتغيّر شيء، أعد المحاولة.","Could not save the password on the server. Nothing changed — please try again."],
+  s5_pwdOffline:["لا اتصال بالخادم. كلمة المرور لم تُحفظ؛ تحقّق من الشبكة وأعد المحاولة.","No connection to the server. The password was not saved — check your network and retry."],
+  s5_pwdRate:["محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.","Too many attempts. Wait a moment, then try again."],
+  s4_rate:["محاولات كثيرة على هذا البريد. انتظر قليلًا قبل طلب رمز جديد.","Too many attempts for this address. Wait a moment before requesting a new code."],
+
   s4_demoTitle:["رمز تجريبي — وضع محلي","Trial code — local mode"],
   s4_demoBody:["يظهر هنا لأن الإعداد يعمل بلا خادم. مع خادم حقيقي لن يُعرض الرمز إطلاقًا.","Shown because setup is running without a server. With a real server the code is never displayed."],
   s4_localRecord:["تم التوثيق في الوضع المحلي، وسيُسجَّل في ملخّص الإعداد أنه ليس توثيقًا حقيقيًا.","Verified in local mode; the summary records that this is not real verification."],
@@ -5319,7 +5453,9 @@ const Wizard = {
     const ok = await Modal.confirm({ title:t("resetTitle"), body:t("resetBody"), confirmLabel:t("resetSetup"), danger:true });
     if(!ok) return;
     Secrets.ownerPassword = ""; Secrets.ownerPin = ""; Secrets.empPin = {};
-    ["workspace","store","permissions","inventory","catalog","defaults","config","setup_completed"].forEach(k => LocalDB.del(k));
+    AuthFlow.clear();
+    // إعادة الضبط تمسح تقدّم المعالج في هذا المتصفح وحده. ما أنشأه الخادم
+    // (حساب، حالة إعداد) لا يُحذف من هنا — حذفه قرار إداري لا زرّ في معالج.
     SetupState.reset();
     this.i = 0; this._pct = {}; LANG = "ar"; Lang.set("ar"); Theme.apply("light");
     this.renderChrome(); this.renderStep(true);
@@ -5498,33 +5634,43 @@ const AuthService = {
    * الدور مصدره الخادم، وما في الواجهة مرآة لعرض الأقسام لا لمنعها.
    */
   async _identify(r){
-    let profile = null;
-    try{
-      const rows = await Sb.select(
-        "profiles?select=id,display_name,full_name,role,status&id=eq." + encodeURIComponent(r.user.id) + "&limit=1",
-        r.access_token);
-      profile = Array.isArray(rows) ? rows[0] : null;
-    }catch(_){ }
-    if(profile && profile.status && profile.status !== "active") throw Sb._err("disabled");
-    const role = (profile && profile.role) || "";
-    // جلسة تشغيل على هذا الجهاز — تُسجَّل ويُنبَض عليها، وهي ما يُستأنف بعد التحديث.
-    let sessionId = null;
-    try{
-      sessionId = await Sb.rpc("app_session_start", {
-        p_terminal_id: Terminal.id(), p_platform:"web", p_app_version: CONFIG.appVersion,
-        p_device_name: Terminal.name(), p_os: Terminal.os(), p_meta:{ source:"password" }
-      });
-    }catch(_){ }
+    /**
+     * V6 كان يقرأ الهوية بـ `GET /rest/v1/profiles`. لكن الدورين `anon`
+     * و`authenticated` لا يملكان أي GRANT على `public.profiles` على هذا
+     * المشروع (تُحقّق منه: `postgres` وحده يملك صلاحيات الجدول)، فسياسات
+     * `profiles_self_*` غير قابلة للوصول عبر PostgREST أصلًا. النداء كان
+     * يفشل دائمًا، ويبتلعه `catch` فارغ، فينتهي `role` إلى "" ويهبط كل
+     * مستخدم — بما فيهم المالك — إلى صلاحيات CASHIER.
+     *
+     * الآن الهوية تُصدرها دالة واحدة على الخادم بجلسة المستخدم نفسه:
+     * تتحقّق من الحساب، تربط صف الموظف، تفتح جلسة التشغيل موسومة بالهوية،
+     * وتعيد الدور والصلاحيات مشتقّة من `permissions_for()`.
+     */
+    const res = await Sb.rpc("app_session_start_authenticated", {
+      p_terminal_id: Terminal.id(),
+      p_app_version: CONFIG.appVersion,
+      p_device_name: Terminal.name(),
+      p_os: Terminal.os()
+    }, r.access_token);
+
+    if(!res || res.ok !== true){
+      const reason = (res && res.reason) || "";
+      if(reason === "disabled") throw Sb._err("disabled");
+      throw Sb._err("badLogin");
+    }
+
+    const emp = res.employee || {};
     return {
       method:"password",
-      sessionId: typeof sessionId === "string" ? sessionId : null,
+      sessionId: typeof res.session_id === "string" ? res.session_id : null,
       token: r.access_token,
       employee:{
-        id: r.user.id,
-        name: (profile && (profile.display_name || profile.full_name)) || r.user.email || "",
-        role, email: r.user.email || ""
+        id: emp.id || r.user.id,
+        name: emp.name || r.user.email || "",
+        role: emp.role || "",
+        email: r.user.email || ""
       },
-      permissions: PERMISSIONS_FOR(role)
+      permissions: Array.isArray(res.permissions) ? res.permissions : []
     };
   },
 
@@ -5556,7 +5702,21 @@ const AuthService = {
       throw e;
     }
   },
-  /** تغيير كلمة المرور يتم فقط بعد نجاح recovery OTP وإصدار جلسة recovery من Supabase. */
+  /**
+   * تغيير كلمة المرور — لا يجري إلا بجلسة الاسترجاع التي أصدرها تحقّق OTP.
+   *
+   * كانت هذه الدالة **مفقودة في V6** رغم أن شاشة «اختر كلمة مرور جديدة»
+   * تستدعيها: `AuthService.updatePassword is not a function` يقع داخل
+   * `try`، فيُعرض «الخادم ردّ بخطأ غير متوقّع» ولا تتغيّر كلمة المرور أبدًا.
+   * أي أن «نسيت كلمة المرور» كان طريقًا مسدودًا في كل الحالات.
+   * (مُتحقَّق منه: صفر نداء PUT /auth/v1/user في المسار كاملًا.)
+   */
+  async updatePassword(token, password){
+    if(!token) throw Sb._err("unauthorized", 401);
+    const user = await Sb.send("PUT", "/auth/v1/user", { password: String(password) }, token);
+    return { user: (user && user.id) ? user : { id:(user && user.id) || "", email:(user && user.email) || "" } };
+  },
+
   /** بعد تغيير كلمة المرور نملك رمزًا صالحًا، فالدخول يكتمل بلا طلب ثانٍ. */
   async sessionFromToken(token, user){
     return this._identify({ access_token: token, user });
@@ -5573,6 +5733,20 @@ const AuthService = {
   async ping(sessionId){
     const r = await Sb.rpc("app_session_ping", { p_session_id: sessionId });
     return !!(r && r.ok === true);
+  },
+
+  /**
+   * الاستئناف والنبضة معًا: يتحقّق الخادم من الجلسة وربطها بهذا الجهاز
+   * وعمرها وحالة الموظف، ثم يعيد الهوية والصلاحيات من قاعدة البيانات.
+   * وحدها هذه الدالة مصدر الصلاحيات بعد الإقلاع.
+   */
+  async whoami(sessionId){
+    const r = await Sb.rpc("app_session_whoami", {
+      p_session_id: sessionId,
+      p_terminal_id: Terminal.id(),
+      p_max_age_hours: CONFIG.sessionMaxHours
+    });
+    return (r && typeof r === "object") ? r : { ok:false, reason:"invalid" };
   }
 };
 
@@ -5607,7 +5781,17 @@ const AuthSession = {
   isAuthenticated(){ return !!(this.data && this.data.employee); },
   employee(){ return this.data ? this.data.employee : null; },
   permissions(){ return (this.data && this.data.permissions) || []; },
-  can(mod){ return this.permissions().includes(mod); },
+
+  /**
+   * `verified` يعني: هذه الصلاحيات أصدرها الخادم في هذه الجلسة الحيّة.
+   *
+   * أثناء مهلة السماح بلا اتصال نعرض آخر هوية معروفة حتى لا يفقد المستخدم
+   * شاشته، لكنّ ما في المتصفح غير مُتحقَّق منه — ومن يقطع الشبكة عمدًا بعد
+   * تحرير localStorage يقع في هذا الفرع بالضبط. لذلك `can()` تُغلق حتى
+   * تعود النبضة بتأكيد من الخادم.
+   */
+  isVerified(){ return !!(this.data && this.data.verified); },
+  can(mod){ return this.isVerified() && this.permissions().includes(mod); },
 
   begin(result){
     this.token = result.token || null;
@@ -5616,9 +5800,10 @@ const AuthSession = {
       method     : result.method,
       at         : nowISO(),
       employee   : result.employee,
-      permissions: (result.permissions && result.permissions.length)
-        ? result.permissions : PERMISSIONS_FOR(result.employee && result.employee.role),
-      offline    : false
+      // الصلاحيات جاءت مع ردّ الخادم على الدخول. لا تُشتقّ في الواجهة.
+      permissions: Array.isArray(result.permissions) ? result.permissions : [],
+      offline    : false,
+      verified   : true
     };
     Terminal.markSeen();
     this._persist();
@@ -5658,18 +5843,53 @@ const AuthSession = {
     if(!raw) return null;
     const age = Date.now() - new Date(raw.at).getTime();
     if(!(age >= 0) || age > CONFIG.sessionMaxHours * 3600e3){ this._forget(); return null; }
-    let alive = false, offline = false;
-    try{ alive = await AuthService.ping(raw.sessionId); }
-    catch(e){
-      if(e.code !== "offline") { this._forget(); return null; }
+
+    let who = null, offline = false;
+    try{
+      who = await AuthService.whoami(raw.sessionId);
+    }catch(e){
+      // انقطاع الشبكة ليس رفضًا: مهلة سماح قصيرة بحالة «بلا اتصال» ظاهرة.
+      if(e.code !== "offline"){ this._forget(); return null; }
       offline = true;
       if(age > CONFIG.offlineGraceMinutes * 60e3){ this._forget(); return null; }
     }
-    if(!offline && !alive){ this._forget(); return null; }
-    this.data = {
-      sessionId : raw.sessionId, method: raw.method, at: raw.at,
-      employee : raw.employee, permissions: raw.permissions, offline
-    };
+
+    if(!offline){
+      // الخادم رفض الجلسة — أو رآها مجهولة (جلسة فتحها anon بلا هوية).
+      if(!who || who.ok !== true || !who.employee){ this._forget(); return null; }
+
+      /**
+       * هنا الفرق الجوهري عن V6.
+       *
+       * V6 كان يستأنف بـ `app_session_ping` الذي يردّ `{ok:true}` بلا هوية،
+       * ثم يأخذ `employee` و`permissions` من localStorage. فمن يفتح
+       * app_session_start (وهي متاحة لـ anon) يحصل على مؤشّر جلسة صالح،
+       * يكتبه في متصفّحه مع `role:"ADMIN"` وقائمة صلاحيات كاملة، ويُقلع
+       * بواجهة إدارية. المخزَّن كان مصدر صلاحية.
+       *
+       * الآن الهوية والصلاحيات تأتيان من `app_session_whoami` وحدها،
+       * وهي تتحقّق من ربط الجهاز والعمر وحالة الموظف على الخادم. وما في
+       * المتصفح لا يُقرأ منه إلا مؤشّر الجلسة — وهو ادّعاء يُفحص، لا سلطة.
+       */
+      this.data = {
+        sessionId  : raw.sessionId,
+        method     : who.method || raw.method,
+        at         : raw.at,
+        employee   : who.employee,
+        permissions: Array.isArray(who.permissions) ? who.permissions : [],
+        offline    : false,
+        verified   : true
+      };
+      this._persist();          // نُحدّث المخزَّن بما قاله الخادم لا بالعكس
+    }else{
+      // بلا اتصال: نعرض آخر هوية معروفة ومعها شارة «بلا اتصال»، ولا نمنح
+      // صلاحيات أوسع مما كان. النبضة تُصحّح الحالة فور عودة الشبكة.
+      this.data = {
+        sessionId : raw.sessionId, method: raw.method, at: raw.at,
+        employee : raw.employee, permissions: raw.permissions || [],
+        offline:true, verified:false
+      };
+    }
     this._emit();
     return this.data;
   },
@@ -5681,11 +5901,24 @@ const AuthSession = {
     this._hb = setInterval(async () => {
       if(!this.data || !this.data.sessionId) return this.stopHeartbeat();
       try{
-        const ok = await AuthService.ping(this.data.sessionId);
-        if(!ok){ this.stopHeartbeat(); Router.sessionLost(); return; }
-        if(this.data.offline){ this.data.offline = false; this._emit(); Chrome.actions(); }
+        // النبضة تُعيد الهوية أيضًا، فعودة الشبكة تُصحّح ما عُرض أثناء الانقطاع
+        // بدل أن تكتفي بإخفاء شارة «بلا اتصال» فوق حالة غير مُتحقَّق منها.
+        const who = await AuthService.whoami(this.data.sessionId);
+        if(!who || who.ok !== true || !who.employee){
+          this.stopHeartbeat(); Router.sessionLost(); return;
+        }
+        const was = this.data.offline || !this.data.verified;
+        this.data.employee    = who.employee;
+        this.data.permissions = Array.isArray(who.permissions) ? who.permissions : [];
+        this.data.offline     = false;
+        this.data.verified    = true;
+        this._persist();
+        if(was){ this._emit(); Chrome.actions(); }
       }catch(e){
-        if(e.code === "offline" && this.data && !this.data.offline){ this.data.offline = true; this._emit(); Chrome.actions(); }
+        if(e.code === "offline" && this.data && !this.data.offline){
+          this.data.offline = true; this.data.verified = false;
+          this._emit(); Chrome.actions();
+        }
       }
     }, CONFIG.heartbeatSeconds * 1000);
   },
@@ -5704,6 +5937,7 @@ const AuthSession = {
   snapshot(){
     if(!this.data) return null;
     return { method:this.data.method, at:this.data.at, offline:!!this.data.offline,
+      verified:!!this.data.verified,
       employee:Object.assign({}, this.data.employee), permissions:this.data.permissions.slice() };
   }
 };
@@ -5875,6 +6109,7 @@ const authError = (code, detail) => {
     recExpired   : ["errRecExpiredT","errRecExpiredB"],
     "recover-failed": ["errRecoverFailedT","errRecoverFailedB"],
     "expired-session": ["errExpired-sessionT","errExpired-sessionB"],
+    "link-expired":    ["errLinkExpiredT","errLinkExpiredB"],
     rate         : ["errRateT","errRateB"],
     unauthorized : ["errAuthT","errAuthB"],
     server       : ["errServerT","errServerB"]
@@ -5931,10 +6166,12 @@ const AuthUI = {
       lede:t(!caps.configured ? "loginLedeOff"
         : opts.reason === "expired" ? "loginLedeExpired"
         : opts.reason === "after-setup" ? "loginLedeAfterSetup"
+        : opts.reason === "link-expired" ? "loginLedeLinkExpired"
         : opts.reason === "recover-failed" ? "loginLedeRecoverFailed"
         : opts.mode === "switch" ? "switchLede" : "loginLede"),
       body:`
         ${opts.reason === "expired" ? errBox("expired-session")
+          : opts.reason === "link-expired" ? errBox("link-expired")
           : opts.reason === "recover-failed" ? errBox("recover-failed")
           : opts.reason === "after-setup" ? `<div class="note ok">${ico("shieldCheck")}<div>${esc(t("afterSetupNote"))}</div></div>` : ""}
         ${caps.configured ? `
@@ -6233,13 +6470,55 @@ const Router = {
   surface:null,
   _setupStarted:false,
 
-  /** «الإعداد مكتمل» حالة مستقلة تمامًا عن «موثَّق». */
+  /**
+   * «الإعداد مكتمل» حالة مستقلة تمامًا عن «موثَّق» — ومصدرها الخادم.
+   *
+   * V6 كان يقرؤها من `LocalDB.get("setup_completed")`، أي من مفتاح يكتبه أي
+   * أحد في أدوات المطوّر. الآن تُقرأ من `setup_status()` عند الإقلاع، وما في
+   * المتصفح لا يُستعمل إلا لعرض تقدّم المعالج.
+   */
+  _serverSetup:null,
+
   setupCompleted(){
-    return !!(SetupState.data.setupStatus.completed || LocalDB.get("setup_completed"));
+    return !!(this._serverSetup && this._serverSetup.completed);
+  },
+
+  /** يُسأل الخادم مرة واحدة عند الإقلاع. تعذّر الوصول ⇒ لا ندّعي الاكتمال. */
+  async loadSetupStatus(){
+    if(!Sb.ready()){ this._serverSetup = null; return null; }
+    try{
+      const r = await Sb.rpc("setup_status");
+      this._serverSetup = (r && typeof r === "object") ? r : null;
+    }catch(_){ this._serverSetup = null; }
+    return this._serverSetup;
+  },
+
+  /**
+   * روابط البريد التي تعود بخطأ في hash العنوان.
+   *
+   * Supabase يعيد المستخدم بـ `#error=access_denied&error_code=otp_expired…`
+   * حين يُفتح رابط منتهٍ أو مستعمَل. V6 لم يكن يقرأ ذلك إطلاقًا، فيهبط
+   * المستخدم على البوابة بلا تفسير ويبقى الخطأ ظاهرًا في شريط العنوان.
+   *
+   * نقرؤه، ونمحوه من العنوان ومن سجلّ التصفّح فورًا (فلا يُشارَك ولا يُعاد
+   * تحميله)، ثم نفتح الدخول بسبب صريح وطريق للخروج منه.
+   */
+  _hashError(){
+    const h = String(location.hash || "").replace(/^#/, "");
+    if(!h) return null;
+    let q; try{ q = new URLSearchParams(h); }catch(_){ return null; }
+    const code = q.get("error_code") || q.get("error");
+    if(!code) return null;
+    try{ history.replaceState(null, "", location.pathname + location.search); }
+    catch(_){ location.hash = ""; }
+    return String(code).toLowerCase();
   },
 
   async boot(){
     document.body.dataset.surface = "auth";
+    const linkErr = this._hashError();
+    await this.loadSetupStatus();
+    if(linkErr) return this.go("login", { reason:"link-expired" });
     // شاشة انتظار قصيرة بدل وميض البوابة قبل أن يجيب الخادم عن الجلسة.
     if(AuthSession._read()){
       Screen.render({ id:"resume", layout:"auth", icon:"shield", title:t("resumeTitle"), lede:t("resumeLede"),
@@ -6301,14 +6580,15 @@ const Router = {
    * تسجيل الدخول لأول مرة بدل أن يُمنح جلسة لم يصدرها خادم.
    */
   enterErp(){
+    // الخادم هو من أعلن الاكتمال في `finalize`؛ ما هنا مرآة محلية للعرض.
     SetupState.data.setupStatus.completed = true;
     SetupState.data.setupStatus.completedAt = SetupState.data.setupStatus.completedAt || nowISO();
     SetupState.saveNow();
-    LocalDB.put("setup_completed", true);
+    if(this._serverSetup) this._serverSetup.completed = true;
     window.dispatchEvent(new CustomEvent("erp:setup-complete", { detail: SetupState.exportConfig() }));
     if(AuthSession.isAuthenticated()) return this.go("erp");
     if(Sb.ready()) return this.go("login", { reason:"after-setup" });
-    return false;                       // وضع محلي بلا خادم: يبقى شرح V4 كما هو
+    return false;
   },
 
   /** الخادم أنهى الجلسة ونحن نعمل — لا نُبقي المستخدم داخل شاشة لا يملكها. */
@@ -6494,6 +6774,11 @@ Object.assign(L, {
     "Open the confirmation message you received when the account was created, or ask an administrator to confirm it."],
   errRecExpiredT:["انتهت صلاحية رمز التحقق","The verification code has expired"],
   errRecExpiredB:["اطلب رمز تحقق جديدًا للمتابعة.","Request a new verification code to continue."],
+  errLinkExpiredT:["هذا الرابط لم يعد صالحًا","This link is no longer valid"],
+  errLinkExpiredB:["روابط البريد تنتهي بعد مدّة قصيرة وتُستعمل مرّة واحدة. اطلب رمزًا جديدًا من «نسيت كلمة المرور؟» أدناه.",
+    "Email links expire quickly and work only once. Request a new code from \"Forgot your password?\" below."],
+  loginLedeLinkExpired:["الرابط الذي فتحته لم يعد صالحًا. سجّل دخولك، أو اطلب رمزًا جديدًا.",
+    "The link you opened is no longer valid. Sign in, or request a new code."],
   errRecoverFailedT:["تعذّر استرجاع الحساب","Account recovery could not be completed"],
   errRecoverFailedB:["ابدأ من «نسيت كلمة المرور؟» واطلب رمز تحقق جديدًا.",
     "Start from “Forgot your password?” and request a new verification code."],

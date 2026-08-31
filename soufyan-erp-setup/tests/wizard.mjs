@@ -68,8 +68,27 @@ ok(!/فاتورة تجريبية|mock/i.test(inv), 'لا فاتورة بديلة
 
 /* ---- الإعداد المكتمل يوجّه إلى الدخول لا إلى جلسة وهمية ---- */
 console.log('\n— نهاية الإعداد —');
-await p.evaluate(()=>{ SetupState.data.setupStatus.completed=true; SetupState.saveNow(); LocalDB.put('setup_completed',true); });
-await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1200);
+
+/* V7: «الإعداد مكتمل» يقولها الخادم.
+   أولًا نثبت أن كتابة مفتاح V6 المحلي بيد المستخدم لم تعد تُصدَّق. */
+await p.unroute('**/*.supabase.co/**');
+await p.route('**/rest/v1/rpc/setup_status**', r=>r.fulfill({status:200,contentType:'application/json',
+  body:JSON.stringify({completed:false, completed_at:null, store_name:null, has_accounts:false})}));
+await p.route('**/*.supabase.co/**', r=>r.abort());
+await p.evaluate(()=>{
+  localStorage.setItem('soufyan.erp.setup_completed','true');   // مفتاح V6 — يكتبه أي أحد
+  SetupState.data.setupStatus.completed=true; SetupState.saveNow();
+});
+await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1400);
+ok(await p.evaluate(()=>Router.setupCompleted())===false,
+   'مفتاح «اكتمل الإعداد» المكتوب في المتصفح لا يُصدَّق — الخادم وحده يقرّر');
+
+/* ثم نجعل الخادم نفسه يقول إن الإعداد اكتمل. */
+await p.unroute('**/rest/v1/rpc/setup_status**');
+await p.route('**/rest/v1/rpc/setup_status**', r=>r.fulfill({status:200,contentType:'application/json',
+  body:JSON.stringify({completed:true, completed_at:'2026-08-31T00:00:00+00:00',
+                       store_name:'مكتب سفيان للموبايل', has_accounts:true})}));
+await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1400);
 ok(await p.textContent('#stepTitle')==='سجّل دخولك','إعداد مكتمل بلا جلسة ⇒ شاشة الدخول مباشرة');
 ok(await p.evaluate(()=>ERPSetup.auth.isAuthenticated())===false,'لا جلسة موثَّقة تُمنح لمجرد اكتمال الإعداد');
 await p.click('[data-back-gate]'); await p.waitForTimeout(700);

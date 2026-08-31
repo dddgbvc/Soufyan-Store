@@ -1,11 +1,9 @@
 import { chromium } from './pw.mjs';
+import { routeSupabase, SESSION, USER } from './contracts.mjs';
 const SHOTS = process.env.SHOTS || '';
 const EXE = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = process.env.SETUP_URL || 'http://127.0.0.1:8099/index.html';
-const SESSION='11111111-2222-3333-4444-555555555555';
-const TOKEN='eyJhbGciOiJIUzI1NiJ9.fake';
-const USER={ id:'1504114c-71ec-4345-a1ba-7c815c71e6c4', email:'assn42357@gmail.com' };
-const PROFILE={ id:USER.id, display_name:'سفيان يوسف', role:'MANAGER', status:'active' };
+const PROFILE={ id:USER.id, display_name:'سفيان يوسف', full_name:'سفيان يوسف', role:'MANAGER', status:'active' };
 let pass=0,fail=0; const ok=(c,m)=>{c?pass++:fail++;console.log((c?'  PASS ':'  FAIL ')+m);};
 
 const b=await chromium.launch({executablePath:EXE});
@@ -13,18 +11,7 @@ const page=async cfg=>{ const ctx=await b.newContext({viewport:{width:1100,heigh
   await p.route('**/fonts.googleapis.com/**', r=>r.abort());
   if(cfg) await p.addInitScript(c=>{ window.SETUP_CONFIG=c; }, cfg);
   return {ctx,p}; };
-const authOk=async(p,o={})=>{
-  await p.route('**/auth/v1/**', r=>{ const url=r.request().url();
-    const body=r.request().postData()?JSON.parse(r.request().postData()):{};
-    const json=(s,x)=>r.fulfill({status:s,contentType:'application/json',body:JSON.stringify(x)});
-    if(url.includes('/token')) return body.password==='S3cret-pass'
-      ? json(200,{access_token:TOKEN, user:USER}) : json(400,{error_code:'invalid_credentials'});
-    return json(200,{...USER}); });
-  await p.route('**/rest/v1/profiles**', r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify([PROFILE])}));
-  await p.route('**/rest/v1/rpc/**', r=>{ const fn=r.request().url().split('/rpc/')[1].split('?')[0];
-    if(fn==='app_session_start') return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(SESSION)});
-    return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:o.pingOk!==false})}); });
-};
+const authOk=(p,o={})=>routeSupabase(p,{profile:PROFILE,...o});
 const gotoLogin=async p=>{ await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(800);
   await p.click('[data-door="login"]'); await p.waitForTimeout(650); };
 const fill=async(p,pw='S3cret-pass')=>{ await p.fill('#f_loginEmail',USER.email); await p.fill('#f_loginPassword',pw);
@@ -87,13 +74,32 @@ console.log('\n— بلا ربط —');
   await ctx.close();
 }
 
-/* ===== 5) الإعداد المحلي ما يزال يعمل بلا خادم ===== */
+/* ===== 5) بلا ربط: الإعداد يتوقف بدل أن ينجح محليًا =====
+   V6 كان يفتح المعالج ويكمله بالكامل بلا خادم: رمز OTP يُولَّد في المتصفح
+   ويُعاد في الرد، و«التهيئة» تكتب في localStorage، و setup_completed=true.
+   V7 يفشل مغلقًا: يفتح المعالج للاطّلاع، لكن لا خطوة تدّعي نجاحًا. */
 {
   const {ctx,p}=await page({supabaseUrl:"", supabaseAnonKey:""});
   await p.goto(URL,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(800);
   await p.click('[data-door="setup"]'); await p.waitForTimeout(800);
-  ok(await p.evaluate(()=>document.body.dataset.surface)==='setup','الإعداد المحلي يعمل كما في V4 حتى بلا خادم');
-  ok((await p.textContent('#hActions')).includes('وضع محلي'),'الرأس يعلن الوضع المحلي بوضوح');
+  ok(await p.evaluate(()=>document.body.dataset.surface)==='setup','المعالج يُفتح للاطّلاع');
+  ok((await p.textContent('#hActions')).includes('الخادم غير مضبوط'),'والرأس يعلن أن الخادم غير مضبوط');
+
+  // لا مسار محلي: طلب رمز بلا ربط يرفع خطأ ولا يُولّد شيئًا في المتصفح.
+  const sent = await p.evaluate(async () => {
+    try { await window.ERPSetup.services.OtpService.send('x@example.com','owner'); return 'resolved'; }
+    catch (e) { return 'threw:' + (e && e.code); }
+  });
+  ok(sent === 'threw:config','طلب رمز بلا ربط يفشل صراحةً بدل توليده محليًا');
+
+  const prov = await p.evaluate(async () => {
+    try { await window.ERPSetup.services.SetupService.run('finalize', window.ERPSetup.state.data); return 'resolved'; }
+    catch (e) { return 'threw:' + (e && e.code); }
+  });
+  ok(prov.startsWith('threw:'),'والتهيئة ترفض العمل بلا خادم بدل الكتابة في localStorage');
+
+  const keys = await p.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('soufyan.erp.')));
+  ok(!keys.includes('soufyan.erp.setup_completed'),'ولا يُكتب مفتاح يدّعي اكتمال الإعداد');
   await ctx.close();
 }
 
@@ -110,9 +116,13 @@ console.log('\n— انقطاع مؤقّت —');
   await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1600);
   ok(await p.textContent('#stepTitle')==='أهلًا سفيان يوسف','الصمت المؤقّت لا يطرد المستخدم خلال مهلة السماح');
   ok((await p.textContent('.step-body')).includes('لا يوجد اتصال بالخادم'),'الحالة معلنة على الشاشة لا مخفيّة');
+  // V7: أثناء الانقطاع لا تُمنح صلاحية. المعروض آخر هوية معروفة، لا سلطة.
+  ok(await p.evaluate(()=>window.ERPSetup.auth.can('settings'))===false,
+     'ولا تُمنح صلاحية من المخزَّن ما دام الخادم لم يؤكّدها');
   if(SHOTS) await p.screenshot({path:SHOTS+'offline-session.png'});
   await p.unroute('**/rest/v1/rpc/**');
-  await p.route('**/rest/v1/rpc/**', r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":false}'}));
+  await p.route('**/rest/v1/rpc/**', r=>r.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({ok:false,reason:'closed'})}));
   await p.reload({waitUntil:'domcontentloaded'}); await p.waitForTimeout(1600);
   ok(await p.isVisible('#f_loginPassword'),'رفض الخادم الصريح ينهي الجلسة فورًا');
   await ctx.close();
