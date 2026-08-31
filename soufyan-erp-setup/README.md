@@ -10,6 +10,34 @@
 
 ---
 
+## التشغيل — ابدأ من هنا
+
+| الحالة | الملف |
+|---|---|
+| **آيباد / آيفون / أي جهاز بلا خادم محلي** | **`soufyan-erp-setup-standalone.html`** — ملف واحد، افتحه مباشرةً |
+| حاسوب، وتريد تعديل المصدر | `index.html` مع `python3 -m http.server 8080` |
+
+### `soufyan-erp-setup-standalone.html`
+
+ملف واحد بلا أي مرجع خارجي: محرّكات الحركة مُضمَّنة، ووصلة خطوط Google محذوفة
+(خطوط النظام تكفي، ومنها العربية على iOS)، والرسوم لها نسخة مضمَّنة أصلًا.
+يُفتح من Textastic أو Files أو مرفق بريد، **بلا إنترنت وبلا مجلدات مجاورة**.
+
+يُعاد توليده بعد أي تعديل على `index.html`:
+
+```bash
+node tools/build-standalone.mjs
+```
+
+> **لماذا وُجد أصلًا:** `index.html` يطلب ٥ موارد خارجية — ثلاثة ملفات في
+> `vendor/` ووصلة خطوط. المحرّرات على iOS تعاين الملف وحده، فلا يصل شيء منها.
+> وكانت `upgrade-insecure-requests` في CSP ترفع `http://localhost` الذي يخدمه
+> Textastic إلى `https://` فيفشل التحميل، وتظهر رسالة سفاري «لا يمكن فتح هذه
+> الصفحة لعدم وجود الإنترنت» رغم أن الإنترنت يعمل. أُزيلت من `<meta>` ونُقلت
+> إلى ترويسة الخادم حيث مكانها الصحيح.
+
+---
+
 ## ⚠️ هذه النسخة تعمل بالوضع التجريبي
 
 الملف مُسلَّم بـ `demoMode: true` بطلب صاحب المشروع لتجربة الواجهة. المفتاح في
@@ -63,7 +91,7 @@ V6 كان يبدو مكتملًا وهو ليس كذلك. ثلاث حقائق ت
 
 وبالمناسبة: README الخاص بـ V6 يقول «١٤٠ فحصًا، كلها تمرّ». تشغيل مجموعاته على
 النسخة المسلَّمة كما هي يعطي **٥ إخفاقات** في `auth-flows` وحدها. الرقم الحالي
-مقيس لا منقول: **٢١١ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
+مقيس لا منقول: **٢١٥ فحصًا، صفر إخفاق** — انظر [الاختبارات](#الاختبارات).
 
 **ما لم يتغيّر:** الهوية البصرية، والرسوم الحيّة، والحركة، والمراحل الأربع،
 والإعداد المتكيّف، و RTL/LTR، والوضع الداكن، والاستجابة، والوصولية. لا إعادة
@@ -325,10 +353,10 @@ SHOTS=/tmp/shots/ node tests/run.mjs   # مع حفظ لقطات الشاشة
 
 | `security` | انتحال الجلسة من المتصفح، ترقية الدور من التخزين، نسخ الجلسة إلى جهاز آخر، التزوير خلف انقطاع الشبكة، تجاوز خطوات الإعداد ونداء التهيئة مباشرةً، idempotency، ما يُكتب في المتصفح، الحقن النصّي، تسريب الأخطاء، و CSP | 40 |
 
-المجموع **٢١١ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
+المجموع **٢١٥ فحصًا، صفر إخفاق** — مقيسة بتشغيل فعلي لا منقولة.
 
 ```
-auth-flows  55 · wizard 18 · interface 46 · failures 37 · security 40 · demo 15
+auth-flows  55 · wizard 18 · interface 46 · failures 37 · security 40 · demo 19
 ```
 
 **مجموعة `security` ليست فحص شكل.** كل قسم فيها يعيد تنفيذ استغلال حقيقي، وقد
@@ -867,8 +895,8 @@ During an offline grace window the last known identity is shown with an offline 
 `verified` is false and `can()` returns false until a heartbeat confirms it, so editing
 storage and then pulling the network gains nothing.
 
-**Tests actually run.** `node tests/run.mjs` executes **211 checks in real Chromium, 0
-failing** — auth-flows 55, wizard 18, interface 46, failures 37, security 40, demo 15. The V6 README
+**Tests actually run.** `node tests/run.mjs` executes **215 checks in real Chromium, 0
+failing** — auth-flows 55, wizard 18, interface 46, failures 37, security 40, demo 19. The V6 README
 claimed "140 checks, all passing"; running its own suites against the delivered build gives
 5 failures in `auth-flows` alone. The `security` suite replays the real attacks and is
 verified to **catch V6**: run against the old build it fails at least 13 checks, including

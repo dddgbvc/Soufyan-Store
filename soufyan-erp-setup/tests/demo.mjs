@@ -40,7 +40,26 @@ await p.waitForTimeout(1200);
 ok(await p.evaluate(() => ERPSetup.config.demoMode) === true, 'الملف المُسلَّم يعمل بالوضع التجريبي');
 ok(await p.textContent('#stepTitle') === 'أهلًا بك', 'البوابة تظهر');
 const badge = await p.textContent('#hActions');
-ok(badge.includes('وضع تجريبي'), 'وشارة «وضع تجريبي» ظاهرة في الرأس');
+ok(badge.includes('وضع تجريبي'), 'ونصّ «وضع تجريبي» موجود في الرأس');
+
+/* الرؤية لا وجود النصّ.
+   الفحص الأول كان يقرأ textContent فقط، فمرّ رغم أن
+   `@media (max-width:900px){ .mode-flag{display:none} }` كانت تُخفي الشارة —
+   والآيباد بعرض ٨٣٤. أي أن الجهاز الذي تُجرَّب عليه النسخة غالبًا هو الوحيد
+   الذي لا يرى التنبيه. تُقاس الرؤية الآن على أربعة عروض. */
+for (const w of [390, 834, 1024, 1440]) {
+  await p.setViewportSize({ width: w, height: 900 });
+  await p.waitForTimeout(250);
+  const seen = await p.evaluate(() => {
+    const el = document.querySelector('#demoStrip');
+    if (!el || el.hidden) return false;
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return r.height > 6 && r.width > 100 && cs.visibility !== 'hidden' && cs.display !== 'none';
+  });
+  ok(seen, `شريط الوضع التجريبي مرئي فعلًا عند عرض ${w}px`);
+}
+await p.setViewportSize({ width: 1280, height: 900 });
 
 /* ---- الدخول ---- */
 console.log('\n— الدخول التجريبي —');
