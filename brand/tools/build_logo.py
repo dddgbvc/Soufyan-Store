@@ -31,10 +31,11 @@ LATIN = "SUFYAN MOBILE"
 
 # ---------- 1. رسم الحرف «س» / أعمدة الإشارة ----------
 # مرسوم داخل مربّع 240×240، حدوده الفعلية x:48–192  y:62–178 (مركزه 120,120)
+# إطار الرمز المستقل يترك 4 وحدات هامش حتى لا تُقصّ نهايات الخطوط المستديرة
 # الطرف الأيسر الصاعد للحرف محذوف عمداً: القاعدة تنتهي مفتوحة
 # فتقرأ الأعمدة الثلاثة كإشارة شبكة خلوية أوضح.
 SEEN_STROKE = 24
-MARK_VB = "48 62 144 116"
+MARK_VB = "44 58 152 124"
 
 
 def seen_glyph(body=SAND, accent=GOLD, accent_on=True):
@@ -56,7 +57,7 @@ def rounded_square(fill=DEEP):
     return f'  <rect x="0" y="0" width="240" height="240" rx="62" fill="{fill}"/>'
 
 
-HEAD = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {vb}" '
+HEAD = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}" '
         'width="{w}" height="{h}" role="img" aria-label="{label}">\n'
         '  <title>{label}</title>\n')
 
@@ -117,10 +118,10 @@ def build():
           "0 0 240 240", 240, 240, "مكتب سفيان للموبايل — الأيقونة الفاتحة")
 
     # --- ب. الرمز وحده بخلفية شفافة ---
-    write("logo-mark.svg", seen_glyph(DEEP, GOLD), MARK_VB, 144, 116,
+    write("logo-mark.svg", seen_glyph(DEEP, GOLD), MARK_VB, 152, 124,
           "مكتب سفيان للموبايل — الرمز")
 
-    write("logo-mark-sand.svg", seen_glyph(SAND, GOLD), MARK_VB, 144, 116,
+    write("logo-mark-sand.svg", seen_glyph(SAND, GOLD), MARK_VB, 152, 124,
           "مكتب سفيان للموبايل — الرمز الفاتح")
 
     # --- ج. الشعار العمودي (الصيغة الرئيسية) ---

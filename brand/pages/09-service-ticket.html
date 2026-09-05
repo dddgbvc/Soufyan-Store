@@ -1,0 +1,304 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — وصل وستيكر الصيانة</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  /* A5 = 148×210 مم عند 150 نقطة/إنش · يُصدَّر بمضاعف 2 ليصير 300 */
+  .a5{width:874px;height:1240px;background:#fff;padding:44px 46px;display:flex;flex-direction:column}
+  .a4{width:1240px;height:1754px;background:#fff;padding:52px 44px;display:flex;flex-direction:column;gap:26px}
+
+  /* ── رأس الوصل ── */
+  .head{display:flex;align-items:flex-start;justify-content:space-between;
+        border-block-end:3px solid var(--deep);padding-block-end:20px}
+  .head .ttl{font-family:var(--display);font-weight:700;font-size:34px;color:var(--deep);line-height:1.1}
+  .head .no{margin-block-start:10px;display:inline-flex;align-items:center;gap:10px;
+            background:var(--deep);color:var(--sand);border-radius:999px;
+            padding:8px 18px;font-size:19px;font-weight:700}
+  .head .no b{font-family:monospace;letter-spacing:.08em;color:var(--gold)}
+
+  /* ── حقول التعبئة ── */
+  .field{display:flex;align-items:flex-end;gap:14px;padding-block:10px}
+  .field .lbl{font-size:19px;font-weight:700;color:var(--deep);width:152px;flex:none}
+  .field .val{
+    flex:1;border-block-end:2px dotted rgba(20,52,63,.42);min-height:32px;
+    font-size:21px;font-weight:600;color:var(--teal);padding-inline:8px;padding-block-end:4px;
+  }
+  .field .val.mono{font-family:monospace;letter-spacing:.06em;direction:ltr;text-align:start}
+  .field.tall .val{min-height:52px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}
+
+  .sect{margin-block-start:9px;padding-block-start:9px;border-block-start:2px solid rgba(20,52,63,.14)}
+  .sect .k{font-weight:700;letter-spacing:.14em;font-size:14px;color:var(--teal);margin-block-end:6px}
+
+  /* ── خانات نوع الخلل ── */
+  .faults{display:grid;grid-template-columns:repeat(3,1fr);gap:9px 18px;margin-block-start:9px}
+  .faults label{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;color:var(--deep)}
+  .faults i{width:20px;height:20px;border:2px solid rgba(20,52,63,.45);border-radius:5px;flex:none;display:block}
+  .faults i.on{background:var(--teal);border-color:var(--teal);position:relative}
+  .faults i.on::after{content:"";position:absolute;inset-block-start:2px;inset-inline-start:6px;
+                      width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+
+  /* ── التذييل والباركود ── */
+  .barcode{display:flex;align-items:center;justify-content:space-between;gap:20px;
+           background:#FBF9F5;border:2px solid rgba(20,52,63,.10);border-radius:16px;padding:16px 22px}
+  .barcode svg{display:block;height:58px;width:auto}
+  .terms{font-size:14px;line-height:1.75;color:rgba(20,52,63,.62);font-weight:500}
+
+  /* ── خط القص بين نسخة المحل ونسخة الزبون ── */
+  .tear{display:flex;align-items:center;gap:14px;margin-block:13px;color:rgba(20,52,63,.42)}
+  .tear::before,.tear::after{content:"";flex:1;border-block-start:2px dashed currentColor}
+  .tear span{font-size:14px;font-weight:700;letter-spacing:.1em}
+
+  .stub{background:var(--sand);border-radius:18px;padding:17px 24px;display:flex;
+        align-items:center;justify-content:space-between;gap:20px}
+  .stub .who{font-family:var(--display);font-weight:700;font-size:24px;color:var(--deep)}
+
+  /* ── ستيكر الجهاز 90×50 مم ── */
+  .lbl-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px 26px;flex:1;align-content:start}
+  .dev{
+    width:531px;height:295px;border:2px dashed rgba(20,52,63,.30);border-radius:14px;
+    padding:16px 18px;display:flex;flex-direction:column;background:#fff;position:relative;
+  }
+  .dev .top{display:flex;align-items:center;justify-content:space-between;
+            border-block-end:2px solid var(--deep);padding-block-end:9px}
+  .dev .top .mark{width:34px;color:var(--deep)}
+  .dev .top .t{font-family:var(--display);font-weight:700;font-size:19px;color:var(--deep)}
+  .dev .top .n{font-family:monospace;direction:ltr;font-size:16px;font-weight:700;color:var(--teal);letter-spacing:.06em}
+  .dev .rows{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px}
+  .dev .r{display:flex;align-items:flex-end;gap:8px;font-size:14px}
+  .dev .r b{width:74px;flex:none;color:var(--deep);font-weight:700}
+  .dev .r span{flex:1;border-block-end:1.5px dotted rgba(20,52,63,.38);min-height:19px}
+  .dev .bot{display:flex;align-items:center;justify-content:space-between;gap:12px;
+            border-block-start:1.5px solid rgba(20,52,63,.14);padding-block-start:8px}
+  .dev .bot svg{height:38px;width:auto;display:block}
+  .dev .bot .ph{font-size:12px;font-weight:700;color:var(--deep);direction:ltr}
+
+  .sheet-head{display:flex;align-items:flex-end;justify-content:space-between;
+              border-block-end:2px solid rgba(20,52,63,.12);padding-block-end:20px}
+  .sheet-head h2{font-family:var(--display);font-weight:700;font-size:32px;color:var(--deep)}
+  .sheet-head .k{font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--teal)}
+  .sheet-head .spec{font-size:14px;font-weight:600;opacity:.55;text-align:end;line-height:1.7}
+  .foot{margin-block-start:auto;display:flex;justify-content:space-between;font-size:13px;
+        font-weight:600;opacity:.5;color:var(--deep);
+        border-block-start:2px solid rgba(20,52,63,.10);padding-block-start:16px}
+</style>
+
+<!-- ══════════════ 1 · وصل صيانة — نموذج فارغ ══════════════ -->
+<div class="a5" data-document-role="page" data-slug="service-ticket-blank" data-label="وصل صيانة — فارغ">
+  <div class="head">
+    <div>
+      <div class="ttl">وصل استلام صيانة</div>
+      <div class="no">رقم الوصل <b data-fill="no">SFN-00000</b></div>
+    </div>
+    <img src="../logo/logo-primary.svg" style="width:172px">
+  </div>
+
+  <div class="sect" style="border:0;margin-block-start:8px">
+    <div class="k">بيانات الزبون</div>
+    <div class="field"><span class="lbl">اسم الزبون</span><span class="val"></span></div>
+    <div class="field"><span class="lbl">رقم الهاتف</span><span class="val mono"></span></div>
+  </div>
+
+  <div class="sect">
+    <div class="k">بيانات الجهاز</div>
+    <div class="field"><span class="lbl">نوع الهاتف</span><span class="val"></span></div>
+    <div class="field"><span class="lbl">رقم الجهاز IMEI</span><span class="val mono"></span></div>
+    <div class="grid2">
+      <div class="field"><span class="lbl" style="width:104px">رمز القفل</span><span class="val mono"></span></div>
+      <div class="field"><span class="lbl" style="width:104px">الملحقات</span><span class="val"></span></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="k">نوع الخلل</div>
+    <div class="faults">
+      <label><i></i>شاشة</label><label><i></i>بطارية</label><label><i></i>شحن</label>
+      <label><i></i>صوت</label><label><i></i>كاميرا</label><label><i></i>ماء</label>
+      <label><i></i>سوفتوير</label><label><i></i>شبكة</label><label><i></i>أخرى</label>
+    </div>
+    <div class="field tall"><span class="lbl">وصف الخلل</span><span class="val"></span></div>
+  </div>
+
+  <div class="sect">
+    <div class="grid2">
+      <div class="field"><span class="lbl" style="width:152px">تاريخ الاستلام</span><span class="val mono"></span></div>
+      <div class="field"><span class="lbl" style="width:152px">موعد التسليم</span><span class="val mono"></span></div>
+      <div class="field"><span class="lbl" style="width:152px">الكلفة التقديرية</span><span class="val mono"></span></div>
+      <div class="field"><span class="lbl" style="width:152px">المدفوع مقدّماً</span><span class="val mono"></span></div>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+
+  <div class="barcode">
+    <div class="terms">
+      المحل غير مسؤول عن البيانات داخل الجهاز — يُرجى أخذ نسخة احتياطية.<br>
+      الجهاز غير المستلَم خلال 30 يوماً من موعد التسليم لا يتحمّل المحل مسؤوليته.<br>
+      لا يُسلَّم الجهاز إلا بإبراز هذا الوصل.
+    </div>
+    <div data-barcode="SFN-00000" data-h="58" data-m="2"></div>
+  </div>
+
+  <div class="tear"><span>قص هنا — نسخة الزبون</span></div>
+
+  <div class="stub">
+    <div>
+      <div class="who">مكتب سفيان للموبايل</div>
+      <div style="font-size:15px;font-weight:600;color:rgba(20,52,63,.7);margin-block-start:6px">
+        سامراء — الحويش — الشارع الرئيسي
+        <span class="ltr" style="color:var(--teal)"> · 0773 164 4450</span>
+      </div>
+    </div>
+    <div style="text-align:end">
+      <div style="font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--teal)">رقم الوصل</div>
+      <div style="font-family:monospace;font-size:26px;font-weight:700;color:var(--deep);letter-spacing:.08em">SFN-00000</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 2 · وصل صيانة — نموذج معبّأ (كما يطبعه البرنامج) ══════════════ -->
+<div class="a5" data-document-role="page" data-slug="service-ticket-filled" data-label="وصل صيانة — معبّأ">
+  <div class="head">
+    <div>
+      <div class="ttl">وصل استلام صيانة</div>
+      <div class="no">رقم الوصل <b>SFN-01427</b></div>
+    </div>
+    <img src="../logo/logo-primary.svg" style="width:172px">
+  </div>
+
+  <div class="sect" style="border:0;margin-block-start:8px">
+    <div class="k">بيانات الزبون</div>
+    <div class="field"><span class="lbl">اسم الزبون</span><span class="val">أحمد عبد الله حسين</span></div>
+    <div class="field"><span class="lbl">رقم الهاتف</span><span class="val mono">0771 234 5678</span></div>
+  </div>
+
+  <div class="sect">
+    <div class="k">بيانات الجهاز</div>
+    <div class="field"><span class="lbl">نوع الهاتف</span><span class="val">Samsung Galaxy A54</span></div>
+    <div class="field"><span class="lbl">رقم الجهاز IMEI</span><span class="val mono">356938035643809</span></div>
+    <div class="grid2">
+      <div class="field"><span class="lbl" style="width:104px">رمز القفل</span><span class="val mono">1234</span></div>
+      <div class="field"><span class="lbl" style="width:104px">الملحقات</span><span class="val">كفر فقط</span></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="k">نوع الخلل</div>
+    <div class="faults">
+      <label><i class="on"></i>شاشة</label><label><i></i>بطارية</label><label><i class="on"></i>شحن</label>
+      <label><i></i>صوت</label><label><i></i>كاميرا</label><label><i></i>ماء</label>
+      <label><i></i>سوفتوير</label><label><i></i>شبكة</label><label><i></i>أخرى</label>
+    </div>
+    <div class="field tall"><span class="lbl">وصف الخلل</span>
+      <span class="val">الشاشة مكسورة من الزاوية العليا، واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.</span></div>
+  </div>
+
+  <div class="sect">
+    <div class="grid2">
+      <div class="field"><span class="lbl" style="width:152px">تاريخ الاستلام</span><span class="val mono">2026-09-05</span></div>
+      <div class="field"><span class="lbl" style="width:152px">موعد التسليم</span><span class="val mono">2026-09-08</span></div>
+      <div class="field"><span class="lbl" style="width:152px">الكلفة التقديرية</span><span class="val mono">85,000 د.ع</span></div>
+      <div class="field"><span class="lbl" style="width:152px">المدفوع مقدّماً</span><span class="val mono">25,000 د.ع</span></div>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+
+  <div class="barcode">
+    <div class="terms">
+      المحل غير مسؤول عن البيانات داخل الجهاز — يُرجى أخذ نسخة احتياطية.<br>
+      الجهاز غير المستلَم خلال 30 يوماً من موعد التسليم لا يتحمّل المحل مسؤوليته.<br>
+      لا يُسلَّم الجهاز إلا بإبراز هذا الوصل.
+    </div>
+    <div data-barcode="SFN-01427" data-h="58" data-m="2"></div>
+  </div>
+
+  <div class="tear"><span>قص هنا — نسخة الزبون</span></div>
+
+  <div class="stub">
+    <div>
+      <div class="who">مكتب سفيان للموبايل</div>
+      <div style="font-size:15px;font-weight:600;color:rgba(20,52,63,.7);margin-block-start:6px">
+        سامراء — الحويش — الشارع الرئيسي
+        <span class="ltr" style="color:var(--teal)"> · 0773 164 4450</span>
+      </div>
+    </div>
+    <div style="text-align:end">
+      <div style="font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--teal)">رقم الوصل</div>
+      <div style="font-family:monospace;font-size:26px;font-weight:700;color:var(--deep);letter-spacing:.08em">SFN-01427</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 3 · شيت ستيكرات الجهاز A4 ══════════════ -->
+<div class="a4" data-document-role="page" data-slug="service-device-labels" data-label="ستيكرات الجهاز">
+  <div class="sheet-head">
+    <div>
+      <div class="k">صيانة</div>
+      <h2 style="margin-block-start:10px">ستيكر الجهاز</h2>
+    </div>
+    <div class="spec">A4 · 8 ستيكرات بمقاس 90 × 50 مم<br>ورق لاصق — يُلصق على الجهاز عند الاستلام</div>
+  </div>
+
+  <div class="lbl-grid">
+    <!-- نموذج معبّأ يوضّح الشكل النهائي -->
+    <div class="dev">
+      <div class="top">
+        <svg class="mark" viewBox="44 58 152 124"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+        <span class="t">وصل صيانة</span>
+        <span class="n">SFN-01427</span>
+      </div>
+      <div class="rows">
+        <div class="r"><b>الزبون</b><span>أحمد عبد الله</span></div>
+        <div class="r"><b>الهاتف</b><span class="ltr">0771 234 5678</span></div>
+        <div class="r"><b>الجهاز</b><span class="ltr">Samsung Galaxy A54</span></div>
+        <div class="r"><b>IMEI</b><span class="ltr">356938035643809</span></div>
+        <div class="r"><b>الخلل</b><span>شاشة + شحن</span></div>
+      </div>
+      <div class="bot">
+        <div data-barcode="SFN-01427" data-h="38" data-m="1" data-text="0"></div>
+        <span class="ph">0773 164 4450</span>
+      </div>
+    </div>
+
+    <!-- سبعة نماذج فارغة للتعبئة -->
+    <div class="dev tpl"></div><div class="dev tpl"></div><div class="dev tpl"></div>
+    <div class="dev tpl"></div><div class="dev tpl"></div><div class="dev tpl"></div>
+    <div class="dev tpl"></div>
+  </div>
+
+  <div class="foot">
+    <span>مكتب سفيان للموبايل — سامراء، الحويش</span>
+    <span>الخطوط المتقطّعة أدلّة قص ولا تُطبع</span>
+  </div>
+</div>
+
+<script src="../tools/code128.js"></script>
+<script>
+  // النماذج الفارغة: ننسخ النموذج المعبّأ ثم نفرّغ القيم فقط
+  var src = document.querySelector('.dev:not(.tpl)');
+  if (src) document.querySelectorAll('.dev.tpl').forEach(function (el) {
+    var c = src.cloneNode(true);
+    c.classList.add('tpl');
+    c.querySelector('.n').textContent = 'SFN-\u2007\u2007\u2007\u2007\u2007';
+    c.querySelectorAll('.rows .r span').forEach(function (v) { v.textContent = ''; });
+    // الملصق الفارغ يُكتب بخط اليد، فيحل محل الباركود سطرٌ لرقم الوصل
+    var slot = c.querySelector('[data-barcode]');
+    slot.removeAttribute('data-barcode');
+    slot.style.cssText = 'flex:1;display:flex;align-items:flex-end;gap:8px;font-size:12px;font-weight:700;color:#14343F';
+    slot.innerHTML = '<span>رقم الوصل</span>' +
+      '<span style="flex:1;border-block-end:1.5px dotted rgba(20,52,63,.38);min-height:17px"></span>';
+    el.replaceWith(c);
+  });
+
+  // ارسم كل الباركودات
+  document.querySelectorAll('[data-barcode]').forEach(function (el) {
+    el.innerHTML = Code128.svg(el.dataset.barcode, {
+      height: +(el.dataset.h || 60),
+      module: +(el.dataset.m || 2),
+      text: el.dataset.text !== '0',
+      fontSize: 13
+    });
+  });
+</script>

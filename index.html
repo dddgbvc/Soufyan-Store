@@ -257,6 +257,60 @@ input[type=range]{width:100%; accent-color:var(--primary)}
 .no-results.show{display:block}
 footer{border-top:1px solid var(--border); padding-block:36px; color:var(--text-2); font-size:.9rem}
 footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+/* ============ 9. أدوات المحل: وصل الصيانة وملصقات الباركود ============ */
+#tools[hidden]{display:none}
+.tools-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px}
+.tools-tabs .chip{cursor:pointer}
+
+.tool-pane[hidden]{display:none}
+.tool-grid{display:grid; gap:20px; grid-template-columns:minmax(320px,1fr) minmax(300px,.9fr); align-items:start}
+@media (max-width:820px){ .tool-grid{grid-template-columns:1fr} }
+
+.form.wide{max-width:none}
+.form .row2{display:grid; gap:0 14px; grid-template-columns:1fr 1fr}
+.form textarea{width:100%; padding:10px 14px; background:var(--surface-2); color:var(--text);
+  border:1px solid var(--border); border-radius:12px; font-family:inherit; font-size:1rem;
+  min-height:74px; resize:vertical; transition:border-color .3s var(--ease), box-shadow .3s var(--ease)}
+.form textarea:focus{border-color:var(--primary); outline:none; box-shadow:var(--glow)}
+.form .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+.form .hint{font-size:.78rem; color:var(--text-2); margin-top:6px}
+.btn-ghost{background:transparent; color:var(--text-2); border:1px solid var(--border)}
+.btn-primary{background:var(--primary); color:#fff}
+
+/* بطاقة المعاينة — تعرض الملصق بألوان الهوية لا بألوان الموقع */
+.preview-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; box-shadow:var(--shadow)}
+.preview-card h3{font-size:1rem; margin-bottom:4px}
+.preview-card .section-sub{margin-bottom:14px}
+.preview-stage{background:#F2EDE4; border-radius:14px; padding:18px; display:flex;
+  align-items:center; justify-content:center; min-height:150px; overflow:auto}
+
+/* الملصق داخل المعاينة */
+.lbl-pv{background:#fff; border:1px solid #d9d2c4; border-radius:6px; padding:8px 10px;
+  display:flex; flex-direction:column; color:#14343F; font-family:var(--font-body)}
+.lbl-pv .lp-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.lbl-pv .lp-nm{font-weight:700; font-size:13px; line-height:1.25}
+.lbl-pv .lp-pr{font-family:"El Messiri",serif; font-weight:700; font-size:20px; line-height:1; margin-top:5px}
+.lbl-pv .lp-pr small{font-size:11px; opacity:.6; font-family:var(--font-body)}
+.lbl-pv .lp-bc{margin-top:auto; display:flex; justify-content:center}
+.lbl-pv .lp-bc svg{display:block; max-width:100%; height:auto}
+.lbl-pv svg.sfn-mark path{stroke:#14343F; stroke-width:24; fill:none;
+  stroke-linecap:round; stroke-linejoin:round}
+.lbl-pv svg.sfn-mark path.acc{stroke:#C8A96A}
+
+/* قائمة الوصولات المحفوظة */
+.tk-list{display:flex; flex-direction:column; gap:8px; max-height:340px; overflow:auto; margin-top:12px}
+.tk-row{display:flex; align-items:center; gap:12px; background:var(--surface-2);
+  border:1px solid var(--border); border-radius:12px; padding:10px 14px; font-size:.88rem}
+.tk-row .tk-no{font-family:var(--font-mono); color:var(--primary); font-weight:600; flex:none}
+.tk-row .tk-nm{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tk-row .tk-act{display:flex; gap:6px; flex:none}
+.tk-row button{border:none; background:var(--surface); color:var(--text-2); border-radius:9px;
+  padding:5px 10px; font-size:.78rem; font-family:inherit; cursor:pointer}
+.tk-row button:hover{color:var(--text)}
+.tk-empty{color:var(--text-2); font-size:.88rem; padding:14px 0}
+
 </style>
 </head>
 <body>
@@ -270,6 +324,8 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
         <input id="search" type="search" placeholder="ابحث عن هاتف أو إكسسوار…" aria-label="بحث">
         <span class="icon" aria-hidden="true">🔍</span>
       </div>
+      <button class="theme-btn" id="toolsBtn" aria-label="أدوات المحل"
+              aria-expanded="false" aria-controls="tools" title="أدوات المحل">🧰</button>
       <button class="theme-btn" id="themeBtn" aria-label="تبديل المظهر">🌙</button>
     </div>
     <div class="filters">
@@ -393,6 +449,142 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
     <button type="submit">إرسال</button>
   </form>
 </div>
+
+<!-- ======= أدوات المحل (داخلي) ======= -->
+<section id="tools" hidden>
+  <div class="container">
+    <h2 class="section-title reveal">🧰 أدوات المحل</h2>
+    <p class="section-sub reveal">
+      للاستخدام الداخلي — إصدار وصولات الصيانة وطباعة ملصقات الباركود.
+      الوصولات تُحفظ في هذا المتصفّح فقط.
+    </p>
+
+    <div class="tools-tabs">
+      <button class="chip" id="tabSvc" aria-pressed="true">🔧 وصل صيانة</button>
+      <button class="chip" id="tabBc" aria-pressed="false">🏷️ ملصق باركود</button>
+    </div>
+
+    <!-- ─── وصل الصيانة ─── -->
+    <div class="tool-pane" id="paneSvc">
+      <div class="tool-grid">
+        <form class="form wide" id="svcForm">
+          <div class="row2">
+            <div class="field"><label for="svName">اسم الزبون</label>
+              <input id="svName" required autocomplete="off"></div>
+            <div class="field"><label for="svPhone">رقم الهاتف</label>
+              <input id="svPhone" type="tel" dir="ltr" required autocomplete="off"></div>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="svModel">نوع الهاتف</label>
+              <input id="svModel" required autocomplete="off" placeholder="Samsung Galaxy A54"></div>
+            <div class="field"><label for="svImei">رقم الجهاز IMEI</label>
+              <input id="svImei" dir="ltr" inputmode="numeric" autocomplete="off"
+                     placeholder="15 رقم" maxlength="17"></div>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="svLock">رمز القفل</label>
+              <input id="svLock" dir="ltr" autocomplete="off"></div>
+            <div class="field"><label for="svAcc">الملحقات المستلمة</label>
+              <input id="svAcc" autocomplete="off" placeholder="كفر، شاحن…"></div>
+          </div>
+
+          <div class="field">
+            <label>نوع الخلل — اختر واحدًا أو أكثر</label>
+            <div class="chips" id="svFaults" style="margin-bottom:0"></div>
+          </div>
+
+          <div class="field"><label for="svDesc">وصف الخلل</label>
+            <textarea id="svDesc" placeholder="اكتب ملاحظات الفحص كما وصفها الزبون…"></textarea></div>
+
+          <div class="row2">
+            <div class="field"><label for="svIn">تاريخ الاستلام</label>
+              <input id="svIn" type="date" dir="ltr" required></div>
+            <div class="field"><label for="svOut">موعد التسليم</label>
+              <input id="svOut" type="date" dir="ltr"></div>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="svCost">الكلفة التقديرية (د.ع)</label>
+              <input id="svCost" type="number" min="0" step="250" dir="ltr"></div>
+            <div class="field"><label for="svPaid">المدفوع مقدّمًا (د.ع)</label>
+              <input id="svPaid" type="number" min="0" step="250" dir="ltr"></div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">💾 احفظ واطبع الوصل</button>
+            <button type="button" class="btn btn-ghost" id="svPrintLabel">🏷️ ستيكر الجهاز</button>
+            <button type="button" class="btn btn-ghost" id="svReset">مسح الحقول</button>
+          </div>
+          <p class="hint">
+            رقم الوصل يُولَّد تلقائيًا ويُطبع كباركود — امسحه لاحقًا للوصول للوصل بسرعة.
+          </p>
+        </form>
+
+        <div class="preview-card">
+          <h3>الوصولات المحفوظة</h3>
+          <p class="section-sub">آخر الوصولات في هذا الجهاز</p>
+          <input id="tkSearch" placeholder="ابحث برقم الوصل أو اسم الزبون أو الهاتف…"
+                 style="width:100%; padding:10px 14px; background:var(--surface-2); color:var(--text);
+                        border:1px solid var(--border); border-radius:12px; font-family:inherit">
+          <div class="tk-list" id="tkList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ملصق الباركود ─── -->
+    <div class="tool-pane" id="paneBc" hidden>
+      <div class="tool-grid">
+        <form class="form wide" id="bcForm">
+          <div class="field"><label for="bcName">اسم المنتج</label>
+            <input id="bcName" required autocomplete="off" placeholder="سماعة بلوتوث لاسلكية"></div>
+
+          <div class="row2">
+            <div class="field"><label for="bcPrice">السعر (د.ع)</label>
+              <input id="bcPrice" type="number" min="0" step="250" dir="ltr" required></div>
+            <div class="field"><label for="bcSku">رقم المنتج</label>
+              <input id="bcSku" dir="ltr" required autocomplete="off" placeholder="SFN-AC-2210"></div>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="bcKind">النوع</label>
+              <select id="bcKind">
+                <option value="AC">إكسسوار — SFN-AC</option>
+                <option value="PH">هاتف — SFN-PH</option>
+                <option value="NT">إنترنت — SFN-NT</option>
+              </select></div>
+            <div class="field"><label for="bcSize">مقاس الملصق</label>
+              <select id="bcSize">
+                <option value="50x30" selected>50 × 30 مم — إكسسوارات</option>
+                <option value="60x40">60 × 40 مم — علب وأجهزة</option>
+                <option value="40x25">40 × 25 مم — قطع صغيرة</option>
+              </select></div>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="bcQty">عدد النسخ</label>
+              <input id="bcQty" type="number" min="1" max="120" value="12" dir="ltr"></div>
+            <div class="field"><label>&nbsp;</label>
+              <button type="button" class="btn btn-ghost" id="bcGen" style="width:100%">🔢 ولّد رقمًا جديدًا</button></div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">🖨️ اطبع الشيت</button>
+            <button type="button" class="btn btn-ghost" id="bcOne">اطبع ملصقًا واحدًا</button>
+          </div>
+          <p class="hint">ترميز Code 128 — يقرأه أي ماسح ليزري. اطبع على ورق لاصق أبيض فقط.</p>
+        </form>
+
+        <div class="preview-card">
+          <h3>المعاينة</h3>
+          <p class="section-sub">بالمقاس الحقيقي تقريبًا</p>
+          <div class="preview-stage" id="bcPreview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ======= الفوتر ======= -->
 <footer>
@@ -753,6 +945,490 @@ $("chatForm").onsubmit = async e => {
 
 /* ============ تشغيل ============ */
 renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
+
+/* ============ 12. أدوات المحل: وصولات الصيانة وملصقات الباركود ============ */
+(function () {
+  "use strict";
+
+  /* ---------- 12.1 مولّد باركود Code 128 ---------- */
+  const C128_PATTERNS = [
+    '212222','222122','222221','121223','121322','131222','122213','122312','132212','221213',
+    '221312','231212','112232','122132','122231','113222','123122','123221','223211','221132',
+    '221231','213212','223112','312131','311222','321122','321221','312212','322112','322211',
+    '212123','212321','232121','111323','131123','131321','112313','132113','132311','211313',
+    '231113','231311','112133','112331','132131','113123','113321','133121','313121','211331',
+    '231131','213113','213311','213131','311123','311321','331121','312113','312311','332111',
+    '314111','221411','431111','111224','111422','121124','121421','141122','141221','112214',
+    '112412','122114','122411','142112','142211','241211','221114','413111','241112','134111',
+    '111242','121142','121241','114212','124112','124211','411212','421112','421211','212141',
+    '214121','412121','111143','111341','131141','114113','114311','411113','411311','113141',
+    '114131','311141','411131','211412','211214','211232','2331112'
+  ];
+
+  function c128Encode(text) {
+    const digitsOnly = /^\d+$/.test(text);
+    const useC = digitsOnly && text.length % 2 === 0 && text.length >= 4;
+    const start = useC ? 105 : 104;
+    const values = [];
+    if (useC) {
+      for (let i = 0; i < text.length; i += 2) values.push(parseInt(text.substr(i, 2), 10));
+    } else {
+      for (let j = 0; j < text.length; j++) {
+        const code = text.charCodeAt(j);
+        if (code < 32 || code > 126) throw new Error("رمز غير مدعوم في الباركود: " + text[j]);
+        values.push(code - 32);
+      }
+    }
+    let sum = start;
+    for (let k = 0; k < values.length; k++) sum += (k + 1) * values[k];
+    return [start].concat(values, [sum % 103], [106]);
+  }
+
+  /** يبني الباركود كنص SVG. الوحدات بالبكسل داخل viewBox. */
+  function barcodeSVG(text, opt) {
+    opt = opt || {};
+    const mod = opt.module || 2, h = opt.height || 60,
+          color = opt.color || "#101E24", showText = opt.text !== false,
+          fs = opt.fontSize || 13, pad = 10 * mod;
+    const vals = c128Encode(text);
+    let x = 0, rects = "";
+    vals.forEach(function (v) {
+      const p = C128_PATTERNS[v];
+      for (let i = 0; i < p.length; i++) {
+        const w = parseInt(p[i], 10) * mod;
+        if (i % 2 === 0) rects += '<rect x="' + (x + pad) + '" y="0" width="' + w +
+          '" height="' + h + '" fill="' + color + '"/>';
+        x += w;
+      }
+    });
+    const tH = showText ? fs + 6 : 0, W = x + pad * 2, H = h + tH;
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H +
+      '" width="' + W + '" height="' + H + '" shape-rendering="crispEdges" role="img" aria-label="باركود ' +
+      esc(text) + '"><rect width="' + W + '" height="' + H + '" fill="#fff"/>' + rects +
+      (showText ? '<text x="' + (W / 2) + '" y="' + (H - 2) + '" text-anchor="middle" ' +
+        'font-family="monospace" font-size="' + fs + '" letter-spacing="' + (mod * 0.8) +
+        '" fill="' + color + '">' + esc(text) + '</text>' : '') + '</svg>';
+  }
+
+  /* ---------- 12.2 مساعدات ---------- */
+  const $ = function (id) { return document.getElementById(id); };
+  const NUM = new Intl.NumberFormat("en-US");
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function money(v) { return v ? NUM.format(+v) + " د.ع" : "—"; }
+  function today() { return new Date().toISOString().slice(0, 10); }
+
+  const MARK = '<svg class="m" viewBox="44 58 152 124">' +
+    '<path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>' +
+    '<path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>';
+
+  const FONTS = '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700' +
+    '&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">';
+
+  const BASE_CSS =
+    '*{box-sizing:border-box;margin:0;padding:0}' +
+    'body{font-family:"Cairo",system-ui,sans-serif;color:#101E24;' +
+    '-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'svg.m{fill:none;stroke-width:24;stroke-linecap:round;stroke-linejoin:round;display:block}' +
+    'svg.m path{stroke:#14343F}svg.m path.acc{stroke:#C8A96A}';
+
+  /** يفتح إطارًا مخفيًا، ينتظر تحميل الخطوط، ثم يستدعي الطباعة. */
+  function printDoc(bodyHTML, css) {
+    const old = $("sfnPrintFrame");
+    if (old) old.remove();
+    const f = document.createElement("iframe");
+    f.id = "sfnPrintFrame";
+    f.setAttribute("aria-hidden", "true");
+    f.style.cssText = "position:fixed;left:-9999px;top:0;width:0;height:0;border:0";
+    f.srcdoc = '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">' + FONTS +
+      "<style>" + BASE_CSS + css + "</style></head><body>" + bodyHTML +
+      '<scr' + 'ipt>window.addEventListener("load",function(){' +
+      '(document.fonts?document.fonts.ready:Promise.resolve()).then(function(){' +
+      'setTimeout(function(){window.focus();window.print();},120);});});</scr' + 'ipt>' +
+      "</body></html>";
+    document.body.appendChild(f);
+  }
+
+  /* ---------- 12.3 وصل الصيانة ---------- */
+  const FAULTS = ["شاشة", "بطارية", "شحن", "صوت", "كاميرا", "ماء", "سوفتوير", "شبكة", "أخرى"];
+  const LS_TICKETS = "sfn_tickets", LS_SEQ = "sfn_ticket_seq";
+
+  function loadTickets() {
+    try { return JSON.parse(localStorage.getItem(LS_TICKETS) || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveTickets(list) {
+    try { localStorage.setItem(LS_TICKETS, JSON.stringify(list.slice(0, 500))); }
+    catch (e) { /* الذاكرة ممتلئة أو محظورة — الطباعة تبقى تعمل */ }
+  }
+  function nextTicketNo() {
+    let n = 1;
+    try { n = (parseInt(localStorage.getItem(LS_SEQ), 10) || 0) + 1; localStorage.setItem(LS_SEQ, n); }
+    catch (e) { n = Date.now() % 100000; }
+    return "SFN-" + String(n).padStart(5, "0");
+  }
+
+  const TICKET_CSS =
+    "@page{size:148mm 210mm;margin:0}" +
+    "body{width:148mm;height:210mm;padding:9mm 10mm;display:flex;flex-direction:column}" +
+    ".hd{display:flex;align-items:flex-start;justify-content:space-between;" +
+    "border-bottom:.8mm solid #14343F;padding-bottom:3.5mm}" +
+    ".hd h1{font-family:'El Messiri',serif;font-size:6.2mm;color:#14343F;line-height:1.1}" +
+    ".hd .no{margin-top:2mm;display:inline-block;background:#14343F;color:#F2EDE4;" +
+    "border-radius:20mm;padding:1.4mm 3.4mm;font-size:3.4mm;font-weight:700}" +
+    ".hd .no b{font-family:monospace;color:#C8A96A;letter-spacing:.3mm}" +
+    ".hd .lg{display:flex;align-items:center;gap:2.4mm}" +
+    ".hd .lg svg.m{width:11mm}" +
+    ".hd .lg .nm{font-family:'El Messiri',serif;font-weight:700;font-size:4mm;color:#14343F;line-height:1.15}" +
+    ".hd .lg .sb{font-size:2.1mm;letter-spacing:1mm;color:#2F6F6B;font-weight:600;direction:ltr}" +
+    ".sec{margin-top:2mm;padding-top:2mm;border-top:.35mm solid rgba(20,52,63,.16)}" +
+    ".sec .k{font-size:2.5mm;font-weight:700;letter-spacing:.6mm;color:#2F6F6B;margin-bottom:1mm}" +
+    ".f{display:flex;align-items:flex-end;gap:2.5mm;padding:1.6mm 0}" +
+    ".f .l{width:27mm;flex:none;font-size:3.3mm;font-weight:700;color:#14343F}" +
+    ".f .v{flex:1;border-bottom:.35mm dotted rgba(20,52,63,.45);min-height:5.6mm;" +
+    "font-size:3.6mm;font-weight:600;color:#2F6F6B;padding:0 1.5mm 1mm}" +
+    ".f .v.mono{font-family:monospace;direction:ltr;text-align:right;letter-spacing:.2mm}" +
+    ".f.tall .v{min-height:11mm;line-height:1.5}" +
+    ".g2{display:grid;grid-template-columns:1fr 1fr;gap:0 5mm}" +
+    ".fl{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6mm 3mm;margin-top:1.5mm}" +
+    ".fl span{display:flex;align-items:center;gap:1.8mm;font-size:3.1mm;font-weight:600;color:#14343F}" +
+    ".fl i{width:3.4mm;height:3.4mm;border:.4mm solid rgba(20,52,63,.5);border-radius:.9mm;flex:none;" +
+    "display:inline-block;position:relative}" +
+    ".fl i.on{background:#2F6F6B;border-color:#2F6F6B}" +
+    ".fl i.on:after{content:'';position:absolute;left:1.1mm;top:.35mm;width:.9mm;height:1.8mm;" +
+    "border:solid #fff;border-width:0 .45mm .45mm 0;transform:rotate(45deg)}" +
+    ".bc{display:flex;align-items:center;justify-content:space-between;gap:4mm;background:#FBF9F5;" +
+    "border:.35mm solid rgba(20,52,63,.12);border-radius:3mm;padding:2.6mm 4mm;margin-top:auto}" +
+    ".bc svg{height:13mm;width:auto;display:block}" +
+    ".tm{font-size:2.4mm;line-height:1.7;color:rgba(20,52,63,.65)}" +
+    ".tear{display:flex;align-items:center;gap:2.5mm;margin:3mm 0;color:rgba(20,52,63,.45)}" +
+    ".tear:before,.tear:after{content:'';flex:1;border-top:.4mm dashed currentColor}" +
+    ".tear span{font-size:2.4mm;font-weight:700;letter-spacing:.5mm}" +
+    ".stub{background:#F2EDE4;border-radius:3mm;padding:3mm 4mm;display:flex;" +
+    "align-items:center;justify-content:space-between;gap:4mm}" +
+    ".stub .w{font-family:'El Messiri',serif;font-weight:700;font-size:4.2mm;color:#14343F}" +
+    ".stub .a{font-size:2.7mm;color:rgba(20,52,63,.72);font-weight:600;margin-top:1mm}" +
+    ".stub .n{font-family:monospace;font-size:4.6mm;font-weight:700;color:#14343F;letter-spacing:.3mm}";
+
+  function ticketHTML(t) {
+    const chips = FAULTS.map(function (f) {
+      return '<span><i class="' + (t.faults.indexOf(f) > -1 ? "on" : "") + '"></i>' + esc(f) + "</span>";
+    }).join("");
+
+    return '<div class="hd"><div>' +
+      "<h1>وصل استلام صيانة</h1>" +
+      '<div class="no">رقم الوصل <b>' + esc(t.no) + "</b></div></div>" +
+      '<div class="lg">' + MARK +
+      '<div><div class="nm">مكتب سفيان للموبايل</div><div class="sb">SUFYAN MOBILE</div></div>' +
+      "</div></div>" +
+
+      '<div class="sec" style="border:0"><div class="k">بيانات الزبون</div>' +
+      '<div class="f"><span class="l">اسم الزبون</span><span class="v">' + esc(t.name) + "</span></div>" +
+      '<div class="f"><span class="l">رقم الهاتف</span><span class="v mono">' + esc(t.phone) + "</span></div></div>" +
+
+      '<div class="sec"><div class="k">بيانات الجهاز</div>' +
+      '<div class="f"><span class="l">نوع الهاتف</span><span class="v">' + esc(t.model) + "</span></div>" +
+      '<div class="f"><span class="l">رقم الجهاز IMEI</span><span class="v mono">' + esc(t.imei) + "</span></div>" +
+      '<div class="g2">' +
+      '<div class="f"><span class="l" style="width:19mm">رمز القفل</span><span class="v mono">' + esc(t.lock) + "</span></div>" +
+      '<div class="f"><span class="l" style="width:19mm">الملحقات</span><span class="v">' + esc(t.acc) + "</span></div>" +
+      "</div></div>" +
+
+      '<div class="sec"><div class="k">نوع الخلل</div><div class="fl">' + chips + "</div>" +
+      '<div class="f tall"><span class="l">وصف الخلل</span><span class="v">' + esc(t.desc) + "</span></div></div>" +
+
+      '<div class="sec"><div class="g2">' +
+      '<div class="f"><span class="l">تاريخ الاستلام</span><span class="v mono">' + esc(t.dateIn) + "</span></div>" +
+      '<div class="f"><span class="l">موعد التسليم</span><span class="v mono">' + esc(t.dateOut) + "</span></div>" +
+      '<div class="f"><span class="l">الكلفة التقديرية</span><span class="v mono">' + esc(money(t.cost)) + "</span></div>" +
+      '<div class="f"><span class="l">المدفوع مقدّمًا</span><span class="v mono">' + esc(money(t.paid)) + "</span></div>" +
+      "</div></div>" +
+
+      '<div class="bc"><div class="tm">' +
+      "المحل غير مسؤول عن البيانات داخل الجهاز — يُرجى أخذ نسخة احتياطية.<br>" +
+      "الجهاز غير المستلَم خلال 30 يومًا من موعد التسليم لا يتحمّل المحل مسؤوليته.<br>" +
+      "لا يُسلَّم الجهاز إلا بإبراز هذا الوصل." +
+      "</div>" + barcodeSVG(t.no, { height: 58, module: 2 }) + "</div>" +
+
+      '<div class="tear"><span>قص هنا — نسخة الزبون</span></div>' +
+      '<div class="stub"><div><div class="w">مكتب سفيان للموبايل</div>' +
+      '<div class="a">سامراء — الحويش — الشارع الرئيسي · <span dir="ltr">0773 164 4450</span></div></div>' +
+      '<div style="text-align:left"><div style="font-size:2.4mm;font-weight:700;letter-spacing:.5mm;color:#2F6F6B">رقم الوصل</div>' +
+      '<div class="n">' + esc(t.no) + "</div></div></div>";
+  }
+
+  const LABEL_CSS =
+    "@page{size:90mm 50mm;margin:0}" +
+    "body{width:90mm;height:50mm;padding:3mm 3.5mm;display:flex;flex-direction:column}" +
+    ".t{display:flex;align-items:center;justify-content:space-between;gap:2mm;" +
+    "border-bottom:.5mm solid #14343F;padding-bottom:1.5mm}" +
+    ".t svg.m{width:6mm}" +
+    ".t .ti{font-family:'El Messiri',serif;font-weight:700;font-size:3.4mm;color:#14343F}" +
+    ".t .nn{font-family:monospace;direction:ltr;font-size:3mm;font-weight:700;color:#2F6F6B;letter-spacing:.2mm}" +
+    ".rw{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.4mm}" +
+    ".r{display:flex;align-items:flex-end;gap:1.6mm;font-size:2.6mm}" +
+    ".r b{width:13mm;flex:none;color:#14343F}" +
+    ".r span{flex:1;border-bottom:.25mm dotted rgba(20,52,63,.4);min-height:3.4mm;color:#2F6F6B;font-weight:600}" +
+    ".r span.mono{font-family:monospace;direction:ltr;text-align:right}" +
+    ".bt{display:flex;align-items:center;justify-content:space-between;gap:2mm;" +
+    "border-top:.3mm solid rgba(20,52,63,.15);padding-top:1.4mm}" +
+    ".bt svg{height:7mm;width:auto;display:block}" +
+    ".bt .ph{font-size:2.3mm;font-weight:700;color:#14343F;direction:ltr}";
+
+  function deviceLabelHTML(t) {
+    return '<div class="t">' + MARK + '<span class="ti">وصل صيانة</span>' +
+      '<span class="nn">' + esc(t.no) + "</span></div>" +
+      '<div class="rw">' +
+      '<div class="r"><b>الزبون</b><span>' + esc(t.name) + "</span></div>" +
+      '<div class="r"><b>الهاتف</b><span class="mono">' + esc(t.phone) + "</span></div>" +
+      '<div class="r"><b>الجهاز</b><span class="mono">' + esc(t.model) + "</span></div>" +
+      '<div class="r"><b>IMEI</b><span class="mono">' + esc(t.imei) + "</span></div>" +
+      '<div class="r"><b>الخلل</b><span>' + esc(t.faults.join(" + ") || t.desc) + "</span></div>" +
+      "</div>" +
+      '<div class="bt">' + barcodeSVG(t.no, { height: 34, module: 1, text: false }) +
+      '<span class="ph">0773 164 4450</span></div>';
+  }
+
+  /* ---------- 12.4 ملصقات الباركود ---------- */
+  const SIZES = {
+    "60x40": { w: 60, h: 40, nm: 3.6, pr: 6, bh: 11, mod: 0.34, fs: 2.6 },
+    "50x30": { w: 50, h: 30, nm: 3.1, pr: 4.8, bh: 8.5, mod: 0.28, fs: 2.3 },
+    "40x25": { w: 40, h: 25, nm: 2.7, pr: 4, bh: 7, mod: 0.22, fs: 2 }
+  };
+
+  function labelInner(p, s) {
+    return '<div class="lt">' + MARK + '<span class="ln">' + esc(p.name) + "</span></div>" +
+      '<div class="lp"><span dir="ltr">' + NUM.format(+p.price || 0) + "</span> <small>د.ع</small></div>" +
+      '<div class="lb">' + barcodeSVG(p.sku, {
+        height: Math.round(s.bh * 4), module: Math.max(1, Math.round(s.mod * 4)), fontSize: 11
+      }) + "</div>";
+  }
+
+  function labelSheetHTML(p, size, qty) {
+    const s = SIZES[size];
+    const css =
+      "@page{size:A4;margin:8mm}" +
+      "body{display:flex;flex-wrap:wrap;gap:3mm;align-content:flex-start}" +
+      ".l{width:" + s.w + "mm;height:" + s.h + "mm;border:.2mm dashed #c9c2b4;border-radius:1.5mm;" +
+      "background:#fff;padding:1.8mm 2.2mm;display:flex;flex-direction:column;overflow:hidden}" +
+      ".lt{display:flex;align-items:center;justify-content:space-between;gap:1.5mm}" +
+      ".lt svg.m{width:" + (s.nm * 1.3) + "mm;flex:none}" +
+      ".ln{font-weight:700;font-size:" + s.nm + "mm;line-height:1.2;color:#14343F;overflow:hidden;" +
+      "display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}" +
+      ".lp{font-family:'El Messiri',serif;font-weight:700;font-size:" + s.pr + "mm;color:#14343F;" +
+      "line-height:1;margin-top:1mm;white-space:nowrap}" +
+      ".lp small{font-family:'Cairo',sans-serif;font-size:" + (s.pr * 0.42) + "mm;opacity:.55;font-weight:600}" +
+      ".lb{margin-top:auto;display:flex;justify-content:center}" +
+      ".lb svg{display:block;max-width:100%;height:" + s.bh + "mm;width:auto}";
+
+    let html = "";
+    for (let i = 0; i < qty; i++) html += '<div class="l">' + labelInner(p, s) + "</div>";
+    return { html: html, css: css };
+  }
+
+  /* ---------- 12.5 ربط الواجهة ---------- */
+  const toolsSection = $("tools");
+  if (!toolsSection) return;
+
+  // زر إظهار/إخفاء القسم — ترتيب واجهة فقط، ليس حماية
+  const toolsBtn = $("toolsBtn");
+  function setToolsOpen(open) {
+    toolsSection.hidden = !open;
+    if (toolsBtn) toolsBtn.setAttribute("aria-expanded", String(open));
+    try { localStorage.setItem("sfn_tools_open", open ? "1" : "0"); } catch (e) {}
+    if (open) toolsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (toolsBtn) {
+    toolsBtn.addEventListener("click", function () { setToolsOpen(toolsSection.hidden); });
+  }
+  try { if (localStorage.getItem("sfn_tools_open") === "1") toolsSection.hidden = false; } catch (e) {}
+
+  // تبويبان
+  const tabSvc = $("tabSvc"), tabBc = $("tabBc"), paneSvc = $("paneSvc"), paneBc = $("paneBc");
+  function showPane(which) {
+    const svc = which === "svc";
+    paneSvc.hidden = !svc; paneBc.hidden = svc;
+    tabSvc.setAttribute("aria-pressed", String(svc));
+    tabBc.setAttribute("aria-pressed", String(!svc));
+  }
+  tabSvc.addEventListener("click", function () { showPane("svc"); });
+  tabBc.addEventListener("click", function () { showPane("bc"); });
+
+  /* --- خانات نوع الخلل --- */
+  const faultsBox = $("svFaults");
+  FAULTS.forEach(function (f) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = f;
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", function () {
+      b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    });
+    faultsBox.appendChild(b);
+  });
+  function pickedFaults() {
+    return Array.prototype.filter.call(faultsBox.children, function (b) {
+      return b.getAttribute("aria-pressed") === "true";
+    }).map(function (b) { return b.textContent; });
+  }
+
+  $("svIn").value = today();
+
+  function readForm(no) {
+    return {
+      no: no,
+      name: $("svName").value.trim(),
+      phone: $("svPhone").value.trim(),
+      model: $("svModel").value.trim(),
+      imei: $("svImei").value.trim(),
+      lock: $("svLock").value.trim(),
+      acc: $("svAcc").value.trim(),
+      faults: pickedFaults(),
+      desc: $("svDesc").value.trim(),
+      dateIn: $("svIn").value,
+      dateOut: $("svOut").value,
+      cost: $("svCost").value,
+      paid: $("svPaid").value,
+      at: Date.now()
+    };
+  }
+
+  let lastTicket = null;
+
+  $("svcForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const t = readForm(nextTicketNo());
+    lastTicket = t;
+    const list = loadTickets(); list.unshift(t); saveTickets(list); renderTickets();
+    printDoc(ticketHTML(t), TICKET_CSS);
+  });
+
+  $("svPrintLabel").addEventListener("click", function () {
+    const f = $("svcForm");
+    if (!f.reportValidity()) return;
+    const t = lastTicket && lastTicket.name === $("svName").value.trim()
+      ? lastTicket : readForm(nextTicketNo());
+    if (t !== lastTicket) {
+      lastTicket = t;
+      const list = loadTickets(); list.unshift(t); saveTickets(list); renderTickets();
+    }
+    printDoc(deviceLabelHTML(t), LABEL_CSS);
+  });
+
+  $("svReset").addEventListener("click", function () {
+    $("svcForm").reset(); $("svIn").value = today(); lastTicket = null;
+    Array.prototype.forEach.call(faultsBox.children, function (b) {
+      b.setAttribute("aria-pressed", "false");
+    });
+  });
+
+  /* --- قائمة الوصولات المحفوظة --- */
+  const tkList = $("tkList"), tkSearch = $("tkSearch");
+
+  function renderTickets() {
+    const q = (tkSearch.value || "").trim().toLowerCase();
+    const rows = loadTickets().filter(function (t) {
+      return !q || (t.no + " " + t.name + " " + t.phone + " " + t.model).toLowerCase().indexOf(q) > -1;
+    }).slice(0, 40);
+
+    if (!rows.length) {
+      tkList.innerHTML = '<p class="tk-empty">' +
+        (q ? "لا يوجد وصل مطابق." : "لا توجد وصولات محفوظة بعد.") + "</p>";
+      return;
+    }
+    tkList.innerHTML = rows.map(function (t, i) {
+      return '<div class="tk-row"><span class="tk-no">' + esc(t.no) + "</span>" +
+        '<span class="tk-nm">' + esc(t.name) + " — " + esc(t.model) + "</span>" +
+        '<span class="tk-act">' +
+        '<button data-a="tk" data-i="' + i + '">وصل</button>' +
+        '<button data-a="lb" data-i="' + i + '">ستيكر</button>' +
+        '<button data-a="rm" data-i="' + i + '">حذف</button></span></div>';
+    }).join("");
+  }
+
+  tkList.addEventListener("click", function (e) {
+    const b = e.target.closest("button[data-a]");
+    if (!b) return;
+    const q = (tkSearch.value || "").trim().toLowerCase();
+    const rows = loadTickets().filter(function (t) {
+      return !q || (t.no + " " + t.name + " " + t.phone + " " + t.model).toLowerCase().indexOf(q) > -1;
+    });
+    const t = rows[+b.dataset.i];
+    if (!t) return;
+    if (b.dataset.a === "tk") printDoc(ticketHTML(t), TICKET_CSS);
+    else if (b.dataset.a === "lb") printDoc(deviceLabelHTML(t), LABEL_CSS);
+    else {
+      const all = loadTickets().filter(function (x) { return x.no !== t.no; });
+      saveTickets(all); renderTickets();
+    }
+  });
+  tkSearch.addEventListener("input", renderTickets);
+  renderTickets();
+
+  /* --- ملصقات الباركود --- */
+  const bcPreview = $("bcPreview");
+
+  function bcData() {
+    return {
+      name: $("bcName").value.trim() || "اسم المنتج",
+      price: $("bcPrice").value || 0,
+      sku: ($("bcSku").value.trim() || "SFN-AC-0000").toUpperCase()
+    };
+  }
+
+  function renderBcPreview() {
+    const s = SIZES[$("bcSize").value], p = bcData();
+    // 1 مم ≈ 3.78 بكسل على الشاشة — معاينة قريبة من المقاس الحقيقي
+    const K = 3.78;
+    bcPreview.innerHTML =
+      '<div class="lbl-pv" style="width:' + (s.w * K) + "px;height:" + (s.h * K) + 'px">' +
+      '<div class="lp-top">' + MARK.replace('class="m"', 'class="sfn-mark"')
+        .replace("<svg", '<svg style="width:' + (s.nm * 1.3 * K) + 'px;flex:none"') +
+      '<span class="lp-nm" style="font-size:' + (s.nm * K) + 'px">' + esc(p.name) + "</span></div>" +
+      '<div class="lp-pr" style="font-size:' + (s.pr * K) + 'px"><span dir="ltr">' +
+      NUM.format(+p.price || 0) + "</span> <small>د.ع</small></div>" +
+      '<div class="lp-bc" style="height:' + (s.bh * K) + 'px">' +
+      barcodeSVG(p.sku, { height: Math.round(s.bh * 4), module: Math.max(1, Math.round(s.mod * 4)), fontSize: 11 }) +
+      "</div></div>";
+  }
+
+  ["bcName", "bcPrice", "bcSku", "bcSize"].forEach(function (id) {
+    $(id).addEventListener("input", renderBcPreview);
+    $(id).addEventListener("change", renderBcPreview);
+  });
+
+  $("bcGen").addEventListener("click", function () {
+    const kind = $("bcKind").value;
+    let n = 1;
+    try {
+      const key = "sfn_sku_" + kind;
+      n = (parseInt(localStorage.getItem(key), 10) || 1000) + 1;
+      localStorage.setItem(key, n);
+    } catch (e) { n = 1000 + (Date.now() % 9000); }
+    $("bcSku").value = "SFN-" + kind + "-" + n;
+    renderBcPreview();
+  });
+
+  $("bcForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const qty = Math.min(120, Math.max(1, +$("bcQty").value || 1));
+    const r = labelSheetHTML(bcData(), $("bcSize").value, qty);
+    printDoc(r.html, r.css);
+  });
+
+  $("bcOne").addEventListener("click", function () {
+    if (!$("bcForm").reportValidity()) return;
+    const r = labelSheetHTML(bcData(), $("bcSize").value, 1);
+    printDoc(r.html, r.css);
+  });
+
+  renderBcPreview();
+})();
+
 </script>
 </body>
 </html>

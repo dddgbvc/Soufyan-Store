@@ -24,6 +24,10 @@ JOBS = {
                      "pack-box-preview", "pack-box-dieline"], 150),
     "بوستات-انستغرام.pdf": (["post-1-intro", "post-2-offer", "post-3-accessories",
                              "post-4-internet", "post-5-visit"], 150),
+    "وصل-الصيانة.pdf": (["service-ticket-blank", "service-ticket-filled",
+                          "service-device-labels"], 300),
+    "ملصقات-الباركود.pdf": (["barcode-sheet-a4", "barcode-anatomy"], 300),
+    "لوحة-الواجهة-المضيئة.pdf": (["neon-night", "neon-dimensions", "neon-specs"], 150),
 }
 
 

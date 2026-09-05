@@ -1,0 +1,169 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — ملصقات الباركود</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  .a4{width:1240px;height:1754px;background:#fff;padding:56px 50px;display:flex;flex-direction:column;gap:30px}
+  .board{width:1600px;height:1000px;background:var(--sand);padding:64px 70px;display:flex;flex-direction:column}
+
+  .sheet-head{display:flex;align-items:flex-end;justify-content:space-between;
+              border-block-end:2px solid rgba(20,52,63,.12);padding-block-end:20px}
+  .sheet-head h2{font-family:var(--display);font-weight:700;font-size:32px;color:var(--deep)}
+  .sheet-head .k{font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--teal)}
+  .sheet-head .spec{font-size:14px;font-weight:600;opacity:.55;text-align:end;line-height:1.7}
+
+  .grp{display:flex;flex-direction:column;gap:14px}
+  .grp .cap{font-size:14px;font-weight:700;letter-spacing:.1em;color:var(--teal)}
+  .rowset{display:flex;flex-wrap:wrap;gap:22px}
+
+  /* ── الملصق ── */
+  .bl{
+    border:1.6px dashed rgba(20,52,63,.32);border-radius:9px;background:#fff;
+    display:flex;flex-direction:column;padding:9px 11px;overflow:hidden;
+  }
+  .bl .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .bl .top .mark{color:var(--deep);flex:none}
+  .bl .nm{font-weight:700;color:var(--deep);line-height:1.2;overflow:hidden;
+          display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .bl .pr{font-family:var(--display);font-weight:700;color:var(--deep);white-space:nowrap;line-height:1}
+  .bl .pr small{font-family:var(--body);font-weight:600;opacity:.55}
+  .bl .bc{display:flex;justify-content:center;margin-block-start:auto}
+  .bl .bc svg{display:block;max-width:100%;height:auto}
+
+  /* 50 × 30 مم عند 150 نقطة/إنش */
+  .s50{width:295px;height:177px}
+  .s50 .mark{width:23px}   .s50 .nm{font-size:15px}  .s50 .pr{font-size:22px}
+  /* 40 × 25 مم */
+  .s40{width:236px;height:148px}
+  .s40 .mark{width:19px}   .s40 .nm{font-size:13px}  .s40 .pr{font-size:18px}
+  /* 60 × 40 مم */
+  .s60{width:354px;height:236px}
+  .s60 .mark{width:28px}   .s60 .nm{font-size:18px}  .s60 .pr{font-size:27px}
+
+  .foot{margin-block-start:auto;display:flex;justify-content:space-between;font-size:13px;
+        font-weight:600;opacity:.5;color:var(--deep);
+        border-block-start:2px solid rgba(20,52,63,.10);padding-block-start:16px}
+
+  /* ── لوح الشرح ── */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:40px}
+  .head h2{font-family:var(--display);font-weight:700;font-size:46px;line-height:1.15}
+  .head .k{font-weight:700;letter-spacing:.14em;font-size:17px;color:var(--teal)}
+  .head .spec{font-size:19px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+  .callout{position:absolute;display:flex;align-items:center;gap:12px;font-size:19px;
+           font-weight:600;color:var(--deep)}
+  .callout i{width:34px;height:34px;border-radius:50%;background:var(--deep);color:var(--sand);
+             display:grid;place-items:center;font-size:17px;font-weight:700;flex:none;font-style:normal}
+  .legend{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-block-start:28px}
+  .legend div{background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:20px;padding:22px 24px}
+  .legend b{display:block;font-family:var(--display);font-size:23px;color:var(--deep);margin-block-end:8px}
+  .legend p{font-size:18px;line-height:1.6;opacity:.72;margin:0}
+</style>
+
+<!-- ══════════════ 1 · شيت ملصقات الباركود A4 ══════════════ -->
+<div class="a4" data-document-role="page" data-slug="barcode-sheet-a4" data-label="شيت ملصقات الباركود">
+  <div class="sheet-head">
+    <div>
+      <div class="k">مخزن</div>
+      <h2 style="margin-block-start:10px">ملصقات الباركود</h2>
+    </div>
+    <div class="spec">A4 · ثلاثة مقاسات · Code 128<br>ورق لاصق حراري أو ليزر — 300 نقطة/إنش</div>
+  </div>
+
+  <div class="grp">
+    <div class="cap">60 × 40 مم — للعلب والأجهزة</div>
+    <div class="rowset">
+      <div class="bl s60" data-name="Samsung Galaxy A54 128GB" data-price="385,000" data-sku="SFN-PH-1042"></div>
+      <div class="bl s60" data-name="iPhone 13 128GB" data-price="720,000" data-sku="SFN-PH-1043"></div>
+      <div class="bl s60" data-name="Redmi Note 13 256GB" data-price="295,000" data-sku="SFN-PH-1044"></div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="cap">50 × 30 مم — للإكسسوارات</div>
+    <div class="rowset">
+      <div class="bl s50" data-name="سماعة بلوتوث لاسلكية" data-price="35,000" data-sku="SFN-AC-2210"></div>
+      <div class="bl s50" data-name="شاحن سريع 33W" data-price="18,000" data-sku="SFN-AC-2211"></div>
+      <div class="bl s50" data-name="كيبل Type-C مجدول" data-price="7,500" data-sku="SFN-AC-2212"></div>
+      <div class="bl s50" data-name="زجاج حماية شاشة" data-price="5,000" data-sku="SFN-AC-2213"></div>
+      <div class="bl s50" data-name="باور بانك 10000mAh" data-price="28,000" data-sku="SFN-AC-2214"></div>
+      <div class="bl s50" data-name="حامل سيارة مغناطيسي" data-price="12,000" data-sku="SFN-AC-2215"></div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="cap">40 × 25 مم — للقطع الصغيرة</div>
+    <div class="rowset">
+      <div class="bl s40" data-name="حافظة سيليكون" data-price="6,000" data-sku="SFN-AC-2301"></div>
+      <div class="bl s40" data-name="حامل موبايل" data-price="9,000" data-sku="SFN-AC-2302"></div>
+      <div class="bl s40" data-name="بطاقة ذاكرة 64GB" data-price="14,000" data-sku="SFN-AC-2303"></div>
+      <div class="bl s40" data-name="شريحة بيانات" data-price="10,000" data-sku="SFN-AC-2304"></div>
+      <div class="bl s40" data-name="سماعة سلكية" data-price="4,000" data-sku="SFN-AC-2305"></div>
+      <div class="bl s40" data-name="قلم شاشة" data-price="8,000" data-sku="SFN-AC-2306"></div>
+      <div class="bl s40" data-name="منظّف شاشة" data-price="3,000" data-sku="SFN-AC-2307"></div>
+      <div class="bl s40" data-name="محوّل OTG" data-price="4,500" data-sku="SFN-AC-2308"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>مكتب سفيان للموبايل — سامراء، الحويش</span>
+    <span>الخطوط المتقطّعة أدلّة قص ولا تُطبع</span>
+  </div>
+</div>
+
+<!-- ══════════════ 2 · شرح عناصر الملصق ══════════════ -->
+<div class="board" data-document-role="page" data-slug="barcode-anatomy" data-label="عناصر الملصق">
+  <div class="head">
+    <div>
+      <div class="k">مرجع</div>
+      <h2 style="margin-block-start:12px">عناصر ملصق الباركود</h2>
+    </div>
+    <div class="spec">ترميز Code 128 — يقرأه أي ماسح ليزري أو كاميرا<br>يُولَّد من برنامج المتجر مباشرة</div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative">
+    <div class="bl s60" id="big"
+         style="width:720px;height:480px;border-style:solid;border-color:rgba(20,52,63,.14);
+                border-width:2px;border-radius:22px;padding:34px 40px;
+                box-shadow:0 30px 60px rgba(20,52,63,.12);background:#fff"
+         data-name="Samsung Galaxy A54 128GB" data-price="385,000" data-sku="SFN-PH-1042"
+         data-big="1"></div>
+
+    <div class="callout" style="inset-block-start:64px;inset-inline-start:120px"><i>١</i>الرمز واسم المنتج</div>
+    <div class="callout" style="inset-block-start:214px;inset-inline-start:96px"><i>٢</i>السعر بالدينار</div>
+    <div class="callout" style="inset-block-end:118px;inset-inline-end:110px"><i>٣</i>الباركود ورقم المنتج</div>
+  </div>
+
+  <div class="legend">
+    <div><b>الترميز</b><p>Code 128 — يقبل أرقاماً وحروفاً لاتينية، ويختصر تلقائياً حين يكون الرمز أرقاماً فقط.</p></div>
+    <div><b>رقم المنتج</b><p>البادئة <span class="ltr">SFN-PH-</span> للهواتف و<span class="ltr">SFN-AC-</span> للإكسسوارات، ثم رقم متسلسل.</p></div>
+    <div><b>المنطقة الهادئة</b><p>يُترك فراغ أبيض على جانبَي الباركود لا يقل عن عشرة أضعاف أنحف شريحة.</p></div>
+    <div><b>الطباعة</b><p>أسود على أبيض فقط. لا تطبع الباركود على خلفية ملوّنة أو لامعة.</p></div>
+  </div>
+</div>
+
+<script src="../tools/code128.js"></script>
+<script>
+  document.querySelectorAll('.bl').forEach(function (el) {
+    var big = el.dataset.big === '1';
+    var w = el.clientWidth || 295;
+    // عرض أنحف شريحة يتناسب مع عرض الملصق حتى يبقى الباركود ضمن حدوده
+    var module = big ? 3 : (w >= 340 ? 2 : (w >= 280 ? 1.6 : 1.3));
+
+    el.innerHTML =
+      '<div class="top">' +
+        '<svg class="mark" viewBox="44 58 152 124"' + (big ? ' style="width:58px"' : '') + '>' +
+          '<path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>' +
+          '<path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>' +
+        '<span class="nm"' + (big ? ' style="font-size:34px"' : '') + '>' + el.dataset.name + '</span>' +
+      '</div>' +
+      '<div class="pr"' + (big ? ' style="font-size:56px;margin-block-start:18px"' : ' style="margin-block-start:6px"') + '>' +
+        '<span class="ltr">' + el.dataset.price + '</span> <small>د.ع</small></div>' +
+      '<div class="bc"></div>';
+
+    el.querySelector('.bc').innerHTML = Code128.svg(el.dataset.sku, {
+      height: big ? 120 : (w >= 340 ? 52 : (w >= 280 ? 44 : 34)),
+      module: module,
+      fontSize: big ? 26 : (w >= 280 ? 13 : 11)
+    });
+  });
+</script>

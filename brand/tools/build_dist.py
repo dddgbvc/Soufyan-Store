@@ -39,7 +39,7 @@ def inline_css(css_path):
 
 # ملفات تُقسَّم لوحاً لوحاً لأن ألواحها بمقاسات مختلفة،
 # وتصميم كانفا الواحد لا يقبل إلا مقاساً واحداً.
-SPLIT = {"05-covers.html"}
+SPLIT = {"05-covers.html", "09-service-ticket.html", "11-barcode-label.html"}
 
 
 def canva_safe(html):
@@ -74,7 +74,16 @@ def build(page_file):
 
     src = re.sub(r'<link rel="stylesheet" href="([^"]+)"\s*/?>', css_repl, src)
 
-    # 2. حوّل كل صورة مرجعية إلى بيانات مضمّنة
+    # 2. أدمج ملفات السكربت الخارجية
+    def js_repl(m):
+        target = os.path.normpath(os.path.join(PAGES, m.group(1)))
+        if not os.path.exists(target):
+            return m.group(0)
+        return "<script>\n" + open(target, encoding="utf-8").read() + "\n</script>"
+
+    src = re.sub(r'<script src="([^"]+)"></script>', js_repl, src)
+
+    # 3. حوّل كل صورة مرجعية إلى بيانات مضمّنة
     def img_repl(m):
         target = os.path.normpath(os.path.join(PAGES, m.group(2)))
         if not os.path.exists(target):
@@ -83,7 +92,7 @@ def build(page_file):
 
     src = re.sub(r'(<img[^>]*?)src="([^"]+)"', img_repl, src)
 
-    # 3. نظّف ما لا يدعمه محوّل كانفا
+    # 4. نظّف ما لا يدعمه محوّل كانفا
     src = re.sub(r'<meta charset="utf-8">\s*', "", src, count=1)
     src = re.sub(r"<title>.*?</title>\s*", "", src, count=1, flags=re.S)
     src = canva_safe(src)
@@ -92,15 +101,19 @@ def build(page_file):
         emit(page_file, title, src)
         return
 
-    # 4. ملفات المقاسات المختلطة: لوح واحد لكل ملف
+    # 5. ملفات المقاسات المختلطة: لوح واحد لكل ملف
     style = "".join(re.findall(r"<style>.*?</style>", src, re.S))
     head = src[:src.rindex("</style>") + 8] if "</style>" in src else ""
     boards = re.findall(r'(<div class="[^"]*"[^>]*data-document-role="page"'
                         r'[^>]*data-slug="([^"]+)"[^>]*data-label="([^"]+)".*?)(?=\n<!--|\Z)',
                         src, re.S)
+    scripts = "".join(re.findall(r"<script>.*?</script>", src, re.S))
     stem = page_file[:-5]
     for body, slug, label in boards:
-        emit(f"{stem}--{slug}.html", f"{label} — مكتب سفيان للموبايل", style + "\n" + body)
+        # اللوح الأخير يلتقط السكربتات ضمنه — نزيلها ثم نُلحقها مرة واحدة
+        body = re.sub(r"<script>.*?</script>", "", body, flags=re.S).rstrip()
+        emit(f"{stem}--{slug}.html", f"{label} — مكتب سفيان للموبايل",
+             style + "\n" + body + "\n" + scripts)
 
 
 if __name__ == "__main__":

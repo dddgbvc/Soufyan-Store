@@ -1,0 +1,216 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — لوحة الواجهة المضيئة</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  .board{width:1600px;height:1000px;background:var(--sand);padding:64px 70px;display:flex;flex-direction:column}
+  .board.night{background:#060F13;color:var(--sand)}
+
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:34px;position:relative}
+  .head h2{font-family:var(--display);font-weight:700;font-size:46px;line-height:1.15}
+  .head .k{font-weight:700;letter-spacing:.14em;font-size:17px;color:var(--teal)}
+  .board.night .head .k{color:var(--gold)}
+  .head .spec{font-size:19px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+
+  .stage{flex:1;position:relative;display:grid;place-items:center}
+
+  /* توهّج اللوحة على الجدار */
+  .spill{position:absolute;border-radius:50%;pointer-events:none}
+
+  /* ── جدول المواصفات ── */
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:22px 34px;flex:1;align-content:start}
+  .srow{display:flex;gap:18px;background:#fff;border:2px solid rgba(20,52,63,.07);
+        border-radius:22px;padding:22px 26px}
+  .srow .ic{width:46px;height:46px;flex:none;border-radius:12px;background:var(--sand-2);
+            display:grid;place-items:center;color:var(--teal)}
+  .srow .ic svg{width:26px;height:26px}
+  .srow b{display:block;font-family:var(--display);font-size:24px;font-weight:700;color:var(--deep);margin-block-end:6px}
+  .srow p{font-size:19px;line-height:1.6;opacity:.72;margin:0}
+  .srow .ltr{display:inline-block}
+
+  .note{background:var(--deep);color:var(--sand);border-radius:22px;padding:24px 30px;
+        display:flex;align-items:center;gap:24px;margin-block-start:24px}
+  .note p{font-size:19px;line-height:1.65;opacity:.85;margin:0}
+
+  .pf{margin-block-start:auto;padding-block-start:22px;display:flex;justify-content:space-between;
+      font-size:16px;font-weight:600;opacity:.45;border-block-start:2px solid rgba(20,52,63,.10)}
+  .board.night .pf{border-color:rgba(242,237,228,.14);opacity:.55}
+</style>
+
+<!-- ══════════════ 1 · منظر ليلي ══════════════ -->
+<div class="board night" data-document-role="page" data-slug="neon-night" data-label="اللوحة ليلاً">
+  <div class="head">
+    <div>
+      <div class="k">واجهة المحل</div>
+      <h2 style="margin-block-start:12px">لوحة الواجهة المضيئة</h2>
+    </div>
+    <div class="spec">180 × 62 سم · حروف بارزة بإضاءة LED<br>إطار نيون فليكس أخضر مائي</div>
+  </div>
+
+  <div class="stage">
+    <div style="position:relative;width:1360px">
+      <!-- واجهة المبنى ليلاً -->
+      <svg viewBox="0 0 1360 660" style="width:100%;display:block">
+        <defs>
+          <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#12222A"/><stop offset="100%" stop-color="#0A171D"/>
+          </linearGradient>
+          <linearGradient id="shopGlow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#F6E4C0" stop-opacity=".92"/>
+            <stop offset="100%" stop-color="#D9BE93" stop-opacity=".55"/>
+          </linearGradient>
+          <radialGradient id="spillG" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#C8A96A" stop-opacity=".26"/>
+            <stop offset="100%" stop-color="#C8A96A" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="1360" height="660" fill="#060F13"/>
+        <rect x="60" y="20" width="1240" height="580" fill="url(#wall)" rx="6"/>
+        <!-- انسكاب ضوء اللوحة على الجدار -->
+        <ellipse cx="680" cy="185" rx="640" ry="230" fill="url(#spillG)"/>
+
+        <!-- واجهة زجاجية مضيئة من الداخل -->
+        <rect x="150" y="330" width="1060" height="250" rx="10" fill="#0E1D24"/>
+        <rect x="166" y="346" width="470" height="218" rx="6" fill="url(#shopGlow)" opacity=".55"/>
+        <rect x="724" y="346" width="470" height="218" rx="6" fill="url(#shopGlow)" opacity=".55"/>
+        <rect x="648" y="346" width="68" height="218" rx="6" fill="url(#shopGlow)" opacity=".75"/>
+        <g stroke="#0A171D" stroke-width="7" fill="none">
+          <path d="M166,455 H636 M724,455 H1194"/><path d="M401,346 V564 M959,346 V564"/>
+        </g>
+
+        <!-- رصيف وانعكاس -->
+        <rect x="0" y="580" width="1360" height="80" fill="#0A1418"/>
+        <ellipse cx="680" cy="596" rx="520" ry="26" fill="#C8A96A" opacity=".10"/>
+        <ellipse cx="680" cy="600" rx="300" ry="14" fill="#F6E4C0" opacity=".10"/>
+      </svg>
+
+      <!-- اللوحة مثبّتة أعلى الواجهة -->
+      <img src="../logo/sign-lit.svg"
+           style="position:absolute;width:82%;left:9%;top:11%;display:block">
+    </div>
+  </div>
+
+  <div class="pf"><span>مكتب سفيان للموبايل — سامراء، الحويش</span><span>منظر ليلي</span></div>
+</div>
+
+<!-- ══════════════ 2 · المقاسات والتركيب ══════════════ -->
+<div class="board" data-document-role="page" data-slug="neon-dimensions" data-label="مقاسات اللوحة">
+  <div class="head">
+    <div>
+      <div class="k">ملف التصنيع</div>
+      <h2 style="margin-block-start:12px">المقاسات والتركيب</h2>
+    </div>
+    <div class="spec">المقياس 1:10 · كل الأبعاد بالمليمتر<br>تُسلَّم للورشة مع ملف SVG بمقياس 1:1</div>
+  </div>
+
+  <div class="stage">
+    <div style="position:relative;width:1300px">
+      <svg viewBox="0 0 1300 620" style="width:100%;display:block">
+        <!-- اللوحة مطفأة كمرجع للقياس -->
+        <rect x="130" y="120" width="1040" height="358" rx="14" fill="none"
+              stroke="rgba(20,52,63,.18)" stroke-width="2"/>
+
+        <!-- خطوط القياس -->
+        <g stroke="#14343F" stroke-width="1.6" opacity=".6" fill="none">
+          <path d="M130,86 H1170"/><path d="M130,74 V98"/><path d="M1170,74 V98"/>
+          <path d="M1214,120 V478"/><path d="M1202,120 H1226"/><path d="M1202,478 H1226"/>
+          <path d="M130,516 H430"/><path d="M130,504 V528"/><path d="M430,504 V528"/>
+        </g>
+        <g fill="#14343F" font-family="Cairo" font-size="19" font-weight="700">
+          <text x="650" y="66" text-anchor="middle">1800 مم</text>
+          <text x="1244" y="306">620 مم</text>
+          <text x="280" y="548" text-anchor="middle" font-size="16" opacity=".7">ارتفاع الحرف 296 مم</text>
+        </g>
+
+        <!-- مقطع جانبي يوضّح العمق -->
+        <g transform="translate(760,556)">
+          <rect x="0" y="-16" width="140" height="32" rx="5" fill="#14343F"/>
+          <rect x="140" y="-11" width="26" height="22" rx="4" fill="#C8A96A"/>
+          <path d="M0,26 H166" stroke="#14343F" stroke-width="1.4" opacity=".6"/>
+          <path d="M0,20 V32 M166,20 V32" stroke="#14343F" stroke-width="1.4" opacity=".6"/>
+          <text x="83" y="50" text-anchor="middle" font-family="Cairo" font-size="15"
+                font-weight="700" fill="#14343F" opacity=".75">عمق الكبينة 120 مم</text>
+        </g>
+      </svg>
+
+      <img src="../logo/sign-off.svg"
+           style="position:absolute;width:80%;left:10%;top:19.4%;display:block">
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>مقاسات اللوحة</span></div>
+</div>
+
+<!-- ══════════════ 3 · المواصفات الفنية ══════════════ -->
+<div class="board" data-document-role="page" data-slug="neon-specs" data-label="مواصفات اللوحة">
+  <div class="head">
+    <div>
+      <div class="k">ملف التصنيع</div>
+      <h2 style="margin-block-start:12px">المواصفات الفنية</h2>
+    </div>
+    <div class="spec">تُسلَّم هذه الصفحة لورشة اللوحات<br>مع ملفَّي sign-lit.svg و sign-off.svg</div>
+  </div>
+
+  <div class="specs">
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><rect x="7" y="16" width="50" height="32" rx="5"/><path d="M18 48v6M46 48v6"/></svg></span>
+      <div><b>الكبينة</b><p>ألمنيوم كومبوزيت بعمق <span class="ltr">120 مم</span>، مطلي بلون بترولي
+        <span class="ltr">#14343F</span> مطفي (Matte)، حواف مطوية بلا براغٍ ظاهرة.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><path d="M12 50V22a10 10 0 0 1 20 0v28M12 36h20"/><path d="M42 50V14M42 50h10"/></svg></span>
+      <div><b>الحروف والرمز</b><p>حروف بارزة (Channel Letters) بعمق <span class="ltr">80 مم</span>،
+        وجه أكريليك حليبي <span class="ltr">3 مم</span>، جوانب ألمنيوم <span class="ltr">0.6 مم</span>.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M50 14l-7 7M21 43l-7 7"/><circle cx="32" cy="32" r="11"/></svg></span>
+      <div><b>الإضاءة</b><p>مودیولات <span class="ltr">LED 12V</span> أبيض دافئ
+        <span class="ltr">3000K</span> داخل الحروف — توزيع مودیول كل
+        <span class="ltr">60 مم</span> لتفادي البقع المضيئة.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><rect x="8" y="12" width="48" height="40" rx="12"/></svg></span>
+      <div><b>إطار النيون</b><p>نيون فليكس <span class="ltr">12V</span> أخضر مائي
+        <span class="ltr">#7FE8DC</span>، قطر <span class="ltr">14 مم</span>، يلتف داخل الإطار
+        بمسافة <span class="ltr">30 مم</span> من الحافة.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><path d="M35 6 16 36h13l-3 22 22-32H35z"/></svg></span>
+      <div><b>الكهرباء</b><p>محوّل <span class="ltr">12V</span> بحماية <span class="ltr">IP67</span>
+        وقدرة تزيد <span class="ltr">20%</span> عن الحمل. قاطع مستقل ومؤقّت غروب/شروق.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><path d="M10 54h44M16 54V26l16-14 16 14v28"/><rect x="26" y="34" width="12" height="20"/></svg></span>
+      <div><b>التثبيت</b><p>قواعد ألمنيوم على الجدار تترك <span class="ltr">50 مم</span> تهوية خلف
+        الكبينة، ومخرج كيبل مانع للماء من الأسفل.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><path d="M8 44c6-18 14-26 24-26s18 8 24 26"/><circle cx="32" cy="50" r="5"/></svg></span>
+      <div><b>الحماية من الطقس</b><p>سيليكون مانع للماء على كل الوصلات، ودرجة حماية
+        <span class="ltr">IP65</span> للكبينة كاملة — مناسبة للغبار والحرارة.</p></div>
+    </div>
+
+    <div class="srow">
+      <span class="ic"><svg class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24"/><path d="M32 18v16l10 6"/></svg></span>
+      <div><b>التشغيل</b><p>الاسم والرمز يضيئان معاً. يُنصح بإطفاء إطار النيون بعد منتصف الليل
+        لإطالة عمره وتقليل الاستهلاك.</p></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="bars" style="color:var(--mist);--bw:12px;--bh:44px"><i></i><i></i><i></i></span>
+    <p>
+      لا تُعِد الورشة رسم الحروف — تُقص مباشرة من ملف <span class="ltr">sign-off.svg</span>
+      بمقياس <span class="ltr">1:1</span>. أي إعادة رسم تُفقد الشعار نِسَبه.
+    </p>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>مواصفات اللوحة</span></div>
+</div>
