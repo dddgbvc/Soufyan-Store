@@ -1,0 +1,213 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — كيس التسوق والعلبة</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  .board{width:1400px;height:1000px;background:var(--sand);padding:70px;display:flex;flex-direction:column}
+  .board.dark{background:var(--deep);color:var(--sand)}
+
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:36px;position:relative}
+  .head h2{font-family:var(--display);font-weight:700;font-size:52px;line-height:1.15}
+  .head .k{font-weight:700;letter-spacing:.14em;font-size:19px;color:var(--teal)}
+  .board.dark .head .k{color:var(--gold)}
+  .head .spec{font-size:20px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+
+  .stage{flex:1;position:relative;display:grid;place-items:center}
+  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.12;filter:blur(80px)}
+
+  /* الشعار المركّب فوق الوجه الأمامي — إحداثيات فيزيائية لا منطقية */
+  .panel-logo{position:absolute;display:block}
+
+  .legend{display:flex;gap:34px;font-size:19px;font-weight:600;opacity:.62;
+          align-items:center;justify-content:center;margin-block-start:26px}
+  .legend i{display:inline-block;width:34px;height:0;border-block-start:3px solid currentColor;
+            margin-inline-end:10px;vertical-align:middle}
+  .legend .fold i{border-style:dashed}
+</style>
+
+<!-- ══════════════ 1 · كيس التسوق — معاينة ══════════════ -->
+<div class="board dark" data-document-role="page" data-slug="pack-bag-preview" data-label="كيس التسوق">
+  <div class="halo" style="width:1000px;height:1000px;top:-180px;left:200px;opacity:.16"></div>
+  <div class="head">
+    <div>
+      <div class="k">تغليف</div>
+      <h2 style="margin-block-start:14px">كيس التسوق</h2>
+    </div>
+    <div class="spec">ورق مقوّى 210 غم · مقاس 32 × 40 × 12 سم<br>طباعة لونين + حبل قطني بلون رملي</div>
+  </div>
+
+  <div class="stage">
+    <div style="position:relative;width:720px">
+      <svg viewBox="0 0 760 840" style="width:100%;display:block;filter:drop-shadow(0 50px 70px rgba(0,0,0,.42))">
+        <!-- المقبض الخلفي (يختفي خلف الوجه العلوي) -->
+        <path d="M348,206 C348,120 402,104 464,104 C526,104 580,120 580,206"
+              fill="none" stroke="#C9BFA9" stroke-width="9" stroke-linecap="round" opacity=".55"/>
+        <!-- الوجه العلوي -->
+        <path d="M130,200 L264,142 L664,142 L530,200 Z" fill="#22505F"/>
+        <!-- الوجه الجانبي -->
+        <path d="M530,200 L664,142 L664,732 L530,790 Z" fill="#0D2830"/>
+        <!-- الوجه الأمامي -->
+        <path d="M130,200 L530,200 L530,790 L130,790 Z" fill="#14343F"/>
+        <!-- حافة الطي العليا -->
+        <path d="M130,200 L530,200 L530,236 L130,236 Z" fill="#F2EDE4" opacity=".06"/>
+        <!-- شريط ذهبي سفلي يلتف على الجانب -->
+        <path d="M130,744 L530,744 L530,758 L130,758 Z" fill="#C8A96A"/>
+        <path d="M530,744 L664,686 L664,700 L530,758 Z" fill="#C8A96A" opacity=".5"/>
+        <!-- الرمز مسقَطاً على الوجه الجانبي -->
+        <g transform="matrix(1,-0.4328,0,1,530,200)">
+          <g transform="translate(30,270) scale(0.52) translate(-48,-62)"
+             fill="none" stroke="#F2EDE4" stroke-width="24" stroke-linecap="round"
+             stroke-linejoin="round" opacity=".8">
+            <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
+            <path d="M84,108 L84,158"/><path d="M180,74 L180,140" stroke="#C8A96A"/>
+          </g>
+        </g>
+        <!-- المقبض الأمامي -->
+        <path d="M214,206 C214,118 268,102 330,102 C392,102 446,118 446,206"
+              fill="none" stroke="#E7DFD1" stroke-width="10" stroke-linecap="round"/>
+        <!-- الظل الأرضي -->
+        <ellipse cx="400" cy="806" rx="300" ry="20" fill="#000" opacity=".28"/>
+      </svg>
+      <!-- الشعار على الوجه الأمامي -->
+      <img class="panel-logo" src="../logo/logo-primary-onDark.svg"
+           style="width:42%;left:11.5%;top:37%">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 2 · وجه الكيس المسطّح للطباعة ══════════════ -->
+<div class="board" data-document-role="page" data-slug="pack-bag-flat" data-label="وجه الكيس للطباعة">
+  <div class="head">
+    <div>
+      <div class="k">ملف الطباعة</div>
+      <h2 style="margin-block-start:14px">الوجه الأمامي للكيس</h2>
+    </div>
+    <div class="spec">320 × 400 مم + 3 مم حدود قص<br>الخلفية: بترولي عميق ‎#14343F</div>
+  </div>
+
+  <div class="stage">
+    <div style="width:512px;height:640px;background:var(--deep);border-radius:4px;position:relative;
+                display:flex;flex-direction:column;align-items:center;justify-content:center;gap:46px;
+                box-shadow:0 30px 60px rgba(20,52,63,.20);overflow:hidden">
+      <div class="halo" style="width:520px;height:520px;top:-220px;left:-160px;opacity:.34"></div>
+      <img src="../logo/logo-primary-onDark.svg" style="width:66%;position:relative">
+      <div style="color:var(--mist);font-size:19px;font-weight:600;position:relative;text-align:center;line-height:2">
+        سامراء — الحويش — الشارع الرئيسي<br>
+        <span class="ltr" style="color:var(--gold)">0773 164 4450</span>
+      </div>
+      <div style="position:absolute;inset-block-end:0;inset-inline:0;height:18px;background:var(--gold)"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span>ورق 210 غم مطفي</span>
+    <span>حبل قطني رملي ‎#E7DFD1</span>
+    <span>طباعة لونين + ذهبي</span>
+  </div>
+</div>
+
+<!-- ══════════════ 3 · العلبة — معاينة ══════════════ -->
+<div class="board dark" data-document-role="page" data-slug="pack-box-preview" data-label="علبة المنتج">
+  <div class="halo" style="width:900px;height:900px;bottom:-320px;left:180px;opacity:.15"></div>
+  <div class="head">
+    <div>
+      <div class="k">تغليف</div>
+      <h2 style="margin-block-start:14px">علبة المنتج</h2>
+    </div>
+    <div class="spec">كرتون مطلي 350 غم · مقاس 18 × 10 × 5 سم<br>طباعة بترولي + ختم ذهبي على الغطاء</div>
+  </div>
+
+  <div class="stage">
+    <div style="position:relative;width:820px">
+      <svg viewBox="0 0 840 620" style="width:100%;display:block;filter:drop-shadow(0 44px 60px rgba(0,0,0,.42))">
+        <!-- الوجه العلوي -->
+        <path d="M150,270 L272,180 L636,180 L514,270 Z" fill="#22505F"/>
+        <!-- الوجه الجانبي -->
+        <path d="M514,270 L636,180 L636,466 L514,556 Z" fill="#0D2830"/>
+        <!-- الوجه الأمامي -->
+        <path d="M150,270 L514,270 L514,556 L150,556 Z" fill="#14343F"/>
+        <!-- شريط ذهبي عند حافة الغطاء -->
+        <path d="M150,270 L514,270 L514,284 L150,284 Z" fill="#C8A96A"/>
+        <path d="M514,270 L636,180 L636,194 L514,284 Z" fill="#C8A96A" opacity=".55"/>
+        <!-- ختم ذهبي مسقَط على الغطاء -->
+        <g transform="matrix(1,0,-1.2079,0.8911,272,180)">
+          <g transform="translate(145,21) scale(0.517) translate(-48,-62)"
+             fill="none" stroke="#C8A96A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
+            <path d="M84,108 L84,158"/><path d="M180,74 L180,140"/>
+          </g>
+        </g>
+        <ellipse cx="390" cy="576" rx="260" ry="19" fill="#000" opacity=".3"/>
+      </svg>
+      <!-- الشعار على الوجه الأمامي -->
+      <img class="panel-logo" src="../logo/logo-horizontal-onDark.svg"
+           style="width:34%;left:20.5%;top:57%">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 4 · العلبة — مخطط القص (Dieline) ══════════════ -->
+<div class="board" data-document-role="page" data-slug="pack-box-dieline" data-label="مخطط قص العلبة">
+  <div class="head">
+    <div>
+      <div class="k">ملف الطباعة</div>
+      <h2 style="margin-block-start:14px">مخطط قص العلبة</h2>
+    </div>
+    <div class="spec">180 × 100 × 50 مم · لسان لصق 15 مم<br>يُسلَّم للمطبعة بصيغة PDF مع 3 مم حدود قص</div>
+  </div>
+
+  <div class="stage">
+    <!-- المقياس: 1 مم = 1.6 وحدة -->
+    <svg viewBox="0 0 1120 500" style="width:100%;max-width:1120px">
+      <!-- الأوجه الأربعة + لسان اللصق -->
+      <g stroke="#14343F" stroke-width="2.4">
+        <path d="M180,170 H468 V330 H180 Z" fill="#FBF8F2"/>          <!-- خلفي 180مم -->
+        <path d="M468,170 H548 V330 H468 Z" fill="#F4EFE4"/>          <!-- جانب 50مم -->
+        <path d="M548,170 H836 V330 H548 Z" fill="#FBF8F2"/>          <!-- أمامي 180مم -->
+        <path d="M836,170 H916 V330 H836 Z" fill="#F4EFE4"/>          <!-- جانب 50مم -->
+        <path d="M916,170 H940 V330 H916 Z" fill="#E9E0CE"/>          <!-- لسان لصق 15مم -->
+        <!-- الأغطية العلوية والسفلية -->
+        <path d="M548,90 H836 V170 H548 Z" fill="#FBF8F2"/>
+        <path d="M548,330 H836 V410 H548 Z" fill="#FBF8F2"/>
+        <path d="M180,90 H468 V170 H180 Z" fill="#FBF8F2"/>
+        <path d="M180,330 H468 V410 H180 Z" fill="#FBF8F2"/>
+        <!-- ألسنة جانبية -->
+        <path d="M468,114 H548 V170 H468 Z" fill="#E9E0CE"/>
+        <path d="M836,114 H916 V170 H836 Z" fill="#E9E0CE"/>
+        <path d="M468,330 H548 V386 H468 Z" fill="#E9E0CE"/>
+        <path d="M836,330 H916 V386 H836 Z" fill="#E9E0CE"/>
+      </g>
+      <!-- خطوط الطي -->
+      <g stroke="#2F6F6B" stroke-width="2" stroke-dasharray="9 7" fill="none">
+        <path d="M468,90 V410"/><path d="M548,90 V410"/><path d="M836,90 V410"/><path d="M916,114 V386"/>
+        <path d="M180,170 H940"/><path d="M180,330 H940"/>
+      </g>
+      <!-- الشعار على الوجه الأمامي -->
+      <g transform="translate(692,250)">
+        <g transform="translate(-46.5,-37.5) scale(0.646) translate(-48,-62)"
+           fill="none" stroke="#14343F" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
+          <path d="M84,108 L84,158"/><path d="M180,74 L180,140" stroke="#C8A96A"/>
+        </g>
+      </g>
+      <!-- خطوط القياس -->
+      <g stroke="#14343F" stroke-width="1.4" opacity=".5" fill="none">
+        <path d="M548,442 H836"/><path d="M548,434 V450"/><path d="M836,434 V450"/>
+        <path d="M468,442 H548"/><path d="M468,434 V450"/><path d="M548,434 V450"/>
+        <path d="M984,170 V330"/><path d="M976,170 H992"/><path d="M976,330 H992"/>
+      </g>
+      <g fill="#14343F" opacity=".72" font-family="Cairo" font-size="17" font-weight="600">
+        <text x="692" y="472" text-anchor="middle">180 مم</text>
+        <text x="508" y="472" text-anchor="middle">50</text>
+        <text x="1006" y="256">100 مم</text>
+        <text x="928" y="352" text-anchor="middle" font-size="14" opacity=".7">لصق</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <span style="color:#14343F"><i></i>خط القص</span>
+    <span class="fold" style="color:#2F6F6B"><i></i>خط الطي</span>
+    <span>المساحات الداكنة = ألسنة اللصق</span>
+  </div>
+</div>

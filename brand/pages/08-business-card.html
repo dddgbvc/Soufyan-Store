@@ -1,0 +1,81 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — بطاقة العمل</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  /* 90 × 50 مم عند 300 نقطة/إنش = 1063 × 591 بكسل */
+  .card{width:1063px;height:591px;position:relative;overflow:hidden}
+  .card.front{background:var(--deep);color:var(--sand)}
+  .card.back{background:var(--sand);color:var(--deep)}
+
+  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.28;filter:blur(60px)}
+  .ghost{position:absolute;color:var(--sand);opacity:.055}
+
+  .pad{position:relative;height:100%;padding:64px 74px;display:flex;flex-direction:column}
+  .rule{height:6px;background:var(--gold);position:absolute;inset-block-end:0;inset-inline:0}
+
+  .name{font-family:var(--display);font-weight:700;font-size:44px;line-height:1.1}
+  .role{font-size:22px;font-weight:600;opacity:.65;margin-block-start:12px}
+  .line{display:flex;align-items:center;gap:16px;font-size:23px;font-weight:600}
+  .line svg{width:28px;height:28px;flex:none;color:var(--teal)}
+  .card.front .line svg{color:var(--gold)}
+</style>
+
+<!-- ══════════════ الوجه الأمامي ══════════════ -->
+<div class="card front" data-document-role="page" data-slug="card-front" data-label="بطاقة العمل — الوجه">
+  <div class="halo" style="width:520px;height:520px;top:-260px;left:-160px"></div>
+  <svg class="ghost" viewBox="48 62 144 116" style="width:520px;bottom:-130px;left:-90px">
+    <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
+      <path d="M84,108 L84,158"/><path d="M180,74 L180,140"/>
+    </g>
+  </svg>
+
+  <div class="pad" style="align-items:center;justify-content:center">
+    <img src="../logo/logo-primary-onDark.svg" style="width:52%">
+    <div style="margin-block-start:34px;font-size:20px;font-weight:600;letter-spacing:.04em;color:var(--mist)">
+      شاشتك الجاية تبدأ من هنا
+    </div>
+  </div>
+  <div class="rule"></div>
+</div>
+
+<!-- ══════════════ الوجه الخلفي ══════════════ -->
+<div class="card back" data-document-role="page" data-slug="card-back" data-label="بطاقة العمل — الظهر">
+  <div class="dots" style="color:var(--deep);opacity:.08"></div>
+
+  <div class="pad">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="name">سفيان</div>
+        <div class="role">صاحب المكتب</div>
+      </div>
+      <div class="badge" style="background:var(--deep);border-radius:24px;width:86px;height:86px;display:grid;place-items:center;flex:none">
+        <svg class="mark" viewBox="48 62 144 116" style="width:62%;color:var(--sand)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;align-items:center;gap:22px">
+      <span class="bars" style="color:var(--teal);--bw:9px;--bh:34px;--bg-gap:6px"><i></i><i></i><i></i></span>
+      <span style="font-family:var(--display);font-weight:700;font-size:26px;color:var(--teal)">شاشتك الجاية تبدأ من هنا</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="line">
+        <svg class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+        <span class="ltr">0773 164 4450</span>
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--gold)"></span>
+        <span class="ltr">0774 448 5771</span>
+      </div>
+      <div class="line">
+        <svg class="ico" viewBox="0 0 64 64"><path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/></svg>
+        سامراء — الحويش — الشارع الرئيسي
+      </div>
+      <div class="line">
+        <svg class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25"/><path d="M32 17v16l11 6"/></svg>
+        يوميًا <span class="ltr">9:00 — 22:00</span>
+      </div>
+    </div>
+  </div>
+  <div class="rule" style="background:var(--deep)"></div>
+</div>

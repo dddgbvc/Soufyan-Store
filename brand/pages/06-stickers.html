@@ -1,0 +1,184 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — شيت الستيكرات</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  /* A4 عمودي بمقياس 150 نقطة/إنش — يُصدَّر بمضاعف 2 ليصبح 300 نقطة/إنش */
+  .a4{width:1240px;height:1754px;background:#fff;padding:70px 64px;display:flex;flex-direction:column;gap:38px}
+
+  .sheet-head{display:flex;align-items:flex-end;justify-content:space-between;
+              border-block-end:2px solid rgba(20,52,63,.12);padding-block-end:22px}
+  .sheet-head h2{font-family:var(--display);font-weight:700;font-size:34px;color:var(--deep)}
+  .sheet-head .k{font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--teal)}
+  .sheet-head .spec{font-size:14px;font-weight:600;opacity:.55;text-align:end;line-height:1.7}
+
+  .row{display:flex;align-items:center;justify-content:center;gap:34px}
+
+  /* حدّ القص المتقطّع حول كل ملصق */
+  .cut{position:relative}
+  .cut::after{
+    content:"";position:absolute;inset:-11px;border:1.4px dashed rgba(20,52,63,.28);
+    border-radius:inherit;pointer-events:none;
+  }
+  .cut.circle::after{border-radius:50%}
+
+  .st{display:grid;place-items:center;text-align:center}
+  .st.circle{border-radius:50%}
+  .st.deep{background:var(--deep);color:var(--sand)}
+  .st.sand{background:var(--sand);color:var(--deep)}
+  .st.gold{background:var(--gold);color:var(--deep)}
+  .st.teal{background:var(--teal);color:var(--sand)}
+
+  .st .cap{font-family:var(--display);font-weight:700;line-height:1.2}
+  .st .sub{font-weight:600;letter-spacing:.05em;opacity:.75}
+
+  .ring{position:absolute;inset:14px;border-radius:50%;border:1.5px solid currentColor;opacity:.35}
+
+  .seal{
+    display:flex;align-items:center;justify-content:center;gap:26px;
+    background:var(--deep);color:var(--sand);border-radius:10px;
+    font-weight:700;letter-spacing:.05em;
+  }
+  .seal .bars{--bw:7px;--bh:26px;--bg-gap:5px;color:var(--mist)}
+
+  .foot{margin-block-start:auto;display:flex;align-items:center;justify-content:space-between;
+        font-size:13px;font-weight:600;opacity:.5;color:var(--deep);
+        border-block-start:2px solid rgba(20,52,63,.10);padding-block-start:18px}
+</style>
+
+<div class="a4" data-document-role="page" data-slug="stickers-sheet-a4" data-label="شيت ستيكرات A4">
+  <div class="sheet-head">
+    <div>
+      <div class="k">مطبوعات</div>
+      <h2 style="margin-block-start:10px">شيت الستيكرات</h2>
+    </div>
+    <div class="spec">A4 · 210 × 297 مم · 300 نقطة/إنش<br>ورق لاصق مطفي — قص دائري ومربّع</div>
+  </div>
+
+  <!-- ① ختمان كبيران ⌀ 54 مم -->
+  <div class="row">
+    <div class="cut circle st circle deep" style="width:320px;height:320px;position:relative">
+      <div class="ring" style="color:var(--gold)"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:20px">
+        <svg class="mark" viewBox="48 62 144 116" style="width:148px;color:var(--sand)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+        <div class="cap" style="font-size:27px">مكتب سفيان للموبايل</div>
+        <div class="sub" style="font-size:11px;letter-spacing:.34em;color:var(--mist)">SUFYAN MOBILE</div>
+      </div>
+    </div>
+
+    <div class="cut circle st circle sand" style="width:320px;height:320px;position:relative;border:2px solid rgba(20,52,63,.10)">
+      <div class="ring" style="color:var(--teal)"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:20px">
+        <svg class="mark" viewBox="48 62 144 116" style="width:148px;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140" style="stroke:var(--teal)"/></svg>
+        <div class="cap" style="font-size:27px">مكتب سفيان للموبايل</div>
+        <div class="sub" style="font-size:11px;letter-spacing:.34em;color:var(--teal)">SUFYAN MOBILE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② ثلاثة ملصقات ⌀ 40 مم -->
+  <div class="row">
+    <div class="cut circle st circle gold" style="width:236px;height:236px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <svg class="ico" viewBox="0 0 64 64" style="width:46px;height:46px;color:var(--deep)"><path d="M32 54s-22-13-22-28a12 12 0 0 1 22-7 12 12 0 0 1 22 7c0 15-22 28-22 28z"/></svg>
+        <div class="cap" style="font-size:29px">شكراً لطلبك</div>
+      </div>
+    </div>
+    <div class="cut circle st circle teal" style="width:236px;height:236px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <svg class="ico" viewBox="0 0 64 64" style="width:46px;height:46px"><circle cx="32" cy="32" r="24"/><path d="M21 33l8 8 15-17"/></svg>
+        <div class="cap" style="font-size:29px">تم الفحص</div>
+      </div>
+    </div>
+    <div class="cut circle st circle deep" style="width:236px;height:236px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <svg class="ico" viewBox="0 0 64 64" style="width:46px;height:46px;color:var(--gold)"><path d="M32 7l21 8v15c0 15-9 25-21 31-12-6-21-16-21-31V15z"/><path d="M23 33l6 6 13-14"/></svg>
+        <div class="cap" style="font-size:29px;color:var(--gold)">كفالة سنة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ ملصقان مستطيلان -->
+  <div class="row">
+    <div class="cut st sand" style="width:470px;height:150px;border-radius:22px;border:2px solid rgba(20,52,63,.10)">
+      <img src="../logo/logo-horizontal.svg" style="width:78%">
+    </div>
+    <div class="cut st deep" style="width:470px;height:150px;border-radius:22px">
+      <div style="display:flex;align-items:center;gap:22px">
+        <svg class="ico" viewBox="0 0 64 64" style="width:44px;height:44px;color:var(--gold)"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+        <div style="text-align:start">
+          <div class="cap" style="font-size:25px">اطلب عبر واتساب</div>
+          <div class="ltr sub" style="font-size:21px;color:var(--gold);margin-block-start:6px">0773 164 4450</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ ستة ملصقات صغيرة للرمز -->
+  <div class="row" style="gap:28px">
+    <div class="cut st deep" style="width:118px;height:118px;border-radius:30px">
+      <svg class="mark" viewBox="48 62 144 116" style="width:72px;color:var(--sand)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+    </div>
+    <div class="cut st sand" style="width:118px;height:118px;border-radius:30px;border:2px solid rgba(20,52,63,.10)">
+      <svg class="mark" viewBox="48 62 144 116" style="width:72px;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140" style="stroke:var(--teal)"/></svg>
+    </div>
+    <div class="cut st teal" style="width:118px;height:118px;border-radius:30px">
+      <svg class="mark" viewBox="48 62 144 116" style="width:72px;color:var(--sand)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+    </div>
+    <div class="cut st gold" style="width:118px;height:118px;border-radius:30px">
+      <svg class="mark" viewBox="48 62 144 116" style="width:72px;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140" style="stroke:var(--deep)"/></svg>
+    </div>
+    <div class="cut st deep" style="width:118px;height:118px;border-radius:59px">
+      <svg class="mark" viewBox="48 62 144 116" style="width:70px;color:var(--gold)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140" style="stroke:var(--sand)"/></svg>
+    </div>
+    <div class="cut st sand" style="width:118px;height:118px;border-radius:59px;border:2px solid rgba(20,52,63,.10)">
+      <svg class="mark" viewBox="48 62 144 116" style="width:70px;color:var(--teal)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+    </div>
+  </div>
+
+  <!-- ⑤ بطاقات سعر للرفوف — الحقول تُملأ باليد أو بالطباعة -->
+  <div class="row" style="gap:30px">
+    <div class="cut st sand" style="width:320px;height:170px;border-radius:20px;border:2px solid rgba(20,52,63,.12);
+                                    display:flex;flex-direction:column;justify-content:center;gap:14px;padding:0 26px">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <svg class="mark" viewBox="48 62 144 116" style="width:44px;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140" style="stroke:var(--teal)"/></svg>
+        <span style="font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--teal)">السعر</span>
+      </div>
+      <div style="width:100%;height:2px;background:rgba(20,52,63,.14)"></div>
+      <div style="width:100%;height:2px;background:rgba(20,52,63,.14)"></div>
+    </div>
+    <div class="cut st deep" style="width:320px;height:170px;border-radius:20px;
+                                    display:flex;flex-direction:column;justify-content:center;gap:14px;padding:0 26px">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <svg class="mark" viewBox="48 62 144 116" style="width:44px;color:var(--sand)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+        <span style="font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--gold)">السعر</span>
+      </div>
+      <div style="width:100%;height:2px;background:rgba(242,237,228,.22)"></div>
+      <div style="width:100%;height:2px;background:rgba(242,237,228,.22)"></div>
+    </div>
+    <div class="cut st sand" style="width:320px;height:170px;border-radius:20px;border:2px solid rgba(20,52,63,.12);
+                                    display:flex;flex-direction:column;justify-content:center;gap:14px;padding:0 26px">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <svg class="mark" viewBox="48 62 144 116" style="width:44px;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140" style="stroke:var(--gold)"/></svg>
+        <span style="font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--teal)">السعر</span>
+      </div>
+      <div style="width:100%;height:2px;background:rgba(20,52,63,.14)"></div>
+      <div style="width:100%;height:2px;background:rgba(20,52,63,.14)"></div>
+    </div>
+  </div>
+
+  <!-- ⑥ شريط ختم الإغلاق -->
+  <div class="row">
+    <div class="cut seal" style="width:1000px;height:84px">
+      <span class="bars"><i></i><i></i><i></i></span>
+      <span style="font-size:22px">مغلق بإحكام — مكتب سفيان للموبايل</span>
+      <span class="ltr" style="font-size:18px;color:var(--gold)">0773 164 4450</span>
+      <span class="bars"><i></i><i></i><i></i></span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>مكتب سفيان للموبايل — سامراء، الحويش</span>
+    <span>الخطوط المتقطّعة أدلّة قص ولا تُطبع</span>
+  </div>
+</div>

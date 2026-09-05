@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 62 144 116" width="144" height="116" role="img" aria-label="مكتب سفيان للموبايل — الرمز">
+  <title>مكتب سفيان للموبايل — الرمز</title>
+  <g fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- القاعدة: تنعطف صاعدة من اليمين ثم تمتد وتنتهي مفتوحة يساراً -->
+    <path d="M180,134 C180,154 166,166 142,166 L60,166" stroke="#14343F"/>
+    <!-- العمود الأوسط -->
+    <path d="M133,92 L133,158" stroke="#14343F"/>
+    <!-- العمود الأقصر -->
+    <path d="M84,108 L84,158" stroke="#14343F"/>
+    <!-- العمود الأطول — عمود الإشارة المميّز -->
+    <path d="M180,74 L180,140" stroke="#C8A96A"/>
+  </g>
+</svg>

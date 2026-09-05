@@ -1,0 +1,47 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — الشعار</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  .sq{width:1080px;height:1080px;display:grid;place-items:center;background:var(--sand);position:relative}
+  .sq.deep{background:var(--deep)}
+  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.26;filter:blur(90px)}
+  .cap{position:absolute;inset-block-end:64px;inset-inline:0;text-align:center;
+       font-size:22px;font-weight:600;letter-spacing:.12em;opacity:.42}
+  .sq.deep .cap{color:var(--sand);opacity:.5}
+</style>
+
+<!-- الشعار الرئيسي على خلفية رملية -->
+<div class="sq" data-document-role="page" data-slug="logo-primary-sand" data-label="الشعار الرئيسي">
+  <div class="dots" style="color:var(--deep);opacity:.07"></div>
+  <img src="../logo/logo-primary.svg" style="width:56%;position:relative">
+  <div class="cap">الصيغة الرئيسية</div>
+</div>
+
+<!-- الشعار على خلفية بترولية -->
+<div class="sq deep" data-document-role="page" data-slug="logo-primary-deep" data-label="الشعار على داكن">
+  <div class="halo" style="width:800px;height:800px;top:-260px;left:-220px"></div>
+  <img src="../logo/logo-primary-onDark.svg" style="width:56%;position:relative">
+  <div class="cap">على الخلفية الداكنة</div>
+</div>
+
+<!-- الشعار الأفقي -->
+<div class="sq" data-document-role="page" data-slug="logo-horizontal-sand" data-label="الشعار الأفقي">
+  <img src="../logo/logo-horizontal.svg" style="width:86%">
+  <div class="cap">الصيغة الأفقية</div>
+</div>
+
+<!-- الأيقونة — صورة الحساب -->
+<div class="sq deep" data-document-role="page" data-slug="logo-avatar" data-label="صورة الحساب">
+  <div class="halo" style="width:760px;height:760px;opacity:.22"></div>
+  <svg class="mark" viewBox="48 62 144 116" style="width:52%;color:var(--sand);position:relative">
+    <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
+    <path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/>
+  </svg>
+</div>
+
+<!-- الختم -->
+<div class="sq" data-document-role="page" data-slug="logo-stamp-sand" data-label="الختم الدائري">
+  <img src="../logo/logo-stamp.svg" style="width:60%">
+  <div class="cap">الختم — للستيكرات والتغليف</div>
+</div>

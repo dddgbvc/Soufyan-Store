@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0 240 240" width="240" height="240" role="img" aria-label="مكتب سفيان للموبايل — الأيقونة الفاتحة">
+  <title>مكتب سفيان للموبايل — الأيقونة الفاتحة</title>
+  <rect x="0" y="0" width="240" height="240" rx="62" fill="#F2EDE4"/>
+  <g fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- القاعدة: تنعطف صاعدة من اليمين ثم تمتد وتنتهي مفتوحة يساراً -->
+    <path d="M180,134 C180,154 166,166 142,166 L60,166" stroke="#14343F"/>
+    <!-- العمود الأوسط -->
+    <path d="M133,92 L133,158" stroke="#14343F"/>
+    <!-- العمود الأقصر -->
+    <path d="M84,108 L84,158" stroke="#14343F"/>
+    <!-- العمود الأطول — عمود الإشارة المميّز -->
+    <path d="M180,74 L180,140" stroke="#2F6F6B"/>
+  </g>
+</svg>

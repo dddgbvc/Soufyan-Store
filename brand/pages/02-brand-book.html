@@ -1,0 +1,555 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — دليل الهوية البصرية</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  /* A4 أفقي 1600×1131 */
+  .pg{width:1600px;height:1131px;background:var(--sand);padding:92px 100px;display:flex;flex-direction:column}
+  .pg.dark{background:var(--deep);color:var(--sand)}
+  .pg.white{background:#FBF9F5}
+
+  .ph{display:flex;align-items:flex-end;justify-content:space-between;
+      border-block-end:2px solid rgba(20,52,63,.12);padding-block-end:24px;margin-block-end:52px}
+  .pg.dark .ph{border-color:rgba(242,237,228,.18)}
+  .ph h2{font-family:var(--display);font-weight:700;font-size:52px;line-height:1.1}
+  .ph .k{font-weight:700;letter-spacing:.16em;font-size:16px;color:var(--teal)}
+  .pg.dark .ph .k{color:var(--gold)}
+  .ph .no{font-family:var(--display);font-weight:700;font-size:34px;opacity:.22}
+
+  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.24;filter:blur(90px)}
+  .ghost{position:absolute;color:var(--sand);opacity:.05}
+
+  p{font-size:23px;line-height:1.85;opacity:.82}
+  .lead{font-size:27px;line-height:1.8}
+  h3{font-family:var(--display);font-weight:700;font-size:30px;margin-block-end:14px}
+  .muted{font-size:19px;opacity:.6;line-height:1.7}
+
+  .body{flex:1;min-height:0;display:flex;flex-direction:column;gap:34px}
+  .cols{display:grid;gap:44px}
+  .c2{grid-template-columns:1fr 1fr}
+  .c3{grid-template-columns:repeat(3,1fr)}
+  .c4{grid-template-columns:repeat(4,1fr)}
+  .c6{grid-template-columns:repeat(6,1fr)}
+
+  .box{background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:30px;padding:36px;
+       display:flex;flex-direction:column;gap:16px}
+  .box.deep{background:var(--deep);border-color:transparent;color:var(--sand)}
+  .box.plain{background:transparent;border-style:dashed}
+
+  /* ألوان */
+  .sw{border-radius:26px;overflow:hidden;border:2px solid rgba(20,52,63,.07);display:flex;flex-direction:column}
+  .sw .chip{height:150px}
+  .sw .meta{padding:18px 20px;background:#fff;display:flex;flex-direction:column;gap:5px}
+  .sw .meta b{font-family:var(--display);font-size:21px;font-weight:700;line-height:1.2}
+  .sw .meta code{font-family:var(--body);font-size:14px;font-weight:600;opacity:.6;direction:ltr;text-align:end}
+
+  /* أمثلة خاطئة */
+  .dont{position:relative;background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:26px;
+        height:210px;display:grid;place-items:center;overflow:hidden}
+  .dont::after{
+    content:"✕";position:absolute;inset-block-start:14px;inset-inline-end:20px;
+    color:#B4553F;font-size:26px;font-weight:800;
+  }
+  .dont-cap{font-size:18px;font-weight:600;opacity:.68;margin-block-start:14px;text-align:center}
+
+  /* الخطوط */
+  .spec-line{display:flex;align-items:baseline;gap:26px;padding-block:11px;
+             border-block-end:1.5px solid rgba(20,52,63,.09)}
+  .spec-line .w{font-size:16px;font-weight:600;opacity:.5;width:150px;flex:none}
+  .spec-line .s{font-family:var(--display);font-size:38px;line-height:1.3}
+  .spec-line .s.body{font-family:var(--body)}
+
+  .pf{margin-block-start:auto;padding-block-start:26px;display:flex;justify-content:space-between;
+      font-size:16px;font-weight:600;opacity:.45;border-block-start:2px solid rgba(20,52,63,.10)}
+  .pg.dark .pf{border-color:rgba(242,237,228,.15);opacity:.55}
+</style>
+
+<!-- ══════════════ 1 · الغلاف ══════════════ -->
+<div class="pg dark" data-document-role="page" data-slug="book-01-cover" data-label="الغلاف">
+  <div class="halo" style="width:1000px;height:1000px;top:-420px;left:-300px"></div>
+  <svg class="ghost" viewBox="48 62 144 116" style="width:1000px;bottom:-260px;right:-180px">
+    <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
+      <path d="M84,108 L84,158"/><path d="M180,74 L180,140"/>
+    </g>
+  </svg>
+
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;position:relative">
+    <img src="../logo/logo-primary-onDark.svg" style="width:400px">
+    <div style="font-family:var(--display);font-weight:700;font-size:76px;line-height:1.2;margin-block-start:64px">
+      دليل الهوية البصرية
+    </div>
+    <p class="lead" style="margin-block-start:26px;max-width:52ch">
+      كل ما تحتاجه لتطبيق العلامة بشكل صحيح — الشعار، الألوان، الخطوط،
+      وأمثلة الاستخدام على المطبوعات ومواقع التواصل.
+    </p>
+    <div class="bars" style="color:var(--mist);--bw:16px;--bh:60px;margin-block-start:60px"><i></i><i></i><i></i></div>
+  </div>
+
+  <div class="pf" style="position:relative">
+    <span>مكتب سفيان للموبايل — سامراء، الحويش</span>
+    <span>الإصدار الأول</span>
+  </div>
+</div>
+
+<!-- ══════════════ 2 · عن العلامة ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-02-about" data-label="عن العلامة">
+  <div class="ph">
+    <div><div class="k">مقدّمة</div><h2 style="margin-block-start:14px">عن العلامة</h2></div>
+    <div class="no">01</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c2">
+      <div>
+        <p class="lead">
+          «مكتب سفيان للموبايل» محل هواتف في سامراء — الحويش. العلامة مبنية على فكرة
+          واحدة: <b>نصيحة صادقة وسعر واضح</b>. لذلك جاءت الهوية هادئة اللون، واسعة
+          المساحات، بعيدة عن الصراخ البصري الذي يملأ سوق الموبايلات.
+        </p>
+        <div style="margin-block-start:40px">
+          <h3>الرمز</h3>
+          <p>
+            الرمز هو حرف «س» من «سفيان» بعد حذف طرفه الأيسر — فتصبح أعمدته الثلاثة
+            متدرّجة الارتفاع كإشارة الشبكة الخلوية. حرفٌ واسمٌ ودلالةُ مجال العمل
+            في شكل واحد.
+          </p>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:26px">
+        <div class="box deep" style="align-items:center;padding:52px">
+          <img src="../logo/logo-primary-onDark.svg" style="width:74%">
+        </div>
+        <div class="box">
+          <h3>نبرة الكلام</h3>
+          <p style="font-size:21px">
+            عراقية بسيطة ومباشرة. جُمل قصيرة، بلا مبالغة ولا وعود كبيرة.
+            نقول السعر كما هو، ونشرح الفرق بين جهازين بلغة الزبون.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cols c3">
+      <div class="box plain"><h3>نقول</h3><p style="font-size:20px">«هذا الجهاز يناسب ميزانيتك.»<br>«الكفالة سنة كاملة.»<br>«تعال شوفه بيدك.»</p></div>
+      <div class="box plain"><h3>لا نقول</h3><p style="font-size:20px">«أرخص الأسعار بالعراق!»<br>«عرض العمر لا يُفوَّت!!»<br>«الكمية محدودة جداً جداً»</p></div>
+      <div class="box plain"><h3>ثلاث كلمات</h3><p style="font-size:20px">هادئ · صادق · واضح</p></div>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>02</span></div>
+</div>
+
+<!-- ══════════════ 3 · صيغ الشعار ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-03-logo" data-label="صيغ الشعار">
+  <div class="ph">
+    <div><div class="k">الشعار</div><h2 style="margin-block-start:14px">الصيغ المعتمدة</h2></div>
+    <div class="no">02</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c2">
+      <div class="box" style="align-items:center;gap:26px">
+        <img src="../logo/logo-primary.svg" style="width:60%">
+        <div class="muted" style="text-align:center">الصيغة الرئيسية — عمودية<br><code style="direction:ltr">logo-primary.svg</code></div>
+      </div>
+      <div class="box deep" style="align-items:center;gap:26px">
+        <img src="../logo/logo-primary-onDark.svg" style="width:60%">
+        <div class="muted" style="text-align:center;opacity:.7">على الخلفيات الداكنة<br><code style="direction:ltr">logo-primary-onDark.svg</code></div>
+      </div>
+    </div>
+
+    <div class="cols c2">
+      <div class="box" style="align-items:center;gap:22px">
+        <img src="../logo/logo-horizontal.svg" style="width:88%">
+        <div class="muted" style="text-align:center">الصيغة الأفقية — للأغلفة والترويسات<br><code style="direction:ltr">logo-horizontal.svg</code></div>
+      </div>
+      <div class="cols c3" style="gap:22px">
+        <div class="box" style="align-items:center;gap:18px;padding:26px">
+          <img src="../logo/logo-icon.svg" style="width:78%">
+          <div class="muted" style="text-align:center;font-size:16px">الأيقونة<br>صورة الحساب</div>
+        </div>
+        <div class="box" style="align-items:center;gap:18px;padding:26px">
+          <img src="../logo/logo-stamp.svg" style="width:78%">
+          <div class="muted" style="text-align:center;font-size:16px">الختم<br>الستيكرات</div>
+        </div>
+        <div class="box" style="align-items:center;gap:18px;padding:26px">
+          <img src="../logo/logo-mono.svg" style="width:88%">
+          <div class="muted" style="text-align:center;font-size:16px">أحادي اللون<br>الطباعة بلون واحد</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>03</span></div>
+</div>
+
+<!-- ══════════════ 4 · مساحة الأمان ══════════════ -->
+<div class="pg white" data-document-role="page" data-slug="book-04-clearspace" data-label="مساحة الأمان">
+  <div class="ph">
+    <div><div class="k">الشعار</div><h2 style="margin-block-start:14px">مساحة الأمان والحد الأدنى</h2></div>
+    <div class="no">03</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c2" style="align-items:start">
+      <div>
+        <h3>مساحة الأمان</h3>
+        <p>
+          اترك حول الشعار مساحة فارغة لا تقل عن <b>نصف ارتفاع الأيقونة (½×)</b>
+          من كل الجهات. لا يدخل هذه المساحة أي نص أو صورة أو حافة.
+        </p>
+
+        <div style="margin-block-start:34px;background:#fff;border:2px solid rgba(20,52,63,.08);
+                    border-radius:30px;padding:60px;display:grid;place-items:center;position:relative">
+          <div style="position:relative;padding:58px">
+            <div style="position:absolute;inset:0;border:2px dashed rgba(47,111,107,.55);border-radius:14px"></div>
+            <img src="../logo/logo-primary.svg" style="width:230px;display:block">
+            <!-- وحدة القياس -->
+            <div style="position:absolute;top:6px;left:6px;width:46px;height:46px;
+                        background:rgba(47,111,107,.14);border:1.5px solid rgba(47,111,107,.5);border-radius:6px;
+                        display:grid;place-items:center;font-size:16px;font-weight:700;color:var(--teal)">½×</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3>الحد الأدنى للقياس</h3>
+        <p>
+          تحت هذه القياسات تفقد الأعمدة وضوحها. استخدم الأيقونة وحدها بدل الشعار الكامل
+          في المساحات الضيقة.
+        </p>
+
+        <div class="cols c2" style="margin-block-start:34px;gap:22px">
+          <div class="box" style="align-items:center;gap:20px">
+            <img src="../logo/logo-primary.svg" style="width:180px">
+            <div class="muted" style="text-align:center">
+              الشعار الكامل<br>
+              <b style="opacity:.9">30 مم طباعة · 140 بكسل شاشة</b>
+            </div>
+          </div>
+          <div class="box" style="align-items:center;gap:20px;justify-content:center">
+            <img src="../logo/logo-icon.svg" style="width:84px">
+            <div class="muted" style="text-align:center">
+              الأيقونة وحدها<br>
+              <b style="opacity:.9">10 مم طباعة · 32 بكسل شاشة</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="box deep" style="margin-block-start:22px;gap:18px">
+          <h3 style="color:var(--gold)">قاعدة سريعة</h3>
+          <p style="font-size:20px;opacity:.85">
+            إذا لم تعد الأعمدة الثلاثة قابلة للعدّ بالعين — فالقياس صغير جداً.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>04</span></div>
+</div>
+
+<!-- ══════════════ 5 · الاستخدامات الخاطئة ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-05-donts" data-label="الاستخدامات الخاطئة">
+  <div class="ph">
+    <div><div class="k">الشعار</div><h2 style="margin-block-start:14px">استخدامات ممنوعة</h2></div>
+    <div class="no">04</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c3" style="gap:30px">
+      <div>
+        <div class="dont"><img src="../logo/logo-primary.svg" style="width:66%;filter:hue-rotate(150deg) saturate(2.4)"></div>
+        <div class="dont-cap">لا تُبدّل ألوان الشعار</div>
+      </div>
+      <div>
+        <div class="dont"><img src="../logo/logo-primary.svg" style="width:66%;transform:scaleX(1.55)"></div>
+        <div class="dont-cap">لا تمدّده أو تضغطه</div>
+      </div>
+      <div>
+        <div class="dont"><img src="../logo/logo-primary.svg" style="width:60%;transform:rotate(-13deg)"></div>
+        <div class="dont-cap">لا تُدوّره</div>
+      </div>
+      <div>
+        <div class="dont"><img src="../logo/logo-primary.svg" style="width:64%;filter:drop-shadow(6px 10px 4px rgba(0,0,0,.55))"></div>
+        <div class="dont-cap">لا تُضِف ظلالاً أو حوافّ</div>
+      </div>
+      <div>
+        <div class="dont" style="background:
+             repeating-linear-gradient(45deg,#B98A5E 0 22px,#7C6A54 22px 44px)">
+          <img src="../logo/logo-primary.svg" style="width:62%">
+        </div>
+        <div class="dont-cap">لا تضعه على خلفية مزدحمة</div>
+      </div>
+      <div>
+        <div class="dont" style="flex-direction:column;gap:14px">
+          <img src="../logo/logo-icon.svg" style="width:74px">
+          <div style="font-family:var(--body);font-weight:800;font-size:30px;font-style:italic;color:var(--deep)">مكتب سفيان للموبايل</div>
+        </div>
+        <div class="dont-cap">لا تُعِد كتابة الاسم بخط آخر</div>
+      </div>
+    </div>
+
+    <div class="box deep" style="flex-direction:row;align-items:center;gap:30px">
+      <span class="bars" style="color:var(--mist);--bw:11px;--bh:42px"><i></i><i></i><i></i></span>
+      <p style="font-size:21px;opacity:.86;margin:0">
+        استخدم دائماً ملفات الشعار الجاهزة من مجلد <code style="direction:ltr">logo/</code> —
+        ولا تُعِد رسمه أو تصويره من صورة سابقة.
+      </p>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>05</span></div>
+</div>
+
+<!-- ══════════════ 6 · الألوان ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-06-colors" data-label="الألوان">
+  <div class="ph">
+    <div><div class="k">النظام</div><h2 style="margin-block-start:14px">لوحة الألوان</h2></div>
+    <div class="no">05</div>
+  </div>
+
+  <div class="body">
+    <p class="lead" style="max-width:74ch">
+      لوحة «رمال وبحر»: أزرق بترولي هادئ فوق خلفية رملية دافئة، ولمسة ذهبية مطفية
+      تُستخدم بحساب. النسبة المقترحة: <b>60% رملي · 30% بترولي · 10% ذهبي</b>.
+    </p>
+
+    <div class="cols c6" style="gap:18px">
+      <div class="sw">
+        <div class="chip" style="background:#14343F"></div>
+        <div class="meta"><b>بترولي عميق</b><code>#14343F</code><code>RGB 20 · 52 · 63</code><code>CMYK 68 · 17 · 0 · 75</code></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:#2F6F6B"></div>
+        <div class="meta"><b>مائي هادئ</b><code>#2F6F6B</code><code>RGB 47 · 111 · 107</code><code>CMYK 58 · 0 · 3 · 56</code></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:#C8A96A"></div>
+        <div class="meta"><b>ذهبي مطفي</b><code>#C8A96A</code><code>RGB 200 · 169 · 106</code><code>CMYK 0 · 15 · 47 · 22</code></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:#F2EDE4"></div>
+        <div class="meta"><b>رملي دافئ</b><code>#F2EDE4</code><code>RGB 242 · 237 · 228</code><code>CMYK 0 · 2 · 6 · 5</code></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:#9CC0BB"></div>
+        <div class="meta"><b>مائي فاتح</b><code>#9CC0BB</code><code>RGB 156 · 192 · 187</code><code>CMYK 19 · 0 · 3 · 25</code></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:#101E24"></div>
+        <div class="meta"><b>حبري (النصوص)</b><code>#101E24</code><code>RGB 16 · 30 · 36</code><code>CMYK 55 · 16 · 0 · 86</code></div>
+      </div>
+    </div>
+
+    <div class="cols c3" style="gap:28px">
+      <div class="box plain" style="gap:10px">
+        <h3 style="font-size:24px">تباين مقروء</h3>
+        <p style="font-size:19px">بترولي على رملي = 11:1 · ذهبي على بترولي = 5.7:1 — كلاهما يتجاوز معيار AA.</p>
+      </div>
+      <div class="box plain" style="gap:10px">
+        <h3 style="font-size:24px">الذهبي لمسة</h3>
+        <p style="font-size:19px">للأسعار وأزرار الطلب وحافة التغليف فقط — لا يُستخدم كخلفية لنص طويل.</p>
+      </div>
+      <div class="box plain" style="gap:10px">
+        <h3 style="font-size:24px">قيم CMYK</h3>
+        <p style="font-size:19px">تقريبية لورق مطلي — راجعها مع المطبعة قبل السحب النهائي.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>06</span></div>
+</div>
+
+<!-- ══════════════ 7 · الخطوط ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-07-type" data-label="الخطوط">
+  <div class="ph">
+    <div><div class="k">النظام</div><h2 style="margin-block-start:14px">الخطوط</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c2" style="gap:56px">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <h3 style="font-size:38px;margin:0">El Messiri</h3>
+          <span class="muted">للعناوين والشعار</span>
+        </div>
+        <div class="spec-line"><span class="w">Regular 400</span><span class="s" style="font-weight:400">شاشتك الجاية</span></div>
+        <div class="spec-line"><span class="w">SemiBold 600</span><span class="s" style="font-weight:600">شاشتك الجاية</span></div>
+        <div class="spec-line" style="border:0"><span class="w">Bold 700</span><span class="s" style="font-weight:700">شاشتك الجاية</span></div>
+        <p class="muted" style="margin-block-start:22px">
+          خط عربي معاصر بحروف واضحة وشخصية دافئة. يُستخدم للعناوين الكبيرة
+          والاسم في الشعار فقط.
+        </p>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:baseline;gap:20px">
+          <h3 style="font-size:38px;margin:0">Cairo</h3>
+          <span class="muted">للمتن والأرقام والواجهات</span>
+        </div>
+        <div class="spec-line"><span class="w">Regular 400</span><span class="s body" style="font-weight:400">هواتف وإكسسوارات</span></div>
+        <div class="spec-line"><span class="w">SemiBold 600</span><span class="s body" style="font-weight:600">هواتف وإكسسوارات</span></div>
+        <div class="spec-line" style="border:0"><span class="w">Bold 700</span><span class="s body" style="font-weight:700">هواتف وإكسسوارات</span></div>
+        <p class="muted" style="margin-block-start:22px">
+          خط قابل للقراءة في الأحجام الصغيرة، وأرقامه واضحة — لذلك هو خط
+          الأسعار وأرقام الهاتف.
+        </p>
+      </div>
+    </div>
+
+    <div class="box" style="gap:22px">
+      <h3>نموذج نصّي</h3>
+      <p style="font-size:26px;line-height:1.9">
+        نص حكيم له سر قاطع وذو شأن عظيم مكتوب على ثوب أخضر ومغلف بجلد أزرق.
+      </p>
+      <div style="display:flex;gap:44px;align-items:baseline;flex-wrap:wrap">
+        <span class="ltr" style="font-size:34px;font-weight:700;color:var(--teal)">0 1 2 3 4 5 6 7 8 9</span>
+        <span style="font-size:34px;font-weight:700;color:var(--teal)">٠ ١ ٢ ٣ ٤ ٥ ٦ ٧ ٨ ٩</span>
+        <span class="muted">الأرقام اللاتينية لأرقام الهاتف والأسعار — لسهولة الاتصال والنسخ.</span>
+      </div>
+    </div>
+
+    <div class="box plain" style="flex-direction:row;gap:44px;padding:24px 36px;flex-wrap:wrap">
+      <span style="font-size:19px"><b>العناوين</b> · El Messiri Bold · ارتفاع سطر 1.2</span>
+      <span style="font-size:19px"><b>المتن</b> · Cairo Regular · ارتفاع سطر 1.7</span>
+      <span style="font-size:19px"><b>اللاتيني</b> · Cairo SemiBold · تباعد 0.36em</span>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>07</span></div>
+</div>
+
+<!-- ══════════════ 8 · النمط والأيقونات ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-08-pattern" data-label="النمط والأيقونات">
+  <div class="ph">
+    <div><div class="k">النظام</div><h2 style="margin-block-start:14px">النمط والأيقونات</h2></div>
+    <div class="no">07</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c2" style="gap:40px">
+      <div class="box" style="padding:0;overflow:hidden">
+        <div style="height:300px;background:var(--deep);position:relative;display:grid;place-items:center">
+          <div class="dots" style="color:var(--sand);opacity:.14"></div>
+          <div style="display:flex;gap:52px;position:relative;opacity:.5">
+            <span class="bars" style="color:var(--mist);--bw:14px;--bh:60px"><i></i><i></i><i></i></span>
+            <span class="bars" style="color:var(--mist);--bw:14px;--bh:60px"><i></i><i></i><i></i></span>
+            <span class="bars" style="color:var(--mist);--bw:14px;--bh:60px"><i></i><i></i><i></i></span>
+          </div>
+        </div>
+        <div style="padding:28px 34px">
+          <h3 style="font-size:24px">النمط</h3>
+          <p style="font-size:19px">شبكة نقاط خفيفة + تكرار الأعمدة المتدرّجة. يُستخدم بشفافية منخفضة كخلفية فقط.</p>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>الأيقونات</h3>
+        <p style="font-size:19px">خطية بسمك موحّد ونهايات دائرية — لا أيقونات مصمتة ولا ملوّنة.</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin-block-start:16px;color:var(--teal)">
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><rect x="17" y="4" width="30" height="56" rx="9"/><path d="M27 11h10"/><path d="M28 52h8"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><path d="M12 38v-6a20 20 0 0 1 40 0v6"/><rect x="5" y="35" width="14" height="20" rx="7"/><rect x="45" y="35" width="14" height="20" rx="7"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><path d="M32 6l20 8v14c0 14-9 24-20 30-11-6-20-16-20-30V14z"/><path d="M23 32l6 6 12-13"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><circle cx="32" cy="32" r="25"/><path d="M32 17v16l11 6"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+          <svg class="ico" viewBox="0 0 64 64" style="height:56px"><rect x="20" y="8" width="24" height="20" rx="7"/><path d="M28 8V3M36 8V3"/><path d="M32 28v9c0 6-5 8-10 10s-9 6-9 11v3"/></svg>
+        </div>
+        <p class="muted" style="margin-block-start:6px">سمك الخط 3.6 من أصل 64 · الزوايا دائرية · اللون: مائي أو رملي حسب الخلفية.</p>
+      </div>
+    </div>
+
+    <div class="cols c4" style="gap:22px">
+      <div class="box plain" style="gap:8px"><h3 style="font-size:21px">نصف قطر الزوايا</h3><p style="font-size:18px">بطاقات 30–40 · رقاقات دائرية كاملة</p></div>
+      <div class="box plain" style="gap:8px"><h3 style="font-size:21px">المساحات</h3><p style="font-size:18px">هوامش واسعة — الفراغ جزء من التصميم</p></div>
+      <div class="box plain" style="gap:8px"><h3 style="font-size:21px">الظلال</h3><p style="font-size:18px">ناعمة وواسعة فقط، بلا حواف حادة</p></div>
+      <div class="box plain" style="gap:8px"><h3 style="font-size:21px">الصور</h3><p style="font-size:18px">خلفية نظيفة، إضاءة باردة هادئة</p></div>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>08</span></div>
+</div>
+
+<!-- ══════════════ 9 · التطبيقات ══════════════ -->
+<div class="pg" data-document-role="page" data-slug="book-09-applications" data-label="التطبيقات">
+  <div class="ph">
+    <div><div class="k">التطبيق</div><h2 style="margin-block-start:14px">أين تظهر الهوية</h2></div>
+    <div class="no">08</div>
+  </div>
+
+  <div class="body">
+    <div class="cols c4" style="gap:26px;flex:1">
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/post-1-intro.png" style="width:100%;height:282px;object-fit:cover;object-position:top">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">بوستات</h3><p style="font-size:18px">1080 × 1350</p></div>
+      </div>
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/story-1-welcome.png" style="width:100%;height:282px;object-fit:cover;object-position:top">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">ستوري</h3><p style="font-size:18px">1080 × 1920</p></div>
+      </div>
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/pack-bag-preview.png" style="width:100%;height:282px;object-fit:cover">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">كيس التسوق</h3><p style="font-size:18px">32 × 40 × 12 سم</p></div>
+      </div>
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/stickers-sheet-a4.png" style="width:100%;height:282px;object-fit:cover;object-position:top">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">ستيكرات</h3><p style="font-size:18px">شيت A4</p></div>
+      </div>
+    </div>
+
+    <div class="cols c4" style="gap:26px;flex:1">
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/cover-facebook.png" style="width:100%;height:222px;object-fit:cover">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">أغلفة</h3><p style="font-size:18px">فيسبوك · إكس · يوتيوب</p></div>
+      </div>
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/card-front.png" style="width:100%;height:222px;object-fit:cover">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">بطاقة العمل</h3><p style="font-size:18px">90 × 50 مم</p></div>
+      </div>
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/pack-box-preview.png" style="width:100%;height:222px;object-fit:cover">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">علبة المنتج</h3><p style="font-size:18px">18 × 10 × 5 سم</p></div>
+      </div>
+      <div class="box" style="padding:0;overflow:hidden">
+        <img src="../png/hl-1-phones.png" style="width:100%;height:222px;object-fit:cover">
+        <div style="padding:18px 24px"><h3 style="font-size:21px">هايلايتس</h3><p style="font-size:18px">1080 × 1080</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf"><span>دليل الهوية البصرية</span><span>09</span></div>
+</div>
+
+<!-- ══════════════ 10 · الخاتمة ══════════════ -->
+<div class="pg dark" data-document-role="page" data-slug="book-10-contact" data-label="الخاتمة">
+  <div class="halo" style="width:900px;height:900px;bottom:-460px;right:-260px"></div>
+
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:44px;position:relative">
+    <img src="../logo/logo-horizontal-onDark.svg" style="width:560px">
+    <div style="font-family:var(--display);font-weight:700;font-size:56px;line-height:1.25;color:var(--gold)">
+      شاشتك الجاية تبدأ من هنا
+    </div>
+
+    <div class="cols c3" style="gap:34px;margin-block-start:16px">
+      <div>
+        <div class="k" style="font-weight:700;letter-spacing:.16em;font-size:15px;color:var(--mist)">العنوان</div>
+        <p style="margin-block-start:12px;opacity:.9">سامراء — الحويش<br>الشارع الرئيسي</p>
+      </div>
+      <div>
+        <div class="k" style="font-weight:700;letter-spacing:.16em;font-size:15px;color:var(--mist)">الهاتف وواتساب</div>
+        <p class="ltr" style="margin-block-start:12px;opacity:.9;text-align:start">0773 164 4450<br>0774 448 5771</p>
+      </div>
+      <div>
+        <div class="k" style="font-weight:700;letter-spacing:.16em;font-size:15px;color:var(--mist)">الدوام</div>
+        <p style="margin-block-start:12px;opacity:.9">يوميًا<br><span class="ltr">9:00 — 22:00</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf" style="position:relative"><span>دليل الهوية البصرية — الإصدار الأول</span><span>10</span></div>
+</div>

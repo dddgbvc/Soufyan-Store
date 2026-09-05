@@ -1,0 +1,66 @@
+/* =========================================================
+   عناصر مشتركة بين ألواح التصميم
+   ========================================================= */
+
+/* ---------- الرمز المضمّن (يتلوّن بـ currentColor) ---------- */
+.mark{fill:none;stroke-width:24;stroke-linecap:round;stroke-linejoin:round;display:block}
+.mark path{stroke:currentColor}
+.mark .acc{stroke:var(--gold)}
+
+/* قفل الشعار: رمز + اسم */
+.lockup{display:flex;align-items:center;gap:var(--lk-gap,18px)}
+.lockup .badge{
+  background:currentColor;border-radius:var(--lk-r,26px);
+  width:var(--lk-size,96px);height:var(--lk-size,96px);
+  display:grid;place-items:center;flex:none;
+}
+.lockup .badge .mark{width:70%;color:var(--lk-glyph,var(--sand))}
+.lockup .names{display:flex;flex-direction:column;gap:var(--lk-gap2,6px)}
+.lockup .names b{font-family:var(--display);font-weight:700;line-height:1;font-size:var(--lk-name,40px)}
+.lockup .names span{
+  font-weight:600;direction:ltr;letter-spacing:.36em;text-transform:uppercase;
+  font-size:var(--lk-sub,13px);opacity:.72;
+}
+
+/* ---------- القوس المميّز — صدى لكأس الحرف «س» ---------- */
+.arc{position:absolute;border-radius:50%;pointer-events:none}
+
+/* ---------- الأعمدة المتدرّجة كفاصل زخرفي ---------- */
+/* direction:ltr يضمن تصاعد الأعمدة نحو اليمين مثل الرمز تماماً */
+.bars{display:flex;align-items:flex-end;gap:var(--bg-gap,9px);direction:ltr}
+.bars i{display:block;width:var(--bw,12px);border-radius:99px;background:currentColor}
+.bars i:nth-child(1){height:calc(var(--bh,44px)*.42)}
+.bars i:nth-child(2){height:calc(var(--bh,44px)*.70)}
+.bars i:nth-child(3){height:var(--bh,44px);background:var(--gold)}
+
+/* ---------- رقاقات ---------- */
+.pill{
+  display:inline-flex;align-items:center;gap:12px;border-radius:999px;
+  padding:14px 26px;font-weight:600;line-height:1;
+  background:rgba(242,237,228,.10);
+  border:1.5px solid rgba(242,237,228,.30);
+  color:var(--sand);
+}
+.pill.solid{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.pill.line{background:transparent;border:2px solid var(--deep-12);color:var(--deep)}
+.pill.gold{background:rgba(200,169,106,.16);border-color:rgba(200,169,106,.55);color:var(--gold)}
+
+/* أرقام ومصطلحات لاتينية داخل نص عربي — تُعزل حتى لا ينقلب ترتيبها */
+.ltr{direction:ltr;unicode-bidi:isolate}
+
+/* ---------- أيقونات خطية موحّدة ---------- */
+.ico{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- شريط تواصل سفلي ---------- */
+.footer-bar{
+  position:absolute;inset-inline:0;bottom:0;
+  display:flex;align-items:center;justify-content:center;gap:26px;
+  font-weight:600;
+}
+
+/* ---------- بطاقات ---------- */
+.card{background:var(--sand);border-radius:var(--r-lg);position:relative;overflow:hidden}
+.card.dark{background:var(--deep);color:var(--sand)}
+
+/* ---------- ملصق دائري ---------- */
+.sticker{border-radius:50%;display:grid;place-items:center;text-align:center;position:relative}
