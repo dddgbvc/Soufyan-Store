@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<title>مكتب سفيان للموبايل — ستوري إنستغرام</title>
+<title>غلاف إكس — مكتب سفيان للموبايل</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
@@ -117,8 +117,7 @@ body{
   background-size:22px 22px; opacity:.10; pointer-events:none;
 }
 
-</style>
-<style>
+</style><style>
 /* =========================================================
    عناصر مشتركة بين ألواح التصميم
    ========================================================= */
@@ -186,119 +185,36 @@ body{
 /* ---------- ملصق دائري ---------- */
 .sticker{border-radius:50%;display:grid;place-items:center;text-align:center;position:relative}
 
-</style>
-<style>
-  .story{width:1080px;height:1920px;padding:96px;display:flex;flex-direction:column;
-         background:var(--deep);color:var(--sand)}
-  .story.light{background:var(--sand);color:var(--deep)}
+</style><style>
+  .cover{background:var(--deep);color:var(--sand);display:grid;place-items:center;padding:0}
+  .fb{width:1640px;height:624px}
+  .x{width:1500px;height:500px}
+  .yt{width:2560px;height:1440px}
+  .wide{width:1920px;height:640px}
 
-  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.22;filter:blur(80px)}
+  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.24;filter:blur(80px)}
   .ghost{position:absolute;color:var(--sand);opacity:.05}
 
-  h1{font-family:var(--display);font-weight:700;font-size:112px;line-height:1.18}
-  h2{font-family:var(--display);font-weight:700;font-size:82px;line-height:1.2}
-  .kicker{font-weight:700;letter-spacing:.14em;font-size:25px;color:var(--gold)}
-  .lede{font-size:32px;line-height:1.65;opacity:.8}
+  .inner{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:26px}
+  .tag{font-family:var(--display);font-weight:700;line-height:1.2}
+  .sub{font-weight:500;opacity:.72}
+  .strip{display:flex;align-items:center;gap:22px;font-weight:600}
   .sep{width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none}
 
-  .cta{display:inline-flex;align-items:center;gap:16px;background:var(--gold);color:var(--deep);
-       border-radius:999px;padding:30px 52px;font-size:34px;font-weight:700;line-height:1}
-  .cta svg{width:38px;height:38px}
-
-  /* ── أغلفة الهايلايت: 1080×1080 والدائرة الظاهرة في إنستغرام أصغر ── */
-  .hl{width:1080px;height:1080px;background:var(--deep);display:grid;place-items:center}
-  .hl-in{
-    position:relative;width:100%;height:100%;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:52px;
-  }
-  .hl svg.ico{width:250px;height:250px;color:var(--sand);stroke-width:3.2}
-  .hl .cap{font-family:var(--display);font-weight:700;font-size:74px;color:var(--gold)}
-  .hl.alt{background:var(--sand)}
-  .hl.alt svg.ico{color:var(--deep)}
-  .hl.alt .cap{color:var(--teal)}
 </style>
-
-<!-- ══════════════ ستوري 1 — ترحيبي ══════════════ -->
-<div class="story" data-document-role="page" data-slug="story-1-welcome" data-label="ستوري ترحيبي">
-  <div class="halo" style="width:900px;height:900px;inset-block-start:-360px;inset-inline-start:-320px"></div>
-  <svg class="ghost" viewBox="48 62 144 116" style="width:1050px;inset-block-end:-190px;inset-inline-end:-230px">
-    <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
-      <path d="M84,108 L84,158"/><path d="M180,74 L180,140"/>
-    </g>
-  </svg>
-
-  <div style="flex:1"></div>
-  <div style="position:relative">
-    <div class="badge" style="background:var(--sand);border-radius:40px;width:150px;height:150px;display:grid;place-items:center">
-      <svg class="mark" viewBox="48 62 144 116" style="width:70%;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
-    </div>
-    <div class="kicker" style="margin-block-start:58px">مكتب سفيان للموبايل</div>
-    <h1 style="margin-block-start:26px">شاشتك الجاية<br>تبدأ من هنا</h1>
-    <p class="lede" style="margin-block-start:38px">هواتف أصلية · إكسسوارات موثوقة<br>باقات إنترنت — بمكان واحد.</p>
-  </div>
-  <div style="flex:1"></div>
-
-  <div style="position:relative">
-    <span class="cta">
-      <svg class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
-      <span>اطلب عبر واتساب</span>
-    </span>
-    <div style="margin-block-start:44px;display:flex;align-items:center;gap:20px;font-size:28px;font-weight:600;opacity:.78">
-      <span>سامراء — الحويش</span><span class="sep"></span><span class="ltr">0773 164 4450</span>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ ستوري 2 — عرض ══════════════ -->
-<div class="story light" data-document-role="page" data-slug="story-2-offer" data-label="ستوري عرض">
-  <div class="dots" style="color:var(--deep)"></div>
-
-  <div style="position:relative;display:flex;align-items:center;justify-content:space-between">
-    <div class="lockup" style="--lk-size:88px;--lk-r:24px;--lk-name:38px;--lk-sub:12px;color:var(--deep)">
-      <div class="badge">
+<div class="cover x" data-document-role="page" data-slug="cover-x" data-label="غلاف إكس">
+  <div class="halo" style="width:700px;height:700px;inset-block-end:-420px;inset-inline-end:-160px;opacity:.28"></div>
+  <div class="inner" style="gap:22px">
+    <div class="lockup" style="--lk-size:88px;--lk-r:24px;--lk-name:48px;--lk-sub:14px;color:var(--sand)">
+      <div class="badge" style="--lk-glyph:var(--deep)">
         <svg class="mark" viewBox="48 62 144 116"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
       </div>
       <div class="names"><b>مكتب سفيان للموبايل</b><span>Sufyan Mobile</span></div>
     </div>
-    <span class="pill line" style="font-size:24px">عرض اليوم</span>
-  </div>
-
-  <div style="flex:1;display:grid;place-items:center;position:relative">
-    <div class="halo" style="width:760px;height:760px;opacity:.14"></div>
-    <svg viewBox="0 0 300 600" style="width:420px;position:relative;">
-      <rect x="6" y="6" width="288" height="588" rx="52" fill="#1B4350"/>
-      <rect x="18" y="18" width="264" height="564" rx="44" fill="#14343F"/>
-      <rect x="122" y="34" width="56" height="10" rx="5" fill="#9CC0BB" opacity=".4"/>
-      <g transform="translate(30,176)" fill="none" stroke="#F2EDE4" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
-        <path d="M84,108 L84,158"/><path d="M180,74 L180,140" stroke="#C8A96A"/>
-      </g>
-      <rect x="118" y="548" width="64" height="7" rx="3.5" fill="#9CC0BB" opacity=".45"/>
-    </svg>
-  </div>
-
-  <div style="position:relative">
-    <h2>اسم الهاتف هنا</h2>
-    <div style="display:flex;align-items:baseline;gap:18px;margin-block-start:28px">
-      <span class="ltr" style="font-family:var(--display);font-weight:700;font-size:96px;color:var(--teal)">000,000</span>
-      <span style="font-size:34px;font-weight:600;opacity:.6">د.ع</span>
-    </div>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-block-start:30px">
-      <span class="pill line ltr" style="font-size:24px">128 GB</span>
-      <span class="pill line ltr" style="font-size:24px">8 GB RAM</span>
-      <span class="pill line" style="font-size:24px">كفالة سنة</span>
-    </div>
-    <div style="margin-block-start:46px;display:flex;align-items:center;justify-content:space-between">
-      <span class="cta">
-        <svg class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
-        <span>اطلب الآن</span>
-      </span>
-      <span class="ltr" style="font-size:30px;font-weight:700;color:var(--teal)">0773 164 4450</span>
-    </div>
+    <div class="tag" style="font-size:36px;color:var(--gold)">شاشتك الجاية تبدأ من هنا</div>
+    <div class="bars" style="color:var(--mist);--bw:12px;--bh:44px"><i></i><i></i><i></i></div>
   </div>
 </div>
-
 
 </body>
 </html>

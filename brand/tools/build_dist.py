@@ -37,6 +37,31 @@ def inline_css(css_path):
     return re.sub(r"url\(['\"]?([^'\")]+)['\"]?\)", repl, css)
 
 
+# ملفات تُقسَّم لوحاً لوحاً لأن ألواحها بمقاسات مختلفة،
+# وتصميم كانفا الواحد لا يقبل إلا مقاساً واحداً.
+SPLIT = {"05-covers.html"}
+
+
+def canva_safe(html):
+    """يزيل ما لا يقرأه محوّل كانفا فيظهر كمستطيل رمادي."""
+    return re.sub(r"\s*filter:\s*drop-shadow\([^;\"']*\)\s*;?", "", html)
+
+
+def wrap(title, body):
+    return (f'<!doctype html>\n<html lang="ar" dir="rtl">\n<head>\n'
+            f'<meta charset="utf-8">\n<title>{title}</title>\n'
+            f'<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            f'</head>\n<body>\n{body}\n</body>\n</html>\n')
+
+
+def emit(name, title, body):
+    dest = os.path.join(DIST, name)
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write(wrap(title, body))
+    kb = os.path.getsize(dest) / 1024
+    print(f"  ✓ dist/{name:34} {kb:,.0f} ك.ب")
+
+
 def build(page_file):
     src = open(os.path.join(PAGES, page_file), encoding="utf-8").read()
 
@@ -58,20 +83,24 @@ def build(page_file):
 
     src = re.sub(r'(<img[^>]*?)src="([^"]+)"', img_repl, src)
 
-    # 3. اغلف الناتج بهيكل HTML كامل
+    # 3. نظّف ما لا يدعمه محوّل كانفا
     src = re.sub(r'<meta charset="utf-8">\s*', "", src, count=1)
     src = re.sub(r"<title>.*?</title>\s*", "", src, count=1, flags=re.S)
-    out = (f'<!doctype html>\n<html lang="ar" dir="rtl">\n<head>\n'
-           f'<meta charset="utf-8">\n<title>{title}</title>\n'
-           f'<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-           f'</head>\n<body>\n{src}\n</body>\n</html>\n')
+    src = canva_safe(src)
 
-    dest = os.path.join(DIST, page_file)
-    with open(dest, "w", encoding="utf-8") as f:
-        f.write(out)
-    kb = os.path.getsize(dest) / 1024
-    boards = out.count('data-document-role="page"')
-    print(f"  ✓ dist/{page_file:28} {boards} لوح · {kb:,.0f} ك.ب")
+    if page_file not in SPLIT:
+        emit(page_file, title, src)
+        return
+
+    # 4. ملفات المقاسات المختلطة: لوح واحد لكل ملف
+    style = "".join(re.findall(r"<style>.*?</style>", src, re.S))
+    head = src[:src.rindex("</style>") + 8] if "</style>" in src else ""
+    boards = re.findall(r'(<div class="[^"]*"[^>]*data-document-role="page"'
+                        r'[^>]*data-slug="([^"]+)"[^>]*data-label="([^"]+)".*?)(?=\n<!--|\Z)',
+                        src, re.S)
+    stem = page_file[:-5]
+    for body, slug, label in boards:
+        emit(f"{stem}--{slug}.html", f"{label} — مكتب سفيان للموبايل", style + "\n" + body)
 
 
 if __name__ == "__main__":
