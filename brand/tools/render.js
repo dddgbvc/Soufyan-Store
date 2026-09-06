@@ -49,9 +49,12 @@ async function renderFile(page, relPath, scale) {
     const slug = (await boards[i].getAttribute('data-slug'))
       || `${path.basename(relPath, '.html')}-${i + 1}`;
     const out = path.join(OUT, `${slug}.png`);
-    await boards[i].screenshot({ path: out, scale: 'css', omitBackground: false });
-    const { width, height } = await boards[i].boundingBox();
-    made.push(`${slug}.png  ${Math.round(width * scale)}×${Math.round(height * scale)}`);
+    // scale:'device' (الافتراضي) هو ما يجعل deviceScaleFactor يُطبَّق فعلاً؛
+    // 'css' كان يصدّر بمقاس البكسل المنطقي ويتجاهل المضاعف.
+    await boards[i].screenshot({ path: out, omitBackground: false });
+    // اقرأ الأبعاد من ترويسة PNG نفسها حتى لا يُبلَّغ عن مقاس لم يُكتب
+    const head = fs.readFileSync(out).subarray(16, 24);
+    made.push(`${slug}.png  ${head.readUInt32BE(0)}×${head.readUInt32BE(4)}`);
   }
   return made;
 }
