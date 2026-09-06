@@ -1,0 +1,16 @@
+{
+  "name": "@sufyan/print",
+  "version": "1.0.0",
+  "description": "فواتير ووصولات وملصقات مكتب سفيان للموبايل",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "demo": "tsc && node demo/render.mjs"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

@@ -39,7 +39,8 @@ def inline_css(css_path):
 
 # ملفات تُقسَّم لوحاً لوحاً لأن ألواحها بمقاسات مختلفة،
 # وتصميم كانفا الواحد لا يقبل إلا مقاساً واحداً.
-SPLIT = {"05-covers.html", "09-service-ticket.html", "11-barcode-label.html"}
+SPLIT = {"05-covers.html", "08-business-card.html", "09-service-ticket.html",
+         "11-barcode-label.html", "14-invoice.html"}
 
 
 def canva_safe(html):

@@ -1,48 +1,81 @@
 <meta charset="utf-8">
-<title>مكتب سفيان للموبايل — بطاقة العمل</title>
+<title>مكتب سفيان للموبايل — كارتات المحل</title>
 <link rel="stylesheet" href="../css/brand.css">
 <link rel="stylesheet" href="../css/boards.css">
 <style>
   /* 90 × 50 مم عند 300 نقطة/إنش = 1063 × 591 بكسل */
   .card{width:1063px;height:591px;position:relative;overflow:hidden}
-  .card.front{background:var(--deep);color:var(--sand)}
-  .card.back{background:var(--sand);color:var(--deep)}
+  .card.deep{background:var(--deep);color:var(--sand)}
+  .card.sand{background:var(--sand);color:var(--deep)}
 
   .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.28;filter:blur(60px)}
   .ghost{position:absolute;color:var(--sand);opacity:.055}
+  .ghost.ink{color:var(--deep);opacity:.05}
 
-  .pad{position:relative;height:100%;padding:64px 74px;display:flex;flex-direction:column}
+  .pad{position:relative;height:100%;padding:52px 62px;display:flex;flex-direction:column}
   .rule{height:6px;background:var(--gold);position:absolute;inset-block-end:0;inset-inline:0}
 
-  .name{font-family:var(--display);font-weight:700;font-size:44px;line-height:1.1}
-  .role{font-size:22px;font-weight:600;opacity:.65;margin-block-start:12px}
-  .line{display:flex;align-items:center;gap:16px;font-size:23px;font-weight:600}
-  .line svg{width:28px;height:28px;flex:none;color:var(--teal)}
-  .card.front .line svg{color:var(--gold)}
+  .name{font-family:var(--display);font-weight:700;font-size:42px;line-height:1.1}
+  .role{font-size:21px;font-weight:600;opacity:.62;margin-block-start:8px}
+  .tag{font-family:var(--display);font-weight:700;font-size:24px;color:var(--gold)}
+
+  /* أسطر التواصل */
+  .line{display:flex;align-items:center;gap:14px;font-size:22px;font-weight:600;line-height:1.3}
+  .line svg{width:26px;height:26px;flex:none;color:var(--teal)}
+  .card.deep .line svg{color:var(--gold)}
+  .line .lab{font-size:15px;font-weight:700;opacity:.55;flex:none;width:60px}
+
+  /* الخدمات */
+  .svc{display:flex;flex-wrap:wrap;gap:9px}
+  .svc span{
+    display:inline-flex;align-items:center;gap:8px;border-radius:999px;
+    padding:9px 18px;font-size:19px;font-weight:600;line-height:1;
+    border:2px solid rgba(20,52,63,.14);color:var(--deep);
+  }
+  .card.deep .svc span{border-color:rgba(242,237,228,.28);color:var(--sand)}
+  .svc svg{width:19px;height:19px;flex:none;color:var(--teal)}
+  .card.deep .svc svg{color:var(--gold)}
+
+  .svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 26px}
+  .svc-grid div{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:600}
+  .svc-grid svg{width:24px;height:24px;flex:none;color:var(--teal)}
+  .card.deep .svc-grid svg{color:var(--gold)}
+
+  /* لوح الموكاب */
+  .mock{width:1600px;height:1100px;background:#E7DFD1;position:relative;overflow:hidden;
+        display:grid;place-items:center}
+  .mock .surface{position:absolute;inset:0;
+    background:radial-gradient(120% 90% at 50% 25%, #F4EFE6 0%, #E2D9C8 55%, #CFC3AE 100%)}
+  .mock .stack{position:relative;width:1180px;height:720px}
+  .mock .shot{position:absolute;border-radius:10px;overflow:hidden;
+              box-shadow:0 40px 70px rgba(20,52,63,.28), 0 6px 14px rgba(20,52,63,.16)}
+  .mock .cap{position:absolute;inset-block-end:44px;inset-inline:0;text-align:center;
+             font-size:20px;font-weight:600;color:var(--deep);opacity:.55}
+  .mock .badge-t{position:absolute;inset-block-start:44px;inset-inline-end:56px;text-align:end}
+  .mock .badge-t b{display:block;font-family:var(--display);font-weight:700;font-size:34px;color:var(--deep)}
+  .mock .badge-t span{font-size:17px;font-weight:600;color:var(--deep);opacity:.55}
 </style>
 
-<!-- ══════════════ الوجه الأمامي ══════════════ -->
-<div class="card front" data-document-role="page" data-slug="card-front" data-label="بطاقة العمل — الوجه">
+<!-- ══════════════ النسخة الأولى — الوجه ══════════════ -->
+<div class="card deep" data-document-role="page" data-slug="card-a-front" data-label="كارت ١ — الوجه">
   <div class="halo" style="width:520px;height:520px;top:-260px;left:-160px"></div>
-  <svg class="ghost" viewBox="44 58 152 124" style="width:520px;bottom:-130px;left:-90px">
+  <svg fill="none" class="ghost" viewBox="44 58 152 124" style="width:520px;bottom:-130px;left:-90px">
     <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
       <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>
       <path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/>
     </g>
   </svg>
 
-  <div class="pad" style="align-items:center;justify-content:center">
-    <img src="../logo/logo-primary-onDark.svg" style="width:52%">
-    <div style="margin-block-start:34px;font-size:20px;font-weight:600;letter-spacing:.04em;color:var(--mist)">
-      شاشتك الجاية تبدأ من هنا
-    </div>
+  <div class="pad" style="align-items:center;justify-content:center;gap:30px">
+    <img src="../logo/logo-primary-onDark.svg" style="width:50%">
+    <div class="tag">شاشتك الجاية تبدأ من هنا</div>
   </div>
   <div class="rule"></div>
 </div>
 
-<!-- ══════════════ الوجه الخلفي ══════════════ -->
-<div class="card back" data-document-role="page" data-slug="card-back" data-label="بطاقة العمل — الظهر">
-  <div class="dots" style="color:var(--deep);opacity:.08"></div>
+<!-- ══════════════ النسخة الأولى — الظهر ══════════════ -->
+<div class="card sand" data-document-role="page" data-slug="card-a-back" data-label="كارت ١ — الظهر">
+  <div class="dots" style="color:var(--deep);opacity:.07"></div>
 
   <div class="pad">
     <div style="display:flex;align-items:flex-start;justify-content:space-between">
@@ -50,30 +83,120 @@
         <div class="name">سفيان</div>
         <div class="role">صاحب المكتب</div>
       </div>
-      <div class="badge" style="background:var(--deep);border-radius:24px;width:86px;height:86px;display:grid;place-items:center;flex:none">
-        <svg fill="none" class="mark" viewBox="44 58 152 124" style="width:65%;color:var(--sand)"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
+      <div style="background:var(--deep);border-radius:22px;width:78px;height:78px;
+                  display:grid;place-items:center;flex:none">
+        <svg fill="none" class="mark" viewBox="44 58 152 124" style="width:62%;color:var(--sand)"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
       </div>
     </div>
 
-    <div style="flex:1;display:flex;align-items:center;gap:22px">
-      <span class="bars" style="color:var(--teal);--bw:9px;--bh:34px;--bg-gap:6px"><i></i><i></i><i></i></span>
-      <span style="font-family:var(--display);font-weight:700;font-size:26px;color:var(--teal)">شاشتك الجاية تبدأ من هنا</span>
+    <div class="svc" style="margin-block-start:22px">
+      <span><svg fill="none" class="ico" viewBox="0 0 64 64"><rect x="17" y="4" width="30" height="56" rx="9"/><path d="M27 11h10"/></svg>هواتف</span>
+      <span><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M12 38v-6a20 20 0 0 1 40 0v6"/><rect x="5" y="35" width="14" height="20" rx="7"/><rect x="45" y="35" width="14" height="20" rx="7"/></svg>إكسسوارات</span>
+      <span><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg>باقات إنترنت</span>
+      <span><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M40 8a16 16 0 0 0-14 23L8 49l7 7 18-18a16 16 0 0 0 21-21l-9 9-8-8 9-9a16 16 0 0 0-6-1z"/></svg>صيانة</span>
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:20px">
+    <div style="flex:1"></div>
+
+    <div style="display:flex;flex-direction:column;gap:13px">
       <div class="line">
         <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+        <span class="lab">واتساب</span>
         <span class="ltr">0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771</span>
       </div>
       <div class="line">
-        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/></svg>
-        <span>سامراء — الحويش — الشارع الرئيسي</span>
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg>
+        <span class="lab">إنترنت</span>
+        <span class="ltr">0772 909 6991</span>
       </div>
       <div class="line">
-        <svg fill="none" class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25"/><path d="M32 17v16l11 6"/></svg>
-        <span>يوميًا</span> <span class="ltr">9:00 — 22:00</span>
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/></svg>
+        <span class="lab">العنوان</span>
+        <span>سامراء — الحويش — الشارع الرئيسي</span>
       </div>
     </div>
   </div>
   <div class="rule" style="background:var(--deep)"></div>
+</div>
+
+<!-- ══════════════ النسخة الثانية — الوجه ══════════════ -->
+<div class="card sand" data-document-role="page" data-slug="card-b-front" data-label="كارت ٢ — الوجه">
+  <svg fill="none" class="ghost ink" viewBox="44 58 152 124" style="width:440px;top:-90px;right:-110px">
+    <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+      <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>
+      <path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/>
+    </g>
+  </svg>
+
+  <div class="pad" style="justify-content:space-between">
+    <img src="../logo/logo-horizontal.svg" style="width:74%">
+
+    <div class="svc-grid">
+      <div><svg fill="none" class="ico" viewBox="0 0 64 64"><rect x="17" y="4" width="30" height="56" rx="9"/><path d="M27 11h10"/></svg>هواتف ذكية</div>
+      <div><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M12 38v-6a20 20 0 0 1 40 0v6"/><rect x="5" y="35" width="14" height="20" rx="7"/><rect x="45" y="35" width="14" height="20" rx="7"/></svg>إكسسوارات أصلية</div>
+      <div><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg>باقات إنترنت</div>
+      <div><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M40 8a16 16 0 0 0-14 23L8 49l7 7 18-18a16 16 0 0 0 21-21l-9 9-8-8 9-9a16 16 0 0 0-6-1z"/></svg>صيانة وبرمجة</div>
+    </div>
+  </div>
+  <div class="rule" style="background:var(--deep)"></div>
+</div>
+
+<!-- ══════════════ النسخة الثانية — الظهر ══════════════ -->
+<div class="card deep" data-document-role="page" data-slug="card-b-back" data-label="كارت ٢ — الظهر">
+  <div class="halo" style="width:600px;height:600px;bottom:-320px;right:-200px"></div>
+
+  <div class="pad" style="justify-content:center;gap:26px">
+    <div>
+      <div style="font-size:15px;font-weight:700;letter-spacing:.16em;color:var(--gold)">للطلب والاستفسار</div>
+      <div class="ltr" style="font-family:var(--display);font-weight:700;font-size:52px;
+                              line-height:1.15;margin-block-start:10px">0773 164 4450</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="line" style="font-size:20px">
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+        <span class="lab">واتساب</span><span class="ltr">0774 448 5771</span>
+      </div>
+      <div class="line" style="font-size:20px">
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg>
+        <span class="lab">إنترنت</span><span class="ltr">0772 909 6991</span>
+      </div>
+      <div class="line" style="font-size:20px">
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/></svg>
+        <span class="lab">العنوان</span><span>سامراء — الحويش — الشارع الرئيسي</span>
+      </div>
+      <div class="line" style="font-size:20px">
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25"/><path d="M32 17v16l11 6"/></svg>
+        <span class="lab">الدوام</span><span>يوميًا <span class="ltr">9:00 — 22:00</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="rule"></div>
+</div>
+
+<!-- ══════════════ الموكاب ══════════════ -->
+<div class="mock" data-document-role="page" data-slug="card-mockup" data-label="موكاب الكارتات">
+  <div class="surface"></div>
+
+  <div class="badge-t">
+    <b>كارتات المحل</b>
+    <span>90 × 50 مم · ورق 350 غم مطفي</span>
+  </div>
+
+  <div class="stack">
+    <!-- النسخة الثانية — الظهر، مائل -->
+    <div class="shot" style="width:560px;left:34px;top:56px;transform:rotate(-7deg)">
+      <img src="../png/card-b-back.png" style="width:100%;display:block">
+    </div>
+    <!-- النسخة الأولى — الوجه -->
+    <div class="shot" style="width:600px;left:330px;top:250px;transform:rotate(4deg)">
+      <img src="../png/card-a-front.png" style="width:100%;display:block">
+    </div>
+    <!-- النسخة الأولى — الظهر -->
+    <div class="shot" style="width:520px;right:20px;top:24px;transform:rotate(9deg)">
+      <img src="../png/card-a-back.png" style="width:100%;display:block">
+    </div>
+  </div>
+
+  <div class="cap">النسخة الأولى (بترولي + رملي) · النسخة الثانية (رملي + بترولي) — اختر واحدة أو اطبع الاثنتين</div>
 </div>

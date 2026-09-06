@@ -1,0 +1,398 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — فاتورة البيع</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  /* ═══ الفاتورة الحرارية 80 مم — المقياس 150 نقطة/إنش: 80 مم = 472 بكسل ═══ */
+  .roll{
+    width:472px;background:#fff;padding:22px 20px;display:flex;flex-direction:column;
+    color:#000;font-family:var(--body);
+  }
+  .roll *{color:#000}
+
+  .r-logo{display:flex;flex-direction:column;align-items:center;gap:8px;padding-block-end:14px}
+  .r-logo .mark{width:52px;color:#000}
+  .r-logo .nm{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.15}
+  .r-logo .sub{font-size:10px;font-weight:700;letter-spacing:.34em;direction:ltr}
+  .r-logo .addr{font-size:13px;font-weight:600;text-align:center;line-height:1.6;margin-block-start:4px}
+
+  .hr{border-block-start:2px dashed #000;margin-block:10px}
+  .hr.solid{border-block-start:2px solid #000;border-style:solid}
+
+  .r-title{text-align:center;font-family:var(--display);font-weight:700;font-size:22px;padding-block:4px}
+  .r-no{text-align:center;font-family:monospace;font-size:26px;font-weight:700;letter-spacing:.1em;
+        direction:ltr;padding-block-end:6px}
+
+  .kv{display:flex;justify-content:space-between;gap:10px;padding-block:5px;font-size:15px;line-height:1.5}
+  .kv b{font-weight:700;flex:none}
+  .kv span{font-weight:600;text-align:end;overflow-wrap:anywhere}
+  .kv span.mono{font-family:monospace;direction:ltr}
+
+  /* جدول المواد على الرول: صف عريض للاسم وصف ثانٍ للكمية × السعر = المجموع */
+  .th{display:flex;justify-content:space-between;font-size:12px;font-weight:700;
+      letter-spacing:.06em;padding-block:4px;border-block-end:2px solid #000}
+  .it{padding-block:7px;border-block-end:1.5px dotted #000}
+  .it:last-child{border-block-end:0}
+  .it .nm{font-size:15px;font-weight:700;line-height:1.45}
+  .it .meta{display:flex;justify-content:space-between;align-items:baseline;
+            font-size:13.5px;font-weight:600;padding-block-start:3px}
+  .it .meta .q{font-family:monospace;direction:ltr}
+  .it .meta .s{font-family:monospace;direction:ltr;font-weight:700;font-size:15px}
+  .it .sn{font-size:11.5px;font-family:monospace;direction:ltr;padding-block-start:2px}
+
+  .sum{padding-block-start:6px}
+  .sum .kv{padding-block:4px;font-size:14.5px}
+  .total{display:flex;justify-content:space-between;align-items:baseline;
+         border:2px solid #000;border-radius:6px;padding:10px 14px;margin-block-start:8px}
+  .total b{font-size:15px;font-weight:700}
+  .total .v{font-family:var(--display);font-weight:700;font-size:26px;direction:ltr}
+
+  .r-bc{display:flex;flex-direction:column;align-items:center;gap:4px;padding-block:14px}
+  .r-bc svg{display:block;height:64px;width:auto}
+
+  .terms{font-size:11.5px;line-height:1.75;padding-block:8px}
+  .terms b{display:block;font-size:12px;margin-block-end:3px}
+  .thanks{text-align:center;font-family:var(--display);font-weight:700;font-size:17px;padding-block-start:10px}
+  .cut-mark{text-align:center;font-size:10px;font-weight:700;letter-spacing:.2em;padding-block-start:12px}
+
+  /* ═══ لوح العرض ═══ */
+  .board{width:1600px;height:1580px;background:var(--sand);padding:56px 70px;display:flex;flex-direction:column}
+  .board .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:30px}
+  .board .head h2{font-family:var(--display);font-weight:700;font-size:44px;line-height:1.15}
+  .board .head .k{font-weight:700;letter-spacing:.14em;font-size:17px;color:var(--teal)}
+  .board .head .spec{font-size:18px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+  .stage{flex:1;display:flex;align-items:flex-start;justify-content:center;gap:56px}
+  .paper{box-shadow:0 24px 50px rgba(20,52,63,.18);border-radius:3px;flex:none}
+  .notes{max-width:520px;display:flex;flex-direction:column;gap:18px}
+  .note{background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:20px;padding:22px 26px}
+  .note b{display:block;font-family:var(--display);font-size:22px;color:var(--deep);margin-block-end:8px}
+  .note p{font-size:17px;line-height:1.65;opacity:.74;margin:0}
+  .note .ltr{display:inline-block}
+
+  /* ═══ فاتورة A5 ملوّنة — 148 × 210 مم عند 150 نقطة/إنش = 874 × 1240 ═══ */
+  .a5{width:874px;height:1240px;background:#fff;padding:44px 46px;
+      display:flex;flex-direction:column;font-family:var(--body);color:var(--ink)}
+  .a5 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+           padding-block-end:20px;border-block-end:3px solid var(--deep)}
+  .a5 .brand{display:flex;align-items:center;gap:14px}
+  .a5 .brand .bx{width:58px;height:58px;border-radius:16px;background:var(--deep);
+                 display:grid;place-items:center;flex:none}
+  .a5 .brand .bx .mark{width:74%;color:var(--sand)}
+  .a5 .brand .nm{font-family:var(--display);font-weight:700;font-size:27px;line-height:1.15;color:var(--deep)}
+  .a5 .brand .sb{font-size:9.5px;font-weight:700;letter-spacing:.3em;direction:ltr;color:var(--teal);margin-block-start:3px}
+  .a5 .brand .ad{font-size:12px;font-weight:600;color:rgba(20,52,63,.66);line-height:1.6;margin-block-start:6px}
+  .a5 .doc{text-align:end;flex:none}
+  .a5 .doc .t{font-family:var(--display);font-weight:700;font-size:30px;color:var(--deep);line-height:1.1}
+  .a5 .doc .no{font-family:monospace;font-size:20px;font-weight:700;letter-spacing:.08em;
+               direction:ltr;color:var(--teal);margin-block-start:6px}
+  .a5 .doc .dt{font-size:12.5px;font-weight:600;color:rgba(20,52,63,.66);margin-block-start:5px}
+
+  .a5 .who{display:flex;gap:14px;margin-block:20px}
+  .a5 .who .card{flex:1;background:var(--sand);border-radius:14px;padding:14px 16px}
+  .a5 .who .card .lb{font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--teal)}
+  .a5 .who .card .r{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;
+                    font-weight:600;padding-block-start:6px;line-height:1.5}
+  .a5 .who .card .r b{font-weight:700;color:rgba(20,52,63,.6);flex:none}
+  .a5 .who .card .r span{text-align:end;overflow-wrap:anywhere}
+  .a5 .who .card .r span.mono{font-family:monospace;direction:ltr}
+
+  .a5 table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .a5 thead th{background:var(--deep);color:var(--sand);font-weight:700;font-size:12px;
+               letter-spacing:.06em;padding:9px 10px;text-align:start}
+  .a5 thead th:first-child{border-start-start-radius:10px}
+  .a5 thead th:last-child{border-start-end-radius:10px;text-align:end}
+  .a5 tbody td{padding:9px 10px;border-block-end:1.5px solid rgba(20,52,63,.09);
+               vertical-align:top;font-weight:600;line-height:1.5}
+  .a5 tbody tr:nth-child(even) td{background:rgba(242,237,228,.55)}
+  .a5 td.n{font-family:monospace;direction:ltr;white-space:nowrap}
+  .a5 td.e{text-align:end;font-family:monospace;direction:ltr;font-weight:700;white-space:nowrap}
+  .a5 td .sn{display:block;font-family:monospace;direction:ltr;font-size:11px;
+             color:rgba(20,52,63,.55);font-weight:600;padding-block-start:2px}
+  .a5 .cnum{width:34px;text-align:center}
+
+  .a5 .foot{margin-block-start:auto;padding-block-start:18px}
+  .a5 .money{display:flex;gap:16px;align-items:flex-start}
+  .a5 .money .left{flex:1;display:flex;flex-direction:column;gap:10px}
+  .a5 .money .sums{width:296px;flex:none}
+  .a5 .money .sums .r{display:flex;justify-content:space-between;font-size:13.5px;
+                      font-weight:600;padding-block:5px}
+  .a5 .money .sums .r span{font-family:monospace;direction:ltr}
+  .a5 .money .sums .grand{display:flex;justify-content:space-between;align-items:baseline;
+                          background:var(--deep);color:var(--sand);border-radius:12px;
+                          padding:12px 15px;margin-block-start:8px}
+  .a5 .money .sums .grand b{font-size:13.5px;font-weight:700}
+  .a5 .money .sums .grand span{font-family:var(--display);font-weight:700;font-size:25px;
+                               direction:ltr;color:var(--gold)}
+  .a5 .warr{background:var(--sand);border-radius:14px;padding:13px 15px;font-size:12px;
+            line-height:1.7;font-weight:600;color:rgba(20,52,63,.78)}
+  .a5 .warr b{display:block;font-family:var(--display);font-size:15px;color:var(--deep);
+              margin-block-end:5px;font-weight:700}
+  .a5 .bc{display:flex;align-items:center;gap:14px}
+  .a5 .bc svg{height:52px;width:auto;display:block}
+  .a5 .bc .sig{flex:1;text-align:center;font-size:11.5px;font-weight:700;
+               color:rgba(20,52,63,.6);border-block-start:1.5px solid rgba(20,52,63,.28);
+               padding-block-start:6px;margin-inline-start:10px}
+  .a5 .end{display:flex;justify-content:space-between;align-items:center;
+           border-block-start:2.5px solid var(--deep);margin-block-start:14px;padding-block-start:10px;
+           font-size:11.5px;font-weight:700;color:rgba(20,52,63,.6)}
+
+  .board.wide{width:1600px;height:1500px}
+  .board.wide .stage{gap:48px}
+</style>
+
+<!-- ══════════════ 1 · فاتورة البيع الحرارية 80 مم ══════════════ -->
+<div class="board" data-document-role="page" data-slug="invoice-thermal-80" data-label="فاتورة بيع حرارية 80 مم">
+  <div class="head">
+    <div>
+      <div class="k">بيع · نسخة الزبون</div>
+      <h2 style="margin-block-start:12px">فاتورة البيع الحرارية 80 مم</h2>
+    </div>
+    <div class="spec">رول حراري عرض 80 مم · مساحة الطباعة 72 مم<br>الطول متغيّر حسب عدد المواد · تُطبع من البرنامج</div>
+  </div>
+
+  <div class="stage">
+    <div class="roll paper">
+      <div class="r-logo">
+        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/></svg>
+        <div class="nm">مكتب سفيان للموبايل</div>
+        <div class="sub">SUFYAN MOBILE</div>
+        <div class="addr">
+          سامراء — الحويش — الشارع الرئيسي<br>
+          <span class="ltr">0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771</span><br>
+          إنترنت: <span class="ltr">0772 909 6991</span>
+        </div>
+      </div>
+
+      <div class="hr solid"></div>
+      <div class="r-title">فاتورة بيع</div>
+      <div class="r-no">SFN-INV-00318</div>
+      <div class="hr"></div>
+
+      <div class="kv"><b>التاريخ</b><span class="mono">2026-09-06 · 13:20</span></div>
+      <div class="kv"><b>البائع</b><span>سفيان</span></div>
+      <div class="kv"><b>الزبون</b><span>أحمد عبد الله</span></div>
+      <div class="kv"><b>الهاتف</b><span class="mono">0771 234 5678</span></div>
+
+      <div class="hr"></div>
+      <div class="th"><span>المادة</span><span>المجموع</span></div>
+
+      <div class="it">
+        <div class="nm">Samsung Galaxy A54 — 256GB أسود</div>
+        <div class="meta"><span class="q">1 × 385,000</span><span class="s">385,000</span></div>
+        <div class="sn">IMEI 356938035643809</div>
+      </div>
+      <div class="it">
+        <div class="nm">كفر سيليكون شفاف</div>
+        <div class="meta"><span class="q">1 × 7,000</span><span class="s">7,000</span></div>
+      </div>
+      <div class="it">
+        <div class="nm">واقي شاشة زجاجي — تركيب مجاني</div>
+        <div class="meta"><span class="q">1 × 8,000</span><span class="s">8,000</span></div>
+      </div>
+      <div class="it">
+        <div class="nm">شاحن سريع 25W</div>
+        <div class="meta"><span class="q">2 × 15,000</span><span class="s">30,000</span></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="sum">
+        <div class="kv"><b>المجموع الفرعي</b><span class="mono">430,000 د.ع</span></div>
+        <div class="kv"><b>الخصم</b><span class="mono">‎−10,000 د.ع</span></div>
+        <div class="total"><b>الإجمالي</b><span class="v">420,000</span></div>
+        <div class="kv"><b>المدفوع</b><span class="mono">420,000 د.ع</span></div>
+        <div class="kv"><b>طريقة الدفع</b><span>نقدًا</span></div>
+      </div>
+
+      <div class="r-bc">
+        <div data-barcode="SFN-INV-00318" data-h="64" data-m="2"></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="terms">
+        <b>الضمان والاستبدال</b>
+        • ضمان الجهاز سنة على عيوب المصنع — لا يشمل الكسر ولا الماء.<br>
+        • الاستبدال خلال 3 أيام بشرط سلامة الجهاز وكامل توابعه وعلبته.<br>
+        • الإكسسوارات المستعملة لا تُستبدل ولا تُرجَع.<br>
+        • لا يُعتمد أي مطالبة بدون هذه الفاتورة.
+      </div>
+
+      <div class="hr"></div>
+      <div class="thanks">شكرًا لثقتك 🤍</div>
+      <div class="cut-mark">— — — قص — — —</div>
+    </div>
+
+    <div class="notes">
+      <div class="note">
+        <b>المقاس</b>
+        <p>نفس رول وصل الصيانة — عرض <span class="ltr">80 مم</span> ومساحة طباعة
+        <span class="ltr">72 مم</span>. طابعة واحدة لكل مطبوعات المحل.</p>
+      </div>
+      <div class="note">
+        <b>جدول المواد</b>
+        <p>كل مادة بسطرين: اسمها كاملًا في سطر، ثم الكمية × السعر والمجموع في سطر
+        تحته. هذا يمنع قطع الأسماء الطويلة على عرض <span class="ltr">72 مم</span>.
+        الأجهزة يُطبع تحتها <span class="ltr">IMEI</span> تلقائيًا.</p>
+      </div>
+      <div class="note">
+        <b>الحساب</b>
+        <p>المجموع الفرعي يُجمع من الأسطر، ثم الخصم، ثم الإجمالي. إن كان الدفع
+        جزئيًا يظهر سطر «المتبقّي» مكان «المدفوع».</p>
+      </div>
+      <div class="note">
+        <b>الباركود</b>
+        <p>رقم الفاتورة بترميز <span class="ltr">Code 128</span> — امسحه لفتح
+        الفاتورة عند الاستبدال أو مطالبة الضمان.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 2 · فاتورة البيع A5 ══════════════ -->
+<div class="board wide" data-document-role="page" data-slug="invoice-a5" data-label="فاتورة بيع A5">
+  <div class="head">
+    <div>
+      <div class="k">بيع · النسخة الرسمية</div>
+      <h2 style="margin-block-start:12px">فاتورة البيع A5</h2>
+    </div>
+    <div class="spec">148 × 210 مم · ورق 100 غم<br>للمبيعات الكبيرة والجملة — تُطبع بطابعة عادية</div>
+  </div>
+
+  <div class="stage">
+    <div class="a5 paper">
+      <div class="top">
+        <div class="brand">
+          <div class="bx">
+            <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
+          </div>
+          <div>
+            <div class="nm">مكتب سفيان للموبايل</div>
+            <div class="sb">SUFYAN MOBILE</div>
+            <div class="ad">
+              سامراء — الحويش — الشارع الرئيسي<br>
+              <span class="ltr">0773 164 4450 · 0774 448 5771</span><br>
+              إنترنت <span class="ltr">0772 909 6991</span>
+            </div>
+          </div>
+        </div>
+        <div class="doc">
+          <div class="t">فاتورة بيع</div>
+          <div class="no">SFN-INV-00318</div>
+          <div class="dt">التاريخ <span class="ltr">2026-09-06</span> · الساعة <span class="ltr">13:20</span></div>
+        </div>
+      </div>
+
+      <div class="who">
+        <div class="card">
+          <div class="lb">بيانات الزبون</div>
+          <div class="r"><b>الاسم</b><span>أحمد عبد الله حسين</span></div>
+          <div class="r"><b>الهاتف</b><span class="mono">0771 234 5678</span></div>
+          <div class="r"><b>العنوان</b><span>سامراء — الحويش</span></div>
+        </div>
+        <div class="card">
+          <div class="lb">بيانات الفاتورة</div>
+          <div class="r"><b>البائع</b><span>سفيان</span></div>
+          <div class="r"><b>طريقة الدفع</b><span>نقدًا</span></div>
+          <div class="r"><b>الحالة</b><span>مسدّدة بالكامل</span></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="cnum">ت</th>
+            <th>المادة</th>
+            <th style="width:56px">الكمية</th>
+            <th style="width:96px">السعر</th>
+            <th style="width:104px">المجموع</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="n cnum">1</td>
+            <td>Samsung Galaxy A54 — 256GB أسود<span class="sn">IMEI 356938035643809</span></td>
+            <td class="n">1</td><td class="n">385,000</td><td class="e">385,000</td>
+          </tr>
+          <tr>
+            <td class="n cnum">2</td>
+            <td>كفر سيليكون شفاف</td>
+            <td class="n">1</td><td class="n">7,000</td><td class="e">7,000</td>
+          </tr>
+          <tr>
+            <td class="n cnum">3</td>
+            <td>واقي شاشة زجاجي — تركيب مجاني</td>
+            <td class="n">1</td><td class="n">8,000</td><td class="e">8,000</td>
+          </tr>
+          <tr>
+            <td class="n cnum">4</td>
+            <td>شاحن سريع 25W</td>
+            <td class="n">2</td><td class="n">15,000</td><td class="e">30,000</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="foot">
+        <div class="money">
+          <div class="left">
+            <div class="warr">
+              <b>الضمان والاستبدال</b>
+              ضمان الجهاز سنة على عيوب المصنع — لا يشمل الكسر ولا الماء.<br>
+              الاستبدال خلال 3 أيام بشرط سلامة الجهاز وكامل توابعه وعلبته.<br>
+              الإكسسوارات المستعملة لا تُستبدل. لا تُعتمد أي مطالبة بدون هذه الفاتورة.
+            </div>
+            <div class="bc">
+              <div data-barcode="SFN-INV-00318" data-h="52" data-m="2"></div>
+              <div class="sig">توقيع المستلِم</div>
+            </div>
+          </div>
+
+          <div class="sums">
+            <div class="r"><b>المجموع الفرعي</b><span>430,000 د.ع</span></div>
+            <div class="r"><b>الخصم</b><span>‎−10,000 د.ع</span></div>
+            <div class="r"><b>عدد المواد</b><span>5</span></div>
+            <div class="grand"><b>الإجمالي</b><span>420,000</span></div>
+            <div class="r" style="padding-block-start:9px"><b>المدفوع</b><span>420,000 د.ع</span></div>
+            <div class="r"><b>المتبقّي</b><span>0 د.ع</span></div>
+          </div>
+        </div>
+
+        <div class="end">
+          <span>شاشتك الجاية تبدأ من هنا</span>
+          <span class="ltr">SUFYAN MOBILE · SAMARRA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note">
+        <b>متى تُستعمل A5</b>
+        <p>للمبيعات الكبيرة والجملة وطلبات الجهات التي تحتاج فاتورة موقّعة —
+        وفيها توقيع المستلِم وجدول مواد مرتّب بأعمدة.</p>
+      </div>
+      <div class="note">
+        <b>الفرق عن الحرارية</b>
+        <p>الحرارية سريعة وتُطبع من نفس طابعة الوصل. هذه ملوّنة بألوان الهوية
+        وتُطبع بطابعة عادية، وتصلح للأرشفة الورقية.</p>
+      </div>
+      <div class="note">
+        <b>الأرقام</b>
+        <p>تسلسل واحد للفواتير <span class="ltr">SFN-INV-00001</span> مستقل عن
+        تسلسل وصولات الصيانة <span class="ltr">SFN-00001</span>، حتى لا تختلط
+        المراجعة.</p>
+      </div>
+      <div class="note">
+        <b>ورقتان على A4</b>
+        <p>إن كانت طابعتك <span class="ltr">A4</span> فقط، اطبع فاتورتين على الورقة
+        الواحدة واقصصها بالنص — نسخة للمحل ونسخة للزبون.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../tools/code128.js"></script>
+<script>
+  document.querySelectorAll('[data-barcode]').forEach(function (el) {
+    el.innerHTML = Code128.svg(el.dataset.barcode, {
+      height: +(el.dataset.h || 64), module: +(el.dataset.m || 2), fontSize: 14
+    });
+  });
+</script>

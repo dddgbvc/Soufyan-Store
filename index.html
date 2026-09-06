@@ -299,6 +299,44 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
   stroke-linecap:round; stroke-linejoin:round}
 .lbl-pv svg.sfn-mark path.acc{stroke:#C8A96A}
 
+/* مواصفات الجهاز داخل ملصق الهاتف */
+.lbl-pv .lp-sp{margin-top:4px; border-top:1px solid rgba(20,52,63,.22);
+  border-bottom:1px solid rgba(20,52,63,.22); padding:3px 0; display:flex;
+  flex-direction:column; gap:1px; font-size:10px; line-height:1.35}
+.lbl-pv .lp-sp .duo{display:flex; gap:8px}
+.lbl-pv .lp-sp .duo>*{flex:1; min-width:0}
+.lbl-pv .lp-sp i{font-style:normal; font-weight:700; opacity:.62}
+.lbl-pv .lp-sp em{font-style:normal; font-weight:700}
+.lbl-pv .lp-sp em.mono{font-family:var(--font-mono); direction:ltr; unicode-bidi:isolate}
+
+/* حقول الهاتف داخل نموذج الملصق */
+#bcPhoneFields[hidden]{display:none}
+
+/* ============ 9ب. الفواتير ============ */
+.inv-items{display:flex; flex-direction:column; gap:8px; margin-bottom:10px}
+.inv-it{display:grid; gap:8px; grid-template-columns:1fr 70px 110px 34px; align-items:center}
+.inv-it input{padding:9px 12px; background:var(--surface-2); color:var(--text);
+  border:1px solid var(--border); border-radius:10px; font-family:inherit; font-size:.92rem; width:100%}
+.inv-it input:focus{border-color:var(--primary); outline:none; box-shadow:var(--glow)}
+.inv-it .rm{border:1px solid var(--border); background:transparent; color:var(--text-2);
+  border-radius:10px; padding:8px 0; cursor:pointer; font-family:inherit; font-size:.9rem}
+.inv-it .rm:hover{color:var(--danger,#e5484d)}
+.inv-head{display:grid; gap:8px; grid-template-columns:1fr 70px 110px 34px;
+  font-size:.74rem; color:var(--text-2); font-weight:600; padding:0 4px 2px}
+@media (max-width:620px){
+  .inv-it,.inv-head{grid-template-columns:1fr 60px 92px 30px}
+}
+.inv-imei{grid-column:1/-1; margin-top:-2px}
+.inv-total{display:flex; justify-content:space-between; align-items:baseline;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:14px;
+  padding:12px 16px; margin-top:4px}
+.inv-total b{font-size:.9rem}
+.inv-total span{font-family:"El Messiri",serif; font-weight:700; font-size:1.5rem;
+  color:var(--primary); direction:ltr; unicode-bidi:isolate}
+.inv-sums{display:flex; flex-direction:column; gap:2px; font-size:.86rem; margin-top:8px}
+.inv-sums .r{display:flex; justify-content:space-between; color:var(--text-2)}
+.inv-sums .r span{font-family:var(--font-mono); direction:ltr; unicode-bidi:isolate}
+
 /* قائمة الوصولات المحفوظة */
 .tk-list{display:flex; flex-direction:column; gap:8px; max-height:340px; overflow:auto; margin-top:12px}
 .tk-row{display:flex; align-items:center; gap:12px; background:var(--surface-2);
@@ -461,6 +499,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
 
     <div class="tools-tabs">
       <button class="chip" id="tabSvc" aria-pressed="true">🔧 وصل صيانة</button>
+      <button class="chip" id="tabInv" aria-pressed="false">🧾 فاتورة بيع</button>
       <button class="chip" id="tabBc" aria-pressed="false">🏷️ ملصق باركود</button>
     </div>
 
@@ -534,10 +573,93 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
       </div>
     </div>
 
+    <!-- ─── فاتورة البيع ─── -->
+    <div class="tool-pane" id="paneInv" hidden>
+      <div class="tool-grid">
+        <form class="form wide" id="invForm">
+          <div class="row2">
+            <div class="field"><label for="ivName">اسم الزبون</label>
+              <input id="ivName" required autocomplete="off"></div>
+            <div class="field"><label for="ivPhone">رقم الهاتف</label>
+              <input id="ivPhone" type="tel" dir="ltr" autocomplete="off"></div>
+          </div>
+
+          <div class="field"><label>المواد</label>
+            <div class="inv-head">
+              <span>المادة</span><span>الكمية</span><span>السعر (د.ع)</span><span></span>
+            </div>
+            <div class="inv-items" id="ivItems"></div>
+            <button type="button" class="btn btn-ghost" id="ivAdd">➕ أضف مادة</button>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="ivDiscount">الخصم (د.ع)</label>
+              <input id="ivDiscount" type="number" min="0" step="250" dir="ltr" value="0"></div>
+            <div class="field"><label for="ivPaid">المدفوع (د.ع)</label>
+              <input id="ivPaid" type="number" min="0" step="250" dir="ltr"></div>
+          </div>
+
+          <div class="row2">
+            <div class="field"><label for="ivPay">طريقة الدفع</label>
+              <select id="ivPay">
+                <option>نقدًا</option>
+                <option>زين كاش</option>
+                <option>آسيا حوالة</option>
+                <option>بطاقة</option>
+                <option>آجل</option>
+              </select></div>
+            <div class="field"><label for="ivSeller">البائع</label>
+              <input id="ivSeller" autocomplete="off" value="سفيان"></div>
+          </div>
+
+          <div class="field"><label for="ivNote">ملاحظات</label>
+            <textarea id="ivNote" placeholder="ضمان إضافي، موعد التسليم، أي اتفاق مع الزبون…"></textarea></div>
+
+          <div class="inv-sums" id="ivSums"></div>
+          <div class="inv-total"><b>الإجمالي</b><span id="ivGrand">0</span></div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">💾 احفظ واطبع حراري 80مم</button>
+            <button type="button" class="btn btn-ghost" id="ivPrintA5">📄 فاتورة A5</button>
+            <button type="button" class="btn btn-ghost" id="ivReset">مسح الحقول</button>
+          </div>
+          <p class="hint">
+            رقم الفاتورة يُولَّد تسلسليًا <span dir="ltr">SFN-INV-00001</span> ويُطبع كباركود.
+            الفواتير تُحفظ في هذا المتصفّح فقط.
+          </p>
+        </form>
+
+        <div class="preview-card">
+          <h3>الفواتير المحفوظة</h3>
+          <p class="section-sub">آخر الفواتير في هذا الجهاز</p>
+          <input id="ivSearch" placeholder="ابحث برقم الفاتورة أو اسم الزبون أو الهاتف…"
+                 style="width:100%; padding:10px 14px; background:var(--surface-2); color:var(--text);
+                        border:1px solid var(--border); border-radius:12px; font-family:inherit">
+          <div class="tk-list" id="ivList"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── ملصق الباركود ─── -->
     <div class="tool-pane" id="paneBc" hidden>
       <div class="tool-grid">
         <form class="form wide" id="bcForm">
+          <div class="row2">
+            <div class="field"><label for="bcKind">نوع الملصق</label>
+              <select id="bcKind">
+                <option value="AC">إكسسوار — ملصق 50 × 30 مم</option>
+                <option value="PH">هاتف — ملصق 75 × 50 مم بمواصفات الجهاز</option>
+                <option value="NT">إنترنت — SFN-NT</option>
+              </select></div>
+            <div class="field"><label for="bcSize">مقاس الملصق</label>
+              <select id="bcSize">
+                <option value="75x50">75 × 50 مم — رول حراري (ملصق الهاتف)</option>
+                <option value="60x40">60 × 40 مم — علب وأجهزة</option>
+                <option value="50x30" selected>50 × 30 مم — الإكسسوارات (المقاس المعتمد)</option>
+                <option value="40x25">40 × 25 مم — قطع صغيرة</option>
+              </select></div>
+          </div>
+
           <div class="field"><label for="bcName">اسم المنتج</label>
             <input id="bcName" required autocomplete="off" placeholder="سماعة بلوتوث لاسلكية"></div>
 
@@ -548,20 +670,39 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
               <input id="bcSku" dir="ltr" required autocomplete="off" placeholder="SFN-AC-2210"></div>
           </div>
 
-          <div class="row2">
-            <div class="field"><label for="bcKind">النوع</label>
-              <select id="bcKind">
-                <option value="AC">إكسسوار — SFN-AC</option>
-                <option value="PH">هاتف — SFN-PH</option>
-                <option value="NT">إنترنت — SFN-NT</option>
-              </select></div>
-            <div class="field"><label for="bcSize">مقاس الملصق</label>
-              <select id="bcSize">
-                <option value="75x50" selected>75 × 50 مم — رول حراري (الأساسي)</option>
-                <option value="60x40">60 × 40 مم — علب وأجهزة</option>
-                <option value="50x30">50 × 30 مم — إكسسوارات</option>
-                <option value="40x25">40 × 25 مم — قطع صغيرة</option>
-              </select></div>
+          <!-- حقول الهاتف — تظهر عند اختيار «هاتف» -->
+          <div id="bcPhoneFields" hidden>
+            <div class="row2">
+              <div class="field"><label for="bcModel">النموذج</label>
+                <input id="bcModel" autocomplete="off" placeholder="Galaxy A54 5G"></div>
+              <div class="field"><label for="bcImei">IMEI</label>
+                <input id="bcImei" dir="ltr" inputmode="numeric" autocomplete="off"
+                       placeholder="15 رقم" maxlength="17"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="bcStorage">الذاكرة</label>
+                <input id="bcStorage" dir="ltr" autocomplete="off" placeholder="8GB / 256GB"></div>
+              <div class="field"><label for="bcColor">اللون</label>
+                <input id="bcColor" autocomplete="off" placeholder="أسود"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="bcBatt">صحة البطارية</label>
+                <input id="bcBatt" dir="ltr" autocomplete="off" placeholder="‎%100"></div>
+              <div class="field"><label for="bcCond">الحالة</label>
+                <select id="bcCond">
+                  <option value="جديد بالكارتون">جديد بالكارتون</option>
+                  <option value="جديد بدون كارتون">جديد بدون كارتون</option>
+                  <option value="مستعمل — ممتاز">مستعمل — ممتاز</option>
+                  <option value="مستعمل — جيد">مستعمل — جيد</option>
+                  <option value="مستعمل — مقبول">مستعمل — مقبول</option>
+                </select></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="bcFault">الأعطال إن وجدت</label>
+                <input id="bcFault" autocomplete="off" placeholder="خدش بالزاوية، بصمة ما تشتغل…"></div>
+              <div class="field"><label for="bcNotes">ملاحظات</label>
+                <input id="bcNotes" autocomplete="off" placeholder="ضمان 6 أشهر، مع الشاحن…"></div>
+            </div>
           </div>
 
           <div class="row2">
@@ -575,7 +716,12 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
             <button type="submit" class="btn btn-primary">🖨️ اطبع الشيت</button>
             <button type="button" class="btn btn-ghost" id="bcOne">اطبع ملصقًا واحدًا</button>
           </div>
-          <p class="hint">ترميز Code 128 — يقرأه أي ماسح ليزري. المقاس الأساسي 75 × 50 مم لرول الطابعة الحرارية: اطبع أسود على أبيض فقط.</p>
+          <p class="hint">
+            ترميز Code 128 — يقرأه أي ماسح ليزري. ملصق الهاتف <b>75 × 50 مم</b> يحمل
+            الـIMEI والذاكرة واللون وصحة البطارية والحالة والأعطال والملاحظات.
+            ملصق الإكسسوارات يبقى بمقاسه المعتمد <b>50 × 30 مم</b> — اسم وسعر وباركود فقط.
+            على الرول الحراري اطبع أسود على أبيض.
+          </p>
         </form>
 
         <div class="preview-card">
@@ -1024,6 +1170,15 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
   function money(v) { return v ? NUM.format(+v) + " د.ع" : "—"; }
   function today() { return new Date().toISOString().slice(0, 10); }
 
+  /* بيانات المحل — مصدر واحد لكل المطبوعات */
+  const SHOP = {
+    name: "مكتب سفيان للموبايل",
+    latin: "SUFYAN MOBILE",
+    addr: "سامراء — الحويش — الشارع الرئيسي",
+    phones: "0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771",
+    net: "0772 909 6991"
+  };
+
   // fill="none" كخاصية عرض على كل مسار: بعض المحوّلات لا ترث fill من عنصر svg
   const MARK = '<svg class="m" fill="none" viewBox="44 58 152 124">' +
     '<path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/>' +
@@ -1210,8 +1365,9 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
 
     return '<div class="lg">' + MARK +
       '<div class="nm">مكتب سفيان للموبايل</div><div class="sb">SUFYAN MOBILE</div>' +
-      '<div class="ad">سامراء — الحويش — الشارع الرئيسي<br>' +
-      '<span dir="ltr">0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771</span></div></div>' +
+      '<div class="ad">' + SHOP.addr + "<br>" +
+      '<span dir="ltr">' + SHOP.phones + "</span><br>" +
+      'إنترنت: <span dir="ltr">' + SHOP.net + "</span></div></div>" +
 
       '<div class="hr s"></div><div class="ttl">وصل استلام صيانة</div>' +
       '<div class="no">' + esc(t.no) + "</div>" +
@@ -1281,23 +1437,59 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
   }
 
   /* ---------- 12.4 ملصقات الباركود ---------- */
+  /* nm اسم · pr السعر · bh ارتفاع الباركود · mod عرض أنحف عمود · sp سطر المواصفات
+     الحقول المسبوقة بـ p_ تُستعمل لملصق الهاتف حيث تأخذ المواصفات مساحة إضافية. */
   const SIZES = {
-    "75x50": { w: 75, h: 50, nm: 4.4, pr: 7.4, bh: 14, mod: 0.40, fs: 3 },
-    "60x40": { w: 60, h: 40, nm: 3.6, pr: 6, bh: 11, mod: 0.34, fs: 2.6 },
-    "50x30": { w: 50, h: 30, nm: 3.1, pr: 4.8, bh: 8.5, mod: 0.28, fs: 2.3 },
-    "40x25": { w: 40, h: 25, nm: 2.7, pr: 4, bh: 7, mod: 0.22, fs: 2 }
+    "75x50": { w: 75, h: 50, nm: 4.4, pr: 7.4, bh: 14, mod: 0.40, fs: 3,
+               sp: 2.5, p_nm: 3.8, p_pr: 5.6, p_bh: 9 },
+    "60x40": { w: 60, h: 40, nm: 3.6, pr: 6, bh: 11, mod: 0.34, fs: 2.6,
+               sp: 2, p_nm: 3, p_pr: 4.4, p_bh: 7 },
+    "50x30": { w: 50, h: 30, nm: 3.1, pr: 4.8, bh: 8.5, mod: 0.28, fs: 2.3,
+               sp: 1.7, p_nm: 2.5, p_pr: 3.4, p_bh: 5.5 },
+    "40x25": { w: 40, h: 25, nm: 2.7, pr: 4, bh: 7, mod: 0.22, fs: 2,
+               sp: 1.5, p_nm: 2.2, p_pr: 3, p_bh: 4.6 }
   };
+
+  /** يطبّق مقاسات ملصق الهاتف على المقاس المختار عند الحاجة. */
+  function fitSize(size, isPhone) {
+    const s = SIZES[size];
+    if (!isPhone) return s;
+    return Object.assign({}, s, { nm: s.p_nm, pr: s.p_pr, bh: s.p_bh });
+  }
+
+  /** صف مواصفة واحد — يُحذف كله إذا كانت القيمة فارغة. */
+  function spRow(label, val, mono) {
+    if (!val) return "";
+    return '<div class="sp"><i>' + label + "</i> " +
+      "<em" + (mono ? ' class="mono"' : "") + ">" + esc(val) + "</em></div>";
+  }
+
+  /** كتلة مواصفات الجهاز — تظهر في ملصق الهاتف فقط. */
+  function specsHTML(p) {
+    const rows =
+      '<div class="duo">' + spRow("الذاكرة", p.storage, true) + spRow("اللون", p.color) + "</div>" +
+      spRow("النموذج", p.model, true) +
+      spRow("IMEI", p.imei, true) +
+      '<div class="duo">' + spRow("البطارية", p.batt, true) + spRow("الحالة", p.cond) + "</div>" +
+      spRow("الأعطال", p.fault) +
+      spRow("ملاحظات", p.notes);
+    // لا كتلة أصلاً إن كانت كل الحقول فارغة
+    return rows.replace(/<div class="duo"><\/div>/g, "").trim()
+      ? '<div class="sp-box">' + rows.replace(/<div class="duo"><\/div>/g, "") + "</div>"
+      : "";
+  }
 
   function labelInner(p, s) {
     return '<div class="lt">' + MARK + '<span class="ln">' + esc(p.name) + "</span></div>" +
       '<div class="lp"><span dir="ltr">' + NUM.format(+p.price || 0) + "</span> <small>د.ع</small></div>" +
+      (p.kind === "PH" ? specsHTML(p) : "") +
       '<div class="lb">' + barcodeSVG(p.sku, {
         height: Math.round(s.bh * 4), module: Math.max(1, Math.round(s.mod * 4)), fontSize: 11
       }) + "</div>";
   }
 
   function labelSheetHTML(p, size, qty) {
-    const s = SIZES[size];
+    const s = fitSize(size, p.kind === "PH");
     const css =
       "@page{size:A4;margin:8mm}" +
       "body{display:flex;flex-wrap:wrap;gap:3mm;align-content:flex-start}" +
@@ -1310,6 +1502,15 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
       ".lp{font-family:'El Messiri',serif;font-weight:700;font-size:" + s.pr + "mm;color:#14343F;" +
       "line-height:1;margin-top:1mm;white-space:nowrap}" +
       ".lp small{font-family:'Cairo',sans-serif;font-size:" + (s.pr * 0.42) + "mm;opacity:.55;font-weight:600}" +
+      ".sp-box{margin-top:.8mm;border-top:.2mm solid rgba(20,52,63,.45);" +
+      "border-bottom:.2mm solid rgba(20,52,63,.45);padding:.6mm 0;display:flex;" +
+      "flex-direction:column;gap:.15mm;font-size:" + (s.sp || 2.2) + "mm;line-height:1.3;color:#14343F}" +
+      ".sp-box .duo{display:flex;gap:2mm}" +
+      ".sp-box .duo>*{flex:1;min-width:0}" +
+      ".sp-box .sp{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+      ".sp-box i{font-style:normal;font-weight:700;opacity:.6}" +
+      ".sp-box em{font-style:normal;font-weight:700}" +
+      ".sp-box em.mono{font-family:monospace;direction:ltr;unicode-bidi:isolate}" +
       ".lb{margin-top:auto;display:flex;justify-content:center}" +
       ".lb svg{display:block;max-width:100%;height:" + s.bh + "mm;width:auto}";
 
@@ -1318,7 +1519,224 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
     return { html: html, css: css };
   }
 
-  /* ---------- 12.5 ربط الواجهة ---------- */
+  /* ---------- 12.5 فاتورة البيع ---------- */
+  const LS_INV = "sfn_invoices", LS_INV_SEQ = "sfn_inv_seq";
+
+  function loadInvoices() {
+    try { return JSON.parse(localStorage.getItem(LS_INV) || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveInvoices(list) {
+    try { localStorage.setItem(LS_INV, JSON.stringify(list.slice(0, 500))); }
+    catch (e) { /* الذاكرة ممتلئة أو محظورة — الطباعة تبقى تعمل */ }
+  }
+  function nextInvNo() {
+    let n = 1;
+    try { n = (parseInt(localStorage.getItem(LS_INV_SEQ), 10) || 0) + 1; localStorage.setItem(LS_INV_SEQ, n); }
+    catch (e) { n = Date.now() % 100000; }
+    return "SFN-INV-" + String(n).padStart(5, "0");
+  }
+
+  /** يحسب مجاميع الفاتورة من أسطرها. */
+  function invTotals(v) {
+    const sub = (v.items || []).reduce(function (a, it) {
+      return a + (+it.qty || 0) * (+it.price || 0);
+    }, 0);
+    const disc = Math.min(+v.discount || 0, sub);
+    const grand = sub - disc;
+    const paid = v.paid === "" || v.paid == null ? grand : (+v.paid || 0);
+    return { sub: sub, disc: disc, grand: grand, paid: paid, rest: Math.max(0, grand - paid),
+             count: (v.items || []).reduce(function (a, it) { return a + (+it.qty || 0); }, 0) };
+  }
+
+  function stampClock(at) {
+    const d = new Date(at || Date.now());
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  /* ---- الفاتورة الحرارية 80 مم ---- */
+  const INV_T_CSS = THERMAL_CSS +
+    ".ith{display:flex;justify-content:space-between;font-size:2.3mm;font-weight:700;" +
+    "letter-spacing:.3mm;padding:.8mm 0;border-bottom:.4mm solid #000}" +
+    ".it{padding:1.4mm 0;border-bottom:.3mm dotted #000}" +
+    ".it:last-child{border-bottom:0}" +
+    ".it .n{font-size:2.9mm;font-weight:700;line-height:1.45}" +
+    ".it .m{display:flex;justify-content:space-between;align-items:baseline;" +
+    "font-size:2.6mm;font-weight:600;padding-top:.5mm}" +
+    ".it .m .q{font-family:monospace;direction:ltr}" +
+    ".it .m .s{font-family:monospace;direction:ltr;font-weight:700;font-size:2.9mm}" +
+    ".it .sn{font-size:2.2mm;font-family:monospace;direction:ltr;padding-top:.3mm}";
+
+  function invThermalHTML(v) {
+    const T = invTotals(v);
+    const row = function (k, val, mono) {
+      return val ? '<div class="kv"><b>' + k + '</b><span' + (mono ? ' class="mono"' : "") +
+        ">" + esc(val) + "</span></div>" : "";
+    };
+    const items = (v.items || []).map(function (it) {
+      const line = (+it.qty || 0) * (+it.price || 0);
+      return '<div class="it"><div class="n">' + esc(it.name) + "</div>" +
+        '<div class="m"><span class="q">' + NUM.format(+it.qty || 0) + " × " +
+        NUM.format(+it.price || 0) + '</span><span class="s">' + NUM.format(line) + "</span></div>" +
+        (it.imei ? '<div class="sn">IMEI ' + esc(it.imei) + "</div>" : "") + "</div>";
+    }).join("");
+
+    return '<div class="lg">' + MARK +
+      '<div class="nm">' + SHOP.name + '</div><div class="sb">' + SHOP.latin + "</div>" +
+      '<div class="ad">' + SHOP.addr + "<br>" +
+      '<span dir="ltr">' + SHOP.phones + "</span><br>" +
+      'إنترنت: <span dir="ltr">' + SHOP.net + "</span></div></div>" +
+
+      '<div class="hr s"></div><div class="ttl">فاتورة بيع</div>' +
+      '<div class="no">' + esc(v.no) + "</div>" +
+
+      '<div class="hr"></div>' +
+      row("التاريخ", (v.date || today()) + " · " + stampClock(v.at), true) +
+      row("البائع", v.seller) + row("الزبون", v.name) + row("الهاتف", v.phone, true) +
+
+      '<div class="hr"></div><div class="ith"><span>المادة</span><span>المجموع</span></div>' +
+      items +
+
+      '<div class="hr"></div>' +
+      '<div class="kv"><b>المجموع الفرعي</b><span class="mono">' + money(T.sub) + "</span></div>" +
+      (T.disc ? '<div class="kv"><b>الخصم</b><span class="mono">‎−' + money(T.disc) + "</span></div>" : "") +
+      '<div class="tot"><b>الإجمالي</b><span class="v">' + NUM.format(T.grand) + "</span></div>" +
+      '<div class="kv"><b>المدفوع</b><span class="mono">' + money(T.paid) + "</span></div>" +
+      (T.rest ? '<div class="kv"><b>المتبقّي</b><span class="mono">' + money(T.rest) + "</span></div>" : "") +
+      row("طريقة الدفع", v.pay) +
+
+      (v.note ? '<div class="hr"></div><div class="lb">ملاحظات</div><div class="tx">' +
+        esc(v.note) + "</div>" : "") +
+
+      '<div class="bc">' + barcodeSVG(v.no, { height: 56, module: 2, fontSize: 12 }) + "</div>" +
+
+      '<div class="hr"></div><div class="tm"><b>الضمان والاستبدال</b>' +
+      "• ضمان الجهاز سنة على عيوب المصنع — لا يشمل الكسر ولا الماء.<br>" +
+      "• الاستبدال خلال 3 أيام بشرط سلامة الجهاز وكامل توابعه وعلبته.<br>" +
+      "• الإكسسوارات المستعملة لا تُستبدل ولا تُرجَع.<br>" +
+      "• لا تُعتمد أي مطالبة بدون هذه الفاتورة." +
+      "</div>" +
+      '<div class="hr"></div><div class="th">شكرًا لثقتك</div>';
+  }
+
+  /* ---- الفاتورة A5 ---- */
+  const INV_A5_CSS =
+    "@page{size:148mm 210mm;margin:0}" +
+    "body{width:148mm;height:210mm;padding:7mm 8mm;display:flex;flex-direction:column}" +
+    ".tp{display:flex;align-items:flex-start;justify-content:space-between;gap:4mm;" +
+    "padding-bottom:3.4mm;border-bottom:.6mm solid #14343F}" +
+    ".bd{display:flex;align-items:center;gap:2.6mm}" +
+    ".bd .bx{width:11mm;height:11mm;border-radius:3mm;background:#14343F;display:flex;" +
+    "align-items:center;justify-content:center;flex:none}" +
+    ".bd .bx svg.m{width:7.4mm}.bd .bx svg.m path{stroke:#F2EDE4}.bd .bx svg.m path.acc{stroke:#C8A96A}" +
+    ".bd .nm{font-family:'El Messiri',serif;font-weight:700;font-size:4.8mm;color:#14343F;line-height:1.15}" +
+    ".bd .sb{font-size:1.7mm;font-weight:700;letter-spacing:1mm;direction:ltr;color:#2F6F6B;margin-top:.5mm}" +
+    ".bd .ad{font-size:2.2mm;font-weight:600;color:rgba(20,52,63,.66);line-height:1.6;margin-top:1mm}" +
+    ".dc{text-align:left;flex:none}" +
+    ".dc .t{font-family:'El Messiri',serif;font-weight:700;font-size:5.4mm;color:#14343F;line-height:1.1}" +
+    ".dc .n{font-family:monospace;font-size:3.6mm;font-weight:700;letter-spacing:.3mm;" +
+    "direction:ltr;color:#2F6F6B;margin-top:1mm}" +
+    ".dc .d{font-size:2.3mm;font-weight:600;color:rgba(20,52,63,.66);margin-top:.8mm}" +
+    ".wh{display:flex;gap:2.6mm;margin:3.4mm 0}" +
+    ".wh .c{flex:1;background:#F2EDE4;border-radius:2.6mm;padding:2.4mm 2.8mm}" +
+    ".wh .c .k{font-size:1.9mm;font-weight:700;letter-spacing:.5mm;color:#2F6F6B}" +
+    ".wh .c .r{display:flex;justify-content:space-between;gap:2mm;font-size:2.5mm;" +
+    "font-weight:600;padding-top:1mm;line-height:1.5}" +
+    ".wh .c .r b{font-weight:700;color:rgba(20,52,63,.6);flex:none}" +
+    ".wh .c .r span{text-align:left;overflow-wrap:anywhere}" +
+    ".wh .c .r span.mono{font-family:monospace;direction:ltr}" +
+    "table{width:100%;border-collapse:collapse;font-size:2.5mm}" +
+    "thead th{background:#14343F;color:#F2EDE4;font-weight:700;font-size:2.2mm;" +
+    "letter-spacing:.3mm;padding:1.6mm 1.8mm;text-align:right}" +
+    "thead th:first-child{border-top-right-radius:1.8mm}" +
+    "thead th:last-child{border-top-left-radius:1.8mm;text-align:left}" +
+    "tbody td{padding:1.6mm 1.8mm;border-bottom:.25mm solid rgba(20,52,63,.1);" +
+    "vertical-align:top;font-weight:600;line-height:1.5}" +
+    "tbody tr:nth-child(even) td{background:rgba(242,237,228,.55)}" +
+    "td.n{font-family:monospace;direction:ltr;white-space:nowrap}" +
+    "td.e{text-align:left;font-family:monospace;direction:ltr;font-weight:700;white-space:nowrap}" +
+    "td .sn{display:block;font-family:monospace;direction:ltr;font-size:2mm;" +
+    "color:rgba(20,52,63,.55);font-weight:600;padding-top:.4mm}" +
+    ".cn{width:6mm;text-align:center}" +
+    ".ft{margin-top:auto;padding-top:3.4mm}" +
+    ".mo{display:flex;gap:3mm;align-items:flex-start}" +
+    ".mo .lf{flex:1;display:flex;flex-direction:column;gap:2mm}" +
+    ".mo .sm{width:52mm;flex:none}" +
+    ".mo .sm .r{display:flex;justify-content:space-between;font-size:2.5mm;font-weight:600;padding:.9mm 0}" +
+    ".mo .sm .r span{font-family:monospace;direction:ltr}" +
+    ".mo .sm .g{display:flex;justify-content:space-between;align-items:baseline;background:#14343F;" +
+    "color:#F2EDE4;border-radius:2.2mm;padding:2.2mm 2.8mm;margin-top:1.4mm}" +
+    ".mo .sm .g b{font-size:2.5mm;font-weight:700}" +
+    ".mo .sm .g span{font-family:'El Messiri',serif;font-weight:700;font-size:4.6mm;direction:ltr;color:#C8A96A}" +
+    ".wr{background:#F2EDE4;border-radius:2.6mm;padding:2.3mm 2.7mm;font-size:2.2mm;" +
+    "line-height:1.7;font-weight:600;color:rgba(20,52,63,.78)}" +
+    ".wr b{display:block;font-family:'El Messiri',serif;font-size:2.8mm;color:#14343F;" +
+    "margin-bottom:.8mm;font-weight:700}" +
+    ".bcr{display:flex;align-items:center;gap:2.6mm}" +
+    ".bcr svg{height:9.5mm;width:auto;display:block}" +
+    ".bcr .sg{flex:1;text-align:center;font-size:2.1mm;font-weight:700;color:rgba(20,52,63,.6);" +
+    "border-top:.3mm solid rgba(20,52,63,.28);padding-top:1.1mm;margin-right:2mm}" +
+    ".en{display:flex;justify-content:space-between;align-items:center;border-top:.45mm solid #14343F;" +
+    "margin-top:2.6mm;padding-top:1.8mm;font-size:2.1mm;font-weight:700;color:rgba(20,52,63,.6)}";
+
+  function invA5HTML(v) {
+    const T = invTotals(v);
+    const rows = (v.items || []).map(function (it, i) {
+      const line = (+it.qty || 0) * (+it.price || 0);
+      return "<tr><td class='n cn'>" + (i + 1) + "</td>" +
+        "<td>" + esc(it.name) +
+        (it.imei ? "<span class='sn'>IMEI " + esc(it.imei) + "</span>" : "") + "</td>" +
+        "<td class='n'>" + NUM.format(+it.qty || 0) + "</td>" +
+        "<td class='n'>" + NUM.format(+it.price || 0) + "</td>" +
+        "<td class='e'>" + NUM.format(line) + "</td></tr>";
+    }).join("");
+
+    return '<div class="tp"><div class="bd"><div class="bx">' + MARK + "</div><div>" +
+      '<div class="nm">' + SHOP.name + '</div><div class="sb">' + SHOP.latin + "</div>" +
+      '<div class="ad">' + SHOP.addr + "<br>" +
+      '<span dir="ltr">' + SHOP.phones + "</span><br>" +
+      'إنترنت <span dir="ltr">' + SHOP.net + "</span></div></div></div>" +
+      '<div class="dc"><div class="t">فاتورة بيع</div>' +
+      '<div class="n">' + esc(v.no) + "</div>" +
+      '<div class="d">التاريخ <span dir="ltr">' + esc(v.date || today()) +
+      '</span> · الساعة <span dir="ltr">' + stampClock(v.at) + "</span></div></div></div>" +
+
+      '<div class="wh"><div class="c"><div class="k">بيانات الزبون</div>' +
+      '<div class="r"><b>الاسم</b><span>' + esc(v.name) + "</span></div>" +
+      '<div class="r"><b>الهاتف</b><span class="mono">' + esc(v.phone || "—") + "</span></div></div>" +
+      '<div class="c"><div class="k">بيانات الفاتورة</div>' +
+      '<div class="r"><b>البائع</b><span>' + esc(v.seller || "—") + "</span></div>" +
+      '<div class="r"><b>طريقة الدفع</b><span>' + esc(v.pay || "—") + "</span></div>" +
+      '<div class="r"><b>الحالة</b><span>' + (T.rest ? "متبقٍّ " + money(T.rest) : "مسدّدة بالكامل") +
+      "</span></div></div></div>" +
+
+      "<table><thead><tr><th class='cn'>ت</th><th>المادة</th>" +
+      "<th style='width:11mm'>الكمية</th><th style='width:17mm'>السعر</th>" +
+      "<th style='width:19mm'>المجموع</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+
+      '<div class="ft"><div class="mo"><div class="lf">' +
+      '<div class="wr"><b>الضمان والاستبدال</b>' +
+      "ضمان الجهاز سنة على عيوب المصنع — لا يشمل الكسر ولا الماء.<br>" +
+      "الاستبدال خلال 3 أيام بشرط سلامة الجهاز وكامل توابعه وعلبته.<br>" +
+      "الإكسسوارات المستعملة لا تُستبدل. لا تُعتمد أي مطالبة بدون هذه الفاتورة." +
+      (v.note ? "<br><br>" + esc(v.note) : "") + "</div>" +
+      '<div class="bcr">' + barcodeSVG(v.no, { height: 38, module: 1, fontSize: 10 }) +
+      '<span class="sg">توقيع المستلِم</span></div></div>' +
+
+      '<div class="sm">' +
+      '<div class="r"><b>المجموع الفرعي</b><span>' + money(T.sub) + "</span></div>" +
+      '<div class="r"><b>الخصم</b><span>' + (T.disc ? "‎−" + money(T.disc) : "—") + "</span></div>" +
+      '<div class="r"><b>عدد المواد</b><span>' + NUM.format(T.count) + "</span></div>" +
+      '<div class="g"><b>الإجمالي</b><span>' + NUM.format(T.grand) + "</span></div>" +
+      '<div class="r" style="padding-top:1.8mm"><b>المدفوع</b><span>' + money(T.paid) + "</span></div>" +
+      '<div class="r"><b>المتبقّي</b><span>' + (T.rest ? money(T.rest) : "0 د.ع") + "</span></div>" +
+      "</div></div>" +
+
+      '<div class="en"><span>شاشتك الجاية تبدأ من هنا</span>' +
+      '<span dir="ltr">SUFYAN MOBILE · SAMARRA</span></div></div>';
+  }
+
+  /* ---------- 12.6 ربط الواجهة ---------- */
   const toolsSection = $("tools");
   if (!toolsSection) return;
 
@@ -1336,15 +1754,17 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
   try { if (localStorage.getItem("sfn_tools_open") === "1") toolsSection.hidden = false; } catch (e) {}
 
   // تبويبان
-  const tabSvc = $("tabSvc"), tabBc = $("tabBc"), paneSvc = $("paneSvc"), paneBc = $("paneBc");
+  const PANES = { svc: ["tabSvc", "paneSvc"], inv: ["tabInv", "paneInv"], bc: ["tabBc", "paneBc"] };
   function showPane(which) {
-    const svc = which === "svc";
-    paneSvc.hidden = !svc; paneBc.hidden = svc;
-    tabSvc.setAttribute("aria-pressed", String(svc));
-    tabBc.setAttribute("aria-pressed", String(!svc));
+    Object.keys(PANES).forEach(function (k) {
+      const on = k === which;
+      $(PANES[k][1]).hidden = !on;
+      $(PANES[k][0]).setAttribute("aria-pressed", String(on));
+    });
   }
-  tabSvc.addEventListener("click", function () { showPane("svc"); });
-  tabBc.addEventListener("click", function () { showPane("bc"); });
+  Object.keys(PANES).forEach(function (k) {
+    $(PANES[k][0]).addEventListener("click", function () { showPane(k); });
+  });
 
   /* --- خانات نوع الخلل --- */
   const faultsBox = $("svFaults");
@@ -1466,36 +1886,210 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
   tkSearch.addEventListener("input", renderTickets);
   renderTickets();
 
+  /* --- فاتورة البيع --- */
+  const ivItems = $("ivItems");
+
+  function addItemRow(data) {
+    const d = data || {};
+    const row = document.createElement("div");
+    row.className = "inv-it";
+    row.innerHTML =
+      '<input class="i-nm" placeholder="اسم المادة" autocomplete="off" value="' + esc(d.name || "") + '">' +
+      '<input class="i-qy" type="number" min="1" step="1" dir="ltr" value="' + (d.qty || 1) + '">' +
+      '<input class="i-pr" type="number" min="0" step="250" dir="ltr" placeholder="0" value="' +
+        (d.price == null ? "" : d.price) + '">' +
+      '<button type="button" class="rm" aria-label="احذف المادة">✕</button>' +
+      '<input class="i-im inv-imei" dir="ltr" inputmode="numeric" maxlength="17" ' +
+        'placeholder="IMEI — للأجهزة فقط" autocomplete="off" value="' + esc(d.imei || "") + '">';
+    ivItems.appendChild(row);
+    return row;
+  }
+
+  function readInvItems() {
+    return Array.prototype.map.call(ivItems.children, function (r) {
+      return {
+        name: r.querySelector(".i-nm").value.trim(),
+        qty: +r.querySelector(".i-qy").value || 0,
+        price: +r.querySelector(".i-pr").value || 0,
+        imei: r.querySelector(".i-im").value.trim()
+      };
+    }).filter(function (it) { return it.name && it.qty > 0; });
+  }
+
+  function readInvoice(no) {
+    return {
+      no: no,
+      name: $("ivName").value.trim(),
+      phone: $("ivPhone").value.trim(),
+      items: readInvItems(),
+      discount: +$("ivDiscount").value || 0,
+      paid: $("ivPaid").value === "" ? null : +$("ivPaid").value,
+      pay: $("ivPay").value,
+      seller: $("ivSeller").value.trim(),
+      note: $("ivNote").value.trim(),
+      date: today(),
+      at: Date.now()
+    };
+  }
+
+  function renderInvSums() {
+    const T = invTotals({ items: readInvItems(), discount: +$("ivDiscount").value || 0,
+                          paid: $("ivPaid").value === "" ? null : +$("ivPaid").value });
+    $("ivSums").innerHTML =
+      '<div class="r"><b>المجموع الفرعي</b><span>' + money(T.sub) + "</span></div>" +
+      '<div class="r"><b>الخصم</b><span>' + (T.disc ? "‎−" + money(T.disc) : "—") + "</span></div>" +
+      '<div class="r"><b>عدد المواد</b><span>' + NUM.format(T.count) + "</span></div>" +
+      (T.rest ? '<div class="r"><b>المتبقّي</b><span>' + money(T.rest) + "</span></div>" : "");
+    $("ivGrand").textContent = NUM.format(T.grand);
+  }
+
+  ivItems.addEventListener("input", renderInvSums);
+  ivItems.addEventListener("click", function (e) {
+    if (!e.target.classList.contains("rm")) return;
+    if (ivItems.children.length > 1) e.target.parentNode.remove();
+    else e.target.parentNode.querySelectorAll("input").forEach(function (i) { i.value = i.classList.contains("i-qy") ? 1 : ""; });
+    renderInvSums();
+  });
+  $("ivAdd").addEventListener("click", function () { addItemRow(); renderInvSums(); });
+  ["ivDiscount", "ivPaid"].forEach(function (id) {
+    $(id).addEventListener("input", renderInvSums);
+  });
+
+  addItemRow(); renderInvSums();
+
+  let lastInvoice = null;
+
+  /** يعيد الفاتورة الحالية، ويُنشئها ويحفظها إن لم تكن محفوظة بعد. */
+  function currentInvoice() {
+    if (!$("invForm").reportValidity()) return null;
+    const items = readInvItems();
+    if (!items.length) { alert("أضف مادة واحدة على الأقل باسم وكمية."); return null; }
+    if (lastInvoice && lastInvoice.name === $("ivName").value.trim() &&
+        lastInvoice.items.length === items.length) return lastInvoice;
+    const v = readInvoice(nextInvNo());
+    lastInvoice = v;
+    const list = loadInvoices(); list.unshift(v); saveInvoices(list); renderInvoices();
+    return v;
+  }
+
+  $("invForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const v = currentInvoice();
+    if (v) printDoc(invThermalHTML(v), INV_T_CSS);
+  });
+
+  $("ivPrintA5").addEventListener("click", function () {
+    const v = currentInvoice();
+    if (v) printDoc(invA5HTML(v), INV_A5_CSS);
+  });
+
+  $("ivReset").addEventListener("click", function () {
+    $("invForm").reset();
+    $("ivSeller").value = "سفيان";
+    ivItems.innerHTML = ""; addItemRow(); renderInvSums();
+    lastInvoice = null;
+  });
+
+  /* --- قائمة الفواتير المحفوظة --- */
+  const ivList = $("ivList"), ivSearch = $("ivSearch");
+
+  function invMatches() {
+    const q = (ivSearch.value || "").trim().toLowerCase();
+    return loadInvoices().filter(function (v) {
+      return !q || (v.no + " " + v.name + " " + v.phone).toLowerCase().indexOf(q) > -1;
+    });
+  }
+
+  function renderInvoices() {
+    const rows = invMatches().slice(0, 40);
+    if (!rows.length) {
+      ivList.innerHTML = '<p class="tk-empty">' +
+        (ivSearch.value.trim() ? "لا توجد فاتورة مطابقة." : "لا توجد فواتير محفوظة بعد.") + "</p>";
+      return;
+    }
+    ivList.innerHTML = rows.map(function (v, i) {
+      return '<div class="tk-row"><span class="tk-no">' + esc(v.no) + "</span>" +
+        '<span class="tk-nm">' + esc(v.name) + " — " + money(invTotals(v).grand) + "</span>" +
+        '<span class="tk-act">' +
+        '<button data-a="th" data-i="' + i + '">حراري</button>' +
+        '<button data-a="a5" data-i="' + i + '">A5</button>' +
+        '<button data-a="rm" data-i="' + i + '">حذف</button></span></div>';
+    }).join("");
+  }
+
+  ivList.addEventListener("click", function (e) {
+    const b = e.target.closest("button[data-a]");
+    if (!b) return;
+    const v = invMatches()[+b.dataset.i];
+    if (!v) return;
+    if (b.dataset.a === "th") printDoc(invThermalHTML(v), INV_T_CSS);
+    else if (b.dataset.a === "a5") printDoc(invA5HTML(v), INV_A5_CSS);
+    else {
+      saveInvoices(loadInvoices().filter(function (x) { return x.no !== v.no; }));
+      renderInvoices();
+    }
+  });
+  ivSearch.addEventListener("input", renderInvoices);
+  renderInvoices();
+
   /* --- ملصقات الباركود --- */
   const bcPreview = $("bcPreview");
 
+  const PH_FIELDS = ["bcModel", "bcImei", "bcStorage", "bcColor", "bcBatt", "bcCond", "bcFault", "bcNotes"];
+
   function bcData() {
     return {
+      kind: $("bcKind").value,
       name: $("bcName").value.trim() || "اسم المنتج",
       price: $("bcPrice").value || 0,
-      sku: ($("bcSku").value.trim() || "SFN-AC-0000").toUpperCase()
+      sku: ($("bcSku").value.trim() || "SFN-AC-0000").toUpperCase(),
+      model: $("bcModel").value.trim(),
+      imei: $("bcImei").value.trim(),
+      storage: $("bcStorage").value.trim(),
+      color: $("bcColor").value.trim(),
+      batt: $("bcBatt").value.trim(),
+      cond: $("bcKind").value === "PH" ? $("bcCond").value : "",
+      fault: $("bcFault").value.trim(),
+      notes: $("bcNotes").value.trim()
     };
   }
 
   function renderBcPreview() {
-    const s = SIZES[$("bcSize").value], p = bcData();
+    const p = bcData(), isPh = p.kind === "PH";
+    const s = fitSize($("bcSize").value, isPh);
     // 1 مم ≈ 3.78 بكسل على الشاشة — معاينة قريبة من المقاس الحقيقي
     const K = 3.78;
+    let specs = "";
+    if (isPh) {
+      const rows = specsHTML(p);
+      if (rows) {
+        specs = rows.replace('class="sp-box"',
+          'class="lp-sp" style="font-size:' + (s.sp * K).toFixed(1) + 'px"');
+      }
+    }
     bcPreview.innerHTML =
       '<div class="lbl-pv" style="width:' + (s.w * K) + "px;height:" + (s.h * K) + 'px">' +
       '<div class="lp-top">' + MARK.replace('class="m"', 'class="sfn-mark"')
         .replace("<svg", '<svg style="width:' + (s.nm * 1.3 * K) + 'px;flex:none"') +
       '<span class="lp-nm" style="font-size:' + (s.nm * K) + 'px">' + esc(p.name) + "</span></div>" +
       '<div class="lp-pr" style="font-size:' + (s.pr * K) + 'px"><span dir="ltr">' +
-      NUM.format(+p.price || 0) + "</span> <small>د.ع</small></div>" +
+      NUM.format(+p.price || 0) + "</span> <small>د.ع</small></div>" + specs +
       '<div class="lp-bc" style="height:' + (s.bh * K) + 'px">' +
       barcodeSVG(p.sku, { height: Math.round(s.bh * 4), module: Math.max(1, Math.round(s.mod * 4)), fontSize: 11 }) +
       "</div></div>";
   }
 
-  ["bcName", "bcPrice", "bcSku", "bcSize"].forEach(function (id) {
+  ["bcName", "bcPrice", "bcSku", "bcSize"].concat(PH_FIELDS).forEach(function (id) {
     $(id).addEventListener("input", renderBcPreview);
     $(id).addEventListener("change", renderBcPreview);
+  });
+
+  // نوع الملصق يقرّر ظهور حقول الجهاز والمقاس الافتراضي
+  $("bcKind").addEventListener("change", function () {
+    const k = $("bcKind").value;
+    $("bcPhoneFields").hidden = k !== "PH";
+    $("bcSize").value = k === "PH" ? "75x50" : "50x30";
+    renderBcPreview();
   });
 
   $("bcGen").addEventListener("click", function () {
