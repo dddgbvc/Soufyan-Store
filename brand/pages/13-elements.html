@@ -1,0 +1,188 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — مكتبة العناصر</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  .board{width:1600px;height:880px;background:var(--sand);padding:56px 64px;display:flex;flex-direction:column}
+  .board.dark{background:var(--deep);color:var(--sand)}
+
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:28px;
+        border-block-end:2px solid rgba(20,52,63,.12);padding-block-end:20px}
+  .board.dark .head{border-color:rgba(242,237,228,.18)}
+  .head h2{font-family:var(--display);font-weight:700;font-size:42px;line-height:1.15}
+  .head .k{font-weight:700;letter-spacing:.14em;font-size:16px;color:var(--teal)}
+  .board.dark .head .k{color:var(--gold)}
+  .head .spec{font-size:17px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+
+  .sec{margin-block-end:24px}
+  .sec .t{font-size:14px;font-weight:700;letter-spacing:.12em;color:var(--teal);margin-block-end:14px}
+  .board.dark .sec .t{color:var(--gold)}
+  .tray{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+
+  .cell{background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:20px;
+        padding:18px 22px;display:grid;place-items:center;min-height:96px}
+  .cell.d{background:var(--deep);border-color:transparent}
+  .cell.t{background:var(--teal);border-color:transparent}
+  .cell.g{background:var(--gold);border-color:transparent}
+  .cell .cap{font-size:12px;font-weight:600;opacity:.5;margin-block-start:8px;text-align:center}
+
+  /* بطاقات اللون — يكفي أخذ رمز اللون منها */
+  .sw{width:180px;border-radius:18px;overflow:hidden;border:2px solid rgba(20,52,63,.08)}
+  .sw .chip{height:76px}
+  .sw .meta{background:#fff;padding:12px 14px}
+  .sw .meta b{display:block;font-family:var(--display);font-size:18px;color:var(--deep)}
+  .sw .meta code{font-size:13px;font-weight:600;opacity:.6;direction:ltr;display:block;margin-block-start:2px}
+
+  .icoCell{width:92px;height:92px;background:#fff;border:2px solid rgba(20,52,63,.07);
+           border-radius:20px;display:grid;place-items:center;color:var(--teal)}
+  .icoCell svg{width:42px;height:42px}
+
+  .patt{width:250px;height:130px;border-radius:20px;overflow:hidden;position:relative;
+        display:grid;place-items:center}
+
+  .pf{margin-block-start:auto;padding-block-start:20px;display:flex;justify-content:space-between;
+      font-size:15px;font-weight:600;opacity:.45;border-block-start:2px solid rgba(20,52,63,.10)}
+  .board.dark .pf{border-color:rgba(242,237,228,.15);opacity:.55}
+</style>
+
+<!-- ══════════════ 1 · الشعار والرمز والألوان ══════════════ -->
+<div class="board" data-document-role="page" data-slug="elements-logo" data-label="عناصر: الشعار والألوان">
+  <div class="head">
+    <div>
+      <div class="k">مكتبة العناصر</div>
+      <h2 style="margin-block-start:12px">الشعار · الرمز · الألوان</h2>
+    </div>
+    <div class="spec">انسخ أي عنصر من هذه الصفحة والصقه في أي تصميم<br>Ctrl/Cmd + C ثم Ctrl/Cmd + V</div>
+  </div>
+
+  <div class="sec">
+    <div class="t">صيغ الشعار</div>
+    <div class="tray">
+      <div class="cell"><img src="../logo/logo-primary.svg" style="width:190px"></div>
+      <div class="cell d"><img src="../logo/logo-primary-onDark.svg" style="width:190px"></div>
+      <div class="cell"><img src="../logo/logo-horizontal.svg" style="width:300px"></div>
+      <div class="cell d"><img src="../logo/logo-horizontal-onDark.svg" style="width:300px"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t">الأيقونة والرمز والختم</div>
+    <div class="tray">
+      <div class="cell"><img src="../logo/logo-icon.svg" style="width:88px"></div>
+      <div class="cell"><img src="../logo/logo-icon-light.svg" style="width:88px"></div>
+      <div class="cell"><img src="../logo/logo-stamp.svg" style="width:88px"></div>
+      <div class="cell"><img src="../logo/logo-mono.svg" style="width:170px"></div>
+      <div class="cell"><img src="../logo/logo-mark.svg" style="width:92px"></div>
+      <div class="cell d"><img src="../logo/logo-mark-sand.svg" style="width:92px"></div>
+      <div class="cell t">
+        <svg fill="none" class="mark" viewBox="44 58 152 124" style="width:92px;color:var(--sand)"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
+      </div>
+      <div class="cell g">
+        <svg fill="none" class="mark" viewBox="44 58 152 124" style="width:92px;color:var(--deep)"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140" style="stroke:var(--deep)"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t">الألوان</div>
+    <div class="tray">
+      <div class="sw"><div class="chip" style="background:#14343F"></div>
+        <div class="meta"><b>بترولي عميق</b><code>#14343F</code></div></div>
+      <div class="sw"><div class="chip" style="background:#2F6F6B"></div>
+        <div class="meta"><b>مائي هادئ</b><code>#2F6F6B</code></div></div>
+      <div class="sw"><div class="chip" style="background:#9CC0BB"></div>
+        <div class="meta"><b>مائي فاتح</b><code>#9CC0BB</code></div></div>
+      <div class="sw"><div class="chip" style="background:#C8A96A"></div>
+        <div class="meta"><b>ذهبي مطفي</b><code>#C8A96A</code></div></div>
+      <div class="sw"><div class="chip" style="background:#F2EDE4"></div>
+        <div class="meta"><b>رملي دافئ</b><code>#F2EDE4</code></div></div>
+      <div class="sw"><div class="chip" style="background:#101E24"></div>
+        <div class="meta"><b>حبري (نصوص)</b><code>#101E24</code></div></div>
+    </div>
+  </div>
+
+  <div class="pf"><span>مكتب سفيان للموبايل — مكتبة العناصر</span><span>1 / 2</span></div>
+</div>
+
+<!-- ══════════════ 2 · الأيقونات والأنماط والمكوّنات ══════════════ -->
+<div class="board" data-document-role="page" data-slug="elements-parts" data-label="عناصر: أيقونات ومكوّنات">
+  <div class="head">
+    <div>
+      <div class="k">مكتبة العناصر</div>
+      <h2 style="margin-block-start:12px">الأيقونات · الأنماط · المكوّنات</h2>
+    </div>
+    <div class="spec">أيقونات خطية بسمك موحّد 3.6<br>لا تستخدم أيقونات مصمتة أو ملوّنة</div>
+  </div>
+
+  <div class="sec">
+    <div class="t">الأيقونات</div>
+    <div class="tray">
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><rect x="17" y="4" width="30" height="56" rx="9"/><path d="M27 11h10"/><path d="M28 52h8"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M12 38v-6a20 20 0 0 1 40 0v6"/><rect x="5" y="35" width="14" height="20" rx="7"/><rect x="45" y="35" width="14" height="20" rx="7"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><rect x="20" y="8" width="24" height="20" rx="7"/><path d="M28 8V3M36 8V3"/><path d="M32 28v9c0 6-5 8-10 10s-9 6-9 11v3"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><rect x="16" y="5" width="32" height="54" rx="11"/><rect x="22" y="12" width="17" height="17" rx="6"/><circle cx="27" cy="18" r="2.6"/><circle cx="34" cy="24" r="2.6"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M32 6l20 8v14c0 14-9 24-20 30-11-6-20-16-20-30V14z"/><path d="M23 32l6 6 12-13"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25"/><path d="M32 17v16l11 6"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24"/><path d="M21 33l8 8 15-17"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M32 54s-22-13-22-28a12 12 0 0 1 22-7 12 12 0 0 1 22 7c0 15-22 28-22 28z"/></svg></div>
+      <div class="icoCell"><svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M33.6 6.4 55 27.8a5 5 0 0 1 0 7.1L36.9 53a5 5 0 0 1-7.1 0L8.4 31.6A5 5 0 0 1 7 28V11a4 4 0 0 1 4-4h17a5 5 0 0 1 3.6 1.4z"/><circle cx="19" cy="19" r="4"/></svg></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t">الأنماط والقوام</div>
+    <div class="tray">
+      <div class="patt" style="background:var(--deep)">
+        <div class="dots" style="color:var(--sand);opacity:.18"></div>
+      </div>
+      <div class="patt" style="background:var(--deep)">
+        <div style="display:flex;gap:26px;opacity:.6">
+          <span class="bars" style="color:var(--mist);--bw:11px;--bh:48px"><i></i><i></i><i></i></span>
+          <span class="bars" style="color:var(--mist);--bw:11px;--bh:48px"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+      <div class="patt" style="background:var(--sand-2)">
+        <span class="bars" style="color:var(--teal);--bw:16px;--bh:62px"><i></i><i></i><i></i></span>
+      </div>
+      <div class="patt" style="background:var(--deep);border-start-start-radius:110px">
+        <span style="color:var(--gold);font-family:var(--display);font-weight:700;font-size:22px">قوس الحافة</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="t">المكوّنات الجاهزة</div>
+    <div class="tray">
+      <div class="cell d" style="padding:24px 26px">
+        <div style="display:flex;gap:12px">
+          <span class="pill">هواتف ذكية</span><span class="pill">إكسسوارات</span>
+        </div>
+      </div>
+      <div class="cell" style="padding:24px 26px">
+        <div style="display:flex;gap:12px">
+          <span class="pill line">عرض الأسبوع</span><span class="pill line ltr">128 GB</span>
+        </div>
+      </div>
+      <div class="cell" style="padding:20px 24px">
+        <span style="display:inline-flex;align-items:center;gap:14px;background:var(--gold);color:var(--deep);
+                     border-radius:999px;padding:18px 32px;font-size:22px;font-weight:700;line-height:1">
+          <svg fill="none" class="ico" viewBox="0 0 64 64" style="width:26px;height:26px"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+          اطلب عبر واتساب
+        </span>
+      </div>
+      <div class="cell" style="padding:20px 24px">
+        <div class="lockup" style="--lk-size:64px;--lk-r:18px;--lk-name:26px;--lk-sub:10px;color:var(--deep)">
+          <div class="badge">
+            <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
+          </div>
+          <div class="names"><b>مكتب سفيان للموبايل</b><span>Sufyan Mobile</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf"><span>الخطوط: El Messiri للعناوين · Cairo للمتن</span><span>2 / 2</span></div>
+</div>

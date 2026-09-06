@@ -28,6 +28,8 @@ JOBS = {
                           "service-device-labels"], 300),
     "ملصقات-الباركود.pdf": (["barcode-sheet-a4", "barcode-anatomy"], 300),
     "لوحة-الواجهة-المضيئة.pdf": (["neon-night", "neon-dimensions", "neon-specs"], 150),
+    "الوصل-الحراري-80مم.pdf": (["thermal-receipt-80"], 150),
+    "مكتبة-العناصر.pdf": (["elements-logo", "elements-parts"], 150),
 }
 
 

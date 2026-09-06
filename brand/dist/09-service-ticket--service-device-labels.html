@@ -124,7 +124,7 @@ body{
 
 /* ---------- الرمز المضمّن (يتلوّن بـ currentColor) ---------- */
 .mark{fill:none;stroke-width:24;stroke-linecap:round;stroke-linejoin:round;display:block}
-.mark path{stroke:currentColor}
+.mark path{fill:none;stroke:currentColor}
 .mark .acc{stroke:var(--gold)}
 
 /* قفل الشعار: رمز + اسم */
@@ -169,7 +169,7 @@ body{
 .ltr{direction:ltr;unicode-bidi:isolate}
 
 /* ---------- أيقونات خطية موحّدة ---------- */
-.ico{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.ico,.ico *{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- شريط تواصل سفلي ---------- */
 .footer-bar{
@@ -279,7 +279,7 @@ body{
     <!-- نموذج معبّأ يوضّح الشكل النهائي -->
     <div class="dev">
       <div class="top">
-        <svg class="mark" viewBox="44 58 152 124"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
         <span class="t">وصل صيانة</span>
         <span class="n">SFN-01427</span>
       </div>

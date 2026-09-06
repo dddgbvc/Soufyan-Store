@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<title>بانر يوتيوب — مكتب سفيان للموبايل</title>
+<title>مكتب سفيان للموبايل — الوصل الحراري 80 مم</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
@@ -117,7 +117,8 @@ body{
   background-size:22px 22px; opacity:.10; pointer-events:none;
 }
 
-</style><style>
+</style>
+<style>
 /* =========================================================
    عناصر مشتركة بين ألواح التصميم
    ========================================================= */
@@ -185,46 +186,301 @@ body{
 /* ---------- ملصق دائري ---------- */
 .sticker{border-radius:50%;display:grid;place-items:center;text-align:center;position:relative}
 
-</style><style>
-  .cover{background:var(--deep);color:var(--sand);display:grid;place-items:center;padding:0}
-  .fb{width:1640px;height:624px}
-  .x{width:1500px;height:500px}
-  .yt{width:2560px;height:1440px}
-  .wide{width:1920px;height:640px}
-
-  .halo{position:absolute;border-radius:50%;background:var(--teal);opacity:.24;filter:blur(80px)}
-  .ghost{position:absolute;color:var(--sand);opacity:.05}
-
-  .inner{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:26px}
-  .tag{font-family:var(--display);font-weight:700;line-height:1.2}
-  .sub{font-weight:500;opacity:.72}
-  .strip{display:flex;align-items:center;gap:22px;font-weight:600}
-  .sep{width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none}
-
 </style>
-<div class="cover yt" data-document-role="page" data-slug="cover-youtube" data-label="بانر يوتيوب">
-  <div class="halo" style="width:1500px;height:1500px;inset-block-start:-820px;inset-inline-start:-420px"></div>
-  <svg class="ghost" viewBox="44 58 152 124" style="width:1100px;inset-block-end:-300px;inset-inline-end:-160px">
-    <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-      <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>
-      <path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/>
-    </g>
-  </svg>
+<style>
+  /* ورق حراري عرض 80 مم — المساحة المطبوعة 72 مم.
+     المقياس هنا 150 نقطة/إنش: 80 مم = 472 بكسل. الطول متغيّر حسب المحتوى. */
+  .roll{
+    width:472px;background:#fff;padding:22px 20px;display:flex;flex-direction:column;gap:0;
+    color:#000;font-family:var(--body);
+  }
 
-  <div class="inner" style="gap:34px">
-    <div class="lockup" style="--lk-size:132px;--lk-r:34px;--lk-name:72px;--lk-sub:19px;color:var(--sand)">
-      <div class="badge" style="--lk-glyph:var(--deep)">
-        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
-      </div>
-      <div class="names"><b>مكتب سفيان للموبايل</b><span>Sufyan Mobile</span></div>
+  /* الطابعة الحرارية أحادية اللون: كل شيء أسود على أبيض، بلا رمادي فاتح */
+  .roll *{color:#000}
+
+  .r-logo{display:flex;flex-direction:column;align-items:center;gap:8px;padding-block-end:14px}
+  .r-logo .mark{width:52px;color:#000}
+  .r-logo .nm{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.15}
+  .r-logo .sub{font-size:10px;font-weight:700;letter-spacing:.34em;direction:ltr}
+  .r-logo .addr{font-size:13px;font-weight:600;text-align:center;line-height:1.6;margin-block-start:4px}
+
+  .hr{border-block-start:2px dashed #000;margin-block:10px}
+  .hr.solid{border-block-start:2px solid #000;border-style:solid}
+
+  .r-title{text-align:center;font-family:var(--display);font-weight:700;font-size:22px;padding-block:4px}
+  .r-no{text-align:center;font-family:monospace;font-size:26px;font-weight:700;letter-spacing:.1em;
+        direction:ltr;padding-block-end:6px}
+
+  .kv{display:flex;justify-content:space-between;gap:10px;padding-block:5px;font-size:15px;line-height:1.5}
+  .kv b{font-weight:700;flex:none}
+  .kv span{font-weight:600;text-align:end;overflow-wrap:anywhere}
+  .kv span.mono{font-family:monospace;direction:ltr}
+
+  .blk{padding-block:6px}
+  .blk .lb{font-size:12px;font-weight:700;letter-spacing:.1em;padding-block-end:4px}
+  .blk .tx{font-size:15px;font-weight:600;line-height:1.7}
+
+  .fault{display:flex;flex-wrap:wrap;gap:6px;padding-block-start:4px}
+  .fault span{border:1.5px solid #000;border-radius:4px;padding:3px 9px;font-size:13px;font-weight:700}
+
+  .total{display:flex;justify-content:space-between;align-items:baseline;
+         border:2px solid #000;border-radius:6px;padding:10px 14px;margin-block-start:8px}
+  .total b{font-size:15px;font-weight:700}
+  .total .v{font-family:var(--display);font-weight:700;font-size:24px;direction:ltr}
+
+  .r-bc{display:flex;flex-direction:column;align-items:center;gap:4px;padding-block:14px}
+  .r-bc svg{display:block;height:64px;width:auto}
+
+  .terms{font-size:11.5px;line-height:1.75;padding-block:8px}
+  .terms b{display:block;font-size:12px;margin-block-end:3px}
+  .thanks{text-align:center;font-family:var(--display);font-weight:700;font-size:17px;padding-block-start:10px}
+  .cut-mark{text-align:center;font-size:10px;font-weight:700;letter-spacing:.2em;padding-block-start:12px}
+
+  /* لوح العرض حول الرول */
+  .board{width:1600px;height:1580px;background:var(--sand);padding:56px 70px;display:flex;flex-direction:column}
+  .board .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:30px}
+  .board .head h2{font-family:var(--display);font-weight:700;font-size:44px;line-height:1.15}
+  .board .head .k{font-weight:700;letter-spacing:.14em;font-size:17px;color:var(--teal)}
+  .board .head .spec{font-size:18px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+  .stage{flex:1;display:flex;align-items:flex-start;justify-content:center;gap:56px}
+  .paper{box-shadow:0 24px 50px rgba(20,52,63,.18);border-radius:3px;flex:none}
+  .notes{max-width:520px;display:flex;flex-direction:column;gap:18px}
+  .note{background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:20px;padding:22px 26px}
+  .note b{display:block;font-family:var(--display);font-size:22px;color:var(--deep);margin-block-end:8px}
+  .note p{font-size:17px;line-height:1.65;opacity:.74;margin:0}
+  .note .ltr{display:inline-block}
+</style>
+
+<!-- ══════════════ لوح العرض: الوصل الحراري ══════════════ -->
+<div class="board" data-document-role="page" data-slug="thermal-receipt-80" data-label="الوصل الحراري 80 مم">
+  <div class="head">
+    <div>
+      <div class="k">صيانة · نسخة الزبون</div>
+      <h2 style="margin-block-start:12px">الوصل الحراري 80 مم</h2>
     </div>
-    <div class="tag" style="font-size:54px;color:var(--gold)">شاشتك الجاية تبدأ من هنا</div>
-    <div class="strip" style="font-size:30px;opacity:.82">
-      <span>سامراء — الحويش — الشارع الرئيسي</span><span class="sep"></span>
-      <span class="ltr">0773 164 4450</span>
+    <div class="spec">رول حراري عرض 80 مم · مساحة الطباعة 72 مم<br>الطول متغيّر حسب المحتوى · يُطبع من البرنامج</div>
+  </div>
+
+  <div class="stage">
+    <!-- الرول -->
+    <div class="roll paper">
+      <div class="r-logo">
+        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/></svg>
+        <div class="nm">مكتب سفيان للموبايل</div>
+        <div class="sub">SUFYAN MOBILE</div>
+        <div class="addr">
+          سامراء — الحويش — الشارع الرئيسي<br>
+          <span class="ltr">0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771</span>
+        </div>
+      </div>
+
+      <div class="hr solid"></div>
+      <div class="r-title">وصل استلام صيانة</div>
+      <div class="r-no">SFN-01427</div>
+      <div class="hr"></div>
+
+      <div class="kv"><b>التاريخ</b><span class="mono">2026-09-06 · 12:40</span></div>
+      <div class="kv"><b>الموظّف</b><span>سفيان</span></div>
+
+      <div class="hr"></div>
+      <div class="blk"><div class="lb">بيانات الزبون</div></div>
+      <div class="kv"><b>الاسم</b><span>أحمد عبد الله حسين</span></div>
+      <div class="kv"><b>الهاتف</b><span class="mono">0771 234 5678</span></div>
+
+      <div class="hr"></div>
+      <div class="blk"><div class="lb">بيانات الجهاز</div></div>
+      <div class="kv"><b>الجهاز</b><span class="mono">Samsung Galaxy A54</span></div>
+      <div class="kv"><b>IMEI</b><span class="mono">356938035643809</span></div>
+      <div class="kv"><b>رمز القفل</b><span class="mono">1234</span></div>
+      <div class="kv"><b>الملحقات</b><span>كفر فقط</span></div>
+
+      <div class="hr"></div>
+      <div class="blk">
+        <div class="lb">نوع الخلل</div>
+        <div class="fault"><span>شاشة</span><span>شحن</span></div>
+      </div>
+      <div class="blk">
+        <div class="lb">وصف الخلل</div>
+        <div class="tx">الشاشة مكسورة من الزاوية العليا واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.</div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="kv"><b>موعد التسليم</b><span class="mono">2026-09-08</span></div>
+      <div class="kv"><b>الكلفة التقديرية</b><span class="mono">85,000 د.ع</span></div>
+      <div class="kv"><b>المدفوع مقدّمًا</b><span class="mono">25,000 د.ع</span></div>
+      <div class="total"><b>المتبقّي عند الاستلام</b><span class="v">60,000</span></div>
+
+      <div class="r-bc">
+        <div data-barcode="SFN-01427" data-h="64" data-m="2"></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="terms">
+        <b>شروط الاستلام</b>
+        • المحل غير مسؤول عن البيانات داخل الجهاز — يُرجى أخذ نسخة احتياطية.<br>
+        • الجهاز غير المستلَم خلال 30 يومًا من موعد التسليم لا يتحمّل المحل مسؤوليته.<br>
+        • لا يُسلَّم الجهاز إلا بإبراز هذا الوصل أو مسح الباركود.<br>
+        • الكلفة تقديرية وقد تتغيّر بعد الفحص، ولا يُباشَر التصليح إلا بموافقتك.
+      </div>
+
+      <div class="hr"></div>
+      <div class="thanks">شكرًا لثقتك 🤍</div>
+      <div class="cut-mark">— — — قص — — —</div>
+    </div>
+
+    <!-- ملاحظات التشغيل -->
+    <div class="notes">
+      <div class="note">
+        <b>المقاس</b>
+        <p>رول حراري عرض <span class="ltr">80 مم</span> ومساحة طباعة <span class="ltr">72 مم</span>.
+        الطول متغيّر — الطابعة تقصّ بعد آخر سطر.</p>
+      </div>
+      <div class="note">
+        <b>لماذا أسود على أبيض فقط</b>
+        <p>الطابعة الحرارية أحادية اللون ولا تطبع تدرّجات. لذلك أُزيلت كل ألوان
+        الهوية من هذا الوصل تحديدًا، وبقيت الفواصل خطوطًا صريحة.</p>
+      </div>
+      <div class="note">
+        <b>البيانات</b>
+        <p>كل الحقول تُملأ من البرنامج: الاسم، الهاتف، الجهاز، <span class="ltr">IMEI</span>،
+        رمز القفل، الملحقات، نوع الخلل ووصفه، التواريخ، والكلفة —
+        والمتبقّي يُحسَب تلقائيًا.</p>
+      </div>
+      <div class="note">
+        <b>الباركود</b>
+        <p>رقم الوصل بترميز <span class="ltr">Code 128</span>. امسحه لفتح الوصل
+        في البرنامج مباشرة عند مراجعة الزبون.</p>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+/**
+ * مولّد باركود Code 128 — يرسم الباركود كـ SVG بلا أي مكتبة خارجية.
+ * ==============================================================
+ * يُستعمل في مكانين: صفحة تصميم ملصقات الباركود، وبرنامج المتجر.
+ *
+ *   Code128.svg("SFN-00123", { height: 60, module: 2 })  →  نص SVG
+ *
+ * يختار الترميز تلقائياً:
+ *   - النمط C إذا كان النص أرقاماً فقط وعددها زوجي (ضِعف الكثافة)
+ *   - النمط B فيما عدا ذلك (أرقام + حروف + رموز)
+ */
+(function (root) {
+  'use strict';
+
+  // 107 نمطاً: كل نمط ست خانات تمثّل عرض الشرائط والفراغات بالتناوب
+  var PATTERNS = [
+    '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312',
+    '132212', '221213', '221312', '231212', '112232', '122132', '122231', '113222',
+    '123122', '123221', '223211', '221132', '221231', '213212', '223112', '312131',
+    '311222', '321122', '321221', '312212', '322112', '322211', '212123', '212321',
+    '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313',
+    '231113', '231311', '112133', '112331', '132131', '113123', '113321', '133121',
+    '313121', '211331', '231131', '213113', '213311', '213131', '311123', '311321',
+    '331121', '312113', '312311', '332111', '314111', '221411', '431111', '111224',
+    '111422', '121124', '121421', '141122', '141221', '112214', '112412', '122114',
+    '122411', '142112', '142211', '241211', '221114', '413111', '241112', '134111',
+    '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112',
+    '421211', '212141', '214121', '412121', '111143', '111341', '131141', '114113',
+    '114311', '411113', '411311', '113141', '114131', '311141', '411131', '211412',
+    '211214', '211232', '2331112'
+  ];
+
+  var START_B = 104, START_C = 105, STOP = 106;
+
+  /** يحوّل النص إلى قائمة قيم Code128 مع رمز البداية والتدقيق. */
+  function encode(text) {
+    var digitsOnly = /^\d+$/.test(text);
+    var useC = digitsOnly && text.length % 2 === 0 && text.length >= 4;
+    var start = useC ? START_C : START_B;
+    var values = [];
+
+    if (useC) {
+      for (var i = 0; i < text.length; i += 2) values.push(parseInt(text.substr(i, 2), 10));
+    } else {
+      for (var j = 0; j < text.length; j++) {
+        var code = text.charCodeAt(j);
+        if (code < 32 || code > 126) {
+          throw new Error('Code128: حرف غير مدعوم «' + text[j] + '»');
+        }
+        values.push(code - 32);
+      }
+    }
+
+    // مجموع التدقيق: رمز البداية + (الموقع × القيمة) لكل رمز، ثم باقي القسمة على 103
+    var sum = start;
+    for (var k = 0; k < values.length; k++) sum += (k + 1) * values[k];
+
+    return [start].concat(values, [sum % 103], [STOP]);
+  }
+
+  /** يحوّل القيم إلى مستطيلات سوداء بعرض متغيّر. */
+  function bars(values, module) {
+    var out = [], x = 0;
+    for (var i = 0; i < values.length; i++) {
+      var pattern = PATTERNS[values[i]];
+      for (var p = 0; p < pattern.length; p++) {
+        var w = parseInt(pattern[p], 10) * module;
+        if (p % 2 === 0) out.push({ x: x, w: w });   // الخانات الزوجية شرائط
+        x += w;
+      }
+    }
+    return { rects: out, width: x };
+  }
+
+  /**
+   * يبني الباركود كنص SVG جاهز للإدراج.
+   * options: height (ارتفاع الشرائط), module (عرض أنحف شريحة),
+   *          text (إظهار النص أسفل الباركود), color, fontSize
+   */
+  function svg(text, options) {
+    var o = options || {};
+    var module = o.module || 2;
+    var height = o.height || 60;
+    var color = o.color || '#101E24';
+    var showText = o.text !== false;
+    var fontSize = o.fontSize || 13;
+    var pad = o.quietZone === undefined ? 10 * module : o.quietZone;
+
+    var b = bars(encode(text), module);
+    var textH = showText ? fontSize + 6 : 0;
+    var totalW = b.width + pad * 2;
+    var totalH = height + textH;
+
+    var parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + totalW +
+      ' ' + totalH + '" width="' + totalW + '" height="' + totalH +
+      '" shape-rendering="crispEdges" role="img" aria-label="باركود ' + text + '">'];
+    parts.push('<rect width="' + totalW + '" height="' + totalH + '" fill="#fff"/>');
+    for (var i = 0; i < b.rects.length; i++) {
+      parts.push('<rect x="' + (b.rects[i].x + pad) + '" y="0" width="' + b.rects[i].w +
+        '" height="' + height + '" fill="' + color + '"/>');
+    }
+    if (showText) {
+      parts.push('<text x="' + (totalW / 2) + '" y="' + (totalH - 2) +
+        '" text-anchor="middle" font-family="monospace" font-size="' + fontSize +
+        '" letter-spacing="' + (module * 0.8) + '" fill="' + color + '">' +
+        String(text).replace(/[<&>]/g, '') + '</text>');
+    }
+    parts.push('</svg>');
+    return parts.join('');
+  }
+
+  var Code128 = { encode: encode, svg: svg, PATTERNS: PATTERNS };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = Code128;
+  else root.Code128 = Code128;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+  document.querySelectorAll('[data-barcode]').forEach(function (el) {
+    el.innerHTML = Code128.svg(el.dataset.barcode, {
+      height: +(el.dataset.h || 64), module: +(el.dataset.m || 2), fontSize: 14
+    });
+  });
+</script>
 
 </body>
 </html>

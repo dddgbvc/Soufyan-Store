@@ -125,7 +125,7 @@ body{
 
 /* ---------- الرمز المضمّن (يتلوّن بـ currentColor) ---------- */
 .mark{fill:none;stroke-width:24;stroke-linecap:round;stroke-linejoin:round;display:block}
-.mark path{stroke:currentColor}
+.mark path{fill:none;stroke:currentColor}
 .mark .acc{stroke:var(--gold)}
 
 /* قفل الشعار: رمز + اسم */
@@ -170,7 +170,7 @@ body{
 .ltr{direction:ltr;unicode-bidi:isolate}
 
 /* ---------- أيقونات خطية موحّدة ---------- */
-.ico{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.ico,.ico *{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- شريط تواصل سفلي ---------- */
 .footer-bar{
@@ -223,15 +223,15 @@ body{
   <div class="halo" style="width:900px;height:900px;inset-block-start:-360px;inset-inline-start:-320px"></div>
   <svg class="ghost" viewBox="44 58 152 124" style="width:1050px;inset-block-end:-190px;inset-inline-end:-230px">
     <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
-      <path d="M84,108 L84,158"/><path d="M180,74 L180,140"/>
+      <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>
+      <path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/>
     </g>
   </svg>
 
   <div style="flex:1"></div>
   <div style="position:relative">
     <div class="badge" style="background:var(--sand);border-radius:40px;width:150px;height:150px;display:grid;place-items:center">
-      <svg class="mark" viewBox="44 58 152 124" style="width:74%;color:var(--deep)"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+      <svg fill="none" class="mark" viewBox="44 58 152 124" style="width:74%;color:var(--deep)"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
     </div>
     <div class="kicker" style="margin-block-start:58px">مكتب سفيان للموبايل</div>
     <h1 style="margin-block-start:26px">شاشتك الجاية<br>تبدأ من هنا</h1>
@@ -241,7 +241,7 @@ body{
 
   <div style="position:relative">
     <span class="cta">
-      <svg class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+      <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
       <span>اطلب عبر واتساب</span>
     </span>
     <div style="margin-block-start:44px;display:flex;align-items:center;gap:20px;font-size:28px;font-weight:600;opacity:.78">
@@ -257,7 +257,7 @@ body{
   <div style="position:relative;display:flex;align-items:center;justify-content:space-between">
     <div class="lockup" style="--lk-size:88px;--lk-r:24px;--lk-name:38px;--lk-sub:12px;color:var(--deep)">
       <div class="badge">
-        <svg class="mark" viewBox="44 58 152 124"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
       </div>
       <div class="names"><b>مكتب سفيان للموبايل</b><span>Sufyan Mobile</span></div>
     </div>
@@ -271,8 +271,8 @@ body{
       <rect x="18" y="18" width="264" height="564" rx="44" fill="#14343F"/>
       <rect x="122" y="34" width="56" height="10" rx="5" fill="#9CC0BB" opacity=".4"/>
       <g transform="translate(30,176)" fill="none" stroke="#F2EDE4" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
-        <path d="M84,108 L84,158"/><path d="M180,74 L180,140" stroke="#C8A96A"/>
+        <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>
+        <path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140" stroke="#C8A96A"/>
       </g>
       <rect x="118" y="548" width="64" height="7" rx="3.5" fill="#9CC0BB" opacity=".45"/>
     </svg>
@@ -291,7 +291,7 @@ body{
     </div>
     <div style="margin-block-start:46px;display:flex;align-items:center;justify-content:space-between">
       <span class="cta">
-        <svg class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
+        <svg fill="none" class="ico" viewBox="0 0 64 64"><path d="M56 30c0 12-11 21-24 21a27 27 0 0 1-8-1L12 54l4-10a19 19 0 0 1-6-14c0-12 11-21 24-21s22 9 22 21z"/></svg>
         <span>اطلب الآن</span>
       </span>
       <span class="ltr" style="font-size:30px;font-weight:700;color:var(--teal)">0773 164 4450</span>

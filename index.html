@@ -514,6 +514,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
 
           <div class="actions">
             <button type="submit" class="btn btn-primary">💾 احفظ واطبع الوصل</button>
+            <button type="button" class="btn btn-ghost" id="svPrintThermal">🧾 وصل حراري 80مم</button>
             <button type="button" class="btn btn-ghost" id="svPrintLabel">🏷️ ستيكر الجهاز</button>
             <button type="button" class="btn btn-ghost" id="svReset">مسح الحقول</button>
           </div>
@@ -556,8 +557,9 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
               </select></div>
             <div class="field"><label for="bcSize">مقاس الملصق</label>
               <select id="bcSize">
-                <option value="50x30" selected>50 × 30 مم — إكسسوارات</option>
+                <option value="75x50" selected>75 × 50 مم — رول حراري (الأساسي)</option>
                 <option value="60x40">60 × 40 مم — علب وأجهزة</option>
+                <option value="50x30">50 × 30 مم — إكسسوارات</option>
                 <option value="40x25">40 × 25 مم — قطع صغيرة</option>
               </select></div>
           </div>
@@ -573,7 +575,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
             <button type="submit" class="btn btn-primary">🖨️ اطبع الشيت</button>
             <button type="button" class="btn btn-ghost" id="bcOne">اطبع ملصقًا واحدًا</button>
           </div>
-          <p class="hint">ترميز Code 128 — يقرأه أي ماسح ليزري. اطبع على ورق لاصق أبيض فقط.</p>
+          <p class="hint">ترميز Code 128 — يقرأه أي ماسح ليزري. المقاس الأساسي 75 × 50 مم لرول الطابعة الحرارية: اطبع أسود على أبيض فقط.</p>
         </form>
 
         <div class="preview-card">
@@ -1022,9 +1024,12 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
   function money(v) { return v ? NUM.format(+v) + " د.ع" : "—"; }
   function today() { return new Date().toISOString().slice(0, 10); }
 
-  const MARK = '<svg class="m" viewBox="44 58 152 124">' +
-    '<path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>' +
-    '<path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>';
+  // fill="none" كخاصية عرض على كل مسار: بعض المحوّلات لا ترث fill من عنصر svg
+  const MARK = '<svg class="m" fill="none" viewBox="44 58 152 124">' +
+    '<path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/>' +
+    '<path fill="none" d="M133,92 L133,158"/>' +
+    '<path fill="none" d="M84,108 L84,158"/>' +
+    '<path fill="none" class="acc" d="M180,74 L180,140"/></svg>';
 
   const FONTS = '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
     '<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700' +
@@ -1162,6 +1167,87 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
       '<div class="n">' + esc(t.no) + "</div></div></div>";
   }
 
+
+  /* ---------- 12.3.1 الوصل الحراري 80 مم (نسخة الزبون) ---------- */
+  // رول عرض 80 مم ومساحة طباعة 72 مم. الطابعة أحادية اللون فلا ألوان هنا:
+  // أسود على أبيض فقط وفواصل صريحة بدل التدرّجات.
+  const THERMAL_CSS =
+    "@page{size:80mm auto;margin:0}" +
+    "body{width:80mm;padding:4mm;color:#000}" +
+    "body *{color:#000}" +
+    ".lg{display:flex;flex-direction:column;align-items:center;gap:1.4mm;padding-bottom:2.5mm}" +
+    ".lg svg.m{width:9mm}.lg svg.m path{stroke:#000}.lg svg.m path.acc{stroke:#000}" +
+    ".lg .nm{font-family:'El Messiri',serif;font-weight:700;font-size:4.6mm;line-height:1.15}" +
+    ".lg .sb{font-size:1.9mm;font-weight:700;letter-spacing:1.1mm;direction:ltr}" +
+    ".lg .ad{font-size:2.5mm;font-weight:600;text-align:center;line-height:1.6;margin-top:.8mm}" +
+    ".hr{border-top:.4mm dashed #000;margin:1.8mm 0}.hr.s{border-top:.5mm solid #000}" +
+    ".ttl{text-align:center;font-family:'El Messiri',serif;font-weight:700;font-size:4mm;padding:.6mm 0}" +
+    ".no{text-align:center;font-family:monospace;font-size:5mm;font-weight:700;" +
+    "letter-spacing:.5mm;direction:ltr;padding-bottom:1mm}" +
+    ".kv{display:flex;justify-content:space-between;gap:2mm;padding:.9mm 0;font-size:2.9mm;line-height:1.5}" +
+    ".kv b{font-weight:700;flex:none}.kv span{font-weight:600;text-align:left;overflow-wrap:anywhere}" +
+    ".kv span.mono{font-family:monospace;direction:ltr}" +
+    ".lb{font-size:2.3mm;font-weight:700;letter-spacing:.5mm;padding:1mm 0 .6mm}" +
+    ".tx{font-size:2.9mm;font-weight:600;line-height:1.7}" +
+    ".fl{display:flex;flex-wrap:wrap;gap:1.2mm;padding-top:.6mm}" +
+    ".fl span{border:.3mm solid #000;border-radius:.8mm;padding:.5mm 1.8mm;font-size:2.5mm;font-weight:700}" +
+    ".tot{display:flex;justify-content:space-between;align-items:baseline;border:.5mm solid #000;" +
+    "border-radius:1.2mm;padding:2mm 2.6mm;margin-top:1.5mm}" +
+    ".tot b{font-size:2.9mm}.tot .v{font-family:'El Messiri',serif;font-weight:700;font-size:4.6mm;direction:ltr}" +
+    ".bc{display:flex;justify-content:center;padding:2.6mm 0}.bc svg{height:12mm;width:auto;display:block}" +
+    ".tm{font-size:2.2mm;line-height:1.75;padding:1.4mm 0}.tm b{display:block;font-size:2.3mm;margin-bottom:.6mm}" +
+    ".th{text-align:center;font-family:'El Messiri',serif;font-weight:700;font-size:3.3mm;padding-top:1.8mm}";
+
+  function thermalHTML(t) {
+    const rest = Math.max(0, (+t.cost || 0) - (+t.paid || 0));
+    const stamp = new Date(t.at || Date.now());
+    const clock = String(stamp.getHours()).padStart(2, "0") + ":" +
+                  String(stamp.getMinutes()).padStart(2, "0");
+    const row = function (k, v, mono) {
+      return v ? '<div class="kv"><b>' + k + '</b><span' + (mono ? ' class="mono"' : '') +
+        ">" + esc(v) + "</span></div>" : "";
+    };
+
+    return '<div class="lg">' + MARK +
+      '<div class="nm">مكتب سفيان للموبايل</div><div class="sb">SUFYAN MOBILE</div>' +
+      '<div class="ad">سامراء — الحويش — الشارع الرئيسي<br>' +
+      '<span dir="ltr">0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771</span></div></div>' +
+
+      '<div class="hr s"></div><div class="ttl">وصل استلام صيانة</div>' +
+      '<div class="no">' + esc(t.no) + "</div>" +
+
+      '<div class="hr"></div>' +
+      row("التاريخ", (t.dateIn || today()) + " · " + clock, true) +
+
+      '<div class="hr"></div><div class="lb">بيانات الزبون</div>' +
+      row("الاسم", t.name) + row("الهاتف", t.phone, true) +
+
+      '<div class="hr"></div><div class="lb">بيانات الجهاز</div>' +
+      row("الجهاز", t.model, true) + row("IMEI", t.imei, true) +
+      row("رمز القفل", t.lock, true) + row("الملحقات", t.acc) +
+
+      (t.faults.length ? '<div class="hr"></div><div class="lb">نوع الخلل</div><div class="fl">' +
+        t.faults.map(function (f) { return "<span>" + esc(f) + "</span>"; }).join("") + "</div>" : "") +
+      (t.desc ? '<div class="lb">وصف الخلل</div><div class="tx">' + esc(t.desc) + "</div>" : "") +
+
+      '<div class="hr"></div>' +
+      row("موعد التسليم", t.dateOut, true) +
+      row("الكلفة التقديرية", t.cost ? money(t.cost) : "", true) +
+      row("المدفوع مقدّمًا", t.paid ? money(t.paid) : "", true) +
+      (t.cost ? '<div class="tot"><b>المتبقّي عند الاستلام</b><span class="v">' +
+        NUM.format(rest) + "</span></div>" : "") +
+
+      '<div class="bc">' + barcodeSVG(t.no, { height: 56, module: 2, fontSize: 12 }) + "</div>" +
+
+      '<div class="hr"></div><div class="tm"><b>شروط الاستلام</b>' +
+      "• المحل غير مسؤول عن البيانات داخل الجهاز — يُرجى أخذ نسخة احتياطية.<br>" +
+      "• الجهاز غير المستلَم خلال 30 يومًا من موعد التسليم لا يتحمّل المحل مسؤوليته.<br>" +
+      "• لا يُسلَّم الجهاز إلا بإبراز هذا الوصل أو مسح الباركود.<br>" +
+      "• الكلفة تقديرية وقد تتغيّر بعد الفحص، ولا يُباشَر التصليح إلا بموافقتك." +
+      "</div>" +
+      '<div class="hr"></div><div class="th">شكرًا لثقتك</div>';
+  }
+
   const LABEL_CSS =
     "@page{size:90mm 50mm;margin:0}" +
     "body{width:90mm;height:50mm;padding:3mm 3.5mm;display:flex;flex-direction:column}" +
@@ -1196,6 +1282,7 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
 
   /* ---------- 12.4 ملصقات الباركود ---------- */
   const SIZES = {
+    "75x50": { w: 75, h: 50, nm: 4.4, pr: 7.4, bh: 14, mod: 0.40, fs: 3 },
     "60x40": { w: 60, h: 40, nm: 3.6, pr: 6, bh: 11, mod: 0.34, fs: 2.6 },
     "50x30": { w: 50, h: 30, nm: 3.1, pr: 4.8, bh: 8.5, mod: 0.28, fs: 2.3 },
     "40x25": { w: 40, h: 25, nm: 2.7, pr: 4, bh: 7, mod: 0.22, fs: 2 }
@@ -1307,16 +1394,24 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
     printDoc(ticketHTML(t), TICKET_CSS);
   });
 
+  /** يعيد الوصل الحالي، ويُنشئه ويحفظه إن لم يكن محفوظاً بعد. */
+  function currentTicket() {
+    if (!$("svcForm").reportValidity()) return null;
+    if (lastTicket && lastTicket.name === $("svName").value.trim()) return lastTicket;
+    const t = readForm(nextTicketNo());
+    lastTicket = t;
+    const list = loadTickets(); list.unshift(t); saveTickets(list); renderTickets();
+    return t;
+  }
+
   $("svPrintLabel").addEventListener("click", function () {
-    const f = $("svcForm");
-    if (!f.reportValidity()) return;
-    const t = lastTicket && lastTicket.name === $("svName").value.trim()
-      ? lastTicket : readForm(nextTicketNo());
-    if (t !== lastTicket) {
-      lastTicket = t;
-      const list = loadTickets(); list.unshift(t); saveTickets(list); renderTickets();
-    }
-    printDoc(deviceLabelHTML(t), LABEL_CSS);
+    const t = currentTicket();
+    if (t) printDoc(deviceLabelHTML(t), LABEL_CSS);
+  });
+
+  $("svPrintThermal").addEventListener("click", function () {
+    const t = currentTicket();
+    if (t) printDoc(thermalHTML(t), THERMAL_CSS);
   });
 
   $("svReset").addEventListener("click", function () {
@@ -1344,7 +1439,8 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
       return '<div class="tk-row"><span class="tk-no">' + esc(t.no) + "</span>" +
         '<span class="tk-nm">' + esc(t.name) + " — " + esc(t.model) + "</span>" +
         '<span class="tk-act">' +
-        '<button data-a="tk" data-i="' + i + '">وصل</button>' +
+        '<button data-a="tk" data-i="' + i + '">وصل A5</button>' +
+        '<button data-a="th" data-i="' + i + '">حراري</button>' +
         '<button data-a="lb" data-i="' + i + '">ستيكر</button>' +
         '<button data-a="rm" data-i="' + i + '">حذف</button></span></div>';
     }).join("");
@@ -1360,6 +1456,7 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
     const t = rows[+b.dataset.i];
     if (!t) return;
     if (b.dataset.a === "tk") printDoc(ticketHTML(t), TICKET_CSS);
+    else if (b.dataset.a === "th") printDoc(thermalHTML(t), THERMAL_CSS);
     else if (b.dataset.a === "lb") printDoc(deviceLabelHTML(t), LABEL_CSS);
     else {
       const all = loadTickets().filter(function (x) { return x.no !== t.no; });
@@ -1422,8 +1519,12 @@ renderCatalog(); renderCompare(); renderSuggest(); observeReveals();
 
   $("bcOne").addEventListener("click", function () {
     if (!$("bcForm").reportValidity()) return;
-    const r = labelSheetHTML(bcData(), $("bcSize").value, 1);
-    printDoc(r.html, r.css);
+    // ملصق مفرد = صفحة بمقاس الملصق نفسه، كما يتوقّعها رول الطابعة الحرارية
+    const key = $("bcSize").value, s = SIZES[key];
+    const r = labelSheetHTML(bcData(), key, 1);
+    printDoc(r.html, r.css.replace("@page{size:A4;margin:8mm}",
+      "@page{size:" + s.w + "mm " + s.h + "mm;margin:0}") +
+      "body{margin:0}.l{border:0;border-radius:0}");
   });
 
   renderBcPreview();

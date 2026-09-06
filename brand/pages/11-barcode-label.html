@@ -30,6 +30,9 @@
   .bl .bc{display:flex;justify-content:center;margin-block-start:auto}
   .bl .bc svg{display:block;max-width:100%;height:auto}
 
+  /* 75 × 50 مم — مقاس رول الطابعة الحرارية (الأساسي) */
+  .s75{width:443px;height:295px}
+  .s75 .mark{width:34px}   .s75 .nm{font-size:21px}  .s75 .pr{font-size:33px}
   /* 50 × 30 مم عند 150 نقطة/إنش */
   .s50{width:295px;height:177px}
   .s50 .mark{width:23px}   .s50 .nm{font-size:15px}  .s50 .pr{font-size:22px}
@@ -66,7 +69,15 @@
       <div class="k">مخزن</div>
       <h2 style="margin-block-start:10px">ملصقات الباركود</h2>
     </div>
-    <div class="spec">A4 · ثلاثة مقاسات · Code 128<br>ورق لاصق حراري أو ليزر — 300 نقطة/إنش</div>
+    <div class="spec">أربعة مقاسات · ترميز Code 128<br>الأساسي 75 × 50 مم لرول الطابعة الحرارية</div>
+  </div>
+
+  <div class="grp">
+    <div class="cap">75 × 50 مم — المقاس الأساسي · رول حراري</div>
+    <div class="rowset">
+      <div class="bl s75" data-name="Samsung Galaxy A54 128GB" data-price="385,000" data-sku="SFN-PH-1042"></div>
+      <div class="bl s75" data-name="سماعة بلوتوث لاسلكية" data-price="35,000" data-sku="SFN-AC-2210"></div>
+    </div>
   </div>
 
   <div class="grp">
@@ -85,8 +96,6 @@
       <div class="bl s50" data-name="شاحن سريع 33W" data-price="18,000" data-sku="SFN-AC-2211"></div>
       <div class="bl s50" data-name="كيبل Type-C مجدول" data-price="7,500" data-sku="SFN-AC-2212"></div>
       <div class="bl s50" data-name="زجاج حماية شاشة" data-price="5,000" data-sku="SFN-AC-2213"></div>
-      <div class="bl s50" data-name="باور بانك 10000mAh" data-price="28,000" data-sku="SFN-AC-2214"></div>
-      <div class="bl s50" data-name="حامل سيارة مغناطيسي" data-price="12,000" data-sku="SFN-AC-2215"></div>
     </div>
   </div>
 
@@ -98,9 +107,6 @@
       <div class="bl s40" data-name="بطاقة ذاكرة 64GB" data-price="14,000" data-sku="SFN-AC-2303"></div>
       <div class="bl s40" data-name="شريحة بيانات" data-price="10,000" data-sku="SFN-AC-2304"></div>
       <div class="bl s40" data-name="سماعة سلكية" data-price="4,000" data-sku="SFN-AC-2305"></div>
-      <div class="bl s40" data-name="قلم شاشة" data-price="8,000" data-sku="SFN-AC-2306"></div>
-      <div class="bl s40" data-name="منظّف شاشة" data-price="3,000" data-sku="SFN-AC-2307"></div>
-      <div class="bl s40" data-name="محوّل OTG" data-price="4,500" data-sku="SFN-AC-2308"></div>
     </div>
   </div>
 
@@ -117,7 +123,7 @@
       <div class="k">مرجع</div>
       <h2 style="margin-block-start:12px">عناصر ملصق الباركود</h2>
     </div>
-    <div class="spec">ترميز Code 128 — يقرأه أي ماسح ليزري أو كاميرا<br>يُولَّد من برنامج المتجر مباشرة</div>
+    <div class="spec">المقاس الأساسي 75 × 50 مم · ترميز Code 128<br>يُولَّد من برنامج المتجر ويُطبع على رول حراري</div>
   </div>
 
   <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative">
@@ -137,7 +143,7 @@
     <div><b>الترميز</b><p>Code 128 — يقبل أرقاماً وحروفاً لاتينية، ويختصر تلقائياً حين يكون الرمز أرقاماً فقط.</p></div>
     <div><b>رقم المنتج</b><p>البادئة <span class="ltr">SFN-PH-</span> للهواتف و<span class="ltr">SFN-AC-</span> للإكسسوارات، ثم رقم متسلسل.</p></div>
     <div><b>المنطقة الهادئة</b><p>يُترك فراغ أبيض على جانبَي الباركود لا يقل عن عشرة أضعاف أنحف شريحة.</p></div>
-    <div><b>الطباعة</b><p>أسود على أبيض فقط. لا تطبع الباركود على خلفية ملوّنة أو لامعة.</p></div>
+    <div><b>الطباعة</b><p>طابعة حرارية على رول 75 × 50 مم — أسود على أبيض فقط، بلا خلفية ملوّنة أو لامعة.</p></div>
   </div>
 </div>
 
@@ -147,13 +153,13 @@
     var big = el.dataset.big === '1';
     var w = el.clientWidth || 295;
     // عرض أنحف شريحة يتناسب مع عرض الملصق حتى يبقى الباركود ضمن حدوده
-    var module = big ? 3 : (w >= 340 ? 2 : (w >= 280 ? 1.6 : 1.3));
+    var module = big ? 3 : (w >= 430 ? 2.4 : (w >= 340 ? 2 : (w >= 280 ? 1.6 : 1.3)));
 
     el.innerHTML =
       '<div class="top">' +
-        '<svg class="mark" viewBox="44 58 152 124"' + (big ? ' style="width:58px"' : '') + '>' +
-          '<path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>' +
-          '<path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>' +
+        '<svg fill="none" class="mark" viewBox="44 58 152 124"' + (big ? ' style="width:58px"' : '') + '>' +
+          '<path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>' +
+          '<path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>' +
         '<span class="nm"' + (big ? ' style="font-size:34px"' : '') + '>' + el.dataset.name + '</span>' +
       '</div>' +
       '<div class="pr"' + (big ? ' style="font-size:56px;margin-block-start:18px"' : ' style="margin-block-start:6px"') + '>' +
@@ -161,9 +167,9 @@
       '<div class="bc"></div>';
 
     el.querySelector('.bc').innerHTML = Code128.svg(el.dataset.sku, {
-      height: big ? 120 : (w >= 340 ? 52 : (w >= 280 ? 44 : 34)),
+      height: big ? 120 : (w >= 430 ? 68 : (w >= 340 ? 52 : (w >= 280 ? 44 : 34))),
       module: module,
-      fontSize: big ? 26 : (w >= 280 ? 13 : 11)
+      fontSize: big ? 26 : (w >= 430 ? 15 : (w >= 280 ? 13 : 11))
     });
   });
 </script>

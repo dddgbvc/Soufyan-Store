@@ -124,7 +124,7 @@ body{
 
 /* ---------- الرمز المضمّن (يتلوّن بـ currentColor) ---------- */
 .mark{fill:none;stroke-width:24;stroke-linecap:round;stroke-linejoin:round;display:block}
-.mark path{stroke:currentColor}
+.mark path{fill:none;stroke:currentColor}
 .mark .acc{stroke:var(--gold)}
 
 /* قفل الشعار: رمز + اسم */
@@ -169,7 +169,7 @@ body{
 .ltr{direction:ltr;unicode-bidi:isolate}
 
 /* ---------- أيقونات خطية موحّدة ---------- */
-.ico{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.ico,.ico *{fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- شريط تواصل سفلي ---------- */
 .footer-bar{
@@ -206,15 +206,15 @@ body{
   <div class="halo" style="width:900px;height:900px;inset-block-start:-520px;inset-inline-start:-260px"></div>
   <svg class="ghost" viewBox="44 58 152 124" style="width:660px;inset-block-end:-190px;inset-inline-end:-90px">
     <g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/>
-      <path d="M84,108 L84,158"/><path d="M180,74 L180,140"/>
+      <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/>
+      <path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/>
     </g>
   </svg>
 
   <div class="inner">
     <div class="lockup" style="--lk-size:104px;--lk-r:28px;--lk-name:56px;--lk-sub:15px;color:var(--sand)">
       <div class="badge" style="--lk-glyph:var(--deep)">
-        <svg class="mark" viewBox="44 58 152 124"><path d="M180,134 C180,154 166,166 142,166 L60,166"/><path d="M133,92 L133,158"/><path d="M84,108 L84,158"/><path class="acc" d="M180,74 L180,140"/></svg>
+        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" class="acc" d="M180,74 L180,140"/></svg>
       </div>
       <div class="names"><b>مكتب سفيان للموبايل</b><span>Sufyan Mobile</span></div>
     </div>

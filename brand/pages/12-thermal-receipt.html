@@ -1,0 +1,180 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — الوصل الحراري 80 مم</title>
+<link rel="stylesheet" href="../css/brand.css">
+<link rel="stylesheet" href="../css/boards.css">
+<style>
+  /* ورق حراري عرض 80 مم — المساحة المطبوعة 72 مم.
+     المقياس هنا 150 نقطة/إنش: 80 مم = 472 بكسل. الطول متغيّر حسب المحتوى. */
+  .roll{
+    width:472px;background:#fff;padding:22px 20px;display:flex;flex-direction:column;gap:0;
+    color:#000;font-family:var(--body);
+  }
+
+  /* الطابعة الحرارية أحادية اللون: كل شيء أسود على أبيض، بلا رمادي فاتح */
+  .roll *{color:#000}
+
+  .r-logo{display:flex;flex-direction:column;align-items:center;gap:8px;padding-block-end:14px}
+  .r-logo .mark{width:52px;color:#000}
+  .r-logo .nm{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.15}
+  .r-logo .sub{font-size:10px;font-weight:700;letter-spacing:.34em;direction:ltr}
+  .r-logo .addr{font-size:13px;font-weight:600;text-align:center;line-height:1.6;margin-block-start:4px}
+
+  .hr{border-block-start:2px dashed #000;margin-block:10px}
+  .hr.solid{border-block-start:2px solid #000;border-style:solid}
+
+  .r-title{text-align:center;font-family:var(--display);font-weight:700;font-size:22px;padding-block:4px}
+  .r-no{text-align:center;font-family:monospace;font-size:26px;font-weight:700;letter-spacing:.1em;
+        direction:ltr;padding-block-end:6px}
+
+  .kv{display:flex;justify-content:space-between;gap:10px;padding-block:5px;font-size:15px;line-height:1.5}
+  .kv b{font-weight:700;flex:none}
+  .kv span{font-weight:600;text-align:end;overflow-wrap:anywhere}
+  .kv span.mono{font-family:monospace;direction:ltr}
+
+  .blk{padding-block:6px}
+  .blk .lb{font-size:12px;font-weight:700;letter-spacing:.1em;padding-block-end:4px}
+  .blk .tx{font-size:15px;font-weight:600;line-height:1.7}
+
+  .fault{display:flex;flex-wrap:wrap;gap:6px;padding-block-start:4px}
+  .fault span{border:1.5px solid #000;border-radius:4px;padding:3px 9px;font-size:13px;font-weight:700}
+
+  .total{display:flex;justify-content:space-between;align-items:baseline;
+         border:2px solid #000;border-radius:6px;padding:10px 14px;margin-block-start:8px}
+  .total b{font-size:15px;font-weight:700}
+  .total .v{font-family:var(--display);font-weight:700;font-size:24px;direction:ltr}
+
+  .r-bc{display:flex;flex-direction:column;align-items:center;gap:4px;padding-block:14px}
+  .r-bc svg{display:block;height:64px;width:auto}
+
+  .terms{font-size:11.5px;line-height:1.75;padding-block:8px}
+  .terms b{display:block;font-size:12px;margin-block-end:3px}
+  .thanks{text-align:center;font-family:var(--display);font-weight:700;font-size:17px;padding-block-start:10px}
+  .cut-mark{text-align:center;font-size:10px;font-weight:700;letter-spacing:.2em;padding-block-start:12px}
+
+  /* لوح العرض حول الرول */
+  .board{width:1600px;height:1580px;background:var(--sand);padding:56px 70px;display:flex;flex-direction:column}
+  .board .head{display:flex;align-items:flex-end;justify-content:space-between;margin-block-end:30px}
+  .board .head h2{font-family:var(--display);font-weight:700;font-size:44px;line-height:1.15}
+  .board .head .k{font-weight:700;letter-spacing:.14em;font-size:17px;color:var(--teal)}
+  .board .head .spec{font-size:18px;font-weight:600;opacity:.6;text-align:end;line-height:1.7}
+  .stage{flex:1;display:flex;align-items:flex-start;justify-content:center;gap:56px}
+  .paper{box-shadow:0 24px 50px rgba(20,52,63,.18);border-radius:3px;flex:none}
+  .notes{max-width:520px;display:flex;flex-direction:column;gap:18px}
+  .note{background:#fff;border:2px solid rgba(20,52,63,.07);border-radius:20px;padding:22px 26px}
+  .note b{display:block;font-family:var(--display);font-size:22px;color:var(--deep);margin-block-end:8px}
+  .note p{font-size:17px;line-height:1.65;opacity:.74;margin:0}
+  .note .ltr{display:inline-block}
+</style>
+
+<!-- ══════════════ لوح العرض: الوصل الحراري ══════════════ -->
+<div class="board" data-document-role="page" data-slug="thermal-receipt-80" data-label="الوصل الحراري 80 مم">
+  <div class="head">
+    <div>
+      <div class="k">صيانة · نسخة الزبون</div>
+      <h2 style="margin-block-start:12px">الوصل الحراري 80 مم</h2>
+    </div>
+    <div class="spec">رول حراري عرض 80 مم · مساحة الطباعة 72 مم<br>الطول متغيّر حسب المحتوى · يُطبع من البرنامج</div>
+  </div>
+
+  <div class="stage">
+    <!-- الرول -->
+    <div class="roll paper">
+      <div class="r-logo">
+        <svg fill="none" class="mark" viewBox="44 58 152 124"><path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166"/><path fill="none" d="M133,92 L133,158"/><path fill="none" d="M84,108 L84,158"/><path fill="none" d="M180,74 L180,140"/></svg>
+        <div class="nm">مكتب سفيان للموبايل</div>
+        <div class="sub">SUFYAN MOBILE</div>
+        <div class="addr">
+          سامراء — الحويش — الشارع الرئيسي<br>
+          <span class="ltr">0773 164 4450&nbsp;&nbsp;·&nbsp;&nbsp;0774 448 5771</span>
+        </div>
+      </div>
+
+      <div class="hr solid"></div>
+      <div class="r-title">وصل استلام صيانة</div>
+      <div class="r-no">SFN-01427</div>
+      <div class="hr"></div>
+
+      <div class="kv"><b>التاريخ</b><span class="mono">2026-09-06 · 12:40</span></div>
+      <div class="kv"><b>الموظّف</b><span>سفيان</span></div>
+
+      <div class="hr"></div>
+      <div class="blk"><div class="lb">بيانات الزبون</div></div>
+      <div class="kv"><b>الاسم</b><span>أحمد عبد الله حسين</span></div>
+      <div class="kv"><b>الهاتف</b><span class="mono">0771 234 5678</span></div>
+
+      <div class="hr"></div>
+      <div class="blk"><div class="lb">بيانات الجهاز</div></div>
+      <div class="kv"><b>الجهاز</b><span class="mono">Samsung Galaxy A54</span></div>
+      <div class="kv"><b>IMEI</b><span class="mono">356938035643809</span></div>
+      <div class="kv"><b>رمز القفل</b><span class="mono">1234</span></div>
+      <div class="kv"><b>الملحقات</b><span>كفر فقط</span></div>
+
+      <div class="hr"></div>
+      <div class="blk">
+        <div class="lb">نوع الخلل</div>
+        <div class="fault"><span>شاشة</span><span>شحن</span></div>
+      </div>
+      <div class="blk">
+        <div class="lb">وصف الخلل</div>
+        <div class="tx">الشاشة مكسورة من الزاوية العليا واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.</div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="kv"><b>موعد التسليم</b><span class="mono">2026-09-08</span></div>
+      <div class="kv"><b>الكلفة التقديرية</b><span class="mono">85,000 د.ع</span></div>
+      <div class="kv"><b>المدفوع مقدّمًا</b><span class="mono">25,000 د.ع</span></div>
+      <div class="total"><b>المتبقّي عند الاستلام</b><span class="v">60,000</span></div>
+
+      <div class="r-bc">
+        <div data-barcode="SFN-01427" data-h="64" data-m="2"></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="terms">
+        <b>شروط الاستلام</b>
+        • المحل غير مسؤول عن البيانات داخل الجهاز — يُرجى أخذ نسخة احتياطية.<br>
+        • الجهاز غير المستلَم خلال 30 يومًا من موعد التسليم لا يتحمّل المحل مسؤوليته.<br>
+        • لا يُسلَّم الجهاز إلا بإبراز هذا الوصل أو مسح الباركود.<br>
+        • الكلفة تقديرية وقد تتغيّر بعد الفحص، ولا يُباشَر التصليح إلا بموافقتك.
+      </div>
+
+      <div class="hr"></div>
+      <div class="thanks">شكرًا لثقتك 🤍</div>
+      <div class="cut-mark">— — — قص — — —</div>
+    </div>
+
+    <!-- ملاحظات التشغيل -->
+    <div class="notes">
+      <div class="note">
+        <b>المقاس</b>
+        <p>رول حراري عرض <span class="ltr">80 مم</span> ومساحة طباعة <span class="ltr">72 مم</span>.
+        الطول متغيّر — الطابعة تقصّ بعد آخر سطر.</p>
+      </div>
+      <div class="note">
+        <b>لماذا أسود على أبيض فقط</b>
+        <p>الطابعة الحرارية أحادية اللون ولا تطبع تدرّجات. لذلك أُزيلت كل ألوان
+        الهوية من هذا الوصل تحديدًا، وبقيت الفواصل خطوطًا صريحة.</p>
+      </div>
+      <div class="note">
+        <b>البيانات</b>
+        <p>كل الحقول تُملأ من البرنامج: الاسم، الهاتف، الجهاز، <span class="ltr">IMEI</span>،
+        رمز القفل، الملحقات، نوع الخلل ووصفه، التواريخ، والكلفة —
+        والمتبقّي يُحسَب تلقائيًا.</p>
+      </div>
+      <div class="note">
+        <b>الباركود</b>
+        <p>رقم الوصل بترميز <span class="ltr">Code 128</span>. امسحه لفتح الوصل
+        في البرنامج مباشرة عند مراجعة الزبون.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../tools/code128.js"></script>
+<script>
+  document.querySelectorAll('[data-barcode]').forEach(function (el) {
+    el.innerHTML = Code128.svg(el.dataset.barcode, {
+      height: +(el.dataset.h || 64), module: +(el.dataset.m || 2), fontSize: 14
+    });
+  });
+</script>
