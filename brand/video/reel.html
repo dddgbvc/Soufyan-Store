@@ -1,0 +1,404 @@
+<meta charset="utf-8">
+<title>مكتب سفيان للموبايل — الفيديو الترويجي</title>
+<link rel="stylesheet" href="../css/brand.css">
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     مشهد الفيديو — خطّ زمني حتمي: لا حركة CSS ولا مؤقّتات.
+     المحرّك يستدعي __seek(t) لكل إطار ثم يصوّر، فالنتيجة
+     مطابقة تمامًا في كل تشغيل ولا تتأثّر ببطء الرسم.
+     ═══════════════════════════════════════════════════════════ */
+
+  :root{
+    --deep:#14343F; --teal:#2F6F6B; --mist:#9CC0BB;
+    --sand:#F2EDE4; --sand-2:#E7DFD1; --gold:#C8A96A; --ink:#101E24;
+    --display:'El Messiri',serif; --body:'Cairo',system-ui,sans-serif;
+    --u:1vmin;                 /* الوحدة الأساسية — 10.8px عند عرض 1080 */
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--deep)}
+  body{font-family:var(--body);direction:rtl;-webkit-font-smoothing:antialiased}
+
+  /* ---------- الخلفيات: واحدة لكل مشهد، تتلاشى معه ---------- */
+  .bg{position:fixed;inset:0;opacity:0;will-change:opacity}
+  .bg.deep{background:var(--deep)}
+  .bg.sand{background:var(--sand)}
+
+  /* هالة دافئة تنجرف ببطء — تمنع ثبات الخلفية */
+  .halo{position:fixed;border-radius:50%;filter:none;opacity:.5;
+        background:radial-gradient(circle closest-side,rgba(47,111,107,.55),rgba(47,111,107,0) 72%)}
+  .halo.g{background:radial-gradient(circle closest-side,rgba(200,169,106,.30),rgba(200,169,106,0) 72%)}
+
+  /* ---------- المسرح ---------- */
+  /* الحشوة السفلية ترفع المحتوى فوق شريط أزرار ريلز والستوري.
+     تُلغى في المربّع لأن لا شيء يغطّيه. */
+  .scene{position:fixed;inset:0;display:flex;flex-direction:column;
+         align-items:center;justify-content:center;padding:0 9vmin 16vmin;
+         opacity:0;will-change:opacity,transform}
+  .scene.light{color:var(--ink)}
+  .scene.dark{color:var(--sand)}
+
+  .anim{will-change:opacity,transform}
+
+  /* ---------- عناصر مشتركة ---------- */
+  .kicker{font-weight:700;letter-spacing:.42vmin;font-size:2.9vmin;
+          color:var(--gold);margin-block-end:2.2vmin}
+  .scene.light .kicker{color:var(--teal)}
+  h1{font-family:var(--display);font-weight:700;font-size:8.4vmin;line-height:1.22;
+     text-align:center;letter-spacing:-.06vmin}
+  .lede{font-size:3.5vmin;font-weight:600;line-height:1.75;text-align:center;
+        max-width:34ch;margin-block-start:3vmin;opacity:.82}
+  .rule{width:14vmin;height:.55vmin;border-radius:1vmin;background:var(--gold);
+        margin-block:4vmin}
+
+  .ico,.ico *{fill:none;stroke:currentColor;stroke-width:3.6;
+              stroke-linecap:round;stroke-linejoin:round}
+  .ico{width:6.4vmin;height:6.4vmin;display:block;flex:none}
+
+  .ltr{direction:ltr;unicode-bidi:isolate}
+
+  /* ---------- 1 · الشعار ---------- */
+  .mark{width:34vmin;display:block;overflow:visible}
+  .mark path{fill:none;stroke-width:24;stroke-linecap:round;stroke-linejoin:round}
+  .mark .body{stroke:var(--sand)}
+  .mark .acc{stroke:var(--gold)}
+  .wordmark{font-family:var(--display);font-weight:700;font-size:7.6vmin;
+            line-height:1.2;margin-block-start:5vmin;text-align:center}
+  .latin{font-size:2.3vmin;font-weight:700;letter-spacing:1.5vmin;
+         direction:ltr;color:var(--mist);margin-block-start:1.6vmin;padding-inline-start:1.5vmin}
+  .tagline{font-family:var(--display);font-weight:700;font-size:4.4vmin;
+           color:var(--gold);text-align:center}
+
+  /* ---------- 3 · الخدمات ---------- */
+  .cards{display:flex;flex-direction:column;gap:2.6vmin;width:100%;max-width:74vmin;
+         margin-block-start:5vmin}
+  .card{display:flex;align-items:center;gap:3.4vmin;background:#fff;
+        border:.28vmin solid rgba(20,52,63,.09);border-radius:4.2vmin;
+        padding:3.6vmin 4vmin}
+  .card .ic{width:11vmin;height:11vmin;border-radius:3.2vmin;background:var(--deep);
+            display:flex;align-items:center;justify-content:center;flex:none;color:var(--sand)}
+  .card .ic .ico{width:5.8vmin;height:5.8vmin}
+  .card .tx{flex:1;min-width:0}
+  .card .t{font-family:var(--display);font-weight:700;font-size:4.4vmin;
+           color:var(--deep);line-height:1.25}
+  .card .m{font-size:2.8vmin;font-weight:600;color:rgba(20,52,63,.62);
+           margin-block-start:.9vmin;line-height:1.5}
+
+  /* ---------- 4 · ليش إحنا ---------- */
+  .points{display:flex;flex-direction:column;gap:4.4vmin;width:100%;max-width:72vmin;
+          margin-block-start:5vmin}
+  .point{display:flex;align-items:flex-start;gap:3.6vmin}
+  .point .n{width:9.6vmin;height:9.6vmin;border-radius:50%;flex:none;
+            border:.4vmin solid var(--gold);color:var(--gold);
+            display:flex;align-items:center;justify-content:center;
+            font-family:var(--display);font-weight:700;font-size:4.4vmin}
+  .point .t{font-family:var(--display);font-weight:700;font-size:4.8vmin;line-height:1.25}
+  .point .m{font-size:2.9vmin;font-weight:600;line-height:1.6;opacity:.72;
+            margin-block-start:1.1vmin}
+
+  /* ---------- 5 · التواصل ---------- */
+  .num{font-family:var(--display);font-weight:700;font-size:7.4vmin;
+       direction:ltr;color:var(--deep);line-height:1.3;letter-spacing:.2vmin}
+  .rows{display:flex;flex-direction:column;gap:2.8vmin;width:100%;max-width:72vmin;
+        margin-block-start:5vmin}
+  .row{display:flex;align-items:center;gap:3vmin;background:#fff;border-radius:3.4vmin;
+       padding:3vmin 3.6vmin;color:var(--deep)}
+  .row .lb{font-size:2.7vmin;font-weight:700;color:var(--teal);flex:none;width:11vmin}
+  .row .vl{font-size:3.5vmin;font-weight:700;flex:1;min-width:0}
+  .row .vl.ltr{font-family:var(--display);font-size:4.4vmin;letter-spacing:.15vmin}
+
+  /* ---------- 6 · الخاتمة ---------- */
+  .end-mark{width:22vmin;display:block;overflow:visible}
+  .end-num{font-family:var(--display);font-weight:700;font-size:5.4vmin;
+           direction:ltr;color:var(--sand);letter-spacing:.2vmin;line-height:1.5}
+
+  /* المقاس المربّع 1:1 — مساحة رأسية أقل بالنصف، فتنضغط كل الفراغات */
+  body.sq .scene{padding:0 7vmin}   /* لا شريط أزرار يغطّي المربّع */
+  body.sq .kicker{font-size:2.6vmin;margin-block-end:1.6vmin}
+  body.sq h1{font-size:6.8vmin}
+  body.sq .lede{font-size:3.2vmin;margin-block-start:2.4vmin}
+  body.sq .rule{margin-block:3vmin}
+
+  body.sq .cards{gap:1.5vmin;margin-block-start:2.8vmin;max-width:82vmin}
+  body.sq .card{padding:2.2vmin 2.8vmin;border-radius:3vmin;gap:2.4vmin}
+  body.sq .card .ic{width:8vmin;height:8vmin;border-radius:2.2vmin}
+  body.sq .card .ic .ico{width:4.4vmin;height:4.4vmin}
+  body.sq .card .t{font-size:3.5vmin}
+  body.sq .card .m{font-size:2.35vmin;margin-block-start:.6vmin}
+
+  body.sq .points{gap:2.8vmin;margin-block-start:3vmin;max-width:80vmin}
+  body.sq .point{gap:2.8vmin}
+  body.sq .point .n{width:8.4vmin;height:8.4vmin;font-size:3.8vmin}
+  body.sq .point .t{font-size:4.2vmin}
+  body.sq .point .m{font-size:2.7vmin;margin-block-start:.8vmin}
+
+  body.sq .rows{gap:1.8vmin;margin-block-start:3vmin;max-width:80vmin}
+  body.sq .row{padding:2.4vmin 3.2vmin;border-radius:2.8vmin}
+  body.sq .row .vl.ltr{font-size:4vmin}
+
+  body.sq .mark{width:27vmin}
+  body.sq .wordmark{font-size:6.4vmin;margin-block-start:4vmin}
+  body.sq .end-mark{width:19vmin}
+</style>
+
+<!-- ══════════════ الخلفيات ══════════════ -->
+<div class="bg deep" data-bg="1"></div>
+<div class="bg sand" data-bg="3"></div>
+<div class="bg deep" data-bg="4"></div>
+<div class="bg sand" data-bg="5"></div>
+<div class="bg deep" data-bg="6"></div>
+<div class="halo" id="halo1"></div>
+<div class="halo g" id="halo2"></div>
+
+<!-- ══════════════ 1 · الشعار ══════════════ -->
+<section class="scene dark" data-in="0" data-out="4.2">
+  <svg class="mark" viewBox="44 58 152 124" fill="none">
+    <path class="body" id="m-bar1" d="M84,158 L84,108"/>
+    <path class="body" id="m-bar2" d="M133,158 L133,92"/>
+    <path class="acc"  id="m-bar3" d="M180,140 L180,74"/>
+    <path class="body" id="m-base" d="M180,134 C180,154 166,166 142,166 L60,166"/>
+  </svg>
+  <div class="wordmark anim" data-d="1.75">مكتب سفيان للموبايل</div>
+  <div class="latin anim" data-d="1.95">SUFYAN MOBILE</div>
+  <div class="rule anim" data-d="2.2"></div>
+  <div class="tagline anim" data-d="2.4">شاشتك الجاية تبدأ من هنا</div>
+</section>
+
+<!-- ══════════════ 2 · من نحن ══════════════ -->
+<section class="scene dark" data-in="3.9" data-out="7.9">
+  <div class="kicker anim" data-d="0.15">من سامراء</div>
+  <h1 class="anim" data-d="0.3">كل شي لهاتفك<br>بمكان واحد</h1>
+  <p class="lede anim" data-d="0.55">
+    من الجهاز الجديد للإكسسوار الأصلي، وللصيانة وباقة الإنترنت —
+    بمحل واحد بالحويش.
+  </p>
+  <div class="rule anim" data-d="0.8" style="margin-block:4.4vmin"></div>
+  <div class="anim" data-d="0.95" style="display:flex;align-items:center;gap:2.2vmin;font-size:3.1vmin;font-weight:600;opacity:.86">
+    <svg class="ico" viewBox="0 0 64 64" style="width:4.4vmin;height:4.4vmin;color:var(--gold)">
+      <path d="M32 58s18-16 18-28a18 18 0 1 0-36 0c0 12 18 28 18 28z"/><circle cx="32" cy="29" r="7"/>
+    </svg>
+    <span>سامراء — الحويش — الشارع الرئيسي</span>
+  </div>
+</section>
+
+<!-- ══════════════ 3 · الخدمات ══════════════ -->
+<section class="scene light" data-in="7.6" data-out="13.2">
+  <div class="kicker anim" data-d="0.15">خدماتنا</div>
+  <h1 class="anim" data-d="0.3">أربع خدمات<br>تحت سقف واحد</h1>
+
+  <div class="cards">
+    <div class="card anim" data-d="0.6">
+      <div class="ic">
+        <svg class="ico" viewBox="0 0 64 64"><rect x="17" y="6" width="30" height="52" rx="6"/><path d="M27 13h10"/><path d="M28 50h8"/></svg>
+      </div>
+      <div class="tx"><div class="t">هواتف ذكية</div>
+        <div class="m">أجهزة جديدة ومستعملة مفحوصة — بسعر مكتوب على الجهاز</div></div>
+    </div>
+
+    <div class="card anim" data-d="0.78">
+      <div class="ic">
+        <svg class="ico" viewBox="0 0 64 64"><path d="M22 24v-6a10 10 0 0 1 20 0v6"/><rect x="13" y="24" width="38" height="30" rx="7"/><path d="M32 36v7"/></svg>
+      </div>
+      <div class="tx"><div class="t">إكسسوارات أصلية</div>
+        <div class="m">شواحن وسماعات وكفرات وواقيات شاشة — تركيب مجاني</div></div>
+    </div>
+
+    <div class="card anim" data-d="0.96">
+      <div class="ic">
+        <svg class="ico" viewBox="0 0 64 64"><path d="M8 24a34 34 0 0 1 48 0"/><path d="M17 34a22 22 0 0 1 30 0"/><path d="M25.5 43.5a10 10 0 0 1 13 0"/><circle cx="32" cy="52.5" r="2.8" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="tx"><div class="t">باقات إنترنت</div>
+        <div class="m">اشتراك وتركيب ومتابعة — وخط مخصّص للإنترنت</div></div>
+    </div>
+
+    <div class="card anim" data-d="1.14">
+      <div class="ic">
+        <svg class="ico" viewBox="0 0 64 64"><path d="M42 8a14 14 0 0 0-13 19L11 45a5 5 0 0 0 7 7l18-18a14 14 0 0 0 19-13l-9 9-8-2-2-8z"/></svg>
+      </div>
+      <div class="tx"><div class="t">صيانة وبرمجة</div>
+        <div class="m">شاشة وبطارية وشحن وسوفتوير — بوصل مرقّم وضمان</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 4 · ليش سفيان ══════════════ -->
+<section class="scene dark" data-in="12.9" data-out="17.6">
+  <div class="kicker anim" data-d="0.15">ليش سفيان</div>
+  <h1 class="anim" data-d="0.3">شغل مرتّب<br>ووراه ورق</h1>
+
+  <div class="points">
+    <div class="point anim" data-d="0.6">
+      <div class="n">١</div>
+      <div><div class="t">وصل صيانة بباركود</div>
+        <div class="m">تسلّم جهازك بوصل مرقّم فيه كل تفاصيله، وتستلمه بمسح الباركود — بدون «منو صاحب هذا الجهاز؟»</div></div>
+    </div>
+    <div class="point anim" data-d="0.82">
+      <div class="n">٢</div>
+      <div><div class="t">السعر مكتوب</div>
+        <div class="m">كل جهاز عليه ملصق بالسعر والذاكرة واللون وصحة البطارية — تشوف قبل لا تسأل.</div></div>
+    </div>
+    <div class="point anim" data-d="1.04">
+      <div class="n">٣</div>
+      <div><div class="t">فاتورة وضمان</div>
+        <div class="m">كل بيعة بفاتورة مرقّمة، والضمان والاستبدال مكتوبين بيها — لا كلام ولا وعود.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 5 · التواصل ══════════════ -->
+<section class="scene light" data-in="17.3" data-out="21.4">
+  <div class="kicker anim" data-d="0.15">تواصل ويانا</div>
+  <h1 class="anim" data-d="0.3">اتصل أو مرّ علينا</h1>
+
+  <div class="rows">
+    <div class="row anim" data-d="0.6">
+      <span class="lb">واتساب</span>
+      <span class="vl ltr">0773 164 4450</span>
+    </div>
+    <div class="row anim" data-d="0.76">
+      <span class="lb">واتساب</span>
+      <span class="vl ltr">0774 448 5771</span>
+    </div>
+    <div class="row anim" data-d="0.92">
+      <span class="lb">إنترنت</span>
+      <span class="vl ltr">0772 909 6991</span>
+    </div>
+    <div class="row anim" data-d="1.08">
+      <span class="lb">العنوان</span>
+      <span class="vl" style="font-size:2.8vmin">سامراء — الحويش — الشارع الرئيسي</span>
+    </div>
+    <div class="row anim" data-d="1.24">
+      <span class="lb">الدوام</span>
+      <span class="vl">يوميًا · <span class="ltr">9:00 — 22:00</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 6 · الخاتمة ══════════════ -->
+<section class="scene dark" data-in="21.1" data-out="24.4">
+  <svg class="end-mark anim" data-d="0.1" viewBox="44 58 152 124" fill="none">
+    <path fill="none" d="M180,134 C180,154 166,166 142,166 L60,166" stroke="#F2EDE4" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path fill="none" d="M133,92 L133,158" stroke="#F2EDE4" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path fill="none" d="M84,108 L84,158" stroke="#F2EDE4" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path fill="none" d="M180,74 L180,140" stroke="#C8A96A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="wordmark anim" data-d="0.28" style="font-size:6.4vmin">مكتب سفيان للموبايل</div>
+  <div class="rule anim" data-d="0.46"></div>
+  <div class="tagline anim" data-d="0.6" style="font-size:5.4vmin">تعال شوفنا</div>
+  <div class="end-num anim" data-d="0.8" style="margin-block-start:4.6vmin">0773 164 4450</div>
+  <div class="anim" data-d="0.95" style="font-size:2.9vmin;font-weight:600;opacity:.7;margin-block-start:1.6vmin">
+    سامراء — الحويش — الشارع الرئيسي
+  </div>
+</section>
+
+<script>
+/* ═══════════════ محرّك الخطّ الزمني ═══════════════ */
+(function () {
+  'use strict';
+
+  var DURATION = 24.4;                       // ثوانٍ
+  var clamp = function (x, a, b) { return x < a ? a : x > b ? b : x; };
+  var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
+  var easeInOut = function (t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  };
+  /** تقدّم مقطع زمني بين 0 و1. */
+  var seg = function (t, start, dur) { return clamp((t - start) / dur, 0, 1); };
+
+  var scenes = [].map.call(document.querySelectorAll('.scene'), function (el) {
+    return {
+      el: el,
+      tin: parseFloat(el.dataset.in),
+      tout: parseFloat(el.dataset.out),
+      items: [].map.call(el.querySelectorAll('.anim'), function (n) {
+        return { el: n, d: parseFloat(n.dataset.d || 0) };
+      })
+    };
+  });
+
+  var bgs = [].map.call(document.querySelectorAll('.bg'), function (el) {
+    var s = scenes[parseInt(el.dataset.bg, 10) - 1];
+    return { el: el, tin: s.tin, tout: s.tout, sand: el.classList.contains('sand') };
+  });
+
+  /* مسارات الشعار: نقيس طولها مرة واحدة لرسمها تدريجيًا */
+  var strokes = ['m-bar1', 'm-bar2', 'm-bar3', 'm-base'].map(function (id, i) {
+    var p = document.getElementById(id);
+    var len = p.getTotalLength();
+    p.style.strokeDasharray = len + ' ' + len;
+    // الأعمدة تنمو أولًا واحدًا بعد الآخر، ثم تنسحب القاعدة
+    return { p: p, len: len, at: [0.35, 0.62, 0.89, 1.24][i], dur: i === 3 ? 0.95 : 0.42 };
+  });
+
+  var halo1 = document.getElementById('halo1');
+  var halo2 = document.getElementById('halo2');
+
+  /** يضبط المشهد كله على اللحظة t بالثواني. */
+  function seek(t) {
+    // الهالات تنجرف ببطء طوال الفيديو
+    var k = t / DURATION;
+    halo1.style.width = halo1.style.height = '150vmin';
+    halo1.style.insetInlineEnd = (-46 + Math.sin(k * 3.1) * 9) + 'vmin';
+    halo1.style.insetBlockStart = (-34 + Math.cos(k * 2.4) * 11) + 'vmin';
+    halo2.style.width = halo2.style.height = '116vmin';
+    halo2.style.insetInlineStart = (-40 + Math.cos(k * 2.7) * 8) + 'vmin';
+    halo2.style.insetBlockEnd = (-32 + Math.sin(k * 3.4) * 10) + 'vmin';
+
+    var sand = 0;
+    bgs.forEach(function (b) {
+      var o = fade(t, b.tin, b.tout);
+      b.el.style.opacity = o;
+      if (b.sand) sand += o;
+    });
+    // الهالة البترولية تعكّر الخلفية الرملية — تخفت كلّما غلبت الرمال
+    var lit = clamp(1 - sand, 0, 1);
+    halo1.style.opacity = (0.5 * lit).toFixed(3);
+    halo2.style.opacity = (0.5 * lit).toFixed(3);
+
+    scenes.forEach(function (s) {
+      var o = fade(t, s.tin, s.tout);
+      s.el.style.opacity = o;
+      if (o <= 0.001) { s.el.style.visibility = 'hidden'; return; }
+      s.el.style.visibility = 'visible';
+      // زحف بصري خفيف جدًا يمنع جمود اللقطة
+      var life = clamp((t - s.tin) / (s.tout - s.tin), 0, 1);
+      s.el.style.transform = 'scale(' + (1 + life * 0.012).toFixed(4) + ')';
+
+      s.items.forEach(function (it) {
+        var p = easeOut(seg(t, s.tin + it.d, 0.72));
+        it.el.style.opacity = p;
+        it.el.style.transform = 'translateY(' + ((1 - p) * 2.4).toFixed(3) + 'vmin)';
+      });
+    });
+
+    // رسم الشعار في المشهد الأول
+    strokes.forEach(function (s) {
+      var p = easeOut(seg(t, s.at, s.dur));
+      s.p.style.strokeDashoffset = (s.len * (1 - p)).toFixed(2);
+    });
+  }
+
+  /** تلاشي دخول وخروج المشهد. */
+  function fade(t, tin, tout) {
+    if (t < tin - 0.001 || t > tout + 0.001) return 0;
+    var i = easeInOut(seg(t, tin, 0.42));
+    var o = easeInOut(seg(t, tout - 0.42, 0.42));
+    return clamp(i * (1 - o), 0, 1);
+  }
+
+  window.__seek = seek;
+  window.__duration = DURATION;
+  seek(0);
+
+  // معاينة حيّة عند فتح الملف في المتصفّح — لا تُستعمل عند التصدير
+  if (!window.__exporting) {
+    var t0 = null;
+    var loop = function (ts) {
+      if (t0 === null) t0 = ts;
+      seek(((ts - t0) / 1000) % DURATION);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+})();
+</script>
