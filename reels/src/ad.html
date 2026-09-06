@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Sufyan Mobile — Reel</title>
+<link rel="stylesheet" href="fonts/local.css">
+<style>
+  :root{
+    --teal:#143440;
+    --teal-2:#183F47;
+    --cream:#F1EBE4;
+    --gold:#C7A86A;
+    --gold-deep:#8E6F2C;   /* gold that still passes contrast on cream/white */
+    --white:#FFFFFF;
+    --ink:#143440;
+    --s:1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;overflow:hidden}
+  body{font-family:"Tajawal","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased}
+
+  #stage{position:relative;overflow:hidden;background:var(--teal)}
+  body.r916 #stage{width:1080px;height:1920px}
+  body.r11  #stage{width:1080px;height:1080px}
+
+  /* ---------- backgrounds ---------- */
+  .bg{position:absolute;inset:0;will-change:opacity}
+  .bg-dark{background:var(--teal)}
+  .bg-light{background:var(--cream)}
+  .aurora{position:absolute;inset:-20%;will-change:transform}
+  .bg-dark .aurora{
+    background:
+      radial-gradient(46% 30% at 30% 22%, rgba(38,86,96,.85) 0%, rgba(20,52,64,0) 62%),
+      radial-gradient(40% 26% at 74% 68%, rgba(199,168,106,.16) 0%, rgba(20,52,64,0) 60%),
+      radial-gradient(60% 40% at 52% 92%, rgba(24,63,71,.9) 0%, rgba(20,52,64,0) 65%);
+  }
+  .bg-light .aurora{
+    background:
+      radial-gradient(48% 30% at 26% 18%, rgba(255,255,255,.85) 0%, rgba(241,235,228,0) 64%),
+      radial-gradient(42% 28% at 78% 74%, rgba(199,168,106,.16) 0%, rgba(241,235,228,0) 62%);
+  }
+  .grain{position:absolute;inset:0;opacity:.035;mix-blend-mode:overlay;
+    background-image:radial-gradient(rgba(255,255,255,.9) .5px, transparent .6px);
+    background-size:3px 3px}
+
+  /* ---------- scene shell ---------- */
+  .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+         will-change:opacity,transform;opacity:0}
+  .wrap{width:100%;padding-inline:96px}
+  body.r11 .wrap{padding-inline:104px}
+  .el{will-change:opacity,transform}
+
+  /* ---------- type ---------- */
+  .eyebrow{font-size:calc(30px*var(--s));font-weight:700;color:var(--gold);
+           letter-spacing:.14em;margin-bottom:calc(16px*var(--s))}
+  .h1{font-family:"Tajawal",sans-serif;font-weight:800;line-height:1.16;
+      font-size:calc(86px*var(--s));letter-spacing:-.01em}
+  .h1.sm{font-size:calc(74px*var(--s))}
+  .lede{font-family:"IBM Plex Sans Arabic",sans-serif;font-weight:400;
+        font-size:calc(33px*var(--s));line-height:1.75;opacity:.86;
+        margin-top:calc(26px*var(--s));max-width:calc(760px*var(--s))}
+  .on-dark{color:var(--cream)}
+  .on-light{color:var(--ink)}
+  .on-light .eyebrow{color:var(--gold-deep)}
+  .rule{height:2px;width:calc(88px*var(--s));background:var(--gold);opacity:.75;
+        margin-block:calc(30px*var(--s))}
+
+  /* ---------- intro ---------- */
+  .center{text-align:center;display:flex;flex-direction:column;align-items:center}
+  .mark{width:calc(228px*var(--s));height:calc(228px*var(--s))}
+  .brand{font-weight:800;font-size:calc(62px*var(--s));color:var(--cream);
+         margin-top:calc(26px*var(--s))}
+  .brand-en{font-family:"IBM Plex Sans Arabic",sans-serif;font-weight:500;
+            font-size:calc(23px*var(--s));letter-spacing:.44em;
+            color:rgba(241,235,228,.55);margin-top:calc(12px*var(--s));direction:ltr}
+  .tagline{font-family:"Tajawal",sans-serif;font-weight:700;font-size:calc(40px*var(--s));
+           color:var(--gold);margin-top:calc(40px*var(--s))}
+  .hairline{height:1px;background:linear-gradient(90deg,transparent,rgba(199,168,106,.6),transparent);
+            margin-top:calc(34px*var(--s));width:calc(420px*var(--s))}
+
+  /* ---------- chips / rows ---------- */
+  .place{display:flex;align-items:center;gap:calc(14px*var(--s));
+         font-family:"IBM Plex Sans Arabic",sans-serif;font-size:calc(29px*var(--s));
+         color:rgba(241,235,228,.78);margin-top:calc(34px*var(--s))}
+  .place svg{width:calc(30px*var(--s));height:calc(30px*var(--s));flex:none;stroke:var(--gold)}
+
+  .cards{display:flex;flex-direction:column;gap:calc(18px*var(--s));margin-top:calc(38px*var(--s))}
+  .card{background:var(--white);border-radius:calc(22px*var(--s));
+        padding:calc(24px*var(--s)) calc(26px*var(--s));
+        display:flex;align-items:center;gap:calc(22px*var(--s));
+        box-shadow:0 calc(10px*var(--s)) calc(28px*var(--s)) rgba(20,52,64,.08)}
+  .chip{width:calc(62px*var(--s));height:calc(62px*var(--s));border-radius:calc(17px*var(--s));
+        background:var(--teal);display:flex;align-items:center;justify-content:center;flex:none}
+  .chip svg{width:calc(31px*var(--s));height:calc(31px*var(--s));stroke:var(--cream);fill:none;
+            stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .card-t{font-weight:700;font-size:calc(36px*var(--s));color:var(--ink);line-height:1.25}
+  .card-d{font-family:"IBM Plex Sans Arabic",sans-serif;font-size:calc(25px*var(--s));
+          color:#5B6B72;line-height:1.5;margin-top:calc(5px*var(--s))}
+
+  .points{margin-top:calc(40px*var(--s));display:flex;flex-direction:column;gap:calc(30px*var(--s))}
+  .point{display:flex;gap:calc(24px*var(--s));align-items:flex-start}
+  .num{width:calc(56px*var(--s));height:calc(56px*var(--s));border-radius:50%;flex:none;
+       border:2px solid rgba(199,168,106,.85);color:var(--gold);
+       display:flex;align-items:center;justify-content:center;
+       font-weight:700;font-size:calc(28px*var(--s));margin-top:calc(4px*var(--s))}
+  .point-t{font-weight:700;font-size:calc(40px*var(--s));color:var(--cream);line-height:1.3}
+  .point-d{font-family:"IBM Plex Sans Arabic",sans-serif;font-size:calc(27px*var(--s));
+           color:rgba(241,235,228,.72);line-height:1.6;margin-top:calc(8px*var(--s))}
+
+  .promises{margin-top:calc(42px*var(--s));display:flex;flex-direction:column;gap:calc(26px*var(--s))}
+  .promise{display:flex;gap:calc(20px*var(--s));align-items:center;
+           font-family:"Tajawal",sans-serif;font-weight:500;
+           font-size:calc(38px*var(--s));color:var(--cream);line-height:1.45}
+  .promise svg{width:calc(38px*var(--s));height:calc(38px*var(--s));flex:none;
+               stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  .rows{margin-top:calc(34px*var(--s));display:flex;flex-direction:column;gap:calc(14px*var(--s))}
+  .row{background:var(--white);border-radius:calc(18px*var(--s));
+       padding:calc(20px*var(--s)) calc(26px*var(--s));
+       display:flex;align-items:center;justify-content:space-between;gap:calc(20px*var(--s));
+       box-shadow:0 calc(8px*var(--s)) calc(22px*var(--s)) rgba(20,52,64,.07)}
+  .row-k{font-family:"IBM Plex Sans Arabic",sans-serif;font-weight:600;
+         font-size:calc(26px*var(--s));color:var(--gold-deep);flex:none}
+  .row-v{font-weight:500;font-size:calc(33px*var(--s));color:var(--ink);text-align:left}
+  .row-v.num-v{font-family:"IBM Plex Sans Arabic",sans-serif;font-weight:600;
+               direction:ltr;letter-spacing:.02em}
+  .row-v.small{font-size:calc(28px*var(--s));font-family:"IBM Plex Sans Arabic",sans-serif}
+
+  .stamp{display:flex;align-items:center;justify-content:center;gap:calc(18px*var(--s));
+         margin-top:calc(38px*var(--s))}
+  .outro-mark{width:calc(74px*var(--s));height:calc(74px*var(--s));flex:none}
+  .stamp-t{font-weight:800;font-size:calc(38px*var(--s));color:var(--ink)}
+</style>
+</head>
+<body class="r916">
+
+<div id="stage">
+  <div class="bg bg-dark" id="bgDark"><div class="aurora" id="auroraA"></div></div>
+  <div class="bg bg-light" id="bgLight"><div class="aurora" id="auroraB"></div></div>
+  <div class="grain"></div>
+
+  <!-- ============ 1. INTRO ============ -->
+  <div class="scene" data-scene="intro">
+    <div class="wrap center">
+      <div class="el" data-i="0">
+        <svg class="mark" viewBox="0 0 300 300" aria-hidden="true">
+          <g fill="none" stroke-linecap="round">
+            <path d="M262 78 L262 168" stroke="#C7A86A" stroke-width="46"/>
+            <path d="M46 232 H206 C244 232 262 212 262 182" stroke="#F1EBE4" stroke-width="50"/>
+            <path d="M104 232 L104 150" stroke="#F1EBE4" stroke-width="44"/>
+            <path d="M180 232 L180 116" stroke="#F1EBE4" stroke-width="44"/>
+          </g>
+        </svg>
+      </div>
+      <div class="el brand" data-i="1">مكتب سفيان للموبايل</div>
+      <div class="el brand-en" data-i="2">SUFYAN MOBILE</div>
+      <div class="el hairline" data-i="3"></div>
+      <div class="el tagline" data-i="4">تدخل ضيف… وتطلع مرتاح</div>
+    </div>
+  </div>
+
+  <!-- ============ 2. WHO ============ -->
+  <div class="scene" data-scene="who">
+    <div class="wrap on-dark">
+      <div class="el eyebrow" data-i="0">من سامراء</div>
+      <div class="el h1" data-i="1">هاتفك عدنا<br>أمانة</div>
+      <div class="el rule" data-i="2"></div>
+      <div class="el lede" data-i="3">جهاز جديد، إكسسوار أصلي، صيانة، وباقة إنترنت — وسؤالك بعد البيع يلگه جواب.</div>
+      <div class="el place" data-i="4">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span>سامراء — الحويش — الشارع الرئيسي</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 3. SERVICES ============ -->
+  <div class="scene" data-scene="serv">
+    <div class="wrap on-light">
+      <div class="el eyebrow" data-i="0">خدماتنا</div>
+      <div class="el h1 sm" data-i="1">أربع خدمات…<br>وما نخلّيك تدور</div>
+      <div class="cards">
+        <div class="el card" data-i="2">
+          <div class="chip"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.5 18.6h3"/></svg></div>
+          <div><div class="card-t">هواتف ذكية</div><div class="card-d">جديد ومستعمل مفحوص — والسعر مكتوب على الجهاز</div></div>
+        </div>
+        <div class="el card" data-i="3">
+          <div class="chip"><svg viewBox="0 0 24 24"><path d="M12 2.6 20 6v5.4c0 5-3.4 8.4-8 9.9-4.6-1.5-8-4.9-8-9.9V6l8-3.4Z"/><path d="M9.4 12.2l1.9 1.9 3.5-3.7"/></svg></div>
+          <div><div class="card-t">إكسسوارات أصلية</div><div class="card-d">شواحن وسماعات وكفرات وواقيات شاشة — تركيب مجاني</div></div>
+        </div>
+        <div class="el card" data-i="4">
+          <div class="chip"><svg viewBox="0 0 24 24"><path d="M2.6 9.2a14 14 0 0 1 18.8 0"/><path d="M5.9 12.9a9.2 9.2 0 0 1 12.2 0"/><path d="M9.2 16.6a4.4 4.4 0 0 1 5.6 0"/><circle cx="12" cy="19.8" r=".9" fill="#F1EBE4" stroke="none"/></svg></div>
+          <div><div class="card-t">باقات إنترنت</div><div class="card-d">اشتراك وتركيب ومتابعة — وخط مخصص للإنترنت</div></div>
+        </div>
+        <div class="el card" data-i="5">
+          <div class="chip"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a3.9 3.9 0 0 0 5.1 5.1l-7.6 7.6a2.4 2.4 0 0 1-3.4-3.4l7.6-7.6a3.9 3.9 0 0 0-1.7-1.7Z"/><path d="M14.7 6.3 18.4 2.6"/></svg></div>
+          <div><div class="card-t">صيانة وبرمجة</div><div class="card-d">شاشة وبطارية وشحن وسوفتوير — بوصل مرقّم وضمان</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 4. WHY ============ -->
+  <div class="scene" data-scene="why">
+    <div class="wrap on-dark">
+      <div class="el eyebrow" data-i="0">ليش سفيان</div>
+      <div class="el h1" data-i="1">شغل مرتّب<br>ووراه ورق</div>
+      <div class="points">
+        <div class="el point" data-i="2">
+          <div class="num">١</div>
+          <div><div class="point-t">وصل صيانة بباركود</div>
+          <div class="point-d">تسلّم جهازك بوصل مرقّم فيه كل تفاصيله، وتستلمه بمسح الباركود.</div></div>
+        </div>
+        <div class="el point" data-i="3">
+          <div class="num">٢</div>
+          <div><div class="point-t">السعر مكتوب</div>
+          <div class="point-d">الذاكرة واللون وصحة البطارية على الملصق — تشوف قبل لا تسأل.</div></div>
+        </div>
+        <div class="el point" data-i="4">
+          <div class="num">٣</div>
+          <div><div class="point-t">فاتورة وضمان</div>
+          <div class="point-d">الضمان والاستبدال مكتوبين بالفاتورة — لا كلام ولا وعود.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 5. CARE ============ -->
+  <div class="scene" data-scene="care">
+    <div class="wrap on-dark">
+      <div class="el eyebrow" data-i="0">وعدنا إلك</div>
+      <div class="el h1" data-i="1">راحتك<br>قبل البيعة</div>
+      <div class="promises">
+        <div class="el promise" data-i="2">
+          <svg viewBox="0 0 24 24"><path d="M4 6.5h16v10.2H9.6L5.6 20v-3.3H4Z"/></svg>
+          <span>نسمع سؤالك للآخر — وننصحك حتى لو ما اشتريت</span>
+        </div>
+        <div class="el promise" data-i="3">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.6"/><path d="M4.8 20c.9-3.7 3.8-5.8 7.2-5.8s6.3 2.1 7.2 5.8"/></svg>
+          <span>تدخل باسمك، مو برقم بالدور</span>
+        </div>
+        <div class="el promise" data-i="4">
+          <svg viewBox="0 0 24 24"><path d="M4 20V9.6L12 3.4l8 6.2V20"/><path d="M9.6 20v-6.2h4.8V20"/></svg>
+          <span>بعد البيع، نفس الترحيب ونفس الباب</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 6. CTA ============ -->
+  <div class="scene" data-scene="cta">
+    <div class="wrap on-light">
+      <div class="el eyebrow" data-i="0">تواصل وِيّانا</div>
+      <div class="el h1 sm" data-i="1">مرحبتين بيك…<br>ننطرك</div>
+      <div class="rows">
+        <div class="el row" data-i="2"><span class="row-k">واتساب</span><span class="row-v num-v">0773 164 4450</span></div>
+        <div class="el row" data-i="3"><span class="row-k">واتساب</span><span class="row-v num-v">0774 448 5771</span></div>
+        <div class="el row" data-i="4"><span class="row-k">إنترنت</span><span class="row-v num-v">0772 909 6991</span></div>
+        <div class="el row" data-i="5"><span class="row-k">العنوان</span><span class="row-v small">سامراء — الحويش — الشارع الرئيسي</span></div>
+        <div class="el row" data-i="6"><span class="row-k">الدوام</span><span class="row-v small">يوميًا من 9:00 صباحًا إلى 10:00 مساءً</span></div>
+      </div>
+      <div class="el stamp" data-i="7">
+        <svg class="outro-mark" viewBox="0 0 300 300" aria-hidden="true">
+          <g fill="none" stroke-linecap="round">
+            <path d="M262 78 L262 168" stroke="#C7A86A" stroke-width="46"/>
+            <path d="M46 232 H206 C244 232 262 212 262 182" stroke="#143440" stroke-width="50"/>
+            <path d="M104 232 L104 150" stroke="#143440" stroke-width="44"/>
+            <path d="M180 232 L180 116" stroke="#143440" stroke-width="44"/>
+          </g>
+        </svg>
+        <span class="stamp-t">مكتب سفيان للموبايل</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const TR = 0.75;                 // cross-dissolve length (s)
+  const DUR = 25.0;                // total duration (s)
+
+  // starts snapped to the 120 BPM beat grid (0.5s) so every cut lands on a beat
+  const SCENES = [
+    {id:'intro', start:0.00,  bg:'dark'},
+    {id:'who',   start:3.50,  bg:'dark'},
+    {id:'serv',  start:7.50,  bg:'light'},
+    {id:'why',   start:12.50, bg:'dark'},
+    {id:'care',  start:17.00, bg:'dark'},
+    {id:'cta',   start:21.00, bg:'light'},
+  ];
+  SCENES.forEach((s,i)=>{ s.end = (i < SCENES.length-1) ? SCENES[i+1].start + TR : DUR; });
+
+  const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+  // gentle, no overshoot anywhere — nothing snaps or bounces
+  const easeOut =t=>1-Math.pow(1-clamp(t,0,1),3);
+  const easeIn  =t=>Math.pow(clamp(t,0,1),2.2);
+  const smooth  =t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+
+  const nodes = {};
+  SCENES.forEach(s=>{
+    const el = document.querySelector('[data-scene="'+s.id+'"]');
+    nodes[s.id] = {root: el, els: Array.from(el.querySelectorAll('.el'))};
+  });
+  const bgDark = document.getElementById('bgDark');
+  const bgLight= document.getElementById('bgLight');
+  const auroraA= document.getElementById('auroraA');
+  const auroraB= document.getElementById('auroraB');
+
+  function sceneOpacity(s,t){
+    if(t <= s.start - 0.001 || t >= s.end) return 0;
+    const inP  = easeOut((t - s.start)/TR);
+    const outP = 1 - easeIn((t - (s.end - TR))/TR);
+    return clamp(Math.min(inP, outP), 0, 1);
+  }
+
+  window.__seek = function(t){
+    let lightW = 0, totalW = 0;
+
+    SCENES.forEach(s=>{
+      const o  = sceneOpacity(s, t);
+      const nd = nodes[s.id];
+      nd.root.style.opacity = o.toFixed(4);
+
+      if(o > 0){
+        // whole-scene drift: settle in, lift out. Small values = calm.
+        const inP  = smooth((t - s.start)/TR);
+        const outP = smooth((t - (s.end - TR))/TR);
+        const y  = (1-inP)*20 - outP*16;
+        const sc = 0.988 + inP*0.012 + outP*0.010;
+        nd.root.style.transform = 'translate3d(0,'+y.toFixed(2)+'px,0) scale('+sc.toFixed(4)+')';
+
+        // staggered element entrance
+        nd.els.forEach(el=>{
+          const i  = +el.dataset.i;
+          const d  = 0.10 + i*0.085;
+          const p  = easeOut((t - s.start - d)/0.62);
+          el.style.opacity   = p.toFixed(4);
+          el.style.transform = 'translate3d(0,'+((1-p)*22).toFixed(2)+'px,0)';
+        });
+      }
+
+      totalW += o;
+      if(s.bg === 'light') lightW += o;
+    });
+
+    const lp = totalW > 0 ? lightW/totalW : 0;
+    bgLight.style.opacity = lp.toFixed(4);
+    bgDark.style.opacity  = (1).toFixed(4);
+
+    // very slow ambient drift — visible as life, never as movement
+    const k = t/DUR;
+    auroraA.style.transform = 'translate3d('+(Math.sin(k*Math.PI*1.1)*26).toFixed(2)+'px,'+
+                               (Math.cos(k*Math.PI*0.9)*20).toFixed(2)+'px,0) scale('+(1+k*0.05).toFixed(4)+')';
+    auroraB.style.transform = 'translate3d('+(Math.cos(k*Math.PI*1.0)*22).toFixed(2)+'px,'+
+                               (Math.sin(k*Math.PI*1.2)*18).toFixed(2)+'px,0) scale('+(1+k*0.04).toFixed(4)+')';
+  };
+
+  window.__meta = {DUR:DUR, TR:TR, SCENES:SCENES.map(s=>({id:s.id,start:s.start,end:s.end,bg:s.bg}))};
+  window.__setRatio = function(r){
+    document.body.className = r;
+    document.documentElement.style.setProperty('--s', r === 'r11' ? '0.86' : '1');
+  };
+  window.__seek(0);
+})();
+</script>
+</body>
+</html>
