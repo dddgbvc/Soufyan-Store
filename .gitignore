@@ -1,0 +1,7 @@
+# حزم مُولَّدة من المصدر (تُنشأ بـ: zip -r pre-order-erp.zip erp)
+*.zip
+
+# ملفات نظام التشغيل والمحررات
+.DS_Store
+Thumbs.db
+*.swp
