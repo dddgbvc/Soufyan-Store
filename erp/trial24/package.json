@@ -1,0 +1,19 @@
+{
+  "name": "trial24",
+  "version": "1.0.0",
+  "description": "تجربة جهاز 24 — Device Trial 24 module for Soufyan Store ERP (vanilla, zero dependencies)",
+  "type": "module",
+  "private": true,
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "test": "node tests/run-tests.js",
+    "reset": "node server/seed.js --force"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
