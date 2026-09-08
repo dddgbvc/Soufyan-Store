@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Soufyan ERP — لوحة الأنظمة</title>
+<meta name="description" content="لوحة أنظمة مركز سفيان للهواتف: فحص الجهاز، تجربة ٢٤ ساعة، الحجز المسبق — نظام تصميم ومخزون وزبائن مشترك.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="shared/css/tokens.css">
+<link rel="stylesheet" href="shared/css/components.css">
+
+<style>
+  .launcher { max-width: var(--shell-max); margin-inline: auto; padding: var(--s-6) var(--s-4) var(--s-9); display: grid; gap: var(--s-6); }
+  .launcher__head { display: grid; gap: var(--s-2); max-width: 62ch; }
+  .modules { display: grid; gap: var(--s-4); grid-template-columns: 1fr; }
+  @media (min-width: 820px) { .modules { grid-template-columns: repeat(3, 1fr); } }
+  .module { display: grid; gap: var(--s-3); align-content: start; padding: var(--s-5); position: relative; overflow: hidden; }
+  .module__icon { width: 48px; height: 48px; border-radius: var(--r-md); display: grid; place-items: center; color: #fff; }
+  .module--live .module__icon { background: linear-gradient(140deg, var(--brand-400), var(--brand-600)); box-shadow: 0 6px 20px rgba(91,110,255,.3); }
+  .module--soon .module__icon { background: var(--surface-3); color: var(--text-3); box-shadow: none; }
+  .module--soon { opacity: .78; }
+  .module__en { font-size: var(--t-micro); color: var(--text-3); font-family: var(--font-mono); }
+  .module ul { display: grid; gap: 6px; font-size: var(--t-sub); color: var(--text-2); }
+  .module li { display: flex; gap: 8px; align-items: flex-start; }
+  .module li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); margin-block-start: 8px; flex: none; }
+  .shared { display: grid; gap: var(--s-4); padding: var(--s-5); }
+  .shared__grid { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .shared__tile { display: grid; gap: 2px; padding: var(--s-3); border-radius: var(--r-md); background: var(--surface-2); }
+  .shared__v { font-size: 1.4rem; font-weight: 700; letter-spacing: -.02em; }
+  .shared__k { font-size: var(--t-micro); color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <span class="appbar__brand">
+      <span class="appbar__mark" id="brandMark"></span>
+      <span>
+        <span class="appbar__title">Soufyan ERP</span>
+        <span class="appbar__sub">مركز سفيان للهواتف — سامراء</span>
+      </span>
+    </span>
+    <span class="grow"></span>
+    <button class="btn btn--ghost btn--sm" type="button" id="backupBtn">نسخة احتياطية</button>
+    <button class="btn btn--icon btn--ghost" type="button" id="themeBtn" aria-label="تبديل المظهر"></button>
+  </div>
+</header>
+
+<main class="launcher">
+  <section class="launcher__head enter">
+    <span class="badge badge--info">لوحة الأنظمة</span>
+    <h1>ثلاثة أنظمة — منطق مستقل، تصميم ومخزون وزبائن مشترك</h1>
+    <p class="sub">كل نظام له قواعد أعماله الخاصة ولا يختلط بغيره. المشترك بينها فقط: نظام التصميم (Design System)، ومخزون الأجهزة (Inventory)، وبنية الزبائن (Customers).</p>
+  </section>
+
+  <section class="modules enter enter-1" id="modules"></section>
+
+  <section class="card shared enter enter-2">
+    <div class="row-between">
+      <div>
+        <h2 class="section-title">الطبقة المشتركة</h2>
+        <p class="sub">بيانات واحدة تخدم الأنظمة الثلاثة.</p>
+      </div>
+      <span class="badge" id="storageBadge"></span>
+    </div>
+    <div class="shared__grid" id="sharedGrid"></div>
+  </section>
+</main>
+
+<script src="shared/js/core.js"></script>
+<script src="shared/js/db.js"></script>
+<script src="shared/js/ui.js"></script>
+<script src="shared/js/inventory.js"></script>
+<script src="shared/js/customers.js"></script>
+<script src="shared/js/staff.js"></script>
+<script>
+(function () {
+  'use strict';
+  var el = ERP.el;
+
+  ERP.inventory.seed();
+  ERP.customers.seed();
+  ERP.staff.seed();
+
+  document.getElementById('brandMark').innerHTML = ERP.icon('grid', 20);
+
+  var themeBtn = document.getElementById('themeBtn');
+  function isDark() {
+    var t = ERP.theme.get();
+    return t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function paintTheme() {
+    themeBtn.innerHTML = ERP.icon(isDark() ? 'sun' : 'moon', 18);
+    themeBtn.setAttribute('aria-label', isDark() ? 'المظهر الفاتح' : 'المظهر الداكن');
+  }
+  themeBtn.addEventListener('click', function () { ERP.theme.toggle(); paintTheme(); });
+  paintTheme();
+
+  var MODULES = [
+    {
+      id: 'device-inspection', live: true, icon: 'shield',
+      ar: 'فحص الجهاز', en: 'Device Inspection',
+      desc: 'فحص الهاتف وتقييم حالته الفنية قبل البيع أو الشراء أو الاستلام أو الصيانة.',
+      points: ['١٨ مرحلة فحص باختبارات تفاعلية حقيقية', 'درجة صحة الجهاز من ١٠٠ مع تفصيل لكل مجموعة', 'تقرير قابل للطباعة وسجل فحوصات لكل جهاز'],
+      href: 'modules/device-inspection/index.html'
+    },
+    {
+      id: 'trial-24', live: false, icon: 'clock',
+      ar: 'تجربة ٢٤ ساعة', en: 'Trial 24 Hours',
+      desc: 'نظام منفصل لإدارة تجربة الجهاز لدى الزبون ٢٤ ساعة وشروط الإرجاع.',
+      points: ['منطق أعمال مستقل تمامًا عن الفحص', 'يستخدم نفس المخزون وبنية الزبائن', 'غير مشمول بهذا التسليم'],
+      href: null
+    },
+    {
+      id: 'pre-order', live: false, icon: 'save',
+      ar: 'الحجز المسبق', en: 'Pre-Order',
+      desc: 'نظام منفصل لحجز الأجهزة قبل توفّرها وإدارة الدفعات المقدّمة.',
+      points: ['منطق أعمال مستقل تمامًا', 'يستخدم نفس المخزون وبنية الزبائن', 'غير مشمول بهذا التسليم'],
+      href: null
+    }
+  ];
+
+  var modules = document.getElementById('modules');
+  MODULES.forEach(function (m) {
+    var body = [
+      el('.module__icon', { html: ERP.icon(m.icon, 22) }),
+      el('div', {}, [
+        el('h2', { text: m.ar }),
+        el('.module__en', { text: m.en })
+      ]),
+      el('p.sub', { text: m.desc }),
+      el('ul', {}, m.points.map(function (p) { return el('li', { text: p }); })),
+      m.live
+        ? el('a.btn.btn--primary', { href: m.href, html: ERP.icon('play', 16) + '<span>افتح النظام</span>' })
+        : el('span.badge', { text: 'نظام منفصل — لاحقًا' })
+    ];
+    modules.appendChild(el('article.card.module.' + (m.live ? 'module--live' : 'module--soon'), {}, body));
+  });
+
+  var sharedGrid = document.getElementById('sharedGrid');
+  [
+    ['موديلات في الكتالوج', ERP.inventory.models.count()],
+    ['أجهزة مسجّلة', ERP.inventory.devices.count()],
+    ['زبائن', ERP.customers.store.count()],
+    ['فريق العمل', ERP.staff.store.count()],
+    ['فحوصات محفوظة', ERP.db.collection('inspections').count()]
+  ].forEach(function (pair) {
+    sharedGrid.appendChild(el('.shared__tile', {}, [
+      el('.shared__v.mono', { text: String(pair[1]) }),
+      el('.shared__k', { text: pair[0] })
+    ]));
+  });
+
+  var storageBadge = document.getElementById('storageBadge');
+  storageBadge.textContent = ERP.db.isPersistent() ? 'التخزين المحلي فعّال' : 'تخزين مؤقت (ذاكرة فقط)';
+  storageBadge.className = 'badge ' + (ERP.db.isPersistent() ? 'badge--ok' : 'badge--warn');
+
+  document.getElementById('backupBtn').addEventListener('click', function () {
+    var payload = ERP.db.exportAll();
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = el('a', { href: url, download: 'soufyan-erp-backup-' + new Date().toISOString().slice(0, 10) + '.json' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    ERP.ui.toast('نزّلت نسخة احتياطية من بيانات الـERP', 'ok');
+  });
+})();
+</script>
+</body>
+</html>

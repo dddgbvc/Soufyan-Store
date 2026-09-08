@@ -1,0 +1,203 @@
+/* ==========================================================================
+   Soufyan ERP — Design Tokens
+   نظام التصميم المشترك بين كل أنظمة الـERP
+   (Device Inspection · Trial 24 · Pre-Order)
+   ========================================================================== */
+
+:root {
+  /* ---- Brand ---------------------------------------------------------- */
+  --brand-500: #5B6EFF;
+  --brand-600: #4A5BE8;
+  --brand-400: #7D8CFF;
+  --brand-tint: rgba(91, 110, 255, .14);
+
+  /* ---- Semantic status ------------------------------------------------ */
+  --ok-500:   #23A96B;
+  --ok-400:   #35C784;
+  --ok-tint:  rgba(35, 169, 107, .14);
+
+  --warn-500: #C77D0A;
+  --warn-400: #F0A825;
+  --warn-tint: rgba(199, 125, 10, .14);
+
+  --bad-500:  #D9364C;
+  --bad-400:  #FF6B7D;
+  --bad-tint: rgba(217, 54, 76, .14);
+
+  --mute-500: #7A8194;
+  --mute-tint: rgba(122, 129, 148, .12);
+
+  /* ---- Radii (concentric: outer = inner + padding) -------------------- */
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-2xl: 30px;
+  --r-pill: 999px;
+
+  /* ---- Spacing scale -------------------------------------------------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 56px;
+
+  /* ---- Typography ----------------------------------------------------- */
+  --font-display: "El Messiri", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --t-display: clamp(1.75rem, 1.2rem + 2.2vw, 2.6rem);
+  --t-title:   clamp(1.25rem, 1.05rem + .9vw, 1.6rem);
+  --t-head:    1.05rem;
+  --t-body:    .94rem;
+  --t-sub:     .84rem;
+  --t-micro:   .75rem;
+
+  /* ---- Motion --------------------------------------------------------- */
+  /* Critically damped default — no overshoot, snappy settle */
+  --spring:        cubic-bezier(.32, .72, 0, 1);
+  /* Momentum only: used after a gesture / on success confirmation */
+  --spring-bounce: cubic-bezier(.34, 1.42, .64, 1);
+  --ease-out:      cubic-bezier(.2, 0, 0, 1);
+
+  --d-instant: 100ms;
+  --d-fast:    180ms;
+  --d-base:    280ms;
+  --d-slow:    420ms;
+
+  /* ---- Layout --------------------------------------------------------- */
+  --shell-max: 1240px;
+  --header-h: 62px;
+}
+
+/* ---- Light appearance (default) --------------------------------------- */
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:        #F2F3F7;
+  --bg-deep:   #E8EAF1;
+  --surface:   #FFFFFF;
+  --surface-2: #F5F6FA;
+  --surface-3: #ECEEF5;
+
+  --text:    #171A22;
+  --text-2:  #5A6076;
+  --text-3:  #878DA0;
+
+  --border:      rgba(23, 26, 34, .10);
+  --border-soft: rgba(23, 26, 34, .06);
+  --hairline:    rgba(23, 26, 34, .14);
+
+  /* Liquid glass */
+  --glass-bg:     rgba(255, 255, 255, .62);
+  --glass-bg-2:   rgba(255, 255, 255, .40);
+  --glass-edge:   rgba(255, 255, 255, .70);
+  --glass-blur:   22px;
+  --glass-shadow: 0 1px 2px rgba(16, 20, 32, .05), 0 12px 34px rgba(16, 20, 32, .09);
+
+  --elev-1: 0 1px 2px rgba(16, 20, 32, .05), 0 2px 6px rgba(16, 20, 32, .05);
+  --elev-2: 0 2px 6px rgba(16, 20, 32, .06), 0 12px 28px rgba(16, 20, 32, .08);
+  --elev-3: 0 8px 20px rgba(16, 20, 32, .10), 0 28px 60px rgba(16, 20, 32, .14);
+
+  --ring: 0 0 0 3px rgba(91, 110, 255, .28);
+  --scrim: rgba(14, 17, 26, .42);
+}
+
+/* ---- Dark appearance --------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:        #0F1116;
+  --bg-deep:   #0A0C11;
+  --surface:   #171A22;
+  --surface-2: #1E222C;
+  --surface-3: #262B37;
+
+  --text:    #ECEEF6;
+  --text-2:  #A2A9BC;
+  --text-3:  #767D91;
+
+  --border:      rgba(255, 255, 255, .10);
+  --border-soft: rgba(255, 255, 255, .06);
+  --hairline:    rgba(255, 255, 255, .14);
+
+  --glass-bg:     rgba(30, 34, 44, .58);
+  --glass-bg-2:   rgba(30, 34, 44, .34);
+  --glass-edge:   rgba(255, 255, 255, .12);
+  --glass-blur:   24px;
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, .40), 0 16px 40px rgba(0, 0, 0, .44);
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, .40), 0 2px 8px rgba(0, 0, 0, .30);
+  --elev-2: 0 4px 12px rgba(0, 0, 0, .38), 0 16px 34px rgba(0, 0, 0, .40);
+  --elev-3: 0 10px 26px rgba(0, 0, 0, .48), 0 34px 70px rgba(0, 0, 0, .52);
+
+  --ok-500:  #35C784;
+  --warn-500: #F0A825;
+  --bad-500: #FF6B7D;
+  --mute-500: #8A91A5;
+
+  --ring: 0 0 0 3px rgba(125, 140, 255, .38);
+  --scrim: rgba(4, 6, 10, .62);
+}
+
+/* Follow the system when the user has not chosen explicitly */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg:        #0F1116;
+    --bg-deep:   #0A0C11;
+    --surface:   #171A22;
+    --surface-2: #1E222C;
+    --surface-3: #262B37;
+
+    --text:    #ECEEF6;
+    --text-2:  #A2A9BC;
+    --text-3:  #767D91;
+
+    --border:      rgba(255, 255, 255, .10);
+    --border-soft: rgba(255, 255, 255, .06);
+    --hairline:    rgba(255, 255, 255, .14);
+
+    --glass-bg:     rgba(30, 34, 44, .58);
+    --glass-bg-2:   rgba(30, 34, 44, .34);
+    --glass-edge:   rgba(255, 255, 255, .12);
+    --glass-shadow: 0 1px 2px rgba(0, 0, 0, .40), 0 16px 40px rgba(0, 0, 0, .44);
+
+    --elev-1: 0 1px 2px rgba(0, 0, 0, .40), 0 2px 8px rgba(0, 0, 0, .30);
+    --elev-2: 0 4px 12px rgba(0, 0, 0, .38), 0 16px 34px rgba(0, 0, 0, .40);
+    --elev-3: 0 10px 26px rgba(0, 0, 0, .48), 0 34px 70px rgba(0, 0, 0, .52);
+
+    --ok-500:  #35C784;
+    --warn-500: #F0A825;
+    --bad-500: #FF6B7D;
+    --mute-500: #8A91A5;
+
+    --ring: 0 0 0 3px rgba(125, 140, 255, .38);
+    --scrim: rgba(4, 6, 10, .62);
+  }
+}
+
+/* Accessibility preferences ------------------------------------------------ */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: var(--surface);
+    --glass-bg-2: var(--surface-2);
+    --glass-blur: 0px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: currentColor;
+    --glass-bg: var(--surface);
+    --glass-blur: 0px;
+  }
+}

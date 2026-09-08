@@ -1,0 +1,64 @@
+/* ==========================================================================
+   فحص الجهاز — أنماط الطباعة (A4)
+   يُطبع التقرير فقط: بلا قوائم، بلا أزرار، بحبر اقتصادي.
+   ========================================================================== */
+@media print {
+  @page { size: A4; margin: 14mm 12mm; }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  /* أخفِ كل ما ليس تقريرًا */
+  .appbar, .no-print, .toaster, .scrim, .modal,
+  .report-toolbar, .result-actions, .backbar, .stages, .workspace__head,
+  button, .btn, .statusbar, .test__foot, .fs-panel { display: none !important; }
+
+  #app { display: block; padding: 0; max-width: none; }
+
+  .report {
+    box-shadow: none !important;
+    border-radius: 0;
+    padding: 0;
+    max-width: none;
+    gap: 10mm;
+    color: #000;
+    background: #fff;
+  }
+
+  .report__head { border-bottom: 1.5pt solid #000; }
+  .report__brand { font-size: 15pt; }
+  .report__title h1 { font-size: 13pt; }
+
+  .report__score, .report__cat, .rep-table__stage th, .card, .glass {
+    background: #f4f4f4 !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border: 0.5pt solid #bbb;
+    backdrop-filter: none !important;
+  }
+
+  .report__status { border: 0.75pt solid #000; background: #fff !important; color: #000 !important; }
+
+  .table-wrap { overflow: visible !important; border: 0.5pt solid #999; }
+  table.tbl { font-size: 9.5pt; }
+  table.tbl th, table.tbl td { border-bottom: 0.5pt solid #ccc; padding: 4pt 6pt; }
+  .rep-detail { max-width: none; color: #333; }
+
+  /* لا تقطع صفًا أو قسمًا بين صفحتين */
+  tr, .report__block, .report__score, .report__failures li { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+
+  .report__foot { border-top: 0.75pt solid #000; }
+  .report__line { border-bottom: 0.75pt solid #000; }
+
+  /* ألوان الحالة تبقى مقروءة بالأبيض والأسود */
+  .rep-status[data-tone="ok"]   { color: #0a6b3d !important; }
+  .rep-status[data-tone="bad"]  { color: #98122a !important; }
+  .rep-status[data-tone="warn"] { color: #8a5a00 !important; }
+  .rep-status[data-tone="mute"] { color: #555 !important; }
+
+  a { color: #000 !important; text-decoration: none; }
+}
