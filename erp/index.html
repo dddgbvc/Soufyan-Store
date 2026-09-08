@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الطلب المسبق — سفيان ERP</title>
+<meta name="description" content="نظام الطلب المسبق (Pre-Order) لمتجر الهواتف والإلكترونيات: تسجيل طلبات العملاء غير المتوفرة، مطابقة تلقائية مع المخزون، حجز، إشعار عبر واتساب، وربط بالمبيعات.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0B0D14">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/views.css">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236E7CFF'/><text x='50' y='70' font-size='58' font-family='sans-serif' text-anchor='middle' fill='white'>س</text></svg>">
+</head>
+<body>
+
+<!-- خلفية -->
+<div class="aurora" aria-hidden="true"></div>
+
+<!-- شاشة الإقلاع -->
+<div id="boot" style="position:fixed;inset:0;z-index:900;display:grid;place-items:center;background:var(--bg-base);transition:opacity .3s ease">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="brand-mark" style="width:52px;height:52px;font-size:20px">س</div>
+    <div style="font-family:var(--font-display);font-weight:700">جارٍ تحميل نظام الطلب المسبق…</div>
+  </div>
+</div>
+
+<a href="#view" class="sr-only">تخطي إلى المحتوى</a>
+
+<div class="app">
+  <!-- الشريط الجانبي -->
+  <aside class="side" id="side" aria-label="التنقّل الرئيسي"></aside>
+
+  <div class="main">
+    <header class="topbar" id="topbar" role="banner"></header>
+    <main class="view" id="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<!-- طبقات -->
+<div class="toasts" id="toasts" role="region" aria-live="polite" aria-label="تنبيهات"></div>
+<div id="overlays"></div>
+
+<!-- ============================================================
+     الترتيب مهم: النواة ← النطاق ← المزوّدون ← الواجهة
+     نسخة فانيلا: بدون أي مكتبة خارجية أو أدوات بناء.
+     ============================================================ -->
+<script src="assets/js/core/util.js"></script>
+<script src="assets/js/core/icons.js"></script>
+<script src="assets/js/core/bus.js"></script>
+<script src="assets/js/core/seed.js"></script>
+<script src="assets/js/core/store.js"></script>
+
+<script src="assets/js/domain/events.js"></script>
+<script src="assets/js/domain/notifications.js"></script>
+<script src="assets/js/domain/customers.js"></script>
+<script src="assets/js/domain/preorder.js"></script>
+<script src="assets/js/domain/matching.js"></script>
+<script src="assets/js/domain/inventory.js"></script>
+<script src="assets/js/domain/sales.js"></script>
+
+<script src="assets/js/providers/templates.js"></script>
+<script src="assets/js/providers/communication.js"></script>
+<script src="assets/js/providers/whatsapp.js"></script>
+<script src="assets/js/providers/mock.js"></script>
+
+<script src="assets/js/ui/components.js"></script>
+<script src="assets/js/ui/actions.js"></script>
+<script src="assets/js/ui/views/dashboard.js"></script>
+<script src="assets/js/ui/views/newPreorder.js"></script>
+<script src="assets/js/ui/views/detail.js"></script>
+<script src="assets/js/ui/views/inventory.js"></script>
+<script src="assets/js/ui/views/customers.js"></script>
+<script src="assets/js/ui/views/sales.js"></script>
+<script src="assets/js/ui/views/templates.js"></script>
+<script src="assets/js/ui/views/eventsLog.js"></script>
+<script src="assets/js/ui/views/settings.js"></script>
+<script src="assets/js/ui/app.js"></script>
+
+</body>
+</html>
