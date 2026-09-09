@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الشعار — مكتب سفيان للموبايل</title>
+<link rel="stylesheet" href="logo.css">
+<style>
+  * { box-sizing: border-box; }
+  html { background: var(--sand); }
+  body {
+    margin: 0;
+    padding-block: clamp(40px, 7vw, 88px);
+    padding-inline: clamp(16px, 5vw, 64px);
+    font-family: var(--brand-font);
+    color: var(--ink);
+    background: var(--sand);
+  }
+  .wrap { max-width: 1180px; margin-inline: auto; }
+
+  header { margin-block-end: clamp(32px, 5vw, 64px); }
+  .eyebrow {
+    font-weight: 500; font-size: 13px; letter-spacing: 0.36em; text-indent: 0.36em;
+    direction: ltr; text-align: right; color: var(--teal); margin: 0 0 14px;
+  }
+  h1 { font-weight: 700; font-size: clamp(30px, 5vw, 46px); margin: 0 0 14px; letter-spacing: -0.01em; }
+  .lede {
+    font-weight: 300; font-size: clamp(15px, 2.2vw, 18px); line-height: 1.75;
+    margin: 0; max-width: 62ch; color: color-mix(in srgb, var(--ink) 78%, transparent);
+  }
+  .lede b { font-weight: 500; color: var(--deep); }
+
+  .grid {
+    display: grid; gap: clamp(16px, 2.4vw, 28px);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+  .card { margin: 0; }
+  .card__stage {
+    background: var(--card-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent);
+    border-radius: 22px;
+    aspect-ratio: 1;
+    display: grid; place-items: center;
+    overflow: hidden;
+    container-type: inline-size;
+  }
+  /* الشعار يتقاس مع عرض البطاقة */
+  .card__stage .sufyan-logo { --size: 28cqw !important; }
+  .card__stage .sufyan-logo--row { --size: 24cqw !important; }
+  .card__stage .sufyan-icon { --size: 40cqw !important; }
+  .card__stage .sufyan-stamp { --size: 40cqw !important; }
+  figcaption {
+    margin-block-start: 12px; font-weight: 500; font-size: 13px;
+    color: color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+
+  .specs {
+    margin-block-start: clamp(40px, 6vw, 76px);
+    display: grid; gap: clamp(16px, 2.4vw, 28px);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  }
+  .spec {
+    background: #fff; border-radius: 18px; padding: 22px 24px;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 7%, transparent);
+  }
+  .spec h2 { font-size: 12px; font-weight: 500; letter-spacing: .1em; margin: 0 0 14px; color: var(--teal); }
+  .spec dl { margin: 0; display: grid; gap: 9px; font-size: 14px; }
+  .spec .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .spec dt { font-weight: 300; color: color-mix(in srgb, var(--ink) 70%, transparent); }
+  .spec dd { margin: 0; font-weight: 500; direction: ltr; }
+  .swatch { display: inline-flex; align-items: center; gap: 9px; direction: ltr; }
+  .chip { width: 17px; height: 17px; border-radius: 50%; flex: none;
+           box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent); }
+
+  footer {
+    margin-block-start: clamp(32px, 5vw, 56px);
+    font-weight: 300; font-size: 13px; line-height: 1.9;
+    color: color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+</style></head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">SUFYAN MOBILE — LOGO</p>
+      <h1>الشعار — النسخة المصحّحة</h1>
+      <p class="lede">
+        الرمز حرف <b>«س»</b> من «سفيان» بعد حذف طرفه الأيسر، فتبقى أعمدته الثلاثة
+        متدرّجة الارتفاع كإشارة الشبكة الخلوية. في هذه النسخة
+        <b>حُذفت القاعدة الأفقية</b> نهائياً كما ينصّ دليل الهوية، و<b>زِيد سمك الأعمدة</b>
+        من <span dir="ltr">13.5</span> إلى <span dir="ltr">16.5</span> من أصل <span dir="ltr">100</span> ليثبت الشعار في القياسات الصغيرة.
+        الخط <b>ثمانية</b> <span dir="ltr">Sans</span>.
+      </p>
+    </header>
+
+    <div class="grid">
+      <figure class="card" style="--card-bg:var(--sand)">
+        <div class="card__stage"><div class="sufyan-logo" style="--size:300px">
+      <div class="sufyan-logo__plate"><svg viewBox="0 0 100 100" role="img" aria-label="شعار مكتب سفيان للموبايل">
+        <rect class="sufyan-mark__bar" x="16.75" y="49" width="16.5" height="30" rx="8.25"/>
+        <rect class="sufyan-mark__bar" x="41.75" y="35" width="16.5" height="44" rx="8.25"/>
+        <rect class="sufyan-mark__bar sufyan-mark__bar--accent" x="66.75" y="21" width="16.5" height="58" rx="8.25"/>
+      </svg></div>
+      <div class="sufyan-logo__type">
+        <div class="sufyan-logo__name">مكتب سفيان للموبايل</div>
+        <div class="sufyan-logo__latin">SUFYAN MOBILE</div>
+      </div>
+    </div></div>
+        <figcaption>الصيغة الرئيسية</figcaption>
+      </figure>
+      <figure class="card" style="--card-bg:var(--deep)">
+        <div class="card__stage"><div class="sufyan-logo sufyan-logo--on-dark" style="--size:300px">
+      <div class="sufyan-logo__plate"><svg viewBox="0 0 100 100" role="img" aria-label="شعار مكتب سفيان للموبايل">
+        <rect class="sufyan-mark__bar" x="16.75" y="49" width="16.5" height="30" rx="8.25"/>
+        <rect class="sufyan-mark__bar" x="41.75" y="35" width="16.5" height="44" rx="8.25"/>
+        <rect class="sufyan-mark__bar sufyan-mark__bar--accent" x="66.75" y="21" width="16.5" height="58" rx="8.25"/>
+      </svg></div>
+      <div class="sufyan-logo__type">
+        <div class="sufyan-logo__name">مكتب سفيان للموبايل</div>
+        <div class="sufyan-logo__latin">SUFYAN MOBILE</div>
+      </div>
+    </div></div>
+        <figcaption>على الخلفية الداكنة</figcaption>
+      </figure>
+      <figure class="card" style="--card-bg:var(--sand)">
+        <div class="card__stage"><div class="sufyan-logo sufyan-logo--row" style="--size:260px">
+      <div class="sufyan-logo__plate"><svg viewBox="0 0 100 100" role="img" aria-label="شعار مكتب سفيان للموبايل">
+        <rect class="sufyan-mark__bar" x="16.75" y="49" width="16.5" height="30" rx="8.25"/>
+        <rect class="sufyan-mark__bar" x="41.75" y="35" width="16.5" height="44" rx="8.25"/>
+        <rect class="sufyan-mark__bar sufyan-mark__bar--accent" x="66.75" y="21" width="16.5" height="58" rx="8.25"/>
+      </svg></div>
+      <div class="sufyan-logo__type">
+        <div class="sufyan-logo__name">مكتب سفيان للموبايل</div>
+        <div class="sufyan-logo__latin">SUFYAN MOBILE</div>
+      </div>
+    </div></div>
+        <figcaption>الصيغة الأفقية</figcaption>
+      </figure>
+      <figure class="card" style="--card-bg:var(--deep)">
+        <div class="card__stage"><div class="sufyan-icon" style="--size:420px;--plate:#1B4350"><svg viewBox="0 0 100 100" role="img" aria-label="شعار مكتب سفيان للموبايل">
+        <rect class="sufyan-mark__bar" x="16.75" y="49" width="16.5" height="30" rx="8.25"/>
+        <rect class="sufyan-mark__bar" x="41.75" y="35" width="16.5" height="44" rx="8.25"/>
+        <rect class="sufyan-mark__bar sufyan-mark__bar--accent" x="66.75" y="21" width="16.5" height="58" rx="8.25"/>
+      </svg></div></div>
+        <figcaption>الأيقونة</figcaption>
+      </figure>
+      <figure class="card" style="--card-bg:var(--sand)">
+        <div class="card__stage"><div class="sufyan-stamp" style="--size:420px">
+      <svg viewBox="0 0 100 100" role="img" aria-label="شعار مكتب سفيان للموبايل">
+        <rect class="sufyan-mark__bar" x="16.75" y="49" width="16.5" height="30" rx="8.25"/>
+        <rect class="sufyan-mark__bar" x="41.75" y="35" width="16.5" height="44" rx="8.25"/>
+        <rect class="sufyan-mark__bar sufyan-mark__bar--accent" x="66.75" y="21" width="16.5" height="58" rx="8.25"/>
+      </svg>
+      <div class="sufyan-stamp__rule"></div>
+      <div class="sufyan-stamp__latin">SUFYAN MOBILE</div>
+    </div></div>
+        <figcaption>الختم</figcaption>
+      </figure>
+      <figure class="card" style="--card-bg:var(--sand)">
+        <div class="card__stage"><div class="sufyan-logo sufyan-logo--mono" style="--size:300px">
+      <div class="sufyan-logo__plate"><svg viewBox="0 0 100 100" role="img" aria-label="شعار مكتب سفيان للموبايل">
+        <rect class="sufyan-mark__bar" x="16.75" y="49" width="16.5" height="30" rx="8.25"/>
+        <rect class="sufyan-mark__bar" x="41.75" y="35" width="16.5" height="44" rx="8.25"/>
+        <rect class="sufyan-mark__bar sufyan-mark__bar--accent" x="66.75" y="21" width="16.5" height="58" rx="8.25"/>
+      </svg></div>
+      <div class="sufyan-logo__type">
+        <div class="sufyan-logo__name">مكتب سفيان للموبايل</div>
+        <div class="sufyan-logo__latin">SUFYAN MOBILE</div>
+      </div>
+    </div></div>
+        <figcaption>أحادي اللون</figcaption>
+      </figure>
+    </div>
+
+    <div class="specs">
+      <section class="spec">
+        <h2>الألوان</h2>
+        <dl>
+          <div class="row"><dt>بترولي عميق</dt><dd class="swatch"><span class="chip" style="background:#14343F"></span>#14343F</dd></div>
+          <div class="row"><dt>ذهبي مطفي</dt><dd class="swatch"><span class="chip" style="background:#C8A96A"></span>#C8A96A</dd></div>
+          <div class="row"><dt>رملي دافئ</dt><dd class="swatch"><span class="chip" style="background:#F2EDE4"></span>#F2EDE4</dd></div>
+          <div class="row"><dt>مائي هادئ</dt><dd class="swatch"><span class="chip" style="background:#2F6F6B"></span>#2F6F6B</dd></div>
+        </dl>
+      </section>
+
+      <section class="spec">
+        <h2>هندسة الرمز — شبكة ١٠٠</h2>
+        <dl>
+          <div class="row"><dt>سمك العمود</dt><dd>16.5</dd></div>
+          <div class="row"><dt>الفجوة</dt><dd>8.5</dd></div>
+          <div class="row"><dt>الارتفاعات</dt><dd>30 · 44 · 58</dd></div>
+          <div class="row"><dt>نهايات الأعمدة</dt><dd>نصف دائرية</dd></div>
+          <div class="row"><dt>قاعدة أفقية</dt><dd>لا شيء</dd></div>
+        </dl>
+      </section>
+
+      <section class="spec">
+        <h2>الخط</h2>
+        <dl>
+          <div class="row"><dt>الاسم العربي</dt><dd>Thmanyah Sans 700</dd></div>
+          <div class="row"><dt>اللاتيني</dt><dd>Thmanyah Sans 500</dd></div>
+          <div class="row"><dt>تباعد اللاتيني</dt><dd>0.36em</dd></div>
+          <div class="row"><dt>الأوزان المتاحة</dt><dd>300 → 900</dd></div>
+        </dl>
+      </section>
+
+      <section class="spec">
+        <h2>الحد الأدنى</h2>
+        <dl>
+          <div class="row"><dt>الشعار الكامل</dt><dd>30mm · 140px</dd></div>
+          <div class="row"><dt>الأيقونة</dt><dd>10mm · 32px</dd></div>
+          <div class="row"><dt>مساحة الأمان</dt><dd>½× ارتفاع الأيقونة</dd></div>
+        </dl>
+      </section>
+    </div>
+
+    <footer>
+      مكتب سفيان للموبايل — سامراء، الحويش · الشارع الرئيسي<br>
+      الشعار مبنيّ بالكامل بـ <span dir="ltr">HTML + SVG</span>، فيكتور قابل للتكبير بلا حدود.
+    </footer>
+  </div>
+</body></html>

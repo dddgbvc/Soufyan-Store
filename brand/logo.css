@@ -1,0 +1,163 @@
+/* ==========================================================================
+   مكتب سفيان للموبايل — نظام الشعار
+   الرمز: حرف «س» بعد حذف طرفه الأيسر — ثلاثة أعمدة متدرّجة كإشارة الشبكة.
+   ملاحظة: الأعمدة بلا قاعدة أفقية، وسمكها 16.5 من أصل 100.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("fonts/thmanyah-sans-Light.woff2") format("woff2");
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("fonts/thmanyah-sans-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("fonts/thmanyah-sans-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("fonts/thmanyah-sans-Bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: url("fonts/thmanyah-sans-Black.woff2") format("woff2");
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+
+:root {
+  /* لوحة «رمال وبحر» — من دليل الهوية */
+  --ink:   #101E24; /* حبري — النصوص */
+  --deep:  #14343F; /* بترولي عميق */
+  --teal:  #2F6F6B; /* مائي هادئ */
+  --gold:  #C8A96A; /* ذهبي مطفي */
+  --sand:  #F2EDE4; /* رملي دافئ */
+  --mist:  #9CC0BB; /* مائي فاتح */
+
+  --brand-font: "Thmanyah Sans", system-ui, sans-serif;
+
+  /* الافتراضي للرمز أينما استُخدم */
+  --bars: var(--sand);
+  --accent: var(--gold);
+}
+
+/* --------------------------------------------------------------------------
+   العلامة (lockup)
+   -------------------------------------------------------------------------- */
+
+.sufyan-logo {
+  --size: 300px;          /* قياس بلاطة الأيقونة */
+  --tone: var(--deep);    /* لون الحبر */
+  --plate: var(--deep);   /* لون البلاطة */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--size) * 0.155);
+  font-family: var(--brand-font);
+  direction: rtl;
+  line-height: 1;
+}
+
+/* البلاطة */
+.sufyan-logo__plate {
+  width: var(--size);
+  height: var(--size);
+  border-radius: calc(var(--size) * 0.28);
+  background: var(--plate);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.sufyan-logo__plate svg { width: 62%; height: 62%; display: block; }
+
+/* الأعمدة */
+.sufyan-mark__bar { fill: var(--bars); }
+.sufyan-mark__bar--accent { fill: var(--accent); }
+
+/* النص */
+.sufyan-logo__type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--size) * 0.062);
+}
+.sufyan-logo__name {
+  font-weight: 700;
+  font-size: calc(var(--size) * 0.213);
+  letter-spacing: -0.005em;
+  color: var(--tone);
+  white-space: nowrap;
+}
+.sufyan-logo__latin {
+  font-weight: 500;
+  font-size: calc(var(--size) * 0.068);
+  letter-spacing: 0.36em;
+  /* التباعد يزيح النص لليسار — نعوّضه بمسافة بادئة */
+  text-indent: 0.36em;
+  direction: ltr;
+  color: var(--tone);
+  opacity: 0.62;
+  white-space: nowrap;
+}
+
+/* الصيغة الأفقية */
+.sufyan-logo--row {
+  flex-direction: row;
+  align-items: center;
+  gap: calc(var(--size) * 0.26);
+}
+.sufyan-logo--row .sufyan-logo__type { align-items: flex-start; }
+
+/* على الخلفيات الداكنة */
+.sufyan-logo--on-dark { --tone: var(--sand); --plate: var(--sand); --bars: var(--deep); }
+
+/* أحادي اللون */
+.sufyan-logo--mono { --tone: var(--deep); --plate: var(--deep); --bars: var(--sand); --accent: var(--sand); }
+
+/* الأيقونة وحدها */
+.sufyan-icon {
+  width: var(--size, 300px);
+  height: var(--size, 300px);
+  border-radius: 50%;
+  background: var(--plate, var(--deep));
+  display: grid;
+  place-items: center;
+}
+.sufyan-icon svg { width: 58%; height: 58%; display: block; }
+
+/* الختم */
+.sufyan-stamp {
+  --size: 300px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--deep);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gold) 55%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--size) * 0.055);
+  font-family: var(--brand-font);
+}
+.sufyan-stamp svg { width: 38%; display: block; }
+.sufyan-stamp__latin {
+  font-weight: 500;
+  font-size: calc(var(--size) * 0.048);
+  letter-spacing: 0.36em;
+  text-indent: 0.36em;
+  color: var(--sand);
+  opacity: 0.75;
+}
+.sufyan-stamp__rule {
+  width: 24%;
+  height: 1.5px;
+  background: var(--gold);
+  opacity: 0.75;
+}
