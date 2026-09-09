@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مطبوعات مكتب سفيان للموبايل</title>
+<link rel="stylesheet" href="assets/sufyan-print.css">
+<style>
+  body { margin: 0; padding-block: clamp(32px, 6vw, 72px); padding-inline: clamp(16px, 5vw, 56px);
+    background: #F2EDE4; color: #101E24; font-family: "Thmanyah Sans", system-ui, sans-serif; }
+  .wrap { max-width: 1040px; margin-inline: auto; }
+  .eyebrow { font-weight: 500; font-size: 12px; letter-spacing: .34em; text-indent: .34em;
+    direction: ltr; text-align: right; color: #2F6F6B; margin: 0 0 12px; }
+  h1 { font-weight: 900; font-size: clamp(26px, 5vw, 40px); margin: 0 0 12px; }
+  .lede { font-weight: 300; font-size: clamp(14px, 2.2vw, 17px); line-height: 1.8; margin: 0 0 36px; max-width: 62ch;
+    color: rgba(16,30,36,.78); }
+  .lede b { font-weight: 500; color: #14343F; }
+  h2 { font-weight: 700; font-size: 13px; letter-spacing: .1em; color: #2F6F6B; margin: 36px 0 14px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .card { display: grid; gap: 5px; background: #fff; border-radius: 14px; padding: 16px 18px;
+    text-decoration: none; color: inherit; box-shadow: 0 1px 0 rgba(16,30,36,.07); }
+  .card:hover { box-shadow: 0 2px 12px rgba(16,30,36,.12); }
+  .card__name { font-weight: 700; font-size: 15px; }
+  .card__size { font-weight: 500; font-size: 13px; color: #2F6F6B; direction: ltr; text-align: right; }
+  .card__kind { font-family: ui-monospace, monospace; font-size: 11px; color: rgba(16,30,36,.45);
+    direction: ltr; text-align: right; }
+  pre { background: #14343F; color: #F2EDE4; border-radius: 14px; padding: 18px 20px; overflow-x: auto;
+    direction: ltr; text-align: left; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.7; }
+  footer { margin-top: 44px; font-weight: 300; font-size: 13px; line-height: 1.9; color: rgba(16,30,36,.55); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">SUFYAN MOBILE — PRINT</p>
+    <h1>المطبوعات</h1>
+    <p class="lede">
+      كل مطبوع هنا <b>بمقاسه الحقيقي</b> — اضغط طباعة ويخرج ١:١ بلا تحجيم،
+      لأن كل صفحة تحمل قاعدة <code>@page</code> مطابقة لمقاسها.
+      المصدر واحد: <b>assets/sufyan-print.js</b> — وهذه الصفحات مجرد معاينة له.
+    </p>
+
+    <h2>الستيكرات</h2>
+    <div class="grid">
+      <a class="card" href="stickers/service-90x50.html">
+      <a class="card" href="stickers/phone-75x50.html">
+      <a class="card" href="stickers/accessory-50x30.html">
+      <a class="card" href="stickers/box-60x40.html">
+      <a class="card" href="stickers/small-40x25.html">
+      <a class="card" href="stickers/void-25x15.html">
+      <a class="card" href="stickers/void-round-20.html">
+      <a class="card" href="stickers/logo-round-54.html">
+      <a class="card" href="stickers/badge-40.html">
+      <a class="card" href="stickers/bar-80x25.html">
+      <a class="card" href="stickers/icon-20x20.html">
+      <a class="card" href="stickers/price-54x29.html">
+      <a class="card" href="stickers/seal-170x14.html">
+    </div>
+
+    <h2>الوصولات الحرارية 80 مم</h2>
+    <div class="grid">
+      <a class="card" href="thermal/service-customer-80mm.html">
+      <a class="card" href="thermal/service-shop-80mm.html">
+      <a class="card" href="thermal/sale-80mm.html">
+    </div>
+
+    <h2>الاستخدام من البرنامج</h2>
+<pre>&lt;link rel="stylesheet" href="assets/sufyan-print.css"&gt;
+&lt;script src="assets/sufyan-print.js"&gt;&lt;/script&gt;
+
+// طباعة ستيكر واحد
+SufyanPrint.print("sticker.phone", {
+  name: "Samsung Galaxy A54", price: 385000,
+  storage: "128GB · 8GB RAM", color: "أسود",
+  imei: "356938035643809", battery: "92%",
+  condition: "مستعمل — ممتاز", sku: "SFN-PH-1042"
+});
+
+// طباعة دفعة (كل ستيكر بصفحة)
+SufyanPrint.printMany("sticker.accessory", rows);
+
+// أو احصل على HTML فقط وضعه بنفسك
+el.innerHTML = SufyanPrint.html("thermal.sale", order);</pre>
+
+    <footer>
+      مكتب سفيان للموبايل — سامراء، الحويش · الشارع الرئيسي<br>
+      كل المقاسات بالمليمتر — لا تستخدم بكسل في أي شيء يُطبع.
+    </footer>
+  </div>
+</body>
+</html>
