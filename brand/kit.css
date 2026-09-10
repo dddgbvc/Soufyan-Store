@@ -1,0 +1,347 @@
+/* ==========================================================================
+   مكتب سفيان للموبايل — الهوية البصرية المتكاملة
+   يُستعمل مع logo.css (نظام الشعار). كل لوح تصميم هو .ab بمقاسه بالبكسل.
+   لوحة «رمال وبحر»: 60% رملي · 30% بترولي · 10% ذهبي.
+   ========================================================================== */
+
+:root {
+  /* تدرّجات مشتقّة — للتظليل والأسطح، ليست ألواناً جديدة */
+  --deep-2:  #1B4350;  /* بترولي أفتح — أسطح داخل الداكن */
+  --deep-3:  #0E2831;  /* بترولي أغمق — عمق */
+  --sand-2:  #E8E1D4;  /* رملي أغمق — حدود وأسطح */
+  --sand-3:  #FBF9F5;  /* رملي أفتح — بطاقات */
+
+  --r-card: 40px;      /* نصف قطر البطاقات */
+  --r-chip: 999px;     /* الرقاقات دائرية كاملة */
+}
+
+/* --------------------------------------------------------------------------
+   لوح التصميم — المقاس بالبكسل من --w / --h
+   -------------------------------------------------------------------------- */
+.ab {
+  box-sizing: border-box;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  position: relative;
+  overflow: hidden;
+  font-family: var(--brand-font);
+  font-weight: 500;
+  color: var(--deep);
+  background: var(--sand);
+  direction: rtl;
+  line-height: 1.3;
+  display: grid;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.ab * { box-sizing: border-box; }
+.ab--dark { background: var(--deep); color: var(--sand); }
+.ab--teal { background: var(--teal); color: var(--sand); }
+.ab--gold { background: var(--gold); color: var(--deep); }
+
+/* --------------------------------------------------------------------------
+   النمط — شبكة نقاط + تكرار الأعمدة المتدرّجة، بشفافية منخفضة كخلفية فقط
+   -------------------------------------------------------------------------- */
+.pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pattern--dots {
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.6px);
+  background-size: 26px 26px;
+  opacity: .07;
+}
+.pattern--dots-lg { background-size: 44px 44px; }
+.pattern--bars { opacity: .06; }
+.pattern--bars svg { width: 100%; height: 100%; display: block; }
+
+/* الرمز: مقاس افتراضي إجباري — SVG بلا مقاس يتمدّد ليملأ ما حوله */
+svg.mark { display: block; width: 1.7em; height: 1.4em; flex: none; }
+
+/* حافة ذهبية رفيعة — تُستخدم بحساب */
+.hairline-gold { background: var(--gold); }
+
+/* --------------------------------------------------------------------------
+   طبقات المحتوى
+   -------------------------------------------------------------------------- */
+.stack { position: relative; display: grid; }
+.pad   { padding: 64px; }
+.pad-l { padding: 96px; }
+
+.eyebrow {
+  font-weight: 500;
+  letter-spacing: .34em;
+  text-indent: .34em;
+  direction: ltr;
+  text-align: right;
+  color: var(--teal);
+  text-transform: uppercase;
+}
+.ab--dark .eyebrow { color: var(--mist); }
+
+.tagline { font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
+.muted   { opacity: .72; font-weight: 300; }
+
+/* رقاقة */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .55em;
+  border-radius: var(--r-chip);
+  padding: .55em 1.15em;
+  font-weight: 700;
+  background: var(--deep);
+  color: var(--sand);
+  white-space: nowrap;
+}
+.chip--gold  { background: var(--gold);  color: var(--deep); }
+.chip--teal  { background: var(--teal);  color: var(--sand); }
+.chip--sand  { background: var(--sand);  color: var(--deep); }
+.chip--ghost { background: transparent; box-shadow: inset 0 0 0 2px currentColor; }
+.chip svg { width: 1.1em; height: 1.1em; flex: none; }
+
+/* سطر تواصل */
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+  flex-wrap: wrap;
+  font-weight: 500;
+}
+.contact span { white-space: nowrap; }
+.contact i { display: block; width: .4em; height: .4em; border-radius: 50%; background: currentColor; opacity: .45; }
+
+/* --------------------------------------------------------------------------
+   ١) لوح ألوان الشعار
+   -------------------------------------------------------------------------- */
+.swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.swatch {
+  aspect-ratio: 1;
+  border-radius: 28px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.swatch svg { width: 46%; height: 38%; }
+.swatch__tag {
+  position: absolute;
+  inset-block-end: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  opacity: .72;
+}
+.swatch--outline { box-shadow: inset 0 0 0 2px var(--sand-2); }
+
+/* --------------------------------------------------------------------------
+   ٢) الكارت التعريفي — 90 × 50 مم
+   -------------------------------------------------------------------------- */
+.card {
+  padding: 74px 82px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+.card__top { display: flex; align-items: flex-start; justify-content: space-between; }
+.card__name { font-weight: 700; font-size: 46px; line-height: 1.15; }
+.card__role { font-weight: 300; font-size: 26px; margin-top: 8px; opacity: .78; }
+.card__logo { display: grid; justify-items: center; gap: 10px; }
+.card__logo svg { width: 74px; height: 60px; }
+.card__logo span { font-size: 15px; font-weight: 500; letter-spacing: .3em; text-indent: .3em; direction: ltr; opacity: .6; }
+.card__lines { display: grid; gap: 12px; font-size: 25px; font-weight: 500; align-content: end; }
+.card__lines div { display: flex; align-items: center; gap: 14px; }
+.card__lines svg { width: 26px; height: 26px; flex: none; opacity: .55; }
+.card__rule { height: 3px; background: var(--gold); width: 96px; border-radius: 3px; }
+
+/* ظهر الكارت */
+.card-back {
+  display: grid;
+  place-items: center;
+  justify-items: center;
+  gap: 26px;
+  text-align: center;
+}
+.card-back svg.sp-mark, .card-back svg.mark { width: 150px; height: 122px; }
+.card-back__name { font-weight: 700; font-size: 52px; }
+.card-back__latin { font-weight: 500; font-size: 20px; letter-spacing: .36em; text-indent: .36em; direction: ltr; opacity: .68; }
+.card-back__tag { font-weight: 300; font-size: 25px; opacity: .8; }
+
+/* --------------------------------------------------------------------------
+   ٣) كيس التسوق — نسيج غير منسوج (Non-woven) 32 × 40 × 12 سم
+   -------------------------------------------------------------------------- */
+.bag { display: grid; grid-template-rows: auto 1fr auto; padding: 110px 90px 96px; }
+.bag__handles {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  gap: 210px;
+  pointer-events: none;
+}
+.bag__handles span {
+  width: 130px;
+  height: 150px;
+  border: 16px solid currentColor;
+  border-block-start: 0;
+  border-end-start-radius: 90px;
+  border-end-end-radius: 90px;
+  opacity: .16;
+}
+.bag__center { display: grid; justify-items: center; align-content: center; gap: 34px; text-align: center; }
+.bag__center svg.mark { width: 250px; height: 205px; }
+.bag__name { font-weight: 700; font-size: 74px; }
+.bag__latin { font-weight: 500; font-size: 25px; letter-spacing: .38em; text-indent: .38em; direction: ltr; opacity: .7; }
+.bag__tag { font-weight: 300; font-size: 34px; opacity: .82; margin-top: 6px; }
+.bag__foot { display: flex; align-items: center; justify-content: center; gap: 26px; font-size: 26px; font-weight: 500; opacity: .85; white-space: nowrap; }
+.bag__foot .ico { width: 34px; height: 34px; }
+.bag__strip {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  height: 86px;
+  background: var(--gold);
+  display: grid;
+  place-items: center;
+  color: var(--deep);
+  font-weight: 700;
+  font-size: 27px;
+  letter-spacing: .04em;
+}
+
+/* --------------------------------------------------------------------------
+   ٤) غلاف فيسبوك — 1640 × 856 (منطقة آمنة بالوسط)
+   -------------------------------------------------------------------------- */
+.cover { display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; }
+.cover__text { padding: 0 110px; display: grid; gap: 26px; justify-items: start; }
+.cover__name { font-weight: 700; font-size: 76px; line-height: 1.1; }
+.cover__tag { font-weight: 300; font-size: 34px; opacity: .82; }
+.cover__chips { display: flex; gap: 14px; flex-wrap: wrap; font-size: 22px; }
+.cover__art {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: var(--deep-2);
+}
+.cover__art svg.mark { width: 260px; height: 214px; position: relative; }
+.cover__art::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 8px;
+  background: var(--gold);
+}
+
+/* --------------------------------------------------------------------------
+   ٥) صورة الحساب — 1080 × 1080
+   -------------------------------------------------------------------------- */
+.avatar { display: grid; place-items: center; }
+.avatar svg.mark { width: 470px; height: 385px; }
+
+/* --------------------------------------------------------------------------
+   ٦) أغلفة الهايلايت — 1080 × 1920، الأيقونة داخل دائرة آمنة بالوسط
+   -------------------------------------------------------------------------- */
+.hl { display: grid; place-items: center; }
+.hl__disc {
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 42px;
+  background: transparent;
+}
+.hl__disc svg { width: 240px; height: 240px; stroke-width: 12; }
+.hl__label { font-weight: 700; font-size: 62px; }
+
+/* --------------------------------------------------------------------------
+   ٧) بوستات إنستغرام — 1080 × 1350
+   -------------------------------------------------------------------------- */
+.post { display: grid; grid-template-rows: auto 1fr auto; padding: 80px 76px; }
+.post__head { display: flex; align-items: center; justify-content: space-between; }
+.post__head svg.mark { width: 78px; height: 64px; }
+.post__eyebrow { font-size: 20px; }
+.post__body { display: grid; align-content: center; gap: 30px; }
+.post__title { font-weight: 700; font-size: 92px; line-height: 1.12; letter-spacing: -.015em; }
+.post__title em { font-style: normal; color: var(--gold); }
+.post__sub { font-weight: 300; font-size: 34px; line-height: 1.6; opacity: .82; max-width: 20ch; }
+.post__foot { display: flex; align-items: center; justify-content: space-between; font-size: 26px; font-weight: 500; }
+.post__foot .chip { font-size: 24px; }
+
+/* بوست السعر */
+.price-post { display: grid; grid-template-rows: auto 1fr auto; padding: 80px 76px; }
+.price-post__device { font-weight: 700; font-size: 66px; line-height: 1.15; }
+.price-post__spec { font-weight: 300; font-size: 30px; opacity: .78; margin-top: 12px; }
+.price-post__amount { font-weight: 900; font-size: 168px; line-height: 1; letter-spacing: -.03em; direction: ltr; text-align: right; }
+.price-post__cur { font-weight: 500; font-size: 44px; opacity: .7; }
+.price-post__rows { display: grid; gap: 16px; font-size: 30px; margin-top: 34px; }
+.price-post__rows div { display: flex; align-items: center; gap: 16px; }
+.price-post__rows svg { width: 30px; height: 30px; opacity: .6; flex: none; }
+
+/* --------------------------------------------------------------------------
+   ٨) ستوري — 1080 × 1920
+   -------------------------------------------------------------------------- */
+.story { display: grid; grid-template-rows: auto 1fr auto; padding: 150px 90px 170px; text-align: center; justify-items: center; }
+.story svg.mark { width: 132px; height: 108px; }
+.story__title { font-weight: 700; font-size: 104px; line-height: 1.15; }
+.story__sub { font-weight: 300; font-size: 40px; opacity: .8; margin-top: 26px; }
+.story__cta { font-size: 34px; }
+
+/* --------------------------------------------------------------------------
+   ٩) شريط التغليف — 1600 × 200 (تكرار)
+   -------------------------------------------------------------------------- */
+.tape { display: flex; align-items: center; justify-content: space-around; gap: 40px; }
+.tape__unit { display: flex; align-items: center; gap: 22px; font-weight: 700; font-size: 34px; }
+.tape__unit svg { width: 44px; height: 36px; }
+
+/* --------------------------------------------------------------------------
+   ١٠) لوحة الدوام على الباب — 800 × 1200
+   -------------------------------------------------------------------------- */
+.hours { display: grid; grid-template-rows: auto 1fr auto; padding: 80px 64px; text-align: center; justify-items: center; }
+.hours svg.mark { width: 140px; height: 115px; }
+.hours__name { font-weight: 700; font-size: 46px; margin-top: 22px; }
+.hours__big { font-weight: 900; font-size: 120px; line-height: 1; direction: ltr; }
+.hours__label { font-weight: 500; font-size: 30px; letter-spacing: .2em; opacity: .7; margin-bottom: 18px; }
+.hours__days { font-weight: 300; font-size: 30px; opacity: .8; margin-top: 20px; }
+.hours__foot { font-size: 26px; opacity: .8; }
+
+/* --------------------------------------------------------------------------
+   ١١) بطاقة الموظف — 54 × 86 مم عمودية
+   -------------------------------------------------------------------------- */
+.badge { display: grid; grid-template-rows: auto 1fr auto; text-align: center; justify-items: center; padding: 70px 48px 56px; }
+.badge__slot { width: 130px; height: 16px; border-radius: 8px; background: currentColor; opacity: .18; margin-bottom: 44px; }
+.badge svg.mark { width: 108px; height: 88px; }
+.badge__name { font-weight: 700; font-size: 46px; margin-top: 30px; }
+.badge__role { font-weight: 300; font-size: 28px; opacity: .78; margin-top: 10px; }
+.badge__shop { font-weight: 500; font-size: 24px; opacity: .7; }
+
+/* --------------------------------------------------------------------------
+   ١٢) كارت الواتساب/QR — 90 × 50 مم
+   -------------------------------------------------------------------------- */
+.qr-card { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 56px; padding: 70px 82px; }
+.qr-card__text { display: grid; gap: 18px; justify-items: start; }
+.qr-card__text svg.mark { width: 84px; height: 69px; }
+.qr-card__title { font-weight: 700; font-size: 44px; }
+.qr-card__sub { font-weight: 300; font-size: 24px; opacity: .8; }
+.qr-card__num { font-weight: 700; font-size: 34px; direction: ltr; text-align: right; color: var(--gold); }
+.qr-box { width: 250px; height: 250px; border-radius: 24px; background: var(--sand); display: grid; place-items: center; padding: 18px; }
+.qr-box svg { width: 100%; height: 100%; }
+
+/* --------------------------------------------------------------------------
+   أيقونات خطية — سمك موحّد ونهايات دائرية
+   -------------------------------------------------------------------------- */
+/* المقاس الافتراضي إجباري — أيقونة SVG بلا مقاس تتمدّد لتملأ ما حولها */
+.ico {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
