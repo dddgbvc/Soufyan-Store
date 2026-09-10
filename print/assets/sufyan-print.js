@@ -200,18 +200,25 @@
         row("الحالة", d.condition) +
         row("ملاحظات", d.notes) +
       "</dl>" +
-      '<div class="sp-phone__foot">' + barcode(d.sku || d.imei || "") + "</div>" +
+      '<div class="sp-phone__foot">' +
+        '<span class="sp-phone__shop">' + esc(SHOP.latin) + "</span>" +
+        barcode(d.sku || d.imei || "") +
+      "</div>" +
     "</div>";
   };
 
   /* --- 3–5) الإكسسوارات / العلب / القطع الصغيرة --- */
   function itemTemplate(d) {
     return '<div class="sp-item">' +
-      "<div>" +
+      '<div class="sp-item__head">' +
+        mark("deep") +
+        '<span class="sp-item__shop">' + esc(SHOP.latin) + "</span>" +
+      "</div>" +
+      '<div class="sp-item__body">' +
         '<div class="sp-item__name">' + esc(d.name || "") + "</div>" +
         (d.spec ? '<div class="sp-item__spec">' + esc(d.spec) + "</div>" : "") +
+        '<div class="sp-item__price"><span class="sp-num">' + money(d.price) + "</span> د.ع</div>" +
       "</div>" +
-      '<div class="sp-item__price"><span class="sp-num">' + money(d.price) + "</span> د.ع</div>" +
       '<div class="sp-item__foot">' + barcode(d.sku || "") + "</div>" +
     "</div>";
   }

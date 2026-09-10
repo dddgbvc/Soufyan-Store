@@ -57,7 +57,7 @@
 /* --------------------------------------------------------------------------
    عناصر مشتركة
    -------------------------------------------------------------------------- */
-.sp-mark { display: block; }
+.sp-mark { display: block; width: 1.7em; height: 1.4em; flex: none; }
 .sp-mark--sand rect { fill: var(--sp-sand); }
 .sp-mark--sand rect:last-child { fill: var(--sp-gold); }
 .sp-mark--deep rect { fill: var(--sp-deep); }
@@ -114,24 +114,44 @@
 .sp-phone__rows { display: grid; grid-template-columns: auto 1fr; gap: 6.496px 25.984px; align-content: start; align-items: baseline; font-size: 0.9em; }
 .sp-phone__rows dt { font-weight: 300; color: var(--sp-teal); white-space: nowrap; }
 .sp-phone__rows dd { margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-phone__foot .sp-barcode { height: 94.488px; }
+.sp-phone__foot { display: flex; align-items: flex-end; gap: 28.346px; }
+.sp-phone__foot .sp-barcode { height: 94.488px; flex: 1; }
+.sp-phone__shop {
+  font-weight: 500;
+  font-size: 0.58em;
+  letter-spacing: .18em;
+  color: var(--sp-teal);
+  direction: ltr;
+  white-space: nowrap;
+  padding-bottom: 7.087px;
+}
 
 /* --------------------------------------------------------------------------
    3–5) الإكسسوارات 50×30 · العلب 60×40 · القطع الصغيرة 40×25
    -------------------------------------------------------------------------- */
 .sp-item {
   font-size: calc(var(--sp-h) * 1.063px);
-  padding: 21.260px 25.984px;
+  padding: 18.898px 25.984px;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 9.449px;
+  gap: 7.087px;
   text-align: center;
 }
-.sp-item__name { font-weight: 700; font-size: 1.05em; line-height: 1.2; overflow: hidden; }
-.sp-item__spec { font-weight: 300; font-size: 0.8em; color: var(--sp-teal); }
-.sp-item__price { font-weight: 900; font-size: 1.35em; align-self: center; }
-.sp-item__foot .sp-barcode { height: 64.961px; }
-.sp-item__foot { font-size: 0.62em; letter-spacing: .08em; color: var(--sp-teal); }
+.sp-item__head { display: flex; align-items: center; justify-content: space-between; gap: 17.717px; }
+.sp-item__head .sp-mark { width: 40.157px; height: 33.071px; }
+.sp-item__shop {
+  font-weight: 500;
+  font-size: 0.55em;
+  letter-spacing: .2em;
+  color: var(--sp-teal);
+  direction: ltr;
+  white-space: nowrap;
+}
+.sp-item__body { display: grid; align-content: center; gap: 5.906px; }
+.sp-item__name { font-weight: 700; font-size: 0.96em; line-height: 1.2; overflow: hidden; }
+.sp-item__spec { font-weight: 300; font-size: 0.78em; color: var(--sp-teal); }
+.sp-item__price { font-weight: 900; font-size: 1.5em; margin-top: 5.906px; line-height: 1.1; }
+.sp-item__foot .sp-barcode { height: 59.055px; }
 
 /* --------------------------------------------------------------------------
    6) الستيكر القابل للكسر (VOID) — 25 × 15 مم و Ø20 مم

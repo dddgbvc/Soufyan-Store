@@ -57,7 +57,7 @@
 /* --------------------------------------------------------------------------
    عناصر مشتركة
    -------------------------------------------------------------------------- */
-.sp-mark { display: block; }
+.sp-mark { display: block; width: 1.7em; height: 1.4em; flex: none; }
 .sp-mark--sand rect { fill: var(--sp-sand); }
 .sp-mark--sand rect:last-child { fill: var(--sp-gold); }
 .sp-mark--deep rect { fill: var(--sp-deep); }
@@ -114,24 +114,44 @@
 .sp-phone__rows { display: grid; grid-template-columns: auto 1fr; gap: 6.496px 25.984px; align-content: start; align-items: baseline; font-size: 0.9em; }
 .sp-phone__rows dt { font-weight: 300; color: var(--sp-teal); white-space: nowrap; }
 .sp-phone__rows dd { margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-phone__foot .sp-barcode { height: 94.488px; }
+.sp-phone__foot { display: flex; align-items: flex-end; gap: 28.346px; }
+.sp-phone__foot .sp-barcode { height: 94.488px; flex: 1; }
+.sp-phone__shop {
+  font-weight: 500;
+  font-size: 0.58em;
+  letter-spacing: .18em;
+  color: var(--sp-teal);
+  direction: ltr;
+  white-space: nowrap;
+  padding-bottom: 7.087px;
+}
 
 /* --------------------------------------------------------------------------
    3–5) الإكسسوارات 50×30 · العلب 60×40 · القطع الصغيرة 40×25
    -------------------------------------------------------------------------- */
 .sp-item {
   font-size: calc(var(--sp-h) * 1.063px);
-  padding: 21.260px 25.984px;
+  padding: 18.898px 25.984px;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 9.449px;
+  gap: 7.087px;
   text-align: center;
 }
-.sp-item__name { font-weight: 700; font-size: 1.05em; line-height: 1.2; overflow: hidden; }
-.sp-item__spec { font-weight: 300; font-size: 0.8em; color: var(--sp-teal); }
-.sp-item__price { font-weight: 900; font-size: 1.35em; align-self: center; }
-.sp-item__foot .sp-barcode { height: 64.961px; }
-.sp-item__foot { font-size: 0.62em; letter-spacing: .08em; color: var(--sp-teal); }
+.sp-item__head { display: flex; align-items: center; justify-content: space-between; gap: 17.717px; }
+.sp-item__head .sp-mark { width: 40.157px; height: 33.071px; }
+.sp-item__shop {
+  font-weight: 500;
+  font-size: 0.55em;
+  letter-spacing: .2em;
+  color: var(--sp-teal);
+  direction: ltr;
+  white-space: nowrap;
+}
+.sp-item__body { display: grid; align-content: center; gap: 5.906px; }
+.sp-item__name { font-weight: 700; font-size: 0.96em; line-height: 1.2; overflow: hidden; }
+.sp-item__spec { font-weight: 300; font-size: 0.78em; color: var(--sp-teal); }
+.sp-item__price { font-weight: 900; font-size: 1.5em; margin-top: 5.906px; line-height: 1.1; }
+.sp-item__foot .sp-barcode { height: 59.055px; }
 
 /* --------------------------------------------------------------------------
    6) الستيكر القابل للكسر (VOID) — 25 × 15 مم و Ø20 مم
@@ -340,5 +360,5 @@
 }
 
 html,body{margin:0;padding:0;background:#fff}</style></head><body>
-<div data-document-role="page" data-label="ستيكر الإكسسوارات · 50 × 30 مم" class="sp" data-kind="sticker.accessory" style="--sp-w:50;--sp-h:30"><div class="sp-item"><div><div class="sp-item__name">سماعة بلوتوث لاسلكية</div></div><div class="sp-item__price"><span class="sp-num">35,000</span> د.ع</div><div class="sp-item__foot"><svg class="sp-barcode" viewBox="0 0 176 100" preserveAspectRatio="none" role="img" aria-label="SFN-AC-2211"><rect x="10" y="0" width="2" height="100"/><rect x="13" y="0" width="1" height="100"/><rect x="16" y="0" width="1" height="100"/><rect x="21" y="0" width="2" height="100"/><rect x="24" y="0" width="3" height="100"/><rect x="28" y="0" width="1" height="100"/><rect x="32" y="0" width="1" height="100"/><rect x="36" y="0" width="2" height="100"/><rect x="41" y="0" width="1" height="100"/><rect x="43" y="0" width="1" height="100"/><rect x="45" y="0" width="3" height="100"/><rect x="51" y="0" width="2" height="100"/><rect x="54" y="0" width="1" height="100"/><rect x="57" y="0" width="2" height="100"/><rect x="60" y="0" width="3" height="100"/><rect x="65" y="0" width="1" height="100"/><rect x="67" y="0" width="1" height="100"/><rect x="71" y="0" width="2" height="100"/><rect x="76" y="0" width="1" height="100"/><rect x="80" y="0" width="1" height="100"/><rect x="84" y="0" width="2" height="100"/><rect x="87" y="0" width="1" height="100"/><rect x="90" y="0" width="2" height="100"/><rect x="93" y="0" width="3" height="100"/><rect x="98" y="0" width="2" height="100"/><rect x="102" y="0" width="3" height="100"/><rect x="107" y="0" width="1" height="100"/><rect x="109" y="0" width="2" height="100"/><rect x="113" y="0" width="3" height="100"/><rect x="118" y="0" width="1" height="100"/><rect x="120" y="0" width="1" height="100"/><rect x="123" y="0" width="3" height="100"/><rect x="128" y="0" width="2" height="100"/><rect x="131" y="0" width="1" height="100"/><rect x="134" y="0" width="3" height="100"/><rect x="139" y="0" width="2" height="100"/><rect x="142" y="0" width="1" height="100"/><rect x="146" y="0" width="1" height="100"/><rect x="149" y="0" width="2" height="100"/><rect x="153" y="0" width="2" height="100"/><rect x="158" y="0" width="3" height="100"/><rect x="162" y="0" width="1" height="100"/><rect x="164" y="0" width="2" height="100"/></svg></div></div></div>
+<div data-document-role="page" data-label="ستيكر الإكسسوارات · 50 × 30 مم" class="sp" data-kind="sticker.accessory" style="--sp-w:50;--sp-h:30"><div class="sp-item"><div class="sp-item__head"><svg class="sp-mark sp-mark--deep" viewBox="0 0 100 100" aria-hidden="true"><rect x="16.75" y="49" width="16.5" height="30" rx="8.25"/><rect x="41.75" y="35" width="16.5" height="44" rx="8.25"/><rect x="66.75" y="21" width="16.5" height="58" rx="8.25"/></svg><span class="sp-item__shop">SUFYAN MOBILE</span></div><div class="sp-item__body"><div class="sp-item__name">سماعة بلوتوث لاسلكية</div><div class="sp-item__price"><span class="sp-num">35,000</span> د.ع</div></div><div class="sp-item__foot"><svg class="sp-barcode" viewBox="0 0 176 100" preserveAspectRatio="none" role="img" aria-label="SFN-AC-2211"><rect x="10" y="0" width="2" height="100"/><rect x="13" y="0" width="1" height="100"/><rect x="16" y="0" width="1" height="100"/><rect x="21" y="0" width="2" height="100"/><rect x="24" y="0" width="3" height="100"/><rect x="28" y="0" width="1" height="100"/><rect x="32" y="0" width="1" height="100"/><rect x="36" y="0" width="2" height="100"/><rect x="41" y="0" width="1" height="100"/><rect x="43" y="0" width="1" height="100"/><rect x="45" y="0" width="3" height="100"/><rect x="51" y="0" width="2" height="100"/><rect x="54" y="0" width="1" height="100"/><rect x="57" y="0" width="2" height="100"/><rect x="60" y="0" width="3" height="100"/><rect x="65" y="0" width="1" height="100"/><rect x="67" y="0" width="1" height="100"/><rect x="71" y="0" width="2" height="100"/><rect x="76" y="0" width="1" height="100"/><rect x="80" y="0" width="1" height="100"/><rect x="84" y="0" width="2" height="100"/><rect x="87" y="0" width="1" height="100"/><rect x="90" y="0" width="2" height="100"/><rect x="93" y="0" width="3" height="100"/><rect x="98" y="0" width="2" height="100"/><rect x="102" y="0" width="3" height="100"/><rect x="107" y="0" width="1" height="100"/><rect x="109" y="0" width="2" height="100"/><rect x="113" y="0" width="3" height="100"/><rect x="118" y="0" width="1" height="100"/><rect x="120" y="0" width="1" height="100"/><rect x="123" y="0" width="3" height="100"/><rect x="128" y="0" width="2" height="100"/><rect x="131" y="0" width="1" height="100"/><rect x="134" y="0" width="3" height="100"/><rect x="139" y="0" width="2" height="100"/><rect x="142" y="0" width="1" height="100"/><rect x="146" y="0" width="1" height="100"/><rect x="149" y="0" width="2" height="100"/><rect x="153" y="0" width="2" height="100"/><rect x="158" y="0" width="3" height="100"/><rect x="162" y="0" width="1" height="100"/><rect x="164" y="0" width="2" height="100"/></svg></div></div></div>
 </body></html>
