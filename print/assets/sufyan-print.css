@@ -48,8 +48,9 @@
 .sp * { box-sizing: border-box; }
 .sp--auto { height: auto; }
 
-/* الطول المتغيّر للوصل الحراري */
-.sp--roll { --sp-w: 72; height: auto; font-size: 3.1mm; }
+/* الوصل الحراري: العرض 80 مم (عرض الرول) والطول متغيّر.
+   المحتوى مُزاح 4 مم من كل جهة ليبقى داخل مساحة الطباعة 72 مم. */
+.sp--roll { height: auto; font-size: 3.1mm; }
 
 /* --------------------------------------------------------------------------
    عناصر مشتركة
@@ -271,7 +272,7 @@
   color: #000;
   background: #fff;
   font-weight: 500;
-  padding: 3mm 0 6mm;
+  padding: 3mm 4mm 6mm;  /* 4 مم جانبياً = مساحة طباعة 72 مم داخل رول 80 مم */
   direction: rtl;
 }
 .sp-roll * { color: #000 !important; }
