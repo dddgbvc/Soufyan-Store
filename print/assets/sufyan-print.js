@@ -53,6 +53,9 @@
   /* ======================================================================
      أدوات
      ====================================================================== */
+  /** يعزل نصاً لاتينياً داخل فقرة عربية بمحارف يونيكود — لا يعتمد على CSS */
+  function ltr(v) { return "\u2066" + v + "\u2069"; }
+
   function esc(v) {
     if (v === null || v === undefined) return "";
     return String(v)
@@ -73,8 +76,10 @@
   /** صف في قائمة تعريف — يُحذف كلياً إذا كانت القيمة فارغة */
   function row(dt, dd, opts) {
     if (dd === null || dd === undefined || dd === "") return "";
-    var cls = opts && opts.ltr ? ' class="sp-num"' : "";
-    return "<dt>" + esc(dt) + "</dt><dd" + cls + ">" + esc(dd) + "</dd>";
+    var isLtr = opts && opts.ltr;
+    var cls = isLtr ? ' class="sp-num"' : "";
+    var val = isLtr ? ltr(esc(dd)) : esc(dd);
+    return "<dt>" + esc(dt) + "</dt><dd" + cls + ">" + val + "</dd>";
   }
 
   /* ======================================================================
@@ -308,8 +313,8 @@
       '<div class="sp-roll__shop">' + esc(SHOP.name) + "</div>" +
       '<div class="sp-roll__latin">' + esc(SHOP.latin) + "</div>" +
       '<div class="sp-roll__contact">' + esc(SHOP.address) +
-        '<br><span class="sp-num">' + esc(SHOP.phone1) + "  ·  " + esc(SHOP.phone2) + "</span>" +
-        '<br>إنترنت: <span class="sp-num">' + esc(SHOP.net) + "</span>" +
+        '<br><span class="sp-num">' + ltr(esc(SHOP.phone1) + "  ·  " + esc(SHOP.phone2)) + "</span>" +
+        '<br>إنترنت: <span class="sp-num">' + ltr(esc(SHOP.net)) + "</span>" +
       "</div>" +
     "</div>";
   }
