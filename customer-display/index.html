@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nofollow">
+<title>شاشة الزبون · مكتب سفيان للاتصالات</title>
+<meta name="description" content="شاشة عرض الفاتورة للزبون في نقطة البيع — مكتب سفيان للاتصالات.">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+<!-- خط Cairo مستضاف محليًا: الشاشة تعمل حتى بلا إنترنت -->
+<link rel="preload" href="assets/fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles/fonts.css">
+
+<link rel="stylesheet" href="styles/design-tokens.css">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/components.css">
+<link rel="stylesheet" href="styles/states.css">
+<link rel="stylesheet" href="styles/demo.css">
+
+<script>
+/* السمة تُطبَّق قبل أول رسم لتفادي وميض المظهر الخاطئ.
+   نفس المفتاح المستخدم في البرنامج الرئيسي: localStorage["theme"] */
+(function () {
+  try {
+    var override = new URLSearchParams(location.search).get("theme");
+    var mode = override || localStorage.getItem("theme") || "auto";
+    var resolved = mode === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : mode;
+    document.documentElement.dataset.theme = resolved === "dark" ? "dark" : "light";
+  } catch (e) {
+    document.documentElement.dataset.theme = "light";
+  }
+})();
+</script>
+</head>
+<body>
+
+<!-- وحدات ES تحتاج خادمًا؛ عند الفتح المباشر عبر file:// نوضّح ذلك بالعربية -->
+<div class="protocol-guard" id="protocolGuard">
+  <div class="protocol-guard__card">
+    <h1>شغّل الشاشة عبر خادم محلي</h1>
+    <p>
+      هذه الشاشة مبنية بوحدات JavaScript حديثة، والمتصفّح يمنع تحميلها عند فتح الملف
+      مباشرة من القرص. افتح مجلد المشروع في الطرفية ونفّذ أحد الأمرين التاليين، ثم
+      افتح الرابط الذي يظهر لك.
+    </p>
+    <code>python3 customer-display/serve.py
+# أو
+npx --yes serve .</code>
+  </div>
+</div>
+
+<script>
+if (location.protocol === "file:") {
+  document.getElementById("protocolGuard").style.display = "grid";
+}
+</script>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

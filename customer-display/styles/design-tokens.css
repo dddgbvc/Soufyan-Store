@@ -1,0 +1,308 @@
+/* =============================================================================
+   Yaqoot Customer Display — Design Tokens
+   -----------------------------------------------------------------------------
+   طبقة التوكنز الوحيدة للنظام. لا يُسمح بكتابة أي لون / ظل / نصف قطر مباشرة
+   داخل بقية ملفات CSS — كل شيء يمرّ من هنا.
+
+   عقد المزامنة مع البرنامج الرئيسي:
+   ‏ السمة تُطبَّق عبر  <html data-theme="light|dark">  وهي نفس الآلية المستخدمة
+   ‏ في واجهة المتجر (index.html) مع نفس مفتاح التخزين localStorage["theme"].
+   ‏ لذلك أي تبديل مظهر في البرنامج الرئيسي ينعكس هنا تلقائيًا.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---------------------------------------------------------------------
+     1) سلالم الألوان الخام (Brand ramps)
+     يُستعمل الخام فقط لتغذية التوكنز الدلالية بالأسفل.
+     --------------------------------------------------------------------- */
+  --emerald-950: #052A1E;
+  --emerald-900: #083D2C;
+  --emerald-800: #0B4C37;
+  --emerald-700: #0E5C42;   /* Deep Emerald — اللون الأساسي في الوضع الفاتح */
+  --emerald-600: #127A57;
+  --emerald-500: #178F66;
+  --emerald-400: #2FB37F;   /* Emerald — اللون الأساسي في الوضع الداكن */
+  --emerald-300: #62CCA2;
+  --emerald-200: #A6E2C9;
+  --emerald-100: #DCEFE6;
+  --emerald-50:  #EEF6F2;
+
+  --gold-900: #5E4111;
+  --gold-800: #74521A;
+  --gold-700: #8A6420;   /* درجة نص ذهبية تحقق تباين AA على الأبيض */
+  --gold-600: #A97C2C;
+  --gold-500: #C2913A;
+  --gold-400: #D9A441;   /* Soft Gold — للحواف والعناصر الزخرفية */
+  --gold-300: #E7C57E;
+  --gold-200: #F1DDB4;
+  --gold-100: #F8EFDC;
+
+  --clay-900: #16211C;   /* Green-black — نص أساسي فاتح */
+  --clay-700: #35443D;
+  --clay-600: #4E5B54;
+  --clay-500: #6B7973;
+  --clay-300: #A7B1AB;
+  --clay-200: #D3CEBE;
+  --clay-100: #E4E0D4;
+  --clay-50:  #F1EEE5;
+
+  /* ---------------------------------------------------------------------
+     2) التوكنز الدلالية — الوضع الفاتح
+     --------------------------------------------------------------------- */
+  --color-background:      #F7F5EF;   /* Warm off-white */
+  --color-background-deep: #F1EEE5;
+  --color-surface:         #FFFFFF;
+  --color-surface-2:       #F7F5EE;
+  --color-surface-3:       #EFEDE3;
+  --color-surface-glass:   rgba(255, 255, 255, 0.72);
+  --color-surface-veil:    rgba(247, 245, 239, 0.86);
+
+  --color-border:        var(--clay-100);
+  --color-border-strong: var(--clay-200);
+  --color-hairline:      rgba(22, 33, 28, 0.08);
+  --color-hairline-soft: rgba(22, 33, 28, 0.05);
+
+  --color-text:        var(--clay-900);
+  --color-text-2:      var(--clay-600);
+  --color-muted:       var(--clay-500);
+  --color-on-primary:  #FFFFFF;
+  --color-on-accent:   #241A05;
+
+  --color-primary:       var(--emerald-700);
+  --color-primary-hover: var(--emerald-600);
+  --color-primary-ink:   var(--emerald-800);
+  --color-primary-soft:  var(--emerald-50);
+  --color-primary-line:  var(--emerald-100);
+
+  --color-secondary:      var(--gold-400);
+  --color-secondary-ink:  var(--gold-700);
+  --color-secondary-soft: var(--gold-100);
+  --color-secondary-line: var(--gold-200);
+
+  --color-success:      #0F7A4F;
+  --color-success-ink:  #0A5637;
+  --color-success-soft: #E4F3EB;
+  --color-warning:      #8A6420;
+  --color-warning-ink:  #6B4A12;
+  --color-warning-soft: #FAF0DC;
+  --color-danger:       #9B2C2C;
+  --color-danger-ink:   #7A2020;
+  --color-danger-soft:  #F8E8E5;
+  --color-info:         #1F5D7A;
+  --color-info-ink:     #17475E;
+  --color-info-soft:    #E6EFF4;
+
+  /* بطاقة الإجمالي — أهم عنصر بصري، ولها توكنز خاصة بها لأن معالجتها
+     تختلف جوهريًا بين الوضعين: كتلة زمردية مصمتة في الفاتح، وسطح زمردي
+     داكن بحبر فاتح في الداكن (كتلة لامعة ليلًا تُتعب العين). */
+  --total-surface: var(--emerald-700);
+  --total-border: var(--emerald-700);
+  --total-ink: #FFFFFF;
+  --total-label: rgba(255, 255, 255, 0.84);
+  --total-muted: rgba(255, 255, 255, 0.70);
+  --total-flash: rgba(255, 255, 255, 0.14);
+
+  /* خلفية النقاط الخفيفة (dot-grid) */
+  --dot-color: rgba(14, 92, 66, 0.075);
+  --dot-size:  22px;
+  --dot-radius: 1.2px;
+
+  /* توهّج ناعم يُستخدم خلف الإجمالي وحالات النجاح */
+  --halo-primary: radial-gradient(circle at 50% 45%, rgba(14, 92, 66, 0.10), transparent 68%);
+  --halo-gold:    radial-gradient(circle at 50% 50%, rgba(217, 164, 65, 0.16), transparent 70%);
+
+  /* ---------------------------------------------------------------------
+     3) نصف الأقطار — مبنية على 18px المستخدم في البرنامج الرئيسي
+     --------------------------------------------------------------------- */
+  --radius-xs:  8px;
+  --radius-sm:  12px;
+  --radius-md:  18px;   /* --radius الأصلي في index.html */
+  --radius-lg:  24px;
+  --radius-xl:  32px;
+  --radius-2xl: 40px;
+  --radius-pill: 999px;
+
+  /* ---------------------------------------------------------------------
+     4) الظلال — طبقات شفافة ناعمة (Soft UI بلا مبالغة)
+     --------------------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(22, 33, 28, 0.05);
+  --shadow-sm: 0 1px 2px rgba(22, 33, 28, 0.05), 0 2px 8px rgba(22, 33, 28, 0.05);
+  --shadow-md: 0 2px 6px rgba(22, 33, 28, 0.05), 0 12px 28px rgba(22, 33, 28, 0.08);
+  --shadow-lg: 0 4px 12px rgba(22, 33, 28, 0.06), 0 26px 60px rgba(22, 33, 28, 0.10);
+  --shadow-ring: inset 0 0 0 1px var(--color-hairline);
+  --shadow-inset-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /* ---------------------------------------------------------------------
+     5) المسافات — قاعدة 4px
+     --------------------------------------------------------------------- */
+  --spacing-0:  0px;
+  --spacing-1:  4px;
+  --spacing-2:  8px;
+  --spacing-3:  12px;
+  --spacing-4:  16px;
+  --spacing-5:  20px;
+  --spacing-6:  24px;
+  --spacing-7:  28px;
+  --spacing-8:  32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+
+  /* حشوة الحواف تتكيف مع حجم الشاشة (من 1366 إلى 4K) */
+  --gutter: clamp(16px, 2.2vw, 48px);
+
+  /* ---------------------------------------------------------------------
+     6) الخطوط — Arabic first
+     --------------------------------------------------------------------- */
+  --font-sans: "Cairo", "IBM Plex Sans Arabic", "Noto Kufi Arabic", "Segoe UI",
+               system-ui, -apple-system, sans-serif;
+  --font-numeric: "Cairo", "SF Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+
+  /* سلم الأحجام — vw-aware لأن الشاشة تُقرأ من مسافة بعيدة */
+  --text-xs:   clamp(0.72rem, 0.62vw, 0.95rem);
+  --text-sm:   clamp(0.82rem, 0.74vw, 1.08rem);
+  --text-base: clamp(0.95rem, 0.88vw, 1.28rem);
+  --text-md:   clamp(1.05rem, 1.02vw, 1.5rem);
+  --text-lg:   clamp(1.2rem, 1.24vw, 1.85rem);
+  --text-xl:   clamp(1.45rem, 1.6vw, 2.4rem);
+  --text-2xl:  clamp(1.75rem, 2.1vw, 3.1rem);
+  --text-3xl:  clamp(2.1rem, 2.9vw, 4.2rem);
+  --text-total: clamp(2.6rem, 4.6vw, 6.4rem);   /* الإجمالي النهائي */
+
+  --leading-tight: 1.2;
+  --leading-snug:  1.35;
+  --leading-normal: 1.6;
+  --tracking-tight: -0.01em;
+  --tracking-wide:  0.04em;
+
+  /* ---------------------------------------------------------------------
+     7) الحركة — نفس منحنى البرنامج الرئيسي
+     --------------------------------------------------------------------- */
+  --ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in:       cubic-bezier(0.4, 0, 1, 1);
+
+  --dur-1: 140ms;
+  --dur-2: 220ms;
+  --dur-3: 320ms;
+  --dur-4: 480ms;
+  --dur-5: 720ms;
+
+  /* ---------------------------------------------------------------------
+     8) أبعاد التخطيط
+     --------------------------------------------------------------------- */
+  --header-height: clamp(64px, 7vh, 108px);
+  --summary-width: clamp(320px, 27vw, 560px);
+  --thumb-size:    clamp(56px, 5.2vw, 104px);
+  --focus-ring:    0 0 0 3px var(--color-background), 0 0 0 6px var(--color-primary);
+}
+
+/* =============================================================================
+   الوضع الداكن — نظام مستقل وليس عكسًا للألوان
+   خلفيات فحمية دافئة بميل أخضر خفيف، لا أسود صافٍ.
+   ========================================================================== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-background:      #101613;
+  --color-background-deep: #0B100E;
+  --color-surface:         #182120;   /* سطح مرتفع */
+  --color-surface-2:       #1F2A27;
+  --color-surface-3:       #263330;
+  --color-surface-glass:   rgba(24, 33, 32, 0.72);
+  --color-surface-veil:    rgba(16, 22, 19, 0.86);
+
+  --color-border:        #2A3833;
+  --color-border-strong: #38493F;
+  --color-hairline:      rgba(255, 255, 255, 0.08);
+  --color-hairline-soft: rgba(255, 255, 255, 0.05);
+
+  --color-text:       #EDF2EF;
+  --color-text-2:     #B4C2BB;
+  --color-muted:      #93A49B;
+  --color-on-primary: #04140E;
+  --color-on-accent:  #221703;
+
+  --color-primary:       var(--emerald-400);
+  --color-primary-hover: var(--emerald-300);
+  --color-primary-ink:   var(--emerald-300);
+  --color-primary-soft:  rgba(47, 179, 127, 0.14);
+  --color-primary-line:  rgba(47, 179, 127, 0.28);
+
+  --color-secondary:      var(--gold-400);
+  --color-secondary-ink:  var(--gold-300);
+  --color-secondary-soft: rgba(217, 164, 65, 0.15);
+  --color-secondary-line: rgba(217, 164, 65, 0.30);
+
+  --color-success:      #3FC48C;
+  --color-success-ink:  #7FDCB4;
+  --color-success-soft: rgba(63, 196, 140, 0.15);
+  --color-warning:      #E3B562;
+  --color-warning-ink:  #F0CE92;
+  --color-warning-soft: rgba(227, 181, 98, 0.15);
+  --color-danger:       #E8827A;
+  --color-danger-ink:   #F2ABA5;
+  --color-danger-soft:  rgba(232, 130, 122, 0.15);
+  --color-info:         #7EB8D4;
+  --color-info-ink:     #A7D0E4;
+  --color-info-soft:    rgba(126, 184, 212, 0.15);
+
+  --total-surface: #0F2E25;
+  --total-border: rgba(47, 179, 127, 0.30);
+  --total-ink: #EAF7F1;
+  --total-label: #8FCDB2;
+  --total-muted: rgba(234, 247, 241, 0.62);
+  --total-flash: rgba(47, 179, 127, 0.16);
+
+  --dot-color: rgba(122, 220, 180, 0.055);
+
+  --halo-primary: radial-gradient(circle at 50% 45%, rgba(47, 179, 127, 0.14), transparent 68%);
+  --halo-gold:    radial-gradient(circle at 50% 50%, rgba(217, 164, 65, 0.14), transparent 70%);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.34), 0 2px 10px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 3px 8px rgba(0, 0, 0, 0.36), 0 14px 34px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.40), 0 30px 70px rgba(0, 0, 0, 0.34);
+  --shadow-ring: inset 0 0 0 1px var(--color-hairline);
+  --shadow-inset-soft: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --focus-ring: 0 0 0 3px var(--color-background), 0 0 0 6px var(--color-primary);
+}
+
+/* احتياطي قبل تشغيل الجافاسكربت أو عند تعطيله */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-background: #101613;
+    --color-surface: #182120;
+    --color-text: #EDF2EF;
+    --color-text-2: #B4C2BB;
+    --color-border: #2A3833;
+  }
+}
+
+/* تباين مرتفع للنظام (شاشات بعيدة / إضاءة قوية) */
+@media (prefers-contrast: more) {
+  :root {
+    --color-text-2: var(--clay-700);
+    --color-muted: var(--clay-700);
+    --color-border: var(--clay-200);
+    --color-hairline: rgba(22, 33, 28, 0.16);
+  }
+  :root[data-theme="dark"] {
+    --color-text-2: #DCE6E1;
+    --color-muted: #C6D3CC;
+    --color-border: #4A5C53;
+    --color-hairline: rgba(255, 255, 255, 0.18);
+  }
+}

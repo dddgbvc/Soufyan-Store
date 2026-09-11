@@ -1,0 +1,246 @@
+/* =============================================================================
+   Yaqoot Customer Display — Base
+   إعادة الضبط، الطباعة العربية، خلفية النقاط، سلوك الأرقام، الوصولية.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* شاشة عرض: لا تمرير على مستوى الصفحة إطلاقًا */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* أرقام ثابتة العرض في كل مكان — المبالغ لا تهتزّ عند التحديث */
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  transition:
+    background-color var(--dur-4) var(--ease-out),
+    color var(--dur-4) var(--ease-out);
+}
+
+/* خلفية النقاط الخفيفة + هالة أعلى الشاشة */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    var(--dot-radius) var(--dot-radius) at 50% 50%,
+    var(--dot-color) 99%,
+    transparent 100%
+  );
+  background-size: var(--dot-size) var(--dot-size);
+  transition: background-image var(--dur-4) var(--ease-out);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset-block-start: -30vh;
+  inset-inline: -10vw;
+  height: 80vh;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--halo-primary);
+  opacity: 0.9;
+}
+
+h1, h2, h3, h4 {
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* صفة hidden يجب أن تغلب أي display معرّف في الأنماط */
+[hidden] {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   الوصولية: حلقة تركيز واضحة، ورابط تخطّي غير مرئي إلا عند التركيز
+   -------------------------------------------------------------------------- */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   مكوّن المبلغ — رقم + عملة، مرتّب بـ flex حتى لا يتدخّل خوارزم الاتجاه
+   في RTL يظهر الرقم على اليمين والعملة على يساره: «850,000 د.ع»
+   -------------------------------------------------------------------------- */
+.amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.32em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.amount__value {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.amount__currency {
+  font-size: 0.52em;
+  font-weight: var(--weight-semibold);
+  color: var(--color-muted);
+  letter-spacing: 0;
+}
+
+.amount--negative .amount__value::before {
+  content: "−";
+  margin-inline-end: 0.06em;
+}
+
+/* --------------------------------------------------------------------------
+   شريط تمرير ناعم داخل قائمة المنتجات فقط
+   -------------------------------------------------------------------------- */
+.scroll-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+.scroll-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-pill);
+}
+
+/* --------------------------------------------------------------------------
+   احترام تقليل الحركة
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* إيقاف كل الانتقالات لحظة تبديل السمة حتى لا «تتلطّخ» الشاشة */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition: none !important;
+}
+
+/* شاشة تحذير عند فتح الملف عبر file:// (وحدات ES تحتاج خادمًا) */
+.protocol-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: none;
+  place-items: center;
+  padding: var(--gutter);
+  background: var(--color-background);
+  text-align: center;
+}
+
+.protocol-guard__card {
+  max-width: 44rem;
+  padding: var(--spacing-10);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.protocol-guard__card h1 {
+  font-size: var(--text-xl);
+  margin-bottom: var(--spacing-3);
+}
+
+.protocol-guard__card p {
+  color: var(--color-text-2);
+  margin-bottom: var(--spacing-5);
+}
+
+.protocol-guard__card code {
+  display: block;
+  direction: ltr;
+  text-align: left;
+  padding: var(--spacing-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+  color: var(--color-primary-ink);
+}

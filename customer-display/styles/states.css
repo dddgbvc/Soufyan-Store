@@ -1,0 +1,293 @@
+/* =============================================================================
+   Yaqoot Customer Display — States
+   شاشات الحالة: بانتظار عملية / اتصال / جاري الدفع / نجاح / معلّقة / إلغاء / خطأ
+   ========================================================================== */
+
+.state {
+  width: min(100%, 68ch);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(10px, 1.4vh, 22px);
+  padding: clamp(20px, 3vh, 48px) clamp(20px, 3vw, 56px);
+  background: var(--color-surface-glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+}
+
+/* دخول الحالة: تلاشٍ + تقريب طفيف جدًا */
+.state[data-enter="true"] {
+  animation: state-in var(--dur-5) var(--ease-out) both;
+}
+
+@keyframes state-in {
+  from { opacity: 0; transform: scale(0.975) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.state__art {
+  width: clamp(120px, 13vw, 240px);
+  height: clamp(120px, 13vw, 240px);
+  display: grid;
+  place-items: center;
+  color: var(--color-primary);
+}
+
+.state__art svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.state__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.state__subtitle {
+  font-size: var(--text-md);
+  color: var(--color-text-2);
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+
+.state__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 0.8vw, 16px);
+  margin-block-start: clamp(2px, 0.6vh, 10px);
+}
+
+/* تسمية صغيرة فوق المبلغ الكبير حتى يعرف الزبون أي رقم يقرأ */
+.state__figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-block-start: clamp(2px, 0.5vh, 8px);
+}
+
+.state__amount-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-muted);
+  letter-spacing: var(--tracking-wide);
+}
+
+.state__amount {
+  font-size: var(--text-3xl);
+  color: var(--color-primary);
+}
+
+.state__amount .amount__currency {
+  color: var(--color-muted);
+  font-size: 0.38em;
+}
+
+/* بطاقة معلومة صغيرة داخل الحالة (رقم الفاتورة، وقت العملية…) */
+.state__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1.05em;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-2);
+  font-weight: var(--weight-medium);
+}
+
+.state__chip b {
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.state__chip svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+
+/* --------------------------------------------------------------------------
+   حالة الانتظار — نقاط تتنفّس ببطء داخل الرسم
+   -------------------------------------------------------------------------- */
+.art-idle__pulse {
+  transform-origin: center;
+  animation: idle-breath 4.2s var(--ease-standard) infinite;
+}
+
+/* القيم منخفضة عمدًا: خاصية opacity في CSS تتجاوز سمة opacity داخل SVG،
+   فلو رفعناها هنا تحوّلت الدوائر الخافتة إلى قرص أخضر مصمت. */
+@keyframes idle-breath {
+  0%, 100% { opacity: 0.07; transform: scale(1); }
+  50% { opacity: 0.13; transform: scale(1.045); }
+}
+
+.art-idle__line {
+  stroke-dasharray: 44;
+  stroke-dashoffset: 44;
+  animation: idle-draw 2.6s var(--ease-out) forwards;
+}
+
+.art-idle__line:nth-of-type(2) { animation-delay: 0.12s; }
+.art-idle__line:nth-of-type(3) { animation-delay: 0.24s; }
+
+@keyframes idle-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   حالة الدفع — حلقة تدور ببطء + حلقات ارتداد ناعمة
+   -------------------------------------------------------------------------- */
+.art-paying__ring {
+  transform-origin: center;
+  animation: paying-spin 2.4s linear infinite;
+}
+
+@keyframes paying-spin {
+  to { transform: rotate(360deg); }
+}
+
+.art-paying__wave {
+  transform-origin: center;
+  animation: paying-wave 2.6s var(--ease-standard) infinite;
+  opacity: 0;
+}
+
+.art-paying__wave:nth-of-type(2) { animation-delay: 0.85s; }
+
+@keyframes paying-wave {
+  0% { opacity: 0.16; transform: scale(0.72); }
+  70% { opacity: 0; transform: scale(1.12); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+/* --------------------------------------------------------------------------
+   حالة النجاح — رسم الدائرة ثم علامة الصح
+   -------------------------------------------------------------------------- */
+.state--paid .state__art {
+  color: var(--color-success);
+}
+
+.art-check__circle {
+  stroke-dasharray: 302;
+  stroke-dashoffset: 302;
+  animation: check-circle 720ms var(--ease-out) forwards;
+}
+
+.art-check__mark {
+  stroke-dasharray: 78;
+  stroke-dashoffset: 78;
+  animation: check-mark 420ms var(--ease-out) 420ms forwards;
+}
+
+.art-check__halo {
+  transform-origin: center;
+  animation: check-halo 900ms var(--ease-out) 380ms both;
+}
+
+@keyframes check-circle {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes check-mark {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes check-halo {
+  0% { opacity: 0.18; transform: scale(0.85); }
+  100% { opacity: 0; transform: scale(1.22); }
+}
+
+/* في وضع تقليل الحركة نُظهر الرسم مكتملًا بدل تحريكه */
+@media (prefers-reduced-motion: reduce) {
+  .art-check__circle,
+  .art-check__mark,
+  .art-idle__line {
+    stroke-dashoffset: 0;
+  }
+  .art-check__halo,
+  .art-paying__wave {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   حالة معلّقة
+   -------------------------------------------------------------------------- */
+.state--held .state__art {
+  color: var(--color-warning);
+}
+
+/* --------------------------------------------------------------------------
+   حالة الإلغاء — هادئة وغير مخيفة (رمادية محايدة لا حمراء صارخة)
+   -------------------------------------------------------------------------- */
+.state--cancelled .state__art {
+  color: var(--color-muted);
+}
+
+.state--cancelled .state__title {
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   حالة الخطأ
+   -------------------------------------------------------------------------- */
+.state--error .state__art {
+  color: var(--color-danger);
+}
+
+.state__error-detail {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  direction: ltr;
+  unicode-bidi: isolate;
+  max-width: 60ch;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   حالة التحميل / الاتصال
+   -------------------------------------------------------------------------- */
+.state--loading .state__art {
+  color: var(--color-muted);
+}
+
+.skeleton-bar {
+  height: 0.9em;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    var(--color-surface-3) 37%,
+    var(--color-surface-2) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-slide 1.6s var(--ease-standard) infinite;
+}
+
+@keyframes skeleton-slide {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+
+.state__skeletons {
+  width: min(100%, 30rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.state__skeletons .skeleton-bar:nth-child(2) { width: 78%; align-self: center; }
+.state__skeletons .skeleton-bar:nth-child(3) { width: 56%; align-self: center; }
