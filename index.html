@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مركز سفيان للهواتف | سامراء</title>
+<title>مكتب سفيان للموبايل | سامراء</title>
 <meta name="description" content="أحدث الهواتف الذكية والإكسسوارات وباقات الإنترنت في سامراء — اطلب عبر واتساب.">
 <!-- Open Graph -->
-<meta property="og:title" content="مركز سفيان للهواتف">
+<meta property="og:title" content="مكتب سفيان للموبايل">
 <meta property="og:description" content="هواتف ذكية، إكسسوارات، وباقات إنترنت — سامراء، الحويش. اطلب عبر واتساب.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="og-cover.png">
@@ -25,11 +25,17 @@
   --primary: #5B6EFF;
   --cta: #FFA94D;
   --best: #3DDC84;
+  /* ألوان الشعار — من لوحة الهوية بكانفا. العمود الثالث ذهبي دائمًا. */
+  --petrol: #123240;
+  --sand: #EFEAE3;
+  --gold-brand: #C9A455;
+  --logo-ink: var(--petrol);
   --font-display: "El Messiri", sans-serif;
   --font-body: "IBM Plex Sans Arabic", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 }
 html[data-theme="dark"]{
+  --logo-ink: var(--sand);
   --bg:#14161C; --surface:#1E212B; --surface-2:#262A37;
   --text:#EDEFF7; --text-2:#9AA0B4; --border:#2E3342;
   --shadow: 0 4px 14px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.28);
@@ -77,8 +83,13 @@ header.site{
   border-bottom:1px solid var(--border);
 }
 .header-row{display:flex; align-items:center; gap:12px; padding-block:10px}
-.brand{font-family:var(--font-display); font-weight:700; font-size:1.15rem; white-space:nowrap}
-.brand span{color:var(--primary)}
+.brand{display:inline-flex; align-items:center; gap:9px; color:var(--logo-ink);
+  font-family:var(--font-display); font-weight:700; font-size:1.15rem; white-space:nowrap}
+.brand-mark{width:26px; height:26px; flex:none}
+.brand-mark rect{fill:var(--logo-ink)}
+.brand-mark .gold{fill:var(--gold-brand)}
+/* على الشاشات الضيقة نكتفي بالعلامة حتى يبقى للبحث مجال */
+@media (max-width:560px){ .brand-text{display:none} }
 .search-wrap{flex:1; position:relative}
 .search-wrap input{
   width:100%; padding:10px 42px 10px 14px;
@@ -269,7 +280,14 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
 <header class="site">
   <div class="container">
     <div class="header-row">
-      <div class="brand">مركز <span>سفيان</span> للهواتف</div>
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="12" width="4" height="8" rx="2"/>
+          <rect x="10" y="8" width="4" height="12" rx="2"/>
+          <rect class="gold" x="16" y="4" width="4" height="16" rx="2"/>
+        </svg>
+        <span class="brand-text">مكتب سفيان للموبايل</span>
+      </div>
       <div class="search-wrap">
         <input id="search" type="search" placeholder="ابحث عن هاتف أو إكسسوار…" aria-label="بحث">
         <span class="icon" aria-hidden="true">🔍</span>
@@ -378,7 +396,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
 
 <!-- ======= المساعد الذكي ======= -->
 <button class="ai-fab" id="aiFab" aria-label="افتح المساعد الذكي">
-  <img src="assistant-idle.png" alt="شخصية مساعد مركز سفيان">
+  <img src="assistant-idle.png" alt="شخصية مساعد مكتب سفيان">
 </button>
 <div class="chat-panel" id="chatPanel" role="dialog" aria-label="المساعد الذكي">
   <div class="chat-head">
@@ -390,7 +408,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
     <div><strong>مساعد سفيان</strong><div style="font-size:.75rem; color:var(--text-2)">اسألني عن أي هاتف 👋</div></div>
   </div>
   <div class="chat-msgs" id="chatMsgs">
-    <div class="msg bot">هلا بيك بمركز سفيان! 👋 شنو تدوّر عليه اليوم — هاتف، إكسسوار، لو باقة نت؟</div>
+    <div class="msg bot">هلا بيك بمكتب سفيان! 👋 شنو تدوّر عليه اليوم — هاتف، إكسسوار، لو باقة نت؟</div>
   </div>
   <form class="chat-input" id="chatForm">
     <input id="chatText" placeholder="اكتب سؤالك…" autocomplete="off" aria-label="رسالتك">
@@ -402,7 +420,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
 <footer>
   <div class="container cols">
     <div>
-      <h3 style="color:var(--text)">مركز سفيان للهواتف</h3>
+      <h3 style="color:var(--text)">مكتب سفيان للموبايل</h3>
       <p>صلاح الدين - سامراء - الحويش - الشارع الرئيسي</p>
     </div>
     <div>
@@ -421,7 +439,7 @@ footer .cols{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minma
       <p>
         <a class="social" href="https://www.facebook.com/109029061538682" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
-          مركز الحويش للاتصالات والانترنيت
+          صفحتنا على فيسبوك
         </a>
       </p>
     </div>
