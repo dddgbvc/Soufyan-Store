@@ -1,0 +1,26 @@
+{
+  "name": "soufyan-store",
+  "owner": {
+    "name": "dddgbvc"
+  },
+  "plugins": [
+    {
+      "source": "plugins/agent-dev",
+      "name": "agent-dev",
+      "displayName": "Agent Dev",
+      "version": "1.0.0",
+      "description": "Software engineering workflow skills: specs, planning, TDD, review, security, performance, CI/CD, shipping and docs.",
+      "keywords": [
+        "workflow",
+        "tdd",
+        "code-review",
+        "security",
+        "performance",
+        "ci-cd",
+        "planning"
+      ],
+      "author": "dddgbvc",
+      "homepage": "https://github.com/dddgbvc/Soufyan-Store"
+    }
+  ]
+}
