@@ -43,6 +43,13 @@
       "skillPath": "skills/better-writing/SKILL.md",
       "computedHash": "4f860b739a2f4d8877225272297b1fbfb1848954fc3903058d1386d535e0b460"
     },
+    "graphify": {
+      "source": "Graphify-Labs/graphify",
+      "sourceType": "github",
+      "skillPath": "graphify/skill.md",
+      "version": "0.9.62",
+      "computedHash": "7a6d60d8c3fd4384252c23c69c1c82643c6a86dee967f5dfa9f23169fea2cb1a"
+    },
     "interface-review": {
       "source": "jakubkrehel/skills",
       "sourceType": "github",
