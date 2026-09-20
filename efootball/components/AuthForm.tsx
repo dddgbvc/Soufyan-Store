@@ -21,13 +21,11 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
-    setNotice(null);
     setBusy(true);
 
     try {
@@ -45,9 +43,16 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
 
         if (signUpError) throw signUpError;
 
+        // Registration is complete the moment the account exists — there is no
+        // confirmation step to wait on (migration 1300). GoTrue still withholds
+        // the session when its own "Confirm email" setting is on, so sign in
+        // directly rather than sending the player to a mailbox.
         if (!data.session) {
-          setNotice('أرسلنا رسالة تأكيد إلى بريدك. افتح الرابط لإكمال التسجيل.');
-          return;
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (signInError) throw signInError;
         }
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -112,12 +117,6 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           {error}
         </p>
       ) : null}
-      {notice ? (
-        <p role="status" style={{ color: 'var(--accent)', fontSize: 14, margin: 0 }}>
-          {notice}
-        </p>
-      ) : null}
-
       <button type="submit" className="btn btn-primary" disabled={busy}>
         {busy ? '...' : mode === 'register' ? 'إنشاء الحساب' : 'دخول'}
       </button>
