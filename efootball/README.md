@@ -101,10 +101,10 @@ they hold no matter what any client does.
 | A player joins once | `unique (tournament_id, user_id)` |
 | Tournament state cannot be forced | `app.guard_tournament_status()` validates every transition |
 | Structural rules freeze once matches exist | `app.guard_locked_rules()` + `rules_locked` |
-| Evidence is immutable | `app.guard_evidence_immutability()` — no UPDATE of content, no DELETE, ever |
+| Evidence is immutable | `app.guard_evidence_immutability()` — no UPDATE of content, no direct DELETE; only a parent cascade may remove it |
 | Audit log is append-only | `app.block_mutation()` on UPDATE and DELETE |
 | Players cannot write results | `REVOKE INSERT/UPDATE/DELETE` on `matches`, `knockout_ties`, `draws`, `standings_snapshots` |
-| System messages cannot be forged | `chat_system_has_no_sender` CHECK + a policy requiring `sender_id = auth.uid()` |
+| System messages cannot be forged | `chat_system_has_no_sender` CHECK + an insert policy requiring `sender_id = auth.uid()` + `app.guard_chat_message_update()` |
 | A draw cannot be re-rolled | `unique (tournament_id, kind)` on `draws` |
 | One AI article per event | `unique (event_key)` on `news_posts` |
 | One verification per evidence pair | `unique (idempotency_key)` on `verification_runs` |
@@ -140,9 +140,14 @@ npm run build      # production build
 
 ## Supabase setup
 
-### 1. Create the project
+### 1. The project
 
-Create a Supabase project named `EFootball`. From its dashboard collect:
+`EFootball` is live: project ref `ygxjdgttedyioxgxutvj`, region `eu-central-1`
+(Frankfurt), API URL `https://ygxjdgttedyioxgxutvj.supabase.co`. All twelve
+migrations are applied, the five buckets exist, Realtime is published and the
+demo seed is loaded.
+
+To stand up a second environment, create a project and collect:
 
 - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
 - Publishable (anon) key → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
@@ -176,6 +181,8 @@ done
 | `…0800_rls` | RLS on every table, deny-by-default, plus grants |
 | `…0900_storage` | five buckets and their object policies |
 | `…1000_realtime` | publication + private-channel authorization |
+| `…1100_immutability_cascade_fixes` | guards block erasure, allow parent cascades |
+| `…1200_revoke_rpc_execute_from_anon` | closes the RPC surface to signed-out callers |
 
 ### 3. Storage buckets
 
@@ -214,8 +221,15 @@ and no admin backdoor.
 
 ### 6. Advisors
 
-Run the Supabase database and security advisors after migrating and address
-anything they flag for your project's configuration.
+The security advisor was run against the live project. What remains is
+deliberate, with one item left for you in the dashboard:
+
+| Finding | Status |
+|---|---|
+| `anon` could execute four `SECURITY DEFINER` RPCs | **Fixed** in migration `…1200`. They already returned `UNAUTHENTICATED`, but Supabase's default privileges grant `EXECUTE` to `anon` explicitly and `revoke ... from public` does not undo it. |
+| `authenticated` can execute those four RPCs | **Intended.** `join_tournament`, `check_in_tournament`, `open_direct_room` and `mark_room_read` exist precisely to be called by signed-in users, and each re-derives the caller from `auth.uid()`. |
+| `telegram_outbox` / `telegram_updates` have RLS on with no policy | **Intended.** RLS enabled with no policy is a total deny for every non-service role — which is exactly right for a delivery queue holding chat ids. |
+| Leaked-password protection disabled | **Action for you.** Enable it under Authentication → Policies; it checks new passwords against HaveIBeenPwned. It is an Auth setting, not SQL, so it cannot be applied from a migration. |
 
 ---
 
@@ -390,7 +404,9 @@ Reviewed adversarially before delivery. Findings and their resolutions:
 | XSS | No `dangerouslySetInnerHTML` on user content; the one use is a server-generated QR SVG |
 | Realtime | Only RLS-safe tables published; private channels authorized via `realtime.messages` |
 
-Two real defects were found and fixed during this review:
+Four real defects were found and fixed — the last three only surfaced when the
+schema was applied to a live project and the delete paths were actually
+exercised:
 
 1. **`REGISTRATION_CLOSED` masked `TOURNAMENT_FULL`.** Once the last slot was
    taken the status flipped to `registration_full`, so the next player was told
@@ -401,17 +417,23 @@ Two real defects were found and fixed during this review:
    `tournaments` with `ON DELETE SET NULL`; that update is exactly what the
    immutability trigger refuses, so the delete policy could never succeed. The
    ledger now stores plain uuids — it is meant to outlive what it describes.
+3. **Evidence immutability blocked parent cascades.** Deleting a tournament
+   cascades to its matches and then to their evidence, and the guard refused
+   that too — so any tournament that had ever received a screenshot could never
+   be deleted. A cascade is now distinguished from an erasure by checking
+   whether the parent row still exists; a direct delete is still refused. The
+   same applied one level down, to `ai_extractions`.
+4. **A user who had ever sent a message could not be deleted.** `sender_id` is
+   `ON DELETE SET NULL` so a conversation survives when one side leaves, but the
+   chat identity guard refused the null-ing. Anonymising a departed author is
+   now allowed — and only when their profile is genuinely gone. Reassigning
+   authorship to a live user, and promoting a user message into a trusted system
+   message, are both still refused.
 
 ---
 
 ## Known limitations
 
-- **The Supabase project was not created.** The organisation had reached its
-  free-project limit, so `EFootball` could not be provisioned. Everything else
-  is complete: the migrations, seed and SQL suites were verified end to end
-  against a real PostgreSQL 16 server using the shim in `supabase/tests/`. To
-  finish, create the project and follow [Supabase setup](#supabase-setup); no
-  code changes are needed.
 - **Presets not yet production-ready.** `knockout8`, `knockout16` and
   `groups_knockout` are visible but disabled, because their bracket generation
   is not implemented or tested. `league8_double_playoffs`, `league8_double` and

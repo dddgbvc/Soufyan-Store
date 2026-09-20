@@ -635,7 +635,77 @@ begin
 end $$;
 
 -- =============================================================================
--- 8. Every exposed table has RLS enabled
+-- 8. Immutability stops an erasure, not a cascade
+-- =============================================================================
+do $$
+declare
+  v_owner uuid := pg_temp.mk_user('casc');
+  v_a uuid := pg_temp.mk_user('casc-a');
+  v_b uuid := pg_temp.mk_user('casc-b');
+  v_t uuid; v_match uuid; v_sub uuid; v_ev uuid; v_room uuid; v_msg uuid;
+  v_blocked boolean;
+begin
+  insert into public.tournaments (slug, name, capacity, created_by, status)
+  values ('cascade', 'Cascade', 8, v_owner, 'registration_open')
+  returning id into v_t;
+
+  insert into public.tournament_players (tournament_id, user_id, status)
+  values (v_t, v_a, 'approved'), (v_t, v_b, 'approved');
+
+  insert into public.matches (tournament_id, stage, round_number, player_a, player_b, status)
+  values (v_t, 'league', 1, v_a, v_b, 'ready') returning id into v_match;
+  insert into public.match_submissions (match_id, user_id) values (v_match, v_a)
+  returning id into v_sub;
+  insert into public.match_evidence (match_id, submission_id, uploaded_by, storage_path,
+                                     file_hash, mime_type, byte_size)
+  values (v_match, v_sub, v_a, v_t || '/' || v_match || '/' || v_a || '/a.jpg',
+          repeat('a', 64), 'image/jpeg', 1024)
+  returning id into v_ev;
+
+  -- A direct delete is still refused.
+  v_blocked := false;
+  begin delete from public.match_evidence where id = v_ev;
+  exception when others then v_blocked := true; end;
+  assert v_blocked, 'a direct evidence delete must still be refused';
+
+  -- Deleting the tournament must cascade cleanly.
+  delete from public.tournaments where id = v_t;
+  assert not exists (select 1 from public.match_evidence where id = v_ev),
+    'deleting a tournament must cascade through its evidence';
+
+  -- Deleting an author anonymises their messages instead of blocking.
+  insert into public.tournaments (slug, name, capacity, created_by, status)
+  values ('cascade2', 'Cascade 2', 8, v_owner, 'registration_open')
+  returning id into v_t;
+  insert into public.tournament_players (tournament_id, user_id, status)
+  values (v_t, v_a, 'approved');
+  select id into v_room from public.chat_rooms
+   where tournament_id = v_t and type = 'tournament_group';
+  insert into public.chat_messages (room_id, sender_id, kind, body)
+  values (v_room, v_a, 'user', 'hello') returning id into v_msg;
+
+  -- Reassigning authorship to a live user is still refused.
+  v_blocked := false;
+  begin update public.chat_messages set sender_id = v_b where id = v_msg;
+  exception when others then v_blocked := true; end;
+  assert v_blocked, 'authorship must not be reassignable';
+
+  -- Promoting a user message to a system message is still refused.
+  v_blocked := false;
+  begin update public.chat_messages set kind = 'system' where id = v_msg;
+  exception when others then v_blocked := true; end;
+  assert v_blocked, 'a user message must not become a system message';
+
+  delete from public.tournament_players where tournament_id = v_t and user_id = v_a;
+  delete from auth.users where id = v_a;
+  assert (select sender_id from public.chat_messages where id = v_msg) is null,
+    'a deleted author must leave an anonymised message behind';
+
+  raise notice 'OK  immutability blocks erasure but allows parent cascades';
+end $$;
+
+-- =============================================================================
+-- 9. Every exposed table has RLS enabled
 -- =============================================================================
 do $$
 declare v_missing text;
