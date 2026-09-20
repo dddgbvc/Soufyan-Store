@@ -301,11 +301,19 @@ is used that states only the classified facts.
 
 ## Vercel deployment
 
-The project already exists: **`efootball`**, framework `nextjs`, root directory
-`efootball/`, functions in `fra1` (same region as the Supabase project, so a
-query does not cross the Atlantic twice). Vercel Authentication is off, so the
-production URL is publicly reachable — the app's own auth and RLS are the
-security boundary, not a login wall in front of the whole site.
+Live at **https://efootball-iota.vercel.app**.
+
+The project is **`efootball`**, framework `nextjs`, root directory `efootball/`,
+functions in `fra1` (same region as the Supabase project, so a query does not
+cross the Atlantic twice), linked to `dddgbvc/Soufyan-Store`. Vercel
+Authentication is off, so the production URL is publicly reachable — the app's
+own auth and RLS are the security boundary, not a login wall in front of the
+whole site.
+
+The production branch is `claude/new-session-07dkbq`, which is where the
+application lives; `main` does not carry it. Set that as the project's
+production branch in the Vercel dashboard (or merge the branch into `main`)
+for a push to redeploy on its own.
 
 Already set in the project's environment: `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_APP_URL`, `CRON_SECRET`
@@ -324,18 +332,15 @@ None of them may carry the `NEXT_PUBLIC_` prefix. Without `AI_API_KEY` the
 platform still runs: evidence is stored and matches park in manual review. The
 two Telegram values only gate alerts.
 
-**Connecting the repository.** Deploying from GitHub needs the Vercel account
-to have a GitHub login connection — add one at
-`vercel.com/account/login-connections`, then import `dddgbvc/Soufyan-Store`
-with root directory `efootball/` into the existing `efootball` project. Until
-that connection exists Vercel cannot read the repository at all, and a
-deployment fails at source retrieval with `git_info_fail` before any build
-starts.
+`NEXT_PUBLIC_APP_URL` is already the production origin. It is a
+`NEXT_PUBLIC_` variable, so it is inlined at build time: changing it needs a
+redeploy, not just a restart. The Telegram webhook has to be re-registered
+against that origin once a bot token exists.
 
-After the first successful deploy, set `NEXT_PUBLIC_APP_URL` to the production
-URL if it differs from the one already stored, redeploy so invite links and
-Telegram deep links point at the right origin, and re-register the Telegram
-webhook against that origin.
+**If Vercel ever reports `git_info_fail`**, the account has lost its GitHub
+login connection (`vercel.com/account/login-connections`). Vercel then cannot
+read the repository at all and the deployment fails at source retrieval,
+before any build starts.
 
 `vercel.json` declares the cron entry and the longer timeouts the evidence and
 verification routes need.
