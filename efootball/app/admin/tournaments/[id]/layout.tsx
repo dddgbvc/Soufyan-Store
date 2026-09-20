@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { isTournamentAdmin } from '@/lib/permissions';
+import { createServerSupabase, getCurrentUser } from '@/lib/supabase/server';
 
 const SECTIONS = [
   ['', 'لوحة التحكم'],
@@ -26,16 +24,38 @@ export default async function AdminTournamentLayout(props: {
 
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/admin/tournaments/${id}`);
-  if (!(await isTournamentAdmin(id, user.id))) notFound();
 
-  const admin = createAdminClient();
-  const { data: tournament } = await admin
-    .from('tournaments')
-    .select('id, name, slug, accent_color')
-    .eq('id', id)
-    .maybeSingle();
+  // The tournament SELECT policy only exposes rows the caller may see. Check
+  // admin membership from the same caller-scoped client instead of requiring
+  // a server-wide service-role secret just to render the admin shell.
+  const supabase = await createServerSupabase();
+  const [{ data: tournament }, { data: adminRow }, { data: profile }] = await Promise.all([
+    supabase
+      .from('tournaments')
+      .select('id, name, slug, accent_color, created_by')
+      .eq('id', id)
+      .maybeSingle(),
+    supabase
+      .from('tournament_admins')
+      .select('user_id')
+      .eq('tournament_id', id)
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('is_platform_admin')
+      .eq('id', user.id)
+      .maybeSingle(),
+  ]);
 
   if (!tournament) notFound();
+  if (
+    tournament.created_by !== user.id &&
+    !adminRow &&
+    profile?.is_platform_admin !== true
+  ) {
+    notFound();
+  }
 
   return (
     <div className="shell" style={{ paddingBlock: '28px 80px' }}>

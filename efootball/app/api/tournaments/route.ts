@@ -1,5 +1,5 @@
-import { createAdminClient } from '@/lib/supabase/admin';
-import { requireAuthenticated, writeAuditLog } from '@/lib/permissions';
+import { createServerSupabase } from '@/lib/supabase/server';
+import { requireAuthenticated } from '@/lib/permissions';
 import { createTournamentSchema } from '@/lib/validation/schemas';
 import { rulesForPreset, getPreset } from '@/lib/tournament/presets';
 import { handleRouteError, ok, fail, parseBody } from '@/lib/api/respond';
@@ -28,16 +28,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const admin = createAdminClient();
+    // Create the caller's own tournament under the caller session. RLS remains
+    // the authority; no service-role key is required for this operation.
+    const supabase = await createServerSupabase();
 
-    const { data: existingSlug } = await admin
-      .from('tournaments')
-      .select('id')
-      .eq('slug', input.slug)
-      .maybeSingle();
-    if (existingSlug) return fail('SLUG_TAKEN', 'هذا الرابط مستخدم بالفعل', 409);
-
-    const { data: tournament, error } = await admin
+    const { data: tournament, error } = await supabase
       .from('tournaments')
       .insert({
         slug: input.slug,
@@ -66,14 +61,19 @@ export async function POST(request: Request) {
       .select('id, slug')
       .single();
 
-    if (error) throw new Error(`TOURNAMENT_INSERT_FAILED: ${error.message}`);
+    if (error) {
+      if (error.code === '23505') {
+        return fail('SLUG_TAKEN', 'هذا الرابط مستخدم بالفعل', 409);
+      }
+      throw new Error(`TOURNAMENT_INSERT_FAILED: ${error.message}`);
+    }
 
     // The bootstrap trigger created the rule row with defaults; layer the
     // preset and then the admin's overrides on top of it.
     const presetRules = rulesForPreset(input.preset);
     const overrides = input.rules ?? {};
 
-    await admin
+    const { error: rulesError } = await supabase
       .from('tournament_rules')
       .update({
         match_duration_minutes: overrides.matchDurationMinutes ?? presetRules.matchDurationMinutes,
@@ -98,16 +98,27 @@ export async function POST(request: Request) {
       })
       .eq('tournament_id', tournament.id);
 
-    await writeAuditLog({
-      tournamentId: tournament.id,
-      actorId: user.id,
-      action: 'RULES_CONFIGURED',
-      entityType: 'tournament_rules',
-      entityId: tournament.id,
-      after: { preset: input.preset, overrides },
-    });
+    if (rulesError) {
+      // Keep creation all-or-nothing from the user's perspective. Draft owners
+      // are allowed to delete their own tournament under RLS.
+      await supabase.from('tournaments').delete().eq('id', tournament.id);
+      throw new Error(`TOURNAMENT_RULES_UPDATE_FAILED: ${rulesError.message}`);
+    }
 
-    return ok({ tournamentId: tournament.id, slug: tournament.slug }, 201);
+    const fallbackHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    const baseUrl = (
+      process.env.NEXT_PUBLIC_APP_URL ??
+      (fallbackHost ? `https://${fallbackHost}` : new URL(request.url).origin)
+    ).replace(/\/$/, '');
+
+    return ok(
+      {
+        tournamentId: tournament.id,
+        slug: tournament.slug,
+        tournamentUrl: `${baseUrl}/tournaments/${encodeURIComponent(tournament.slug)}`,
+      },
+      201,
+    );
   } catch (error) {
     return handleRouteError(error);
   }
