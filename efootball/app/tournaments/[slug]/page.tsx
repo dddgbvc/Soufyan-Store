@@ -240,7 +240,7 @@ async function TournamentStats({
           <div className="eyebrow">{label}</div>
           <div style={{ fontSize: 18, fontWeight: 700, marginBlockStart: 8 }}>{value ?? '—'}</div>
           {figure !== null && figure !== undefined ? (
-            <div className="score-figure" style={{ fontSize: 32, marginBlockStart: 6 }}>
+            <div className="score-figure signed" style={{ fontSize: 32, marginBlockStart: 6 }}>
               {figure}
             </div>
           ) : null}

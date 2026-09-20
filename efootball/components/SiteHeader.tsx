@@ -33,7 +33,7 @@ export async function SiteHeader() {
       }}
     >
       <div
-        className="shell"
+        className="shell site-header-inner"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -83,7 +83,11 @@ export async function SiteHeader() {
               <Link href="/login" style={{ fontSize: 14 }}>
                 دخول
               </Link>
-              <Link href="/register" className="btn btn-primary" style={{ minHeight: 38 }}>
+              <Link
+                href="/register"
+                className="btn btn-primary site-header-cta"
+                style={{ minHeight: 38 }}
+              >
                 إنشاء حساب
               </Link>
             </>
