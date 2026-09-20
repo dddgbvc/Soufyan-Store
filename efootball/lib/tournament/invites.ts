@@ -24,7 +24,11 @@ export function generateInviteCode(capacity: number): string {
 }
 
 export function inviteUrl(token: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+  const fallbackHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (fallbackHost ? `https://${fallbackHost}` : 'http://localhost:3000')
+  ).replace(/\/$/, '');
   return `${base}/join/${token}`;
 }
 
