@@ -4,7 +4,7 @@
   "crons": [
     {
       "path": "/api/telegram/retry",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 3 * * *"
     }
   ],
   "functions": {

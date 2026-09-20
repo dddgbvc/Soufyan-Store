@@ -258,8 +258,13 @@ curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
 
 Every delivery goes through `telegram_outbox`, keyed by event, so a retried
 pipeline run never double-sends and an outage leaves a pending row. A Vercel
-Cron entry drains it every 10 minutes via `/api/telegram/retry`, protected by
-`CRON_SECRET`.
+Cron entry drains it via `/api/telegram/retry`, protected by `CRON_SECRET`.
+
+`vercel.json` schedules that drain daily (`0 3 * * *`), because a Hobby account
+rejects any cron expression that fires more than once a day. On Pro, change it
+to `*/10 * * * *` — a ten-minute drain is what the outbox is sized for, and the
+route is idempotent, so running it more often is always safe. The schedule only
+governs retries: the first delivery attempt happens inline with the event.
 
 **Alerts sent:** player joined, tournament full, check-in started, first
 evidence, second evidence, verified result, mismatch, low confidence, AI
