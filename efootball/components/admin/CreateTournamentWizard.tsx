@@ -30,7 +30,7 @@ const TIEBREAKER_OPTIONS = [
   ['wins', 'عدد الانتصارات'],
 ] as const;
 
-export function CreateTournamentWizard({ presets }: { presets: PresetView[] }) {
+export function CreateTournamentWizard({ presets, appUrl }: { presets: PresetView[]; appUrl: string }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -145,6 +145,8 @@ export function CreateTournamentWizard({ presets }: { presets: PresetView[] }) {
       const payload = (await response.json()) as {
         ok: boolean;
         tournamentId?: string;
+        slug?: string;
+        tournamentUrl?: string;
         message?: string;
       };
 
@@ -218,6 +220,16 @@ export function CreateTournamentWizard({ presets }: { presets: PresetView[] }) {
               onChange={(v) => set('slug', slugify(v))}
               ltr
             />
+            <div
+              dir="ltr"
+              style={{
+                fontSize: 12,
+                color: 'var(--text-muted)',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {fullTournamentUrl(appUrl, form.slug || 'your-tournament')}
+            </div>
             <label style={{ display: 'grid', gap: 6 }}>
               <span style={labelStyle}>الوصف</span>
               <textarea
@@ -503,7 +515,7 @@ export function CreateTournamentWizard({ presets }: { presets: PresetView[] }) {
           <div>
             <h2 style={{ fontSize: 18, marginBlockEnd: 14 }}>المراجعة النهائية</h2>
             <dl style={{ margin: 0 }}>
-              {review(form).map(([term, value], index, all) => (
+              {review(form, appUrl).map(([term, value], index, all) => (
                 <div
                   key={term}
                   style={{
@@ -687,11 +699,11 @@ function review(form: {
   aiNewsEnabled: boolean;
   aiNewsMode: string;
   telegramEnabled: boolean;
-}): Array<[string, string]> {
+}, appUrl: string): Array<[string, string]> {
   const playoffEnd = form.directSemifinalSlots + form.playoffSlots;
   return [
     ['الاسم', form.name || '—'],
-    ['الرابط', `/tournaments/${form.slug || '—'}`],
+    ['الرابط', fullTournamentUrl(appUrl, form.slug || '—')],
     ['عدد اللاعبين', String(form.capacity)],
     ['النظام', form.preset],
     ['الظهور', form.visibility === 'public' ? 'عامة' : 'بالدعوة فقط'],
@@ -724,4 +736,9 @@ function review(form: {
     ],
     ['Telegram', form.telegramEnabled ? 'مفعّل' : 'معطّل'],
   ];
+}
+
+
+function fullTournamentUrl(appUrl: string, slug: string): string {
+  return `${appUrl.replace(/\/$/, '')}/tournaments/${encodeURIComponent(slug)}`;
 }
