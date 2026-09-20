@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createServerSupabase } from '@/lib/supabase/server';
 import { loadStandings } from '@/lib/tournament/queries';
 import { STATUS_LABELS_AR } from '@/lib/tournament/lifecycle';
 import type { TournamentStatus } from '@/lib/tournament/types';
@@ -12,11 +12,11 @@ export default async function AdminTournamentDashboard(props: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await props.params;
-  const admin = createAdminClient();
+  const supabase = await createServerSupabase();
 
   const [{ data: tournament }, bundle] = await Promise.all([
-    admin.from('tournaments').select('*').eq('id', id).single(),
-    loadStandings(admin, id),
+    supabase.from('tournaments').select('*').eq('id', id).single(),
+    loadStandings(supabase, id),
   ]);
 
   if (!tournament) return null;
@@ -45,6 +45,13 @@ export default async function AdminTournamentDashboard(props: {
       .filter((r) => r.status !== 'verified' && r.status !== 'completed')
       .map((r) => r.round_number ?? Infinity)
       .sort((a, b) => a - b)[0] ?? null;
+
+  const fallbackHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const appUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (fallbackHost ? `https://${fallbackHost}` : 'https://efootball-iota.vercel.app')
+  ).replace(/\/$/, '');
+  const publicTournamentUrl = `${appUrl}/tournaments/${encodeURIComponent(tournament.slug)}`;
 
   const tiles: Array<[string, string, string?]> = [
     ['المشاركون', `${tournament.player_count} / ${tournament.capacity}`],
@@ -83,6 +90,25 @@ export default async function AdminTournamentDashboard(props: {
             </div>
           </div>
         ))}
+      </section>
+
+      <section className="panel strip" style={{ padding: '14px 16px 18px' }}>
+        <div className="eyebrow">الرابط العام للبطولة</div>
+        <a
+          href={publicTournamentUrl}
+          target="_blank"
+          rel="noreferrer"
+          dir="ltr"
+          style={{
+            display: 'block',
+            marginBlockStart: 8,
+            fontSize: 14,
+            fontWeight: 700,
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {publicTournamentUrl}
+        </a>
       </section>
 
       <StageControls
