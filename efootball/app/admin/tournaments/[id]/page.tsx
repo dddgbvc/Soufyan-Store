@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { loadStandings } from '@/lib/tournament/queries';
 import { STATUS_LABELS_AR } from '@/lib/tournament/lifecycle';
 import type { TournamentStatus } from '@/lib/tournament/types';
-import { StageControls } from '@/components/admin/StageControls';
+import { StageControls } from '@/components/supabase/StageControls';
 import { ActivityPulse } from '@/components/ActivityPulse';
 
 export const dynamic = 'force-dynamic';
@@ -22,17 +22,17 @@ export default async function AdminTournamentDashboard(props: {
   if (!tournament) return null;
 
   const [{ count: pendingEvidence }, { count: disputes }, { data: rounds }] = await Promise.all([
-    admin
+    supabase
       .from('matches')
       .select('id', { count: 'exact', head: true })
       .eq('tournament_id', id)
       .in('status', ['awaiting_second_evidence', 'ai_verifying', 'awaiting_verification']),
-    admin
+    supabase
       .from('verification_cases')
       .select('id', { count: 'exact', head: true })
       .eq('tournament_id', id)
       .eq('status', 'open'),
-    admin
+    supabase
       .from('matches')
       .select('round_number, status')
       .eq('tournament_id', id)
@@ -122,7 +122,7 @@ export default async function AdminTournamentDashboard(props: {
 
       {(disputes ?? 0) > 0 ? (
         <Link
-          href={`/admin/tournaments/${id}/disputes`}
+          href={`/supabase/tournaments/${id}/disputes`}
           className="panel"
           style={{
             padding: 18,
