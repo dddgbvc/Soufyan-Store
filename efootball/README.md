@@ -301,17 +301,44 @@ is used that states only the classified facts.
 
 ## Vercel deployment
 
-1. Import the repository; Vercel detects Next.js. Set the root directory to
-   `efootball/`.
-2. Add every variable from `.env.example` to the project's environment.
-   `SUPABASE_SERVICE_ROLE_KEY`, `AI_API_KEY`, `TELEGRAM_BOT_TOKEN`,
-   `TELEGRAM_WEBHOOK_SECRET` and `CRON_SECRET` must **not** carry the
-   `NEXT_PUBLIC_` prefix.
-3. Deploy, then set `NEXT_PUBLIC_APP_URL` to the production URL and redeploy so
-   invite links and Telegram deep links point at the right origin.
-4. Re-register the Telegram webhook against the production URL.
-5. `vercel.json` already declares the cron entry and the longer timeouts the
-   evidence and verification routes need.
+The project already exists: **`efootball`**, framework `nextjs`, root directory
+`efootball/`, functions in `fra1` (same region as the Supabase project, so a
+query does not cross the Atlantic twice). Vercel Authentication is off, so the
+production URL is publicly reachable — the app's own auth and RLS are the
+security boundary, not a login wall in front of the whole site.
+
+Already set in the project's environment: `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_APP_URL`, `CRON_SECRET`
+and `TELEGRAM_WEBHOOK_SECRET` (the last two generated as 32 random bytes).
+
+Still to add, because they are credentials this repository must never see:
+
+| Variable | Where it comes from |
+| --- | --- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API Keys |
+| `AI_API_KEY` | Anthropic Console |
+| `TELEGRAM_BOT_TOKEN` | @BotFather |
+| `TELEGRAM_BOT_USERNAME` | the bot's username, without the `@` |
+
+None of them may carry the `NEXT_PUBLIC_` prefix. Without `AI_API_KEY` the
+platform still runs: evidence is stored and matches park in manual review. The
+two Telegram values only gate alerts.
+
+**Connecting the repository.** Deploying from GitHub needs the Vercel account
+to have a GitHub login connection — add one at
+`vercel.com/account/login-connections`, then import `dddgbvc/Soufyan-Store`
+with root directory `efootball/` into the existing `efootball` project. Until
+that connection exists Vercel cannot read the repository at all, and a
+deployment fails at source retrieval with `git_info_fail` before any build
+starts.
+
+After the first successful deploy, set `NEXT_PUBLIC_APP_URL` to the production
+URL if it differs from the one already stored, redeploy so invite links and
+Telegram deep links point at the right origin, and re-register the Telegram
+webhook against that origin.
+
+`vercel.json` declares the cron entry and the longer timeouts the evidence and
+verification routes need.
 
 Nothing requires a persistent process, a VPS, Docker or a separate Express
 server.
