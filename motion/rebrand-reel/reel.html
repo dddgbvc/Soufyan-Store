@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>مركز الحويش ← مكتب سفيان للموبايل</title>
+<style>
+  @font-face { font-family: Plex; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  @font-face { font-family: Plex; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2) format("woff2"); unicode-range: U+0000-00FF; }
+  @font-face { font-family: Plex; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  html, body { margin: 0; background: #000; }
+  canvas { display: block; }
+  /* Preview mode: fit the 1080x1920 frame in the window. */
+  body.preview { display: grid; place-items: center; height: 100vh; }
+  body.preview canvas { height: 100vh; width: auto; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// Rebrand reel: "مركز الحويش" → "مكتب سفيان للموبايل".
+// Every frame is a pure function of time t (seconds), so render(t) is deterministic.
+
+const W = 1080, H = 1920, DUR = 15;
+const COL = {
+  sand: "#F2EEE3", petrol: "#14343F", gold: "#C8A969", latin: "#6F7C7D", aqua: "#2F6F6B",
+};
+// Official colourways from the brand sheet ("ألوان الشعار").
+const PALETTES = {
+  primary:  { bg: COL.sand,   box: COL.petrol, bar: COL.sand,   gold: COL.gold, word: COL.petrol, latin: COL.latin, line: COL.gold },
+  reversed: { bg: COL.petrol, box: COL.sand,   bar: COL.petrol, gold: COL.gold, word: COL.sand,   latin: "#9DAEB0", line: COL.gold },
+  aqua:     { bg: COL.aqua,   box: COL.petrol, bar: COL.sand,   gold: COL.gold, word: COL.sand,   latin: "#BFD6D2", line: COL.gold },
+};
+
+// Final lockup geometry (icon size S, icon centre CX/CY), from the master logo proportions.
+const S = 390, CX = W / 2, CY = 760;
+const DIVIDER_Y = 1236, TAGLINE_Y = 1322;
+
+// ── Timeline (seconds) ────────────────────────────────────────────────
+const T = {
+  oldCaption: 0.25, oldBlack: 0.1, oldBrown: 0.3,
+  glitch: [2.05, 2.55],
+  wipeGold: 2.46, wipePetrol: 2.58, wipeStagger: 0.07, wipeDur: 0.62,
+  newScene: 3.35,
+  newCaption: [3.45, 4.95],
+  bars: [3.55, 3.77, 3.99],
+  rings: [4.38, 4.62],
+  shine: 4.42,
+  zoom: [5.2, 6.3],
+  words: 6.2, wordStagger: 0.13, wordDur: 0.9,
+  latin: [6.95, 8.15],
+  divider: 8.1, tagline: 8.2,
+  camera: [6.3, 10.5],
+  // On the 100 BPM grid that starts at 6.3 s (see audio.py).
+  variants: [[10.5, "reversed"], [11.7, "aqua"], [12.9, "primary"]],
+  variantDur: 0.55,
+  wave: 13.5, shine2: 13.9,
+};
+
+// ── Maths ─────────────────────────────────────────────────────────────
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const eOutCubic = t => 1 - Math.pow(1 - t, 3);
+const eInOutCubic = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const eInOutQuart = t => t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2;
+const eInOutQuint = t => t < .5 ? 16 * t ** 5 : 1 - Math.pow(-2 * t + 2, 5) / 2;
+const eOutExpo = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+// Damped spring from 0 → 1 (t in seconds since start).
+const spring = (t, f, d) => t <= 0 ? 0 : 1 - Math.exp(-d * t) * Math.cos(2 * Math.PI * f * t);
+const hash = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+
+// ── Assets ────────────────────────────────────────────────────────────
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+let L;
+const IM = {};
+const grain = [];
+const tintCache = new Map();
+
+const loadImg = src => new Promise((res, rej) => {
+  const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error(src)); i.src = src;
+});
+
+function tint(img, color) {
+  const key = img.src + color;
+  if (!tintCache.has(key)) {
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const g = c.getContext("2d");
+    g.drawImage(img, 0, 0);
+    g.globalCompositeOperation = "source-in";
+    g.fillStyle = color; g.fillRect(0, 0, c.width, c.height);
+    tintCache.set(key, c);
+  }
+  return tintCache.get(key);
+}
+
+async function init() {
+  L = await (await fetch("assets/layout.json")).json();
+  [IM.oldBlack, IM.oldBrown, IM.oldBg] = await Promise.all(
+    ["assets/old_black.png", "assets/old_brown.png", "assets/old_bg.jpg"].map(loadImg));
+  IM.words = await Promise.all(L.new.words.map(w => loadImg("assets/" + w.file)));
+  IM.letters = await Promise.all(L.new.letters.map(w => loadImg("assets/" + w.file)));
+  await Promise.all([
+    document.fonts.load('600 64px Plex', "كنّا واليوم صرنا نفس الثقة بهويّة جديدة"),
+    document.fonts.load('700 64px Plex', "كنّا"),
+  ]);
+  let seed = 20260927;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  for (let k = 0; k < 6; k++) {
+    const g = document.createElement("canvas"); g.width = g.height = 512;
+    const gx = g.getContext("2d"), id = gx.createImageData(512, 512);
+    for (let i = 0; i < id.data.length; i += 4) {
+      const v = 128 + (rnd() + rnd() + rnd() - 1.5) * 120;
+      id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255;
+    }
+    gx.putImageData(id, 0, 0); grain.push(g);
+  }
+  ctx.imageSmoothingQuality = "high";
+  window.READY = true;
+}
+
+// ── Primitives ────────────────────────────────────────────────────────
+function rrect(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function text(str, x, y, size, color, alpha = 1, weight = 600) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = `${weight} ${size}px Plex`;
+  ctx.direction = "rtl"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = color;
+  ctx.fillText(str, x, y);
+  ctx.restore();
+}
+
+// Text that rises out of a mask line (the classic "mask rise").
+function riseText(str, x, y, size, color, p, weight = 600) {
+  if (p <= 0) return;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, y - size * 1.25, W, size * 1.6); ctx.clip();
+  text(str, x, y + (1 - eOutExpo(p)) * size * 1.3, size, color, clamp(p * 2), weight);
+  ctx.restore();
+}
+
+function drawGrain(t, amount) {
+  const g = grain[Math.floor(t * 24) % grain.length];
+  const ox = Math.floor(hash(Math.floor(t * 24), 1) * 512), oy = Math.floor(hash(Math.floor(t * 24), 2) * 512);
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  ctx.globalAlpha = amount;
+  ctx.translate(-ox, -oy);
+  ctx.fillStyle = ctx.createPattern(g, "repeat");
+  ctx.fillRect(0, 0, W + 512, H + 512);
+  ctx.restore();
+}
+
+// ── Scene A: the old name ─────────────────────────────────────────────
+function drawOld(t) {
+  const push = lerp(1.06, 1.0, eOutCubic(P(t, 0, 3.2)));
+  ctx.save();
+  ctx.translate(W / 2, H / 2); ctx.scale(push, push);
+  ctx.drawImage(IM.oldBg, -W / 2, -H / 2, W, H);
+  ctx.restore();
+
+  const v = ctx.createRadialGradient(W / 2, 620, 120, W / 2, 900, 1250);
+  v.addColorStop(0, "rgba(255,252,248,0.22)");
+  v.addColorStop(1, "rgba(35,25,20,0.35)");
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+
+  const nameY = 600;
+  ctx.save();
+  ctx.globalAlpha = 1 - eInOutCubic(P(t, T.glitch[0], T.glitch[0] + 0.3));
+  riseText("كنّا", W / 2, 360, 66, "#2A2523", P(t, T.oldCaption, T.oldCaption + 0.8), 700);
+  ctx.restore();
+
+  const drift = lerp(1, 0.965, eInOutCubic(P(t, 1.0, 3.2)));
+  const g0 = T.glitch[0], g1 = T.glitch[1];
+  const gEnv = Math.sin(Math.PI * P(t, g0, g1));
+  const step = Math.floor(t * 15);
+
+  const layers = [[IM.oldBlack, T.oldBlack], [IM.oldBrown, T.oldBrown]];
+  for (const [img, start] of layers) {
+    const p = eOutExpo(P(t, start, start + 1.0));
+    if (p <= 0) continue;
+    const s = lerp(1.08, 1, p) * drift;
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    const x = W / 2 - w / 2, y = nameY - h / 2;
+    ctx.save();
+    ctx.globalAlpha = p;
+    if (p < 1) ctx.filter = `blur(${(1 - p) * 16}px)`;
+    if (gEnv > 0.01) {
+      drawSliced(img, x, y, w, h, gEnv, step);
+    } else {
+      ctx.drawImage(img, x, y, w, h);
+    }
+    ctx.restore();
+  }
+
+  // "Bad signal" scanlines during the glitch.
+  if (gEnv > 0.01) {
+    for (let i = 0; i < 5; i++) {
+      if (hash(step, i + 40) > 0.55) continue;
+      const yy = hash(step, i + 50) * H, hh = 2 + hash(step, i + 60) * 14;
+      ctx.fillStyle = `rgba(255,255,255,${0.35 * gEnv})`;
+      ctx.fillRect(0, yy, W, hh);
+    }
+  }
+}
+
+// Horizontal-slice displacement with RGB split, stepped at 15 fps for a "lost signal" feel.
+function drawSliced(img, x, y, w, h, env, step) {
+  const n = 18, iw = img.naturalWidth, ih = img.naturalHeight;
+  const split = 16 * env;
+  const passes = [[tint(img, "#FF2E63"), -split, 0.55], [tint(img, "#17C8FF"), split, 0.55], [img, 0, 1]];
+  for (const [src, dx, a] of passes) {
+    ctx.save();
+    ctx.globalAlpha *= a;
+    for (let i = 0; i < n; i++) {
+      const sy = ih * i / n, sh = ih / n + 1;
+      const r = hash(step, i);
+      const off = r > 0.55 ? (hash(step, i + 17) - 0.5) * 2 * 90 * env : 0;
+      ctx.drawImage(src, 0, sy, iw, sh, x + off + dx, y + h * i / n, w, h / n + 1);
+    }
+    ctx.restore();
+  }
+}
+
+// ── Scene B: three capsules (the logo's bars) wipe the old name away ──
+function drawWipe(t) {
+  const colW = W / 3;
+  for (const [color, start] of [[COL.gold, T.wipeGold], [COL.petrol, T.wipePetrol]]) {
+    for (let k = 0; k < 3; k++) {
+      const i = 2 - k;                 // right column leads (reading direction)
+      const p = eInOutQuart(P(t, start + k * T.wipeStagger, start + k * T.wipeStagger + T.wipeDur));
+      if (p <= 0) continue;
+      const top = lerp(H + 40, -colW, p);
+      ctx.fillStyle = color;
+      rrect(i * colW - 1, top, colW + 2, H + colW * 2, colW / 2);
+      ctx.fill();
+    }
+  }
+}
+
+// ── Icon ──────────────────────────────────────────────────────────────
+// Rounded container of size (w, h) at (cx, cy); bars are laid out in units of w.
+function drawIcon(cx, cy, w, h, r, pal, bars) {
+  ctx.fillStyle = pal.box;
+  rrect(cx - w / 2, cy - h / 2, w, h, r);
+  ctx.fill();
+  for (let i = 0; i < 3; i++) {
+    const b = L.new.bars[i], st = bars[i];
+    if (st.dot <= 0) continue;
+    const bw = b.w * w, full = b.h * w;
+    const bottom = cy + (b.y + b.h) * w;
+    const x = cx + b.x * w;
+    const hh = lerp(bw, full, st.grow) * st.stretch;
+    const d = st.dot;               // dot pop scale
+    ctx.save();
+    ctx.translate(x + bw / 2, bottom - bw / 2);
+    ctx.scale(d, d);
+    ctx.translate(-(x + bw / 2), -(bottom - bw / 2));
+    ctx.fillStyle = i === 2 ? pal.gold : pal.bar;
+    if (i === 2 && st.glow > 0) { ctx.shadowColor = "rgba(200,169,105,0.85)"; ctx.shadowBlur = 50 * st.glow * w / S; }
+    rrect(x, bottom - hh, bw, hh, bw / 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    if (i === 2 && st.shine > 0 && st.shine < 1) {
+      ctx.clip();
+      const sx = lerp(x - bw * 2, x + bw * 3, st.shine);
+      const gr = ctx.createLinearGradient(sx - bw, bottom, sx + bw, bottom - hh);
+      gr.addColorStop(0, "rgba(255,255,255,0)");
+      gr.addColorStop(0.5, "rgba(255,250,235,0.75)");
+      gr.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = gr;
+      ctx.fillRect(x - 2, bottom - hh - 2, bw + 4, hh + 4);
+    }
+    ctx.restore();
+  }
+}
+
+function barState(t) {
+  return [0, 1, 2].map(i => {
+    const t0 = T.bars[i];
+    const wave = Math.sin(Math.PI * P(t, T.wave + i * 0.09, T.wave + i * 0.09 + 0.38)) * 0.1;
+    return {
+      dot: clamp(spring(t - t0, 3.0, 8.0), 0, 1.4),
+      grow: spring(t - t0 - 0.2, 2.2, 9.0),
+      stretch: 1 + wave,
+      glow: i === 2 ? Math.sin(Math.PI * P(t, T.shine - 0.05, T.shine + 0.9)) * 0.9 : 0,
+      shine: i === 2 ? (t < T.shine2 - 0.1 ? P(t, T.shine, T.shine + 0.5) : P(t, T.shine2, T.shine2 + 0.5)) : 0,
+    };
+  });
+}
+
+// ── Scene C–G: the new identity ───────────────────────────────────────
+function camera(t) {
+  return lerp(1, 1.035, eInOutCubic(P(t, T.camera[0], T.camera[1])))
+       + lerp(0, 0.02, eInOutCubic(P(t, T.variants[2][0], DUR)));
+}
+
+function drawWordmark(t, pal) {
+  // The master file sets the Arabic line slightly left of the icon axis; centre it optically.
+  const wx0 = Math.min(...L.new.words.map(w => w.x)), wx1 = Math.max(...L.new.words.map(w => w.x + w.w));
+  const shift = -(wx0 + wx1) / 2;
+  L.new.words.forEach((wd, i) => {
+    const t0 = T.words + i * T.wordStagger;
+    const p = P(t, t0, t0 + T.wordDur);
+    if (p <= 0) return;
+    const e = eOutExpo(p);
+    const x = CX + (wd.x + shift) * S, y = CY + wd.y * S, w = wd.w * S, h = wd.h * S;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x - 20, y - 20, w + 40, h + 40); ctx.clip();
+    ctx.globalAlpha = clamp(p * 2.5);
+    ctx.drawImage(tint(IM.words[i], pal.word), x, y + (1 - e) * h * 1.05, w, h);
+    ctx.restore();
+  });
+
+  const ls = L.new.letters;
+  const x0 = Math.min(...ls.map(l => l.x)), x1 = Math.max(...ls.map(l => l.x + l.w));
+  const mid = (x0 + x1) / 2;
+  const k = lerp(1.9, 1, eOutExpo(P(t, T.latin[0], T.latin[1])));
+  ls.forEach((l, i) => {
+    const c = l.x + l.w / 2;
+    const dist = Math.abs(c - mid) / ((x1 - x0) / 2);
+    const a = eOutCubic(P(t, T.latin[0] + dist * 0.3, T.latin[0] + dist * 0.3 + 0.45));
+    if (a <= 0) return;
+    const cx = CX + (c - mid) * k * S;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.drawImage(tint(IM.letters[i], pal.latin), cx - l.w * S / 2, CY + l.y * S, l.w * S, l.h * S);
+    ctx.restore();
+  });
+}
+
+function drawTagline(t, pal) {
+  const d = eOutExpo(P(t, T.divider, T.divider + 0.7));
+  if (d > 0) {
+    ctx.fillStyle = pal.line;
+    const w = 88 * d;
+    rrect(CX - w / 2, DIVIDER_Y - 2.5, w, 5, 2.5); ctx.fill();
+  }
+  riseText("نفس الثقة.. بهويّة جديدة", CX, TAGLINE_Y, 54, pal.word, P(t, T.tagline, T.tagline + 0.9));
+}
+
+// The settled lockup (icon + wordmark + tagline) in a given colourway.
+function drawLockup(t, pal) {
+  ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, W, H);
+  const c = camera(t);
+  ctx.save();
+  ctx.translate(W / 2, 900); ctx.scale(c, c); ctx.translate(-W / 2, -900);
+  drawIcon(CX, CY, S, S, L.new.radius * S, pal, barState(t));
+  drawWordmark(t, pal);
+  drawTagline(t, pal);
+  ctx.restore();
+}
+
+function drawNew(t) {
+  const z = eInOutQuint(P(t, T.zoom[0], T.zoom[1]));
+  if (z < 1) {
+    // Full-screen petrol "screen" that becomes the icon.
+    const pal = PALETTES.primary;
+    ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, W, H);
+    const w = lerp(W, S, z), h = lerp(H, S, z), cy = lerp(H / 2, CY, z);
+    const r = L.new.radius * Math.min(w, h) * clamp(z * 2.2);
+    drawIcon(CX, cy, w, h, r, pal, barState(t));
+
+    // Signal rings when the gold bar lands.
+    T.rings.forEach(r0 => {
+      const p = P(t, r0, r0 + 1.1);
+      if (p <= 0 || p >= 1) return;
+      ctx.save();
+      rrect(CX - w / 2, cy - h / 2, w, h, r); ctx.clip();
+      ctx.strokeStyle = `rgba(242,238,227,${0.22 * (1 - p)})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(CX, cy, lerp(90, 820, eOutCubic(p)) * w / W, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    });
+
+    const [c0, c1] = T.newCaption;
+    const a = 1 - eInOutCubic(P(t, c1, c1 + 0.3));
+    ctx.save(); ctx.globalAlpha = a;
+    riseText("واليوم صرنا", W / 2, 560, 66, COL.sand, P(t, c0, c0 + 0.9), 700);
+    ctx.restore();
+    return;
+  }
+
+  // Settled lockup, with circular colourway wipes from the icon centre.
+  let current = "primary";
+  for (const [ts, name] of T.variants) {
+    if (t < ts) break;
+    const p = eInOutCubic(P(t, ts, ts + T.variantDur));
+    if (p >= 1) { current = name; continue; }
+    drawLockup(t, PALETTES[current]);
+    const rad = p * 1320;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(CX, CY, rad, 0, Math.PI * 2); ctx.clip();
+    drawLockup(t, PALETTES[name]);
+    ctx.restore();
+    ctx.strokeStyle = `rgba(200,169,105,${0.9 * (1 - p)})`;
+    ctx.lineWidth = 8 * (1 - p) + 1;
+    ctx.beginPath(); ctx.arc(CX, CY, rad, 0, Math.PI * 2); ctx.stroke();
+    return;
+  }
+  drawLockup(t, PALETTES[current]);
+}
+
+// ── Frame ─────────────────────────────────────────────────────────────
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.filter = "none"; ctx.globalCompositeOperation = "source-over";
+  if (t < T.newScene) {
+    drawOld(t);
+    drawWipe(t);
+  } else {
+    drawNew(t);
+  }
+}
+
+// Film grain on the old scene only (the new identity stays flat and crisp), plus the fade-in.
+function post(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.filter = "none"; ctx.globalCompositeOperation = "source-over";
+  if (t < T.newScene) drawGrain(t, 0.09);
+  const fin = 1 - P(t, 0, 0.3);
+  if (fin > 0) { ctx.fillStyle = `rgba(0,0,0,${fin})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// One output frame. With samples > 1 the frame is the average of sub-frames spread over
+// `shutter` seconds around t — real motion blur on fast moves.
+let acc;
+function renderFrame(t, samples = 1, shutter = 0) {
+  if (samples > 1) {
+    if (!acc) { acc = document.createElement("canvas"); acc.width = W; acc.height = H; }
+    const a = acc.getContext("2d");
+    for (let k = 0; k < samples; k++) {
+      render(t + shutter * ((k + 0.5) / samples - 0.5));
+      a.globalAlpha = 1 / (k + 1);
+      a.drawImage(cv, 0, 0);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+    ctx.drawImage(acc, 0, 0);
+  } else {
+    render(t);
+  }
+  post(t);
+}
+
+window.renderFrame = renderFrame;
+window.DUR = DUR;
+init().then(() => {
+  if (!navigator.webdriver) {
+    // Live preview when opened in a browser.
+    document.body.classList.add("preview");
+    const t0 = performance.now();
+    const loop = now => { renderFrame(((now - t0) / 1000) % DUR); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+});
+</script>
+</body>
+</html>
