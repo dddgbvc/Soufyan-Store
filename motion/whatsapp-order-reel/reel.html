@@ -1,0 +1,1711 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>طلبك بالواتساب — مكتب سفيان للموبايل</title>
+<style>
+  @font-face { font-family: Plex; font-weight: 500; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  @font-face { font-family: Plex; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  @font-face { font-family: Plex; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  @font-face { font-family: Plex; font-weight: 500; src: url(assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2013-2014, U+2022, U+2026; }
+  @font-face { font-family: Plex; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2013-2014, U+2022, U+2026; }
+  @font-face { font-family: Plex; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2013-2014, U+2022, U+2026; }
+  html, body { margin: 0; background: #000; }
+  canvas { display: block; }
+  body.preview { display: grid; place-items: center; height: 100vh; }
+  body.preview canvas { height: 100vh; width: auto; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// "اطلب بالواتساب" — an order travels from a WhatsApp chat to the customer's door.
+// Every frame is a pure function of t (seconds): renderFrame(t) is deterministic.
+
+const W = 1080, H = 1920, DUR = 28.8;
+
+// ── Brand + UI colours ────────────────────────────────────────────────
+const C = {
+  sand: "#F2EEE3", petrol: "#14343F", gold: "#C8A969", aqua: "#2F6F6B", latin: "#6F7C7D",
+  sandDeep: "#E6DECF", petrolSoft: "#9DAEB0",
+  // WhatsApp light theme.
+  waBg: "#EFEAE2", waOut: "#D9FDD3", waIn: "#FFFFFF", waGreen: "#00A884", waText: "#111B21",
+  waMeta: "#667781", waBlue: "#53BDEB", waIcon: "#54656F", waGrey: "#8696A0",
+};
+
+// Shop facts, from the brand files in Canva.
+const SHOP = {
+  name: "مكتب سفيان للموبايل",
+  phone: "0773 164 4450",
+  place: "سامراء — الحويش — الشارع الرئيسي",
+  hours: "يومياً 9:00 — 22:00",
+  tagline: "شاشتك الجاية تبدأ من هنا",
+  product: { name: "Samsung Galaxy A54", spec: "128GB · 8GB RAM · أسود", price: "385,000 د.ع" },
+  order: "#1047",
+};
+
+// ── Timeline (seconds) — 120 BPM grid, one beat = 0.5 s (see audio.py) ─
+const T = {
+  waIcon: 0.1, words: [0.25, 0.5, 0.85, 1.1], underline: 1.2, line3: 1.45, hookExit: 2.2,
+  phoneIn: 2.3,
+  type1: [2.95, 4.15], send1: 4.35, blue1: 4.95,
+  dots1: [5.1, 6.25], morph1: 5.72,
+  m2: 6.25, m3: 6.75,
+  pop: [7.3, 9.0],
+  type2: [9.05, 9.5], send2: 9.65, blue2: 10.0,
+  dots2: [10.0, 10.5],
+  m5: 10.5,
+  zoomOut: [11.0, 11.75],
+  box: 11.7, drop: [12.2, 12.65], sideClose: 13.25, longClose: 13.6, tape: [14.1, 14.55], seal: 14.75,
+  step2: 15.0, jump: 15.45, pan: [15.5, 16.2], land: 16.3,
+  go: 16.7, brake: [19.2, 19.9], beep: 19.95, hop: [20.1, 20.55], door: 20.5, arrived: 20.65,
+  wipe1: 20.95, phone2: 21.75, m6: 22.25, m7: 22.8, stars: 22.95, heart: 23.55,
+  wipe2: 24.0, end: 24.75,
+};
+
+// ── Maths ─────────────────────────────────────────────────────────────
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const eOutCubic = t => 1 - Math.pow(1 - t, 3);
+const eInCubic = t => t * t * t;
+const eInOutCubic = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const eInOutQuart = t => t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2;
+const eOutExpo = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+const eInOutSine = t => -(Math.cos(Math.PI * t) - 1) / 2;
+const eOutBack = (t, s = 1.7) => 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2);
+const spring = (t, f = 2.2, d = 9) => t <= 0 ? 0 : 1 - Math.exp(-d * t) * Math.cos(2 * Math.PI * f * t);
+const hash = (a, b = 0) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+const mixHex = (a, b, t) => {
+  const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
+  return `rgb(${pa.map((v, i) => Math.round(lerp(v, pb[i], t))).join(",")})`;
+};
+
+// ── Canvas helpers ────────────────────────────────────────────────────
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+const FONT = (w, s) => `${w} ${s}px Plex, "Noto Color Emoji", sans-serif`;
+
+function rr(g, x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+
+function txt(g, s, x, y, size, color, o = {}) {
+  g.save();
+  g.globalAlpha *= o.alpha ?? 1;
+  g.font = FONT(o.w ?? 600, size);
+  g.direction = o.dir ?? "rtl";
+  g.textAlign = o.align ?? "center";
+  g.textBaseline = o.base ?? "alphabetic";
+  if (o.spacing) g.letterSpacing = o.spacing + "px";
+  g.fillStyle = color;
+  g.fillText(s, x, y);
+  g.restore();
+}
+
+function measure(g, s, size, w = 600) { g.save(); g.font = FONT(w, size); const m = g.measureText(s).width; g.restore(); return m; }
+
+function offscreen(w, h, scale, draw) {
+  const c = document.createElement("canvas");
+  c.width = Math.ceil(w * scale); c.height = Math.ceil(h * scale);
+  const g = c.getContext("2d");
+  g.scale(scale, scale);
+  draw(g);
+  c.lw = w; c.lh = h;
+  return c;
+}
+
+let L;
+const IM = {};
+const tintCache = new Map();
+function tint(img, color) {
+  const key = img.src + color;
+  if (!tintCache.has(key)) {
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const g = c.getContext("2d");
+    g.drawImage(img, 0, 0);
+    g.globalCompositeOperation = "source-in";
+    g.fillStyle = color; g.fillRect(0, 0, c.width, c.height);
+    tintCache.set(key, c);
+  }
+  return tintCache.get(key);
+}
+const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error(src)); i.src = src; });
+
+// ── Icons (stroke style, drawn in a 24-unit box centred on x,y) ───────
+const HANDSET = new Path2D("M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z");
+
+function icon(g, name, x, y, size, color, lw = 2) {
+  g.save();
+  g.translate(x, y); g.scale(size / 24, size / 24); g.translate(-12, -12);
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = lw; g.lineCap = "round"; g.lineJoin = "round";
+  g.beginPath();
+  switch (name) {
+    case "check": g.moveTo(5, 12.5); g.lineTo(10, 17); g.lineTo(19, 7.5); g.stroke(); break;
+    case "chat": rr(g, 3, 4, 18, 13, 5); g.moveTo(8, 17); g.lineTo(6.5, 21); g.lineTo(12, 17); g.stroke(); break;
+    case "box":
+      g.moveTo(12, 3); g.lineTo(20, 7.5); g.lineTo(20, 16.5); g.lineTo(12, 21); g.lineTo(4, 16.5); g.lineTo(4, 7.5); g.closePath();
+      g.moveTo(4, 7.5); g.lineTo(12, 12); g.lineTo(20, 7.5); g.moveTo(12, 12); g.lineTo(12, 21); g.stroke(); break;
+    case "scooter":
+      g.arc(6, 17, 3, 0, Math.PI * 2); g.moveTo(21, 17); g.arc(18, 17, 3, 0, Math.PI * 2);
+      g.moveTo(9, 17); g.lineTo(15, 17); g.lineTo(13.5, 9); g.lineTo(16, 5); g.moveTo(4, 11); g.lineTo(10, 11); g.lineTo(9, 17); g.stroke(); break;
+    case "house":
+      g.moveTo(3.5, 11); g.lineTo(12, 4); g.lineTo(20.5, 11); g.moveTo(5.5, 9.5); g.lineTo(5.5, 20); g.lineTo(18.5, 20); g.lineTo(18.5, 9.5);
+      g.moveTo(10, 20); g.lineTo(10, 14.5); g.lineTo(14, 14.5); g.lineTo(14, 20); g.stroke(); break;
+    case "shield":
+      g.moveTo(12, 3); g.lineTo(19.5, 6); g.lineTo(19.5, 11.5); g.bezierCurveTo(19.5, 16, 16, 19.5, 12, 21); g.bezierCurveTo(8, 19.5, 4.5, 16, 4.5, 11.5); g.lineTo(4.5, 6); g.closePath();
+      g.moveTo(8.5, 12); g.lineTo(11, 14.5); g.lineTo(15.5, 9.5); g.stroke(); break;
+    case "checkCircle":
+      g.arc(12, 12, 9, 0, Math.PI * 2); g.moveTo(8, 12.2); g.lineTo(11, 15); g.lineTo(16, 9.5); g.stroke(); break;
+    case "pin":
+      g.moveTo(12, 21); g.bezierCurveTo(12, 21, 5, 14.5, 5, 9.5); g.arc(12, 9.5, 7, Math.PI, 0, false); g.bezierCurveTo(19, 14.5, 12, 21, 12, 21);
+      g.moveTo(14.6, 9.5); g.arc(12, 9.5, 2.6, 0, Math.PI * 2); g.stroke(); break;
+    case "clock":
+      g.arc(12, 12, 9, 0, Math.PI * 2); g.moveTo(12, 7); g.lineTo(12, 12); g.lineTo(15.5, 14); g.stroke(); break;
+    case "video":
+      rr(g, 3, 7, 12, 10, 2.5); g.moveTo(15, 10.5); g.lineTo(21, 7.5); g.lineTo(21, 16.5); g.lineTo(15, 13.5); g.stroke(); break;
+    case "call": g.lineWidth = lw * 0.9; g.translate(1.5, 1.5); g.scale(0.88, 0.88); g.stroke(HANDSET); break;
+    case "handset": g.fill(HANDSET); break;
+    case "back": g.moveTo(5, 12); g.lineTo(19, 12); g.moveTo(13, 6); g.lineTo(19, 12); g.lineTo(13, 18); g.stroke(); break;
+    case "smile":
+      g.arc(12, 12, 9, 0, Math.PI * 2); g.moveTo(8.5, 14); g.quadraticCurveTo(12, 17.5, 15.5, 14); g.stroke();
+      g.beginPath(); g.arc(9, 10, 1.1, 0, 7); g.arc(15, 10, 1.1, 0, 7); g.fill(); break;
+    case "clip":
+      g.translate(12, 12); g.rotate(Math.PI / 4); g.translate(-12, -12);
+      rr(g, 8.5, 2.5, 7, 19, 3.5); g.moveTo(12, 6); g.lineTo(12, 15); g.stroke(); break;
+    case "camera":
+      rr(g, 3, 7, 18, 13, 3); g.moveTo(8, 7); g.lineTo(9.5, 4.5); g.lineTo(14.5, 4.5); g.lineTo(16, 7); g.moveTo(15.5, 13.5); g.arc(12, 13.5, 3.5, 0, 7); g.stroke(); break;
+    case "mic":
+      rr(g, 9, 3, 6, 11, 3); g.fill(); g.beginPath(); g.moveTo(6, 11); g.quadraticCurveTo(6, 17, 12, 17); g.quadraticCurveTo(18, 17, 18, 11);
+      g.moveTo(12, 17); g.lineTo(12, 21); g.stroke(); break;
+    case "send":   // paper plane pointing left (RTL)
+      g.moveTo(21, 4); g.lineTo(3, 12); g.lineTo(21, 20); g.lineTo(18, 12); g.closePath(); g.fill(); break;
+    case "heart":
+      g.moveTo(12, 20); g.bezierCurveTo(4, 14, 3, 9.5, 5.5, 6.5); g.bezierCurveTo(8, 3.8, 11, 5, 12, 7.5);
+      g.bezierCurveTo(13, 5, 16, 3.8, 18.5, 6.5); g.bezierCurveTo(21, 9.5, 20, 14, 12, 20); g.fill(); break;
+  }
+  g.restore();
+}
+
+// WhatsApp mark: ring with a tail and a handset.
+function waMark(g, x, y, r, color, lw = 0.13) {
+  g.save();
+  g.translate(x, y);
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = r * lw; g.lineJoin = "round";
+  g.beginPath();
+  g.arc(0, 0, r, Math.PI * 0.78, Math.PI * 0.62 + Math.PI * 2 - 0.02, false);
+  g.lineTo(-r * 1.02, r * 1.02);
+  g.closePath(); g.stroke();
+  g.scale(r / 15.5, r / 15.5); g.translate(-12, -12.3);
+  g.fill(HANDSET);
+  g.restore();
+}
+
+function star(g, x, y, r, fill, stroke) {
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? r * 0.46 : r;
+    g.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad);
+  }
+  g.closePath();
+  g.lineJoin = "round";
+  if (fill) { g.fillStyle = fill; g.fill(); }
+  if (stroke) { g.strokeStyle = stroke; g.lineWidth = r * 0.12; g.stroke(); }
+}
+
+// Logo bars (no container). unit = icon size they belong to; baseline = bottom of the bars.
+function logoBars(g, cx, baseline, unit, colors, prog = [1, 1, 1], stretch = [1, 1, 1]) {
+  for (let i = 0; i < 3; i++) {
+    const b = L.new.bars[i];
+    const p = prog[i];
+    if (p <= 0) continue;
+    const bw = b.w * unit, full = b.h * unit * stretch[i];
+    const x = cx + b.x * unit;
+    const h = lerp(bw, full, clamp(p, 0, 1.3));
+    const d = clamp(p * 3, 0, 1);
+    g.save();
+    g.translate(x + bw / 2, baseline - bw / 2); g.scale(d, d); g.translate(-(x + bw / 2), -(baseline - bw / 2));
+    g.fillStyle = colors[i];
+    rr(g, x, baseline - h, bw, h, bw / 2); g.fill();
+    g.restore();
+  }
+}
+const barsCentre = () => { const b = L.new.bars; return (b[0].x + b[2].x + b[2].w) / 2; };
+
+// Brand backdrop: petrol with the translucent capsules from the brand designs.
+function petrolBackdrop(g, t, alpha = 1) {
+  g.save();
+  g.globalAlpha = alpha;
+  g.fillStyle = C.petrol; g.fillRect(0, 0, W, H);
+  g.fillStyle = "rgba(255,255,255,0.045)";
+  const caps = [[70, 1180, 250], [415, 930, 250], [760, 660, 250]];
+  caps.forEach(([x, top, w], i) => {
+    const y = top + Math.sin(t * 0.6 + i * 1.7) * 18;
+    rr(g, x, y, w, H, w / 2); g.fill();
+  });
+  g.restore();
+}
+
+// ── Seeded confetti ──────────────────────────────────────────────────
+function confetti(g, t, t0, cx, cy, seed, n, colors, spread = 1) {
+  const dt = t - t0;
+  if (dt <= 0 || dt > 3.2) return;
+  for (let i = 0; i < n; i++) {
+    const r1 = hash(seed, i), r2 = hash(seed + 1, i), r3 = hash(seed + 2, i), r4 = hash(seed + 3, i);
+    const ang = -Math.PI / 2 + (r1 - 0.5) * Math.PI * 1.25 * spread;
+    const v = 900 + r2 * 1300;
+    const drag = 1.6;
+    const k = (1 - Math.exp(-drag * dt)) / drag;
+    const x = cx + Math.cos(ang) * v * k + Math.sin(dt * (3 + r3 * 4) + i) * 30 * dt;
+    const y = cy + Math.sin(ang) * v * k + 520 * dt * dt * 0.9;
+    const a = 1 - P(dt, 2.2, 3.1);
+    const rot = dt * (4 + r4 * 8) * (r3 > 0.5 ? 1 : -1) + i;
+    const sz = 12 + r3 * 16;
+    g.save();
+    g.globalAlpha *= a;
+    g.translate(x, y); g.rotate(rot); g.scale(1, Math.abs(Math.cos(dt * (5 + r1 * 6) + i)) * 0.9 + 0.1);
+    g.fillStyle = colors[i % colors.length];
+    const shape = i % 3;
+    if (shape === 0) { g.fillRect(-sz / 2, -sz / 4, sz, sz / 2); }
+    else if (shape === 1) { g.beginPath(); g.arc(0, 0, sz / 3, 0, Math.PI * 2); g.fill(); }
+    else { rr(g, -sz / 6, -sz / 2, sz / 3, sz, sz / 6); g.fill(); }
+    g.restore();
+  }
+}
+
+// Capsule wipe (the logo bars as a transition), right column leads.
+function capsuleWipe(g, t, start, color, dur = 0.6, stagger = 0.07, exit = false) {
+  const colW = W / 3;
+  for (let k = 0; k < 3; k++) {
+    const i = 2 - k;
+    const p = eInOutQuart(P(t, start + k * stagger, start + k * stagger + dur));
+    if (p <= 0) continue;
+    const top = exit ? lerp(-colW, -H - colW * 2.2, p) : lerp(H + 40, -colW, p);
+    if (exit && p >= 1) continue;
+    g.fillStyle = color;
+    rr(g, i * colW - 1, top, colW + 2, H + colW * 2, colW / 2); g.fill();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Product illustrations
+// ════════════════════════════════════════════════════════════════════
+// Galaxy A54 (back): three floating lenses in a column, flash beside them.
+function drawA54(g, x, y, h, rot = 0) {
+  const w = h * 0.47, r = h * 0.085;
+  g.save();
+  g.translate(x, y); g.rotate(rot);
+  g.shadowColor = "rgba(0,0,0,0.35)"; g.shadowBlur = h * 0.08; g.shadowOffsetY = h * 0.03;
+  const body = g.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+  body.addColorStop(0, "#3A3F46"); body.addColorStop(0.45, "#1E2226"); body.addColorStop(1, "#2C3036");
+  g.fillStyle = body; rr(g, -w / 2, -h / 2, w, h, r); g.fill();
+  g.shadowColor = "transparent";
+  g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = h * 0.006; rr(g, -w / 2 + 1, -h / 2 + 1, w - 2, h - 2, r); g.stroke();
+  const gloss = g.createLinearGradient(-w / 2, -h / 2, w / 2, 0);
+  gloss.addColorStop(0, "rgba(255,255,255,0.10)"); gloss.addColorStop(0.5, "rgba(255,255,255,0)");
+  g.fillStyle = gloss; rr(g, -w / 2, -h / 2, w, h, r); g.fill();
+  const lx = -w / 2 + w * 0.24, lr = w * 0.12;
+  [0.12, 0.25, 0.38].forEach(fy => {
+    const ly = -h / 2 + h * fy;
+    g.fillStyle = "#4A4F57"; g.beginPath(); g.arc(lx, ly, lr, 0, 7); g.fill();
+    g.fillStyle = "#0B0D10"; g.beginPath(); g.arc(lx, ly, lr * 0.74, 0, 7); g.fill();
+    g.fillStyle = "#1D2A3A"; g.beginPath(); g.arc(lx, ly, lr * 0.42, 0, 7); g.fill();
+    g.fillStyle = "rgba(255,255,255,0.55)"; g.beginPath(); g.arc(lx - lr * 0.22, ly - lr * 0.25, lr * 0.14, 0, 7); g.fill();
+  });
+  g.fillStyle = "#E9E2CC"; g.beginPath(); g.arc(lx + lr * 2.1, -h / 2 + h * 0.12, lr * 0.32, 0, 7); g.fill();
+  txt(g, "SAMSUNG", 0, h * 0.36, h * 0.042, "rgba(255,255,255,0.32)", { dir: "ltr", w: 600, spacing: h * 0.008 });
+  g.restore();
+}
+
+// Over-ear headphones.
+function drawHeadphones(g, x, y, s, rot = 0) {
+  g.save();
+  g.translate(x, y); g.rotate(rot); g.scale(s / 100, s / 100);
+  g.shadowColor = "rgba(0,0,0,0.3)"; g.shadowBlur = 10; g.shadowOffsetY = 4;
+  g.lineCap = "round";
+  g.strokeStyle = "#23272C"; g.lineWidth = 11;
+  g.beginPath(); g.arc(0, 6, 40, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+  g.shadowColor = "transparent";
+  g.strokeStyle = "#3B4148"; g.lineWidth = 4;
+  g.beginPath(); g.arc(0, 6, 40, Math.PI * 1.12, Math.PI * 1.88); g.stroke();
+  [-1, 1].forEach(sd => {
+    g.fillStyle = "#1B1E22"; rr(g, sd * 38 - 13, 2, 26, 44, 12); g.fill();
+    g.fillStyle = "#30353B"; rr(g, sd * 38 - 13 + (sd < 0 ? 16 : 0), 6, 10, 36, 5); g.fill();
+    g.fillStyle = "#C8A969"; g.beginPath(); g.arc(sd * 38 + (sd < 0 ? -4 : 4), 24, 2.4, 0, 7); g.fill();
+  });
+  g.restore();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// WhatsApp chat
+// ════════════════════════════════════════════════════════════════════
+const PW = 620, PH = 1270, PR = 92, INSET = 15;
+const SW = PW - INSET * 2, SH = PH - INSET * 2;
+const CHAT_TOP = 150, CHAT_BOTTOM = SH - 132;
+const BUBBLE_MAX = 430, PADX = 18, PADY = 12, LH = 40, TXT = 28;
+
+const MSGS = [
+  { id: "m1", side: "out", t: T.send1, text: "هلا، عدكم Galaxy A54؟", time: "10:30", blue: T.blue1 },
+  { id: "d1", side: "in", kind: "typing", t: T.dots1[0], end: T.dots1[1], morph: T.morph1 },
+  { id: "m2", side: "in", t: T.m2, text: "هلا بيك 🌷 إي متوفر، جديد وبكفالة سنة", time: "10:31" },
+  { id: "m3", side: "in", kind: "product", t: T.m3, time: "10:31" },
+  { id: "m4", side: "out", t: T.send2, text: "زين، حطلي وياه سماعة 🎧", time: "10:32", blue: T.blue2 },
+  { id: "d2", side: "in", kind: "typing", t: T.dots2[0], end: T.dots2[1] },
+  { id: "m5", side: "in", kind: "order", t: T.m5, time: "10:32" },
+  { id: "m6", side: "in", t: T.m6, text: "وصل طلبك 🎉 إن شاء الله يعجبك", time: "11:05" },
+  { id: "m7", side: "out", kind: "rating", t: T.m7, text: "وصل بسرعة، خوش تعامل 👌", time: "11:06", blue: T.m7 + 0.45, reaction: T.heart },
+];
+const TYPING = [
+  { range: T.type1, text: MSGS[0].text, send: T.send1 },
+  { range: T.type2, text: MSGS[4].text, send: T.send2 },
+];
+
+function wrap(g, text, size, w, maxW) {
+  const words = text.split(" ");
+  const lines = [];
+  let cur = "";
+  for (const word of words) {
+    const test = cur ? cur + " " + word : word;
+    if (measure(g, test, size, w) > maxW && cur) { lines.push(cur); cur = word; } else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+// Bubble shape with WhatsApp's tail on the outer top corner.
+function bubbleShape(g, w, h, side, tail, fill) {
+  g.save();
+  g.shadowColor = "rgba(11,20,26,0.16)"; g.shadowBlur = 2; g.shadowOffsetY = 1.2;
+  g.fillStyle = fill;
+  g.beginPath();
+  const r = 16;
+  if (side === "in") {
+    g.moveTo(r, 0);
+    if (tail) { g.lineTo(w + 12, 0); g.quadraticCurveTo(w + 4, 6, w, 16); } else { g.arcTo(w, 0, w, h, r); }
+    g.arcTo(w, h, 0, h, r); g.arcTo(0, h, 0, 0, r); g.arcTo(0, 0, w, 0, r);
+  } else {
+    g.moveTo(w - r, 0);
+    g.arcTo(w, 0, w, h, r); g.arcTo(w, h, 0, h, r); g.arcTo(0, h, 0, 0, r);
+    if (tail) { g.lineTo(0, 16); g.quadraticCurveTo(-4, 6, -12, 0); } else { g.arcTo(0, 0, w, 0, r); }
+  }
+  g.closePath(); g.fill();
+  g.restore();
+}
+
+const META_W = 96;
+function sizeMessage(m) {
+  const g = ctx;
+  if (m.kind === "typing") return { w: 98, h: 54 };
+  if (m.kind === "product") return { w: 452, h: 556 };
+  if (m.kind === "order") return { w: 452, h: 372 };
+  const lines = wrap(g, m.text, TXT, 500, BUBBLE_MAX - PADX * 2);
+  const widths = lines.map(l => measure(g, l, TXT, 500));
+  const last = widths[widths.length - 1];
+  const inline = last + META_W <= BUBBLE_MAX - PADX * 2;
+  let w = Math.max(...widths, inline ? last + META_W : 0) + PADX * 2;
+  let h = lines.length * LH + PADY * 2 + (inline ? 0 : 22);
+  if (m.kind === "rating") { w = Math.max(w, 330); h += 54; }
+  m.lines = lines;
+  return { w: Math.ceil(w), h: Math.ceil(h) };
+}
+
+function productImage(g, x, y, w, h) {
+  g.save();
+  rr(g, x, y, w, h, 12); g.clip();
+  const bg = g.createLinearGradient(x, y, x + w, y + h);
+  bg.addColorStop(0, "#1B4351"); bg.addColorStop(1, "#102A33");
+  g.fillStyle = bg; g.fillRect(x, y, w, h);
+  g.fillStyle = "rgba(255,255,255,0.05)";
+  [[0.06, 0.55], [0.36, 0.35], [0.66, 0.15]].forEach(([fx, fy]) => { rr(g, x + w * fx, y + h * fy, w * 0.26, h, w * 0.13); g.fill(); });
+  const glow = g.createRadialGradient(x + w * 0.5, y + h * 0.55, 10, x + w * 0.5, y + h * 0.55, h * 0.6);
+  glow.addColorStop(0, "rgba(200,169,105,0.35)"); glow.addColorStop(1, "rgba(200,169,105,0)");
+  g.fillStyle = glow; g.fillRect(x, y, w, h);
+  drawA54(g, x + w * 0.5, y + h * 0.53, h * 0.8, -0.2);
+  logoBars(g, x + 38 - barsCentre() * 110, y + 62, 110, [C.sand, C.sand, C.gold]);
+  // chip
+  const chip = "جديد · كفالة سنة";
+  const cw = measure(g, chip, 19, 600) + 28;
+  g.fillStyle = C.gold; rr(g, x + w - cw - 14, y + 16, cw, 34, 17); g.fill();
+  txt(g, chip, x + w - 14 - cw / 2, y + 40, 19, C.petrol, { w: 600 });
+  g.restore();
+}
+
+function renderBody(m) {
+  const { w, h } = m.size;
+  const pad = 16;
+  return offscreen(w + pad * 2, h + pad * 2, 2, g => {
+    g.translate(pad, pad);
+    bubbleShape(g, w, h, m.side, m.tail, m.side === "out" ? C.waOut : C.waIn);
+    if (m.kind === "typing") return;
+    if (m.kind === "product") {
+      productImage(g, 6, 6, w - 12, 300);
+      const R = w - 20;
+      txt(g, SHOP.product.name, R, 350, 29, C.waText, { w: 700, align: "right", dir: "rtl" });
+      txt(g, SHOP.product.spec, R, 384, 21, C.waMeta, { w: 500, align: "right" });
+      txt(g, SHOP.product.price, R, 434, 34, C.petrol, { w: 700, align: "right" });
+      [["كفالة سنة على عيوب التصنيع", 474], ["مفحوص قبل التسليم", 508]].forEach(([s, yy]) => {
+        icon(g, "check", R - 10, yy - 8, 20, C.waGreen, 3);
+        txt(g, s, R - 28, yy, 21, C.waText, { w: 500, align: "right" });
+      });
+      return;
+    }
+    if (m.kind === "order") {
+      const R = w - 22;
+      g.fillStyle = C.waGreen; g.beginPath(); g.arc(R - 22, 40, 22, 0, 7); g.fill();
+      icon(g, "check", R - 22, 40, 26, "#fff", 3.2);
+      txt(g, "تم تثبيت طلبك", R - 58, 38, 27, C.waText, { w: 700, align: "right" });
+      txt(g, `رقم الطلب ${SHOP.order}`, R - 58, 68, 20, C.waMeta, { w: 500, align: "right" });
+      g.fillStyle = "rgba(11,20,26,0.08)"; g.fillRect(18, 90, w - 36, 2);
+      [["📱", SHOP.product.name, 132], ["🎧", "سماعة بلوتوث", 174], ["🛵", "توصيل لباب البيت", 216]].forEach(([e, s, yy]) => {
+        txt(g, e, R - 14, yy, 24, C.waText, { w: 500 });
+        txt(g, s, R - 40, yy, 24, C.waText, { w: 500, align: "right" });
+      });
+      g.fillStyle = "rgba(11,20,26,0.08)"; g.fillRect(18, 240, w - 36, 2);
+      txt(g, "تتبّع طلبك", R, 280, 19, C.waMeta, { w: 600, align: "right" });
+      return;
+    }
+    const R = w - PADX, top = m.kind === "rating" ? 54 : 0;
+    m.lines.forEach((line, i) => txt(g, line, R, top + PADY + 29 + i * LH, TXT, C.waText, { w: 500, align: "right" }));
+  });
+}
+
+let chatReady = false;
+function prepareChat() {
+  let prevSide = null;
+  for (const m of MSGS) {
+    if (m.kind === "typing") m.tail = true;
+    else { m.tail = m.side !== prevSide; prevSide = m.side; }
+    m.size = sizeMessage(m);
+    m.body = renderBody(m);
+  }
+  chatReady = true;
+}
+
+// Order-card mini tracker: dot centres in bubble-local coordinates.
+function miniTrackerDots(m) {
+  const { w } = m.size;
+  const y = 318, x0 = w - 50, x1 = 50;
+  return [0, 1, 2, 3].map(i => ({ x: lerp(x0, x1, i / 3), y }));
+}
+
+// Chat layout at time t: messages stacked from the bottom, older ones pushed up.
+function chatLayout(t) {
+  const items = [];
+  let y = CHAT_BOTTOM - 10;
+  for (let i = MSGS.length - 1; i >= 0; i--) {
+    const m = MSGS[i];
+    if (t < m.t) continue;
+    const appear = eOutCubic(P(t, m.t, m.t + 0.28));
+    const gone = m.end !== undefined ? eInOutCubic(P(t, m.end, m.end + 0.18)) : 0;
+    const presence = appear * (1 - gone);
+    if (presence <= 0.001 && gone > 0) continue;
+    const react = m.reaction !== undefined && t >= m.reaction ? 26 * eOutCubic(P(t, m.reaction, m.reaction + 0.25)) : 0;
+    const next = MSGS.slice(i + 1).find(n => t >= n.t && n.kind !== "typing");
+    const gap = next && next.side !== m.side ? 14 : 7;
+    const hh = (m.size.h + gap + react) * presence;
+    y -= hh;
+    const x = m.side === "in" ? SW - 20 - m.size.w : 20;
+    items.push({ m, x, y: y + react * presence, w: m.size.w, h: m.size.h, presence, gone, pop: spring(t - m.t, 2.6, 11) });
+  }
+  return items;
+}
+
+function drawTicks(g, x, y, t, blueAt) {
+  const b = blueAt !== undefined ? P(t, blueAt, blueAt + 0.12) : 0;
+  const pop = blueAt !== undefined ? 1 + Math.sin(Math.PI * P(t, blueAt, blueAt + 0.25)) * 0.25 : 1;
+  const col = mixHex(C.waGrey, C.waBlue, b);
+  g.save();
+  g.translate(x, y); g.scale(pop, pop);
+  g.strokeStyle = col; g.lineWidth = 2.2; g.lineCap = "round"; g.lineJoin = "round";
+  g.beginPath(); g.moveTo(-11, 0); g.lineTo(-7, 4); g.lineTo(1, -5); g.stroke();
+  g.beginPath(); g.moveTo(-3, 3); g.lineTo(-2, 4); g.lineTo(6, -5); g.stroke();
+  g.restore();
+}
+
+function drawTyping(g, it, t) {
+  const m = it.m;
+  const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+  const mp = m.morph ? eOutBack(P(t, m.morph, m.morph + 0.3)) * (1 - eInOutCubic(P(t, m.end - 0.12, m.end))) : 0;
+  const heights = [16, 24, 32];
+  const cols = [C.petrol, C.petrol, C.gold];
+  for (let i = 0; i < 3; i++) {
+    const bounce = Math.max(0, Math.sin((t * 1.7 - i * 0.18) * Math.PI * 2)) * 6 * (1 - clamp(mp));
+    const x = cx + (i - 1) * 20;
+    const bw = lerp(12, 11, clamp(mp));
+    const hgt = lerp(12, heights[i], clamp(mp, 0, 1.2));
+    const base = cy + 6 + lerp(0, 6, clamp(mp));
+    g.fillStyle = mp > 0.02 ? mixHex(C.waGrey, cols[i], clamp(mp)) : C.waGrey;
+    rr(g, x - bw / 2, base - hgt - bounce, bw, hgt, bw / 2); g.fill();
+  }
+}
+
+function drawRatingStars(g, it, t) {
+  const n = 5;
+  for (let i = 0; i < n; i++) {
+    const t0 = T.stars + i * 0.12;
+    const p = spring(t - t0, 2.8, 10);
+    const x = it.x + it.w - PADX - 22 - i * 48, y = it.y + PADY + 22;
+    star(g, x, y, 19, "rgba(11,20,26,0.10)");
+    if (p > 0) { g.save(); g.translate(x, y); g.scale(p, p); star(g, 0, 0, 19, "#F5B82E"); g.restore(); }
+  }
+}
+
+function drawStatusBar(g) {
+  g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, SW, CHAT_TOP);
+  txt(g, "10:30", 44, 38, 23, C.waText, { w: 600, dir: "ltr", align: "left" });
+  // battery
+  g.strokeStyle = C.waText; g.lineWidth = 2; rr(g, SW - 78, 22, 38, 19, 5); g.stroke();
+  g.fillStyle = C.waText; rr(g, SW - 75, 25, 28, 13, 3); g.fill(); rr(g, SW - 38, 28, 3, 7, 1.5); g.fill();
+  // signal = the brand bars
+  logoBars(g, SW - 114 - barsCentre() * 60, 41, 60, [C.waText, C.waText, C.waText]);
+}
+
+function drawHeader(g, t) {
+  const y0 = 54;
+  g.fillStyle = "rgba(11,20,26,0.07)"; g.fillRect(0, CHAT_TOP - 1, SW, 1);
+  icon(g, "back", SW - 34, y0 + 48, 30, C.waIcon, 2.4);
+  const ax = SW - 96, ay = y0 + 48;
+  g.fillStyle = C.petrol; g.beginPath(); g.arc(ax, ay, 32, 0, 7); g.fill();
+  logoBars(g, ax - barsCentre() * 100, ay + 18, 100, [C.sand, C.sand, C.gold]);
+  txt(g, SHOP.name, SW - 142, y0 + 40, 25, C.waText, { w: 700, align: "right" });
+  const typing = MSGS.some(m => m.kind === "typing" && t >= m.t && t < m.end);
+  txt(g, typing ? "يكتب…" : "متصل", SW - 142, y0 + 72, 20, typing ? C.waGreen : C.waMeta, { w: 500, align: "right" });
+  icon(g, "video", 56, y0 + 48, 32, C.waIcon, 2);
+  icon(g, "call", 118, y0 + 48, 28, C.waIcon, 2);
+}
+
+let wallpaper;
+function wallpaperTile() {
+  return offscreen(300, 300, 1, g => {
+    g.fillStyle = C.waBg; g.fillRect(0, 0, 300, 300);
+    const col = "rgba(84,101,111,0.07)";
+    const spots = [[40, 50, "heart"], [150, 30, "chat"], [250, 80, "box"], [80, 160, "clock"], [200, 190, "scooter"], [40, 260, "shield"], [140, 250, "pin"], [260, 260, "smile"]];
+    spots.forEach(([x, y, n], i) => { g.save(); g.translate(x, y); g.rotate((i % 3 - 1) * 0.3); icon(g, n, 0, 0, 34, col, 1.8); g.restore(); });
+  });
+}
+
+function drawInput(g, t) {
+  const fy = SH - 120, fh = 76;
+  let typed = "";
+  let sendT = null;
+  for (const ty of TYPING) {
+    if (t >= ty.range[0] && t < ty.send) {
+      const chars = Array.from(ty.text);
+      typed = chars.slice(0, Math.round(chars.length * P(t, ty.range[0], ty.range[1]))).join("");
+    }
+    if (t >= ty.send - 0.05 && t < ty.send + 0.6) sendT = ty.send;
+  }
+  g.save();
+  g.shadowColor = "rgba(11,20,26,0.12)"; g.shadowBlur = 3; g.shadowOffsetY = 1;
+  g.fillStyle = "#FFFFFF"; rr(g, 104, fy, SW - 118, fh, fh / 2); g.fill();
+  g.restore();
+  icon(g, "smile", SW - 52, fy + fh / 2, 30, C.waIcon, 2);
+  if (typed) {
+    g.save();
+    g.beginPath(); g.rect(130, fy, SW - 214, fh); g.clip();
+    txt(g, typed, SW - 88, fy + 48, 27, C.waText, { w: 500, align: "right" });
+    const tw = measure(g, typed, 27, 500);
+    if (Math.floor(t * 2.4) % 2 === 0) { g.fillStyle = C.waGreen; g.fillRect(SW - 92 - tw, fy + 20, 2.5, 36); }
+    g.restore();
+  } else {
+    txt(g, "اكتب رسالة", SW - 88, fy + 48, 26, C.waGrey, { w: 500, align: "right" });
+    icon(g, "clip", 196, fy + fh / 2, 28, C.waIcon, 2);
+    icon(g, "camera", 146, fy + fh / 2, 28, C.waIcon, 2);
+  }
+  // send / mic button
+  const bx = 54, by = fy + fh / 2;
+  const press = sendT !== null ? 1 - Math.sin(Math.PI * P(t, sendT - 0.05, sendT + 0.15)) * 0.14 : 1;
+  g.save();
+  g.translate(bx, by); g.scale(press, press);
+  g.fillStyle = C.waGreen; g.beginPath(); g.arc(0, 0, 38, 0, 7); g.fill();
+  icon(g, typed ? "send" : "mic", typed ? -1 : 0, 0, typed ? 28 : 30, "#fff", 2.4);
+  g.restore();
+  if (sendT !== null) {
+    const p = P(t, sendT - 0.05, sendT + 0.45);
+    g.save();
+    g.strokeStyle = `rgba(255,255,255,${0.9 * (1 - p)})`; g.lineWidth = 5;
+    g.beginPath(); g.arc(bx, by, lerp(26, 80, eOutCubic(p)), 0, 7); g.stroke();
+    g.fillStyle = `rgba(255,255,255,${0.45 * (1 - p)})`; g.beginPath(); g.arc(bx, by, 30, 0, 7); g.fill();
+    g.restore();
+  }
+  // gesture bar
+  g.fillStyle = "rgba(17,27,33,0.35)"; rr(g, SW / 2 - 70, SH - 20, 140, 6, 3); g.fill();
+}
+
+// Draws the screen contents in screen-local coordinates.
+function drawChat(g, t, opt = {}) {
+  if (!wallpaper) wallpaper = wallpaperTile();
+  g.fillStyle = g.createPattern(wallpaper, "repeat");
+  g.fillRect(0, 0, SW, SH);
+
+  g.save();
+  g.beginPath(); g.rect(0, CHAT_TOP, SW, CHAT_BOTTOM - CHAT_TOP + 8); g.clip();
+  const items = chatLayout(t);
+  for (const it of items) {
+    const m = it.m;
+    if (opt.hide === m.id) {
+      g.fillStyle = "rgba(11,20,26,0.06)"; rr(g, it.x, it.y, it.w, it.h, 16); g.fill();
+      continue;
+    }
+    const s = lerp(0.72, 1, clamp(it.pop, 0, 1.08)) * lerp(1, 0.8, it.gone);
+    const ox = m.side === "in" ? it.x + it.w : it.x, oy = it.y + it.h;
+    g.save();
+    g.globalAlpha *= clamp(it.presence * 1.6);
+    g.translate(ox, oy); g.scale(s, s); g.translate(-ox, -oy);
+    g.drawImage(m.body, it.x - 16, it.y - 16, m.body.lw, m.body.lh);
+    if (m.kind === "typing") drawTyping(g, it, t);
+    else {
+      const my = it.y + it.h - 12;
+      if (m.side === "out") drawTicks(g, it.x + 24, my - 6, t, m.blue);
+      txt(g, m.time, it.x + (m.side === "out" ? 38 : 16), my, 17, C.waMeta, { w: 500, dir: "ltr", align: "left" });
+      if (m.kind === "rating") drawRatingStars(g, it, t);
+      if (m.kind === "order" && !opt.hideTracker) drawMiniTracker(g, it, t);
+      if (m.reaction !== undefined && t >= m.reaction) {
+        const p = spring(t - m.reaction, 2.8, 9);
+        const rx = it.x + it.w - 30, ry = it.y + it.h + 6;
+        g.save(); g.translate(rx, ry); g.scale(p, p);
+        g.shadowColor = "rgba(11,20,26,0.18)"; g.shadowBlur = 4; g.shadowOffsetY = 1;
+        g.fillStyle = "#fff"; rr(g, -24, -16, 48, 34, 17); g.fill(); g.shadowColor = "transparent";
+        txt(g, "❤️", 0, 10, 22, "#000", { w: 500 });
+        g.restore();
+      }
+    }
+    g.restore();
+  }
+  g.restore();
+
+  drawStatusBar(g);
+  drawHeader(g, t);
+  drawInput(g, t);
+}
+
+function drawMiniTracker(g, it, t) {
+  const dots = miniTrackerDots(it.m);
+  g.save();
+  g.translate(it.x, it.y);
+  g.strokeStyle = "rgba(11,20,26,0.12)"; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(dots[0].x, dots[0].y); g.lineTo(dots[3].x, dots[3].y); g.stroke();
+  dots.forEach((d, i) => {
+    g.fillStyle = i === 0 ? C.gold : "#fff";
+    g.strokeStyle = i === 0 ? C.gold : "rgba(11,20,26,0.18)"; g.lineWidth = 2.5;
+    g.beginPath(); g.arc(d.x, d.y, 9, 0, 7); g.fill(); g.stroke();
+  });
+  g.restore();
+}
+
+// ── Phone device ─────────────────────────────────────────────────────
+function phoneState(t) {
+  if (t < T.wipe1) {
+    const rise = spring(t - T.phoneIn, 1.5, 7.5);
+    const push = 0.04 * eInOutSine(P(t, 3.0, 11.0));   // slow camera push while chatting
+    return { cx: W / 2, cy: lerp(H + PH / 2 + 60, 1000, rise), s: 1 + push, rot: lerp(0.08, 0, clamp(rise)), a: 1 };
+  }
+  const rise = spring(t - T.phone2, 1.5, 7.5);
+  const drop = eInCubic(P(t, T.wipe2 - 0.25, T.wipe2 + 0.35));
+  return { cx: W / 2, cy: lerp(H + PH / 2 + 60, 1000, rise) + drop * 1400, s: 1 - drop * 0.1, rot: lerp(-0.08, 0, clamp(rise)) + drop * 0.1, a: 1 };
+}
+
+function drawPhone(g, t, st, opt = {}) {
+  g.save();
+  g.globalAlpha *= st.a;
+  g.translate(st.cx, st.cy); g.rotate(st.rot); g.scale(st.s, st.s);
+  // floor shadow
+  const sh = g.createRadialGradient(0, PH / 2 + 30, 10, 0, PH / 2 + 30, PW * 0.7);
+  sh.addColorStop(0, "rgba(0,0,0,0.35)"); sh.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = sh; g.save(); g.scale(1, 0.12); g.beginPath(); g.arc(0, (PH / 2 + 30) / 0.12, PW * 0.7, 0, 7); g.restore(); g.fill();
+  // buttons
+  g.fillStyle = "#2B3237";
+  rr(g, PW / 2 - 2, -PH / 2 + 250, 8, 90, 4); g.fill();
+  rr(g, PW / 2 - 2, -PH / 2 + 370, 8, 150, 4); g.fill();
+  // frame
+  g.save();
+  g.shadowColor = "rgba(0,0,0,0.45)"; g.shadowBlur = 60; g.shadowOffsetY = 30;
+  const fr = g.createLinearGradient(-PW / 2, 0, PW / 2, 0);
+  fr.addColorStop(0, "#39424A"); fr.addColorStop(0.08, "#1A2024"); fr.addColorStop(0.92, "#1A2024"); fr.addColorStop(1, "#39424A");
+  g.fillStyle = fr; rr(g, -PW / 2, -PH / 2, PW, PH, PR); g.fill();
+  g.restore();
+  g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = 2; rr(g, -PW / 2 + 1.5, -PH / 2 + 1.5, PW - 3, PH - 3, PR - 1); g.stroke();
+  g.fillStyle = "#07090A"; rr(g, -PW / 2 + 8, -PH / 2 + 8, PW - 16, PH - 16, PR - 8); g.fill();
+  // screen
+  g.save();
+  rr(g, -SW / 2, -SH / 2, SW, SH, PR - INSET); g.clip();
+  g.translate(-SW / 2, -SH / 2);
+  drawChat(g, t, opt);
+  g.restore();
+  // punch-hole + glass
+  g.fillStyle = "#050607"; g.beginPath(); g.arc(0, -SH / 2 + 26, 11, 0, 7); g.fill();
+  g.fillStyle = "rgba(90,120,160,0.5)"; g.beginPath(); g.arc(-3, -SH / 2 + 23, 3, 0, 7); g.fill();
+  const glare = g.createLinearGradient(-PW / 2, -PH / 2, PW / 2, PH / 2);
+  glare.addColorStop(0, "rgba(255,255,255,0.08)"); glare.addColorStop(0.35, "rgba(255,255,255,0)");
+  g.fillStyle = glare; rr(g, -SW / 2, -SH / 2, SW, SH, PR - INSET); g.fill();
+  g.restore();
+}
+
+// Screen-local point → canvas point for a phone state.
+function screenToWorld(st, x, y) {
+  const lx = (x - SW / 2) * st.s, ly = (y - SH / 2) * st.s;
+  const c = Math.cos(st.rot), s = Math.sin(st.rot);
+  return { x: st.cx + lx * c - ly * s, y: st.cy + lx * s + ly * c };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Scene 1 — hook
+// ════════════════════════════════════════════════════════════════════
+function wordRow(g, words, y, size, colors, starts, t, w = 700) {
+  const gap = size * 0.28;
+  const widths = words.map(s => measure(g, s, size, w));
+  const total = widths.reduce((a, b) => a + b, 0) + gap * (words.length - 1);
+  let x = W / 2 + total / 2;
+  const boxes = [];
+  words.forEach((s, i) => {
+    const cx = x - widths[i] / 2;
+    const p = spring(t - starts[i], 2.4, 9);
+    if (p > 0) {
+      g.save();
+      g.globalAlpha *= clamp((t - starts[i]) / 0.12);
+      g.translate(cx, y + (1 - clamp(p)) * 50); g.scale(lerp(0.5, 1, p), lerp(0.5, 1, p));
+      txt(g, s, 0, 0, size, colors[i], { w });
+      g.restore();
+    }
+    boxes.push({ x0: x - widths[i], x1: x });
+    x -= widths[i] + gap;
+  });
+  return boxes;
+}
+
+function drawHook(g, t) {
+  const exit = eInOutCubic(P(t, T.hookExit, T.hookExit + 0.5));
+  const bigA = 1 - exit;
+  // WhatsApp mark with pulse rings.
+  if (bigA > 0) {
+    g.save();
+    g.globalAlpha = bigA;
+    g.translate(0, -exit * 160);
+    const p = spring(t - T.waIcon, 2.2, 8);
+    for (let k = 0; k < 2; k++) {
+      const rp = P(t, T.waIcon + 0.3 + k * 0.45, T.waIcon + 1.3 + k * 0.45);
+      if (rp > 0 && rp < 1) {
+        g.strokeStyle = `rgba(200,169,105,${0.5 * (1 - rp)})`; g.lineWidth = 4;
+        g.beginPath(); g.arc(W / 2, 750, lerp(80, 220, eOutCubic(rp)), 0, 7); g.stroke();
+      }
+    }
+    g.save();
+    g.translate(W / 2, 750); g.scale(p, p); g.rotate((1 - clamp(p)) * -0.6);
+    g.fillStyle = C.gold; g.beginPath(); g.arc(0, 0, 82, 0, 7); g.fill();
+    waMark(g, 0, 2, 44, C.petrol);
+    g.restore();
+
+    wordRow(g, ["تريد", "موبايل؟"], 1010, 128, [C.sand, C.sand], [T.words[0], T.words[1]], t);
+    const boxes = wordRow(g, ["أو", "إكسسوار؟"], 1160, 128, [C.sand, C.gold], [T.words[2], T.words[3]], t);
+    // hand-drawn gold underline under the accessory word
+    const up = eInOutCubic(P(t, T.underline, T.underline + 0.4));
+    if (up > 0) {
+      const b = boxes[1];
+      g.strokeStyle = C.gold; g.lineWidth = 9; g.lineCap = "round";
+      g.beginPath();
+      const x0 = b.x1 - 10, x1 = lerp(x0, b.x0 + 10, up);
+      g.moveTo(x0, 1202);
+      for (let x = x0; x >= x1; x -= 8) g.lineTo(x, 1202 + Math.sin((x0 - x) / 60) * 5);
+      g.stroke();
+    }
+    g.restore();
+  }
+  // Line 3 becomes the scene caption at the top.
+  const p3 = P(t, T.line3, T.line3 + 0.8);
+  if (p3 > 0) {
+    const move = eInOutCubic(P(t, T.hookExit, T.hookExit + 0.7));
+    const fade = 1 - P(t, T.zoomOut[0], T.zoomOut[0] + 0.3);
+    const y = lerp(1320, 230, move), size = lerp(46, 44, move);
+    g.save();
+    g.globalAlpha *= fade;
+    g.beginPath(); g.rect(0, y - size * 1.3, W, size * 1.7); g.clip();
+    txt(g, "اطلبه من الواتساب.. ويوصلك لباب البيت", W / 2, y + (1 - eOutExpo(p3)) * size * 1.4, size, C.sand, { w: 600, alpha: clamp(p3 * 2) });
+    g.restore();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Pop-out product card
+// ════════════════════════════════════════════════════════════════════
+function drawPopout(g, t, st) {
+  const [p0, p1] = T.pop;
+  if (t < p0 || t > p1 + 0.05) return;
+  const m = MSGS.find(x => x.id === "m3");
+  const it = chatLayout(t).find(i => i.m === m);
+  if (!it) return;
+  const home = screenToWorld(st, it.x + it.w / 2, it.y + it.h / 2);
+  const out = spring(t - p0, 1.6, 8);
+  const back = eInOutCubic(P(t, p1 - 0.4, p1));
+  const k = clamp(out, 0, 1.15) * (1 - back);
+  const cx = lerp(home.x, W / 2, clamp(k)), cy = lerp(home.y, 930, clamp(k));
+  const s = lerp(st.s, 1.5, k);
+  const rot = lerp(0, -0.035, clamp(k)) + Math.sin((t - p0) * 3) * 0.012 * clamp(k);
+
+  // dim the phone
+  g.fillStyle = `rgba(6,16,20,${0.62 * clamp(k)})`; g.fillRect(0, 0, W, H);
+
+  g.save();
+  g.translate(cx, cy); g.rotate(rot); g.scale(s, s);
+  g.shadowColor = `rgba(0,0,0,${0.5 * clamp(k)})`; g.shadowBlur = 80; g.shadowOffsetY = 40;
+  g.drawImage(m.body, -it.w / 2 - 16, -it.h / 2 - 16, m.body.lw, m.body.lh);
+  g.shadowColor = "transparent";
+  txt(g, m.time, -it.w / 2 + 16, it.h / 2 - 12, 17, C.waMeta, { w: 500, dir: "ltr", align: "left" });
+  // light sweep across the product image
+  const sp = P(t, p0 + 0.55, p0 + 1.1);
+  if (sp > 0 && sp < 1) {
+    g.save();
+    rr(g, -it.w / 2 + 6, -it.h / 2 + 6, it.w - 12, 300, 12); g.clip();
+    const sx = lerp(-it.w, it.w, sp);
+    const gr = g.createLinearGradient(sx - 90, -it.h / 2, sx + 90, -it.h / 2 + 300);
+    gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(255,255,255,0.28)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = gr; g.fillRect(-it.w / 2, -it.h / 2, it.w, 310);
+    g.restore();
+  }
+  g.restore();
+
+  // callout chips (their own words from the product post)
+  const chips = [
+    ["shield", "كفالة سنة كاملة", 790, 470, 0.05, p0 + 0.45],
+    ["checkCircle", "مفحوص قبل التسليم", 265, 900, -0.05, p0 + 0.62],
+    ["box", "بعلبته وكامل ملحقاته", 770, 1380, 0.04, p0 + 0.79],
+  ];
+  chips.forEach(([ic, label, x, y, r, t0]) => {
+    const p = spring(t - t0, 2.4, 9) * (1 - back);
+    if (p <= 0.01) return;
+    const w = measure(g, label, 32, 700) + 110;
+    g.save();
+    g.translate(x, y); g.rotate(r); g.scale(p, p);
+    g.shadowColor = "rgba(0,0,0,0.35)"; g.shadowBlur = 30; g.shadowOffsetY = 12;
+    g.fillStyle = C.sand; rr(g, -w / 2, -42, w, 84, 42); g.fill();
+    g.shadowColor = "transparent";
+    g.fillStyle = C.petrol; g.beginPath(); g.arc(w / 2 - 44, 0, 30, 0, 7); g.fill();
+    icon(g, ic, w / 2 - 44, 0, 32, C.gold, 2.4);
+    txt(g, label, w / 2 - 88, 12, 32, C.petrol, { w: 700, align: "right" });
+    g.restore();
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Tracker (order progress)
+// ════════════════════════════════════════════════════════════════════
+const STEPS = [["chat", "تثبّت الطلب"], ["box", "التجهيز"], ["scooter", "بالطريق"], ["house", "وصل"]];
+const TRACK = { y: 262, xs: [860, 640, 420, 200], r: 36 };
+
+// Delivery progress 0..1 along the road (drives the tracker between steps 3 and 4).
+function trackerProgress(t) {
+  // 0→1 between step1 and step2, 1→2 step2→3, 2→3 along the drive.
+  let p = 0;
+  p += eInOutCubic(P(t, 11.9, 12.4));
+  p += eInOutCubic(P(t, T.step2 + 0.1, T.step2 + 0.55));
+  p += roadProgress(t);
+  return p;
+}
+function stepState(t, i) {
+  const done = [T.m5, T.step2, T.arrived, T.arrived][i];
+  const active = [T.m5, 12.4, T.step2 + 0.55, T.arrived][i];
+  return t >= done ? "done" : t >= active ? "active" : "pending";
+}
+
+function drawTracker(g, t, k = 1, from = null) {
+  // k: 0 = mini tracker inside the order card (positions `from`), 1 = full panel at the top.
+  const e = clamp(k);
+  const pos = TRACK.xs.map((x, i) => from ? { x: lerp(from[i].x, x, e), y: lerp(from[i].y, TRACK.y, e) } : { x, y: TRACK.y });
+  const r = lerp(from ? from.r : 9, TRACK.r, e);
+  const pa = P(e, 0.55, 1);
+  if (pa > 0) {
+    g.save();
+    g.globalAlpha *= pa;
+    g.shadowColor = "rgba(20,52,63,0.12)"; g.shadowBlur = 40; g.shadowOffsetY = 14;
+    g.fillStyle = "rgba(255,255,255,0.86)"; rr(g, 50, 110, W - 100, 290, 44); g.fill();
+    g.shadowColor = "transparent";
+    txt(g, `تتبّع طلبك ${SHOP.order}`, W - 96, 180, 28, C.petrol, { w: 700, align: "right" });
+    logoBars(g, 120 - barsCentre() * 150, 182, 150, [C.petrol, C.petrol, C.gold]);
+    txt(g, "SUFYAN MOBILE", 168, 180, 17, C.latin, { w: 600, dir: "ltr", align: "left", spacing: 4 });
+    g.restore();
+  }
+  const prog = trackerProgress(t);
+  const lw = lerp(3, 7, e);
+  g.lineCap = "round";
+  g.strokeStyle = "rgba(20,52,63,0.12)"; g.lineWidth = lw;
+  g.beginPath(); g.moveTo(pos[0].x, pos[0].y); g.lineTo(pos[3].x, pos[3].y); g.stroke();
+  const seg = Math.min(3, Math.floor(prog)), f = prog - seg;
+  const endX = seg >= 3 ? pos[3].x : lerp(pos[seg].x, pos[seg + 1].x, f);
+  g.strokeStyle = C.gold; g.lineWidth = lw;
+  g.beginPath(); g.moveTo(pos[0].x, pos[0].y); g.lineTo(endX, pos[0].y); g.stroke();
+  // little scooter riding the line while driving
+  if (prog > 2 && prog < 3 && e > 0.9) {
+    g.fillStyle = C.gold; g.beginPath(); g.arc(endX, pos[0].y, 16, 0, 7); g.fill();
+    icon(g, "scooter", endX, pos[0].y, 20, C.petrol, 2.6);
+  }
+  pos.forEach((p, i) => {
+    const s = stepState(t, i);
+    const doneAt = [T.m5, T.step2, T.arrived, T.arrived][i];
+    const pop = s === "done" ? 1 + Math.sin(Math.PI * P(t, doneAt, doneAt + 0.3)) * 0.18 : 1;
+    const pulse = s === "active" ? (Math.sin(t * 6) + 1) / 2 : 0;
+    g.save();
+    g.translate(p.x, p.y); g.scale(pop, pop);
+    if (s === "active" && e > 0.5) {
+      g.strokeStyle = `rgba(200,169,105,${0.45 * (1 - pulse)})`; g.lineWidth = 4;
+      g.beginPath(); g.arc(0, 0, r + 6 + pulse * 14, 0, 7); g.stroke();
+    }
+    g.fillStyle = s === "done" ? C.petrol : s === "active" ? "#FFFFFF" : (e > 0.5 ? "#F4F0E8" : "#FFFFFF");
+    g.strokeStyle = s === "done" ? C.petrol : s === "active" ? C.gold : "rgba(20,52,63,0.18)";
+    if (from && e < 0.4 && i === 0) { g.fillStyle = C.gold; g.strokeStyle = C.gold; }
+    g.lineWidth = lerp(2.5, 4, e);
+    g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill(); g.stroke();
+    if (e > 0.3) {
+      g.globalAlpha *= P(e, 0.3, 0.8);
+      if (s === "done") icon(g, "check", 0, 0, r * 1.05, C.sand, 3);
+      else icon(g, STEPS[i][0], 0, 0, r * 1.0, s === "active" ? C.petrol : "#B3AA99", 2.2);
+    }
+    g.restore();
+    if (e > 0.6) {
+      txt(g, STEPS[i][1], p.x, TRACK.y + 84, 25, s === "pending" ? "#A39B8B" : C.petrol, { w: 600, alpha: P(e, 0.6, 1) });
+    }
+  });
+}
+
+function chip(g, t, label, t0, t1, y = 470) {
+  const a = spring(t - t0, 2.2, 9) * (1 - eInOutCubic(P(t, t1, t1 + 0.25)));
+  if (a <= 0.01) return;
+  const w = measure(g, label, 30, 600) + 64;
+  g.save();
+  g.translate(W / 2, y); g.scale(clamp(a, 0, 1.2), clamp(a, 0, 1.2));
+  g.fillStyle = C.petrol; rr(g, -w / 2, -34, w, 68, 34); g.fill();
+  txt(g, label, 0, 11, 30, C.sand, { w: 600 });
+  g.restore();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Scene 3 — packing (3D box in isometric projection)
+// ════════════════════════════════════════════════════════════════════
+const BX = 1.0, BY = 0.8, BZ = 0.62;
+const COS30 = Math.cos(Math.PI / 6), SIN30 = 0.5;
+
+function boxProj(o, x, y, z) {
+  const xc = x - BX / 2, yc = y - BY / 2;
+  return { x: o.x + (xc - yc) * COS30 * o.s, y: o.y + (xc + yc) * SIN30 * o.s - z * o.s };
+}
+function poly(g, pts) { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.closePath(); }
+function shade(hex, f) {
+  const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  return `rgb(${c.map(v => Math.round(clamp(v * f, 0, 255))).join(",")})`;
+}
+
+// Map a face (origin O, edge vectors U,V in canvas space) to local coordinates of size (lw, lh).
+function faceTransform(g, O, U, V, lw, lh) {
+  g.transform((U.x - O.x) / lw, (U.y - O.y) / lw, (V.x - O.x) / lh, (V.y - O.y) / lh, O.x, O.y);
+}
+
+function flapPoints(o, edge, angle) {
+  // edge: hinge from A to B (3D), inward horizontal dir `din`, length `len`.
+  const { A, B, din, len } = edge;
+  const dx = din[0] * Math.cos(angle) * len, dy = din[1] * Math.cos(angle) * len, dz = Math.sin(angle) * len;
+  return [boxProj(o, ...A), boxProj(o, ...B), boxProj(o, B[0] + dx, B[1] + dy, B[2] + dz), boxProj(o, A[0] + dx, A[1] + dy, A[2] + dz)];
+}
+
+function flapAngle(t, start, open = 0.78 * Math.PI) {
+  const p = eInOutCubic(P(t, start, start + 0.32));
+  const bounce = Math.sin(Math.PI * P(t, start + 0.32, start + 0.5)) * 0.08 * Math.PI;
+  return open * (1 - p) + (p >= 1 ? bounce : 0);
+}
+
+const FLAPS = {
+  backSide:  { A: [0, 0, BZ], B: [0, BY, BZ], din: [1, 0], len: BX * 0.44 },
+  frontSide: { A: [BX, 0, BZ], B: [BX, BY, BZ], din: [-1, 0], len: BX * 0.44 },
+  backLong:  { A: [0, 0, BZ], B: [BX, 0, BZ], din: [0, 1], len: BY * 0.5 },
+  frontLong: { A: [0, BY, BZ], B: [BX, BY, BZ], din: [0, -1], len: BY * 0.5 },
+};
+
+function drawFlap(g, o, key, angle) {
+  const pts = flapPoints(o, FLAPS[key], angle);
+  const up = Math.sin(angle);
+  const f = 0.92 + 0.14 * Math.cos(angle) + (key.startsWith("front") ? -0.04 : 0.02) + up * 0.03;
+  g.fillStyle = shade(C.gold, f);
+  poly(g, pts); g.fill();
+  g.strokeStyle = "rgba(90,70,30,0.25)"; g.lineWidth = 1.5; g.stroke();
+}
+
+function drawBox(g, o, t, st) {
+  // st: {closed, items(fn), tape, seal, flaps: {backSide, frontSide, backLong, frontLong}}
+  const p = (x, y, z) => boxProj(o, x, y, z);
+  const rim = [p(0, 0, BZ), p(BX, 0, BZ), p(BX, BY, BZ), p(0, BY, BZ)];
+  const fl = st.flaps;
+  const closing = st.flapsClosing;
+  // shadow
+  if (!st.noShadow) {
+  g.save();
+  const s0 = p(BX / 2, BY / 2, 0);
+  const shd = g.createRadialGradient(s0.x, s0.y + 10, 10, s0.x, s0.y + 10, o.s * 0.95);
+  shd.addColorStop(0, "rgba(20,52,63,0.22)"); shd.addColorStop(1, "rgba(20,52,63,0)");
+  g.fillStyle = shd; g.translate(s0.x, s0.y + 10); g.scale(1, 0.5); g.beginPath(); g.arc(0, 0, o.s * 0.95, 0, 7); g.restore(); g.fill();
+  }
+
+  if (!closing) { drawFlap(g, o, "backSide", fl.backSide); drawFlap(g, o, "backLong", fl.backLong); }
+  // interior
+  g.save();
+  poly(g, rim); g.clip();
+  g.fillStyle = shade(C.gold, 0.55); poly(g, rim); g.fill();
+  g.fillStyle = shade(C.gold, 0.7); poly(g, [p(0, 0, BZ), p(0, BY, BZ), p(0, BY, 0), p(0, 0, 0)]); g.fill();
+  g.fillStyle = shade(C.gold, 0.62); poly(g, [p(0, 0, BZ), p(BX, 0, BZ), p(BX, 0, 0), p(0, 0, 0)]); g.fill();
+  g.restore();
+  if (st.items) st.items(g);
+  // front walls
+  g.fillStyle = shade(C.gold, 1.0); poly(g, [p(0, BY, BZ), p(BX, BY, BZ), p(BX, BY, 0), p(0, BY, 0)]); g.fill();
+  g.fillStyle = shade(C.gold, 0.86); poly(g, [p(BX, 0, BZ), p(BX, BY, BZ), p(BX, BY, 0), p(BX, 0, 0)]); g.fill();
+  g.strokeStyle = "rgba(90,70,30,0.22)"; g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(p(BX, BY, BZ).x, p(BX, BY, BZ).y); g.lineTo(p(BX, BY, 0).x, p(BX, BY, 0).y); g.stroke();
+  // print: logo on the left face (y = BY)
+  g.save();
+  faceTransform(g, p(0, BY, BZ), p(BX, BY, BZ), p(0, BY, 0), 1000, 620);
+  logoBars(g, 500 - barsCentre() * 900, 300, 900, [C.petrol, C.petrol, C.petrol]);
+  const ls = L.new.letters;
+  const lx0 = Math.min(...ls.map(l => l.x)), lx1 = Math.max(...ls.map(l => l.x + l.w));
+  const S = 900;
+  ls.forEach((l, i) => g.drawImage(tint(IM.letters[i], C.petrol), 500 + (l.x - (lx0 + lx1) / 2) * S, 360, l.w * S, l.h * S));
+  g.restore();
+  // side flaps under long flaps when closing
+  if (closing) {
+    drawFlap(g, o, "backSide", fl.backSide); drawFlap(g, o, "frontSide", fl.frontSide);
+    drawFlap(g, o, "backLong", fl.backLong); drawFlap(g, o, "frontLong", fl.frontLong);
+  } else {
+    drawFlap(g, o, "frontSide", fl.frontSide); drawFlap(g, o, "frontLong", fl.frontLong);
+  }
+  // tape along the top seam and down the right face
+  if (st.tape > 0) {
+    const tw = 0.075;
+    const xe = Math.min(1, st.tape / 0.8) * BX;
+    const down = clamp((st.tape - 0.8) / 0.2) * 0.22;
+    g.save();
+    faceTransform(g, p(0, BY / 2 + tw, BZ + 0.002), p(BX, BY / 2 + tw, BZ + 0.002), p(0, BY / 2 - tw, BZ + 0.002), 1000, 100);
+    g.beginPath(); g.rect(0, 0, 1000 * xe / BX, 100); g.clip();
+    g.fillStyle = C.petrol; g.fillRect(0, 0, 1000, 100);
+    for (let k = 0; k < 3; k++) txt(g, SHOP.name, 180 + k * 330, 64, 40, C.sand, { w: 700, alpha: 0.9 });
+    g.fillStyle = "rgba(255,255,255,0.12)"; g.fillRect(0, 8, 1000, 10);
+    g.restore();
+    if (down > 0) {
+      g.save();
+      faceTransform(g, p(BX, BY / 2 + tw, BZ), p(BX, BY / 2 - tw, BZ), p(BX, BY / 2 + tw, BZ - down), 100, 100);
+      g.fillStyle = shade("#14343F", 0.85); g.fillRect(0, 0, 100, 100);
+      g.restore();
+    }
+  }
+  // warranty VOID seal on the right face
+  if (st.seal > 0) {
+    const sp = st.seal;
+    g.save();
+    faceTransform(g, p(BX, BY, BZ), p(BX, 0, BZ), p(BX, BY, 0), 800, 620);
+    g.translate(470, 330);
+    const sc = lerp(1.9, 1, clamp(sp)); g.scale(sc, sc); g.rotate(lerp(0.6, -0.12, clamp(sp)));
+    g.globalAlpha *= clamp(sp * 3);
+    g.fillStyle = C.petrol; g.beginPath(); g.arc(0, 0, 150, 0, 7); g.fill();
+    g.save(); g.beginPath(); g.arc(0, 0, 150, 0, 7); g.clip();
+    g.strokeStyle = "rgba(255,255,255,0.05)"; g.lineWidth = 14;
+    for (let d = -300; d < 300; d += 34) { g.beginPath(); g.moveTo(d, -160); g.lineTo(d + 320, 160); g.stroke(); }
+    g.restore();
+    logoBars(g, -barsCentre() * 220, -58, 220, [C.gold, C.gold, C.gold]);
+    txt(g, "VOID", 0, 36, 72, C.gold, { w: 700, dir: "ltr", spacing: 8 });
+    txt(g, "VD-004182", 0, 82, 26, C.petrolSoft, { w: 600, dir: "ltr" });
+    g.restore();
+  }
+}
+
+function packingItems(o, t) {
+  return g => {
+    const drops = [
+      { t0: T.drop[0], x: BX * 0.34, y: BY * 0.45, draw: (g, x, y, r) => drawA54(g, x, y, o.s * 0.62, r), rot0: 0.5, rot1: -0.18, top: 0.85 },
+      { t0: T.drop[1], x: BX * 0.72, y: BY * 0.5, draw: (g, x, y, r) => drawHeadphones(g, x, y, o.s * 0.42, r), rot0: -0.6, rot1: 0.22, top: 0.95 },
+    ];
+    drops.forEach(d => {
+      if (t < d.t0) return;
+      const fall = P(t, d.t0, d.t0 + 0.3);
+      const sink = eInOutCubic(P(t, T.sideClose - 0.3, T.sideClose + 0.05));
+      const rest = boxProj(o, d.x, d.y, BZ * lerp(d.top, 0.12, sink));
+      const y0 = -300;
+      const bounce = Math.sin(Math.PI * P(t, d.t0 + 0.3, d.t0 + 0.5)) * 26;
+      const y = lerp(y0, rest.y, eInCubic(fall)) - bounce;
+      const rot = lerp(d.rot0, d.rot1, eOutCubic(fall));
+      d.draw(g, rest.x, y, rot);
+    });
+  };
+}
+
+function boxAnchor(t) {
+  const rise = spring(t - T.box, 1.6, 8);
+  let x = W / 2, y = lerp(H + 500, 1310, rise), s = 420;
+  // squash before the jump
+  return { x, y, s };
+}
+
+function boxState(t, o) {
+  const closing = t >= T.sideClose;
+  return {
+    flaps: {
+      backSide: flapAngle(t, T.sideClose), frontSide: flapAngle(t, T.sideClose + 0.08),
+      backLong: flapAngle(t, T.longClose), frontLong: flapAngle(t, T.longClose + 0.1),
+    },
+    flapsClosing: closing,
+    items: packingItems(o, t),
+    tape: P(t, T.tape[0], T.tape[1]),
+    seal: t >= T.seal ? spring(t - T.seal, 3, 10) : 0,
+  };
+}
+
+function drawPacking(g, t) {
+  g.fillStyle = C.sand; g.fillRect(0, 0, W, H);
+  g.fillStyle = "rgba(20,52,63,0.035)";
+  [[70, 1250], [415, 1000], [760, 760]].forEach(([x, top], i) => { rr(g, x, top + Math.sin(t * 0.6 + i) * 16, 250, H, 125); g.fill(); });
+  if (t < T.jump) {
+    const o = boxAnchor(t);
+    // camera shake on the seal slap
+    const sh = t > T.seal ? Math.exp(-(t - T.seal) * 12) * 10 : 0;
+    g.save();
+    g.translate(Math.sin(t * 90) * sh, Math.cos(t * 70) * sh);
+    // anticipation squash before jumping
+    const sq = Math.sin(Math.PI * P(t, T.jump - 0.25, T.jump)) * 0.1;
+    g.translate(o.x, o.y + 120); g.scale(1 + sq, 1 - sq); g.translate(-o.x, -o.y - 120);
+    drawBox(g, o, t, boxState(t, o));
+    // dust puffs when items land
+    [T.drop[0] + 0.3, T.drop[1] + 0.3, T.longClose + 0.42].forEach((tp, k) => {
+      const p = P(t, tp, tp + 0.5);
+      if (p <= 0 || p >= 1) return;
+      for (let i = 0; i < 7; i++) {
+        const a = -Math.PI + (i / 6) * Math.PI;
+        const r = lerp(20, 150, eOutCubic(p));
+        g.fillStyle = `rgba(200,169,105,${0.5 * (1 - p)})`;
+        g.beginPath(); g.arc(o.x + Math.cos(a) * r * 1.6, o.y - 130 + Math.sin(a) * r * 0.5 - 20 * k, 10 * (1 - p) + 4, 0, 7); g.fill();
+      }
+    });
+    g.restore();
+  }
+  chip(g, t, "نجهّز طلبك بعناية 📦", 12.0, T.jump, 470);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Scene 4 — delivery ride (side view, moving right → left)
+// ════════════════════════════════════════════════════════════════════
+const VMAX = 1500, ROAD_Y = 1440, DY = 100;
+function roadDistance(t) {
+  // integrate the speed profile
+  let s = 0;
+  const t0 = T.go, t1 = Math.min(t, T.brake[1]);
+  if (t1 <= t0) return 0;
+  const dt = 1 / 240;
+  for (let x = t0; x < t1; x += dt) {
+    const accel = eInOutSine(P(x, t0, t0 + 0.6));
+    const brake = 1 - eInOutSine(P(x, T.brake[0], T.brake[1]));
+    s += VMAX * accel * brake * Math.min(dt, t1 - x);
+  }
+  return s;
+}
+let S_END;
+function roadProgress(t) {
+  if (!S_END) S_END = roadDistance(T.brake[1] + 1);
+  return clamp(roadDistance(t) / S_END);
+}
+function speed(t) {
+  return VMAX * eInOutSine(P(t, T.go, T.go + 0.6)) * (1 - eInOutSine(P(t, T.brake[0], T.brake[1])));
+}
+
+function malwiya(g, x, base, h) {
+  const bw = h * 0.52, tw = h * 0.13;
+  g.save();
+  g.beginPath();
+  const turns = 5;
+  const left = [], right = [];
+  for (let i = 0; i <= turns; i++) {
+    const f = i / turns;
+    const y = base - f * h * 0.86;
+    const half = lerp(bw, tw, f) / 2;
+    left.push([x - half, y]); right.push([x + half, y]);
+  }
+  g.moveTo(x - bw / 2 - h * 0.04, base);
+  left.forEach(([lx, ly], i) => { g.lineTo(lx, ly); if (i < turns) g.lineTo(lx + h * 0.012, ly - h * 0.172 + h * 0.02); });
+  g.lineTo(x - tw * 0.35, base - h * 0.86); g.lineTo(x - tw * 0.35, base - h); g.lineTo(x + tw * 0.35, base - h); g.lineTo(x + tw * 0.35, base - h * 0.86);
+  for (let i = turns; i >= 0; i--) { const [rx, ry] = right[i]; g.lineTo(rx, ry); if (i > 0) g.lineTo(rx - h * 0.012, ry + h * 0.02); }
+  g.lineTo(x + bw / 2 + h * 0.04, base);
+  g.closePath(); g.fill();
+  g.clip();
+  g.strokeStyle = "rgba(242,238,227,0.35)"; g.lineWidth = h * 0.012;
+  for (let i = 0; i < turns; i++) {
+    const y = base - (i / turns) * h * 0.86;
+    g.beginPath(); g.moveTo(x - bw, y - h * 0.02); g.lineTo(x + bw, y - h * 0.172); g.stroke();
+  }
+  g.restore();
+}
+
+function palm(g, x, base, h, sway) {
+  g.save();
+  g.lineCap = "round";
+  g.lineWidth = h * 0.05;
+  g.beginPath(); g.moveTo(x, base); g.quadraticCurveTo(x + h * 0.08, base - h * 0.5, x + h * 0.04, base - h); g.stroke();
+  const tx = x + h * 0.04, ty = base - h;
+  for (let i = 0; i < 7; i++) {
+    const a = -Math.PI / 2 + (i - 3) * 0.48 + sway;
+    const len = h * (0.38 + (i % 2) * 0.08);
+    g.lineWidth = h * 0.035;
+    g.beginPath(); g.moveTo(tx, ty);
+    g.quadraticCurveTo(tx + Math.cos(a) * len * 0.6, ty + Math.sin(a) * len * 0.6 - h * 0.06, tx + Math.cos(a) * len, ty + Math.sin(a) * len + h * 0.12);
+    g.stroke();
+  }
+  g.restore();
+}
+
+function drawShop(g, x) {
+  const top = 850, bot = 1400, w = 520;
+  g.fillStyle = "#E7DECD"; g.fillRect(x, top, w, bot - top);
+  g.fillStyle = C.petrol; rr(g, x - 10, top - 20, w + 20, 150, 12); g.fill();
+  logoBars(g, x + w - 70 - barsCentre() * 160, top + 92, 160, [C.sand, C.sand, C.gold]);
+  // wordmark on the sign
+  const S = 190, ws = L.new.words;
+  const wx0 = Math.min(...ws.map(q => q.x)), wx1 = Math.max(...ws.map(q => q.x + q.w));
+  const cx = x + (w - 120) / 2 + 10;
+  ws.forEach((q, i) => g.drawImage(tint(IM.words[i], C.sand), cx + (q.x - (wx0 + wx1) / 2) * S, top + 20, q.w * S, q.h * S));
+  txt(g, "SUFYAN MOBILE", cx, top + 106, 16, C.petrolSoft, { w: 600, dir: "ltr", spacing: 5 });
+  // window with phones
+  g.fillStyle = "#274B57"; rr(g, x + 170, top + 190, w - 200, 330, 10); g.fill();
+  g.fillStyle = "rgba(255,255,255,0.08)"; g.beginPath(); g.moveTo(x + 190, top + 520); g.lineTo(x + 300, top + 190); g.lineTo(x + 360, top + 190); g.lineTo(x + 250, top + 520); g.fill();
+  for (let i = 0; i < 4; i++) { g.fillStyle = i % 2 ? "#0F1B20" : "#1A2328"; rr(g, x + 210 + i * 70, top + 330 - (i % 2) * 20, 46, 92, 8); g.fill(); }
+  g.fillStyle = C.gold; g.fillRect(x + 170, top + 430, w - 200, 8);
+  // door
+  g.fillStyle = C.petrol; rr(g, x + 30, top + 230, 110, 320, 8); g.fill();
+  g.fillStyle = C.gold; g.beginPath(); g.arc(x + 120, top + 400, 6, 0, 7); g.fill();
+}
+
+function drawHouse(g, x, t) {
+  const top = 930, bot = 1400, w = 470;
+  g.fillStyle = "#EADFC9"; g.fillRect(x, top, w, bot - top);
+  g.fillStyle = "#DCCFB4"; g.fillRect(x - 12, top - 22, w + 24, 34);
+  for (let i = 0; i < 9; i++) { g.fillStyle = "#DCCFB4"; g.fillRect(x - 12 + i * 60, top - 44, 34, 24); }
+  // window with warm light
+  g.fillStyle = "#F6D897"; rr(g, x + 300, top + 90, 120, 130, 60); g.fill();
+  g.strokeStyle = "#CBB68A"; g.lineWidth = 6; rr(g, x + 300, top + 90, 120, 130, 60); g.stroke();
+  // door (opens)
+  const dx = x + 80, dy = top + 190, dw = 140, dh = 280;
+  const open = eInOutCubic(P(t, T.door, T.door + 0.35));
+  g.save();
+  rr(g, dx, dy, dw, dh, 70); g.clip();
+  const warm = g.createRadialGradient(dx + dw / 2, dy + dh * 0.6, 10, dx + dw / 2, dy + dh * 0.6, dh);
+  warm.addColorStop(0, "#FFE7B0"); warm.addColorStop(1, "#E4B45E");
+  g.fillStyle = warm; g.fillRect(dx, dy, dw, dh);
+  g.fillStyle = C.petrol; g.fillRect(dx, dy, dw * (1 - open * 0.78), dh);
+  g.fillStyle = C.gold; g.beginPath(); g.arc(dx + dw * (1 - open * 0.78) - 22, dy + dh * 0.55, 7, 0, 7); g.fill();
+  g.restore();
+  g.fillStyle = C.gold; rr(g, dx + dw / 2 - 30, dy - 50, 60, 36, 8); g.fill();
+  txt(g, "١٤", dx + dw / 2, dy - 22, 26, C.petrol, { w: 700 });
+  // light spill
+  if (open > 0) {
+    const sp = g.createRadialGradient(dx + dw / 2, bot, 10, dx + dw / 2, bot, 300);
+    sp.addColorStop(0, `rgba(255,220,150,${0.55 * open})`); sp.addColorStop(1, "rgba(255,220,150,0)");
+    g.fillStyle = sp; g.fillRect(dx - 300, bot - 300, dw + 600, 420);
+  }
+}
+
+// Delivery rider on a scooter, facing left. (x, y) = ground point between the wheels.
+function drawScooter(g, x, y, t, v, cargo) {
+  const wheelR = 52, wr = -(roadDistance(t) / wheelR);
+  const bob = v > 10 ? Math.sin(t * 22) * 2.5 : 0;
+  const tilt = (v > 10 && t < T.go + 0.7) ? -0.03 : (t > T.brake[0] && t < T.brake[1] + 0.2 ? 0.03 * Math.sin(Math.PI * P(t, T.brake[0] + 0.3, T.brake[1] + 0.2)) : 0);
+  g.save();
+  g.translate(x, y); g.rotate(tilt);
+  // ground shadow
+  g.fillStyle = "rgba(0,0,0,0.22)"; g.save(); g.scale(1, 0.18); g.beginPath(); g.arc(0, 0, 190, 0, 7); g.restore(); g.fill();
+  // wheels
+  [[-120, 0], [118, 0]].forEach(([wx]) => {
+    g.save(); g.translate(wx, -wheelR);
+    g.fillStyle = "#12181B"; g.beginPath(); g.arc(0, 0, wheelR, 0, 7); g.fill();
+    g.fillStyle = "#B9B2A2"; g.beginPath(); g.arc(0, 0, wheelR * 0.55, 0, 7); g.fill();
+    g.rotate(wr);
+    g.strokeStyle = "#6E6A60"; g.lineWidth = 5;
+    for (let k = 0; k < 3; k++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(-wheelR * 0.5, 0); g.lineTo(wheelR * 0.5, 0); g.stroke(); }
+    g.fillStyle = "#3A3F44"; g.beginPath(); g.arc(0, 0, 9, 0, 7); g.fill();
+    g.restore();
+  });
+  g.translate(0, bob);
+  // body
+  g.fillStyle = "#FBF8F1";
+  g.beginPath();
+  g.moveTo(-60, -40); g.lineTo(60, -40);
+  g.quadraticCurveTo(160, -40, 175, -95);
+  g.quadraticCurveTo(178, -150, 120, -160);
+  g.lineTo(20, -160); g.quadraticCurveTo(0, -160, -5, -120);
+  g.lineTo(-10, -70); g.lineTo(-70, -70); g.closePath(); g.fill();
+  g.fillStyle = C.aqua; g.beginPath(); g.moveTo(60, -58); g.quadraticCurveTo(150, -60, 165, -100); g.lineTo(150, -104); g.quadraticCurveTo(130, -72, 60, -74); g.closePath(); g.fill();
+  // front column + fender
+  g.fillStyle = "#FBF8F1";
+  g.save(); g.translate(-100, -80); g.rotate(-0.28); rr(g, -18, -170, 36, 200, 18); g.fill(); g.restore();
+  g.fillStyle = C.aqua; g.beginPath(); g.arc(-120, -52, 64, Math.PI * 1.05, Math.PI * 1.75); g.lineTo(-120, -52); g.fill();
+  // handlebar + headlight
+  g.strokeStyle = "#2A3035"; g.lineWidth = 10; g.lineCap = "round";
+  g.beginPath(); g.moveTo(-85, -240); g.lineTo(-40, -250); g.stroke();
+  g.fillStyle = "#FFE9B5"; g.beginPath(); g.arc(-150, -205, 16, 0, 7); g.fill();
+  if (t > T.go - 0.2) {
+    const beam = g.createLinearGradient(-150, -205, -420, -170);
+    beam.addColorStop(0, "rgba(255,233,181,0.45)"); beam.addColorStop(1, "rgba(255,233,181,0)");
+    g.fillStyle = beam; g.beginPath(); g.moveTo(-150, -215); g.lineTo(-430, -260); g.lineTo(-430, -120); g.lineTo(-150, -195); g.fill();
+  }
+  // seat
+  g.fillStyle = "#1E2428"; rr(g, 20, -182, 120, 26, 13); g.fill();
+  // cargo rack + box
+  g.fillStyle = "#2A3035"; g.fillRect(110, -200, 90, 10);
+  if (cargo) cargo(g, 155, -200);
+  // rider
+  g.fillStyle = C.petrol; g.strokeStyle = C.petrol; g.lineCap = "round";
+  g.lineWidth = 34; g.beginPath(); g.moveTo(80, -180); g.lineTo(0, -110); g.lineTo(-30, -70); g.stroke();     // leg
+  g.fillStyle = "#1A1F22"; rr(g, -52, -78, 50, 20, 9); g.fill();                                                   // shoe
+  g.fillStyle = C.petrol;
+  g.save(); g.translate(70, -190); g.rotate(-0.35); rr(g, -34, -150, 72, 160, 34); g.fill();
+  // brand bars on the jacket back
+  logoBars(g, 18 - barsCentre() * 80, -60, 80, [C.sand, C.sand, C.gold]);
+  g.restore();
+  g.strokeStyle = C.petrol; g.lineWidth = 26; g.beginPath(); g.moveTo(40, -310); g.lineTo(-10, -270); g.lineTo(-50, -248); g.stroke(); // arm
+  g.fillStyle = "#E3B98F"; g.beginPath(); g.arc(-52, -248, 13, 0, 7); g.fill();                                        // hand
+  // head + helmet
+  g.fillStyle = "#E3B98F"; g.beginPath(); g.arc(30, -345, 30, 0, 7); g.fill();
+  g.fillStyle = C.gold; g.beginPath(); g.arc(34, -358, 40, Math.PI * 0.9, Math.PI * 2.15); g.closePath(); g.fill();
+  g.fillStyle = "rgba(20,52,63,0.85)"; rr(g, -8, -362, 44, 16, 8); g.fill();
+  g.restore();
+}
+
+function exhaust(g, x, y, t) {
+  // puffs drift right from the tailpipe (seeded, time based)
+  for (let i = 0; i < 10; i++) {
+    const born = Math.floor(t * 10) / 10 - i * 0.1;
+    if (born < T.go - 0.3) continue;
+    const age = t - born;
+    if (age > 0.9) continue;
+    const r = 8 + age * 40;
+    g.fillStyle = `rgba(160,150,135,${0.35 * (1 - age / 0.9)})`;
+    g.beginPath(); g.arc(x + age * (120 + speed(born) * 0.25) + hash(i, Math.floor(born * 10)) * 20, y - age * 40, r, 0, 7); g.fill();
+  }
+}
+
+function drawDelivery(g, t, panX = 0) {
+  const s = roadDistance(t);
+  const v = speed(t);
+  g.save();
+  g.translate(panX, 0);
+  g.fillStyle = C.sand; g.fillRect(-10, 0, W + 20, H);
+  g.translate(0, DY);
+  // sun
+  g.fillStyle = "rgba(200,169,105,0.28)"; g.beginPath(); g.arc(760 + s * 0.03, 780, 170, 0, 7); g.fill();
+  // far: Malwiya + low skyline
+  g.fillStyle = "rgba(20,52,63,0.13)";
+  const far = s * 0.18;
+  malwiya(g, 180 + far - (S_END || 3600) * 0.18 * 0.45, 1400, 560);
+  for (let i = 0; i < 12; i++) {
+    const bx = (((i * 260 + far) % 3120) + 3120) % 3120 - 400;
+    const hh = 90 + hash(i, 5) * 110;
+    g.fillRect(bx, 1400 - hh, 150 + hash(i, 6) * 80, hh);
+    if (hash(i, 7) > 0.6) { g.beginPath(); g.arc(bx + 70, 1400 - hh, 50, Math.PI, 0); g.fill(); }
+  }
+  // mid: palms
+  g.strokeStyle = "rgba(20,52,63,0.22)";
+  const mid = s * 0.5;
+  for (let i = 0; i < 14; i++) {
+    const px = (((i * 420 + mid) % 5880) + 5880) % 5880 - 600;
+    palm(g, px, 1400, 300 + hash(i, 9) * 80, Math.sin(t * 1.5 + i) * 0.05);
+  }
+  // near: shop at the start, house at the end
+  drawShop(g, 700 + s);
+  drawHouse(g, (330 - 150) - (S_END || 3600) + s, t);
+  // sidewalk + road
+  g.fillStyle = "#E3DAC8"; g.fillRect(-10, 1400, W + 20, 40);
+  g.fillStyle = "#2B4852"; g.fillRect(-10, ROAD_Y, W + 20, 180);
+  g.fillStyle = "rgba(242,238,227,0.75)";
+  for (let i = 0; i < 7; i++) { const dx = ((i * 180 + s) % 1260) - 180; rr(g, dx, ROAD_Y + 86, 90, 10, 5); g.fill(); }
+  g.fillStyle = "#D9CFBC"; g.fillRect(-10, ROAD_Y + 180, W + 20, 16);
+  g.fillStyle = "#EAE3D5"; g.fillRect(-10, ROAD_Y + 196, W + 20, H);
+  // speed lines
+  if (v > 300) {
+    const a = clamp((v - 300) / 1000) * 0.5;
+    for (let i = 0; i < 8; i++) {
+      const ly = 1000 + hash(i, 3) * 380;
+      const lx = ((hash(i, 4) * 1400 + s * 2.2) % 1500) - 200;
+      g.fillStyle = `rgba(20,52,63,${a * 0.35})`; rr(g, lx, ly, 160 + hash(i, 5) * 160, 6, 3); g.fill();
+    }
+  }
+  g.restore();
+
+  // the scooter (screen space, moves with the pan)
+  const scx = 640 + panX;
+  g.save();
+  g.translate(0, DY);
+  exhaust(g, scx + 190, ROAD_Y + 20, t);
+  drawScooter(g, scx, ROAD_Y + 80, t, v, (g2, bx, by) => {
+    if (t < T.land) return;
+    if (t >= T.hop[0]) return;
+    const sq = Math.sin(Math.PI * P(t, T.land, T.land + 0.25)) * 0.15;
+    g2.save(); g2.translate(bx, by); g2.scale(1 + sq, 1 - sq);
+    drawBox(g2, { x: 0, y: 0, s: 115 }, 99, closedBox());
+    g2.restore();
+  });
+  // "بيب بيب!"
+  const bp = spring(t - T.beep, 2.6, 8) * (1 - P(t, T.beep + 0.75, T.beep + 0.95));
+  if (bp > 0.01) {
+    g.save(); g.translate(scx + 190, 1000); g.rotate(0.1); g.scale(bp * 1.2, bp * 1.2);
+    g.fillStyle = C.gold; g.beginPath();
+    for (let i = 0; i < 18; i++) { const a = i * Math.PI / 9, r = i % 2 ? 88 : 120; g.lineTo(Math.cos(a) * r * 1.35, Math.sin(a) * r * 0.75); }
+    g.closePath(); g.fill();
+    txt(g, "بيب بيب!", 0, 14, 46, C.petrol, { w: 700 });
+    g.restore();
+  }
+  // box hops to the door
+  if (t >= T.hop[0]) {
+    const p = P(t, T.hop[0], T.hop[1]);
+    const x = lerp(scx + 155, 330, eInOutCubic(p)), y = lerp(ROAD_Y + 80 - 200, 1400, p) - Math.sin(Math.PI * p) * 320;
+    const sq = t > T.hop[1] ? Math.sin(Math.PI * P(t, T.hop[1], T.hop[1] + 0.25)) * 0.16 : 0;
+    g.save(); g.translate(x, y); g.rotate(-(1 - clamp(p)) * Math.PI * 2 * 0.25 * Math.sin(Math.PI * p)); g.scale(1 + sq, 1 - sq);
+    drawBox(g, { x: 0, y: 0, s: lerp(115, 150, p) }, 99, closedBox());
+    g.restore();
+  }
+  // hearts from the open door
+  for (let i = 0; i < 5; i++) {
+    const hp = P(t, T.door + 0.25 + i * 0.1, T.door + 1.3 + i * 0.1);
+    if (hp <= 0 || hp >= 1) continue;
+    const hx = 290 + Math.sin(hp * 6 + i) * 30 + (i - 2) * 26, hy = lerp(1230, 900, eOutCubic(hp));
+    g.save(); g.globalAlpha = 1 - hp; g.translate(hx, hy); g.scale(1 + hp * 0.4, 1 + hp * 0.4);
+    icon(g, "heart", 0, 0, 44, i % 2 ? C.gold : "#E0566A", 2);
+    g.restore();
+  }
+  g.restore();
+}
+
+function closedBox() {
+  return {
+    flaps: { backSide: 0, frontSide: 0, backLong: 0, frontLong: 0 }, flapsClosing: true,
+    items: null, tape: 1, seal: 1, noShadow: true,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Scene 6 — end card
+// ════════════════════════════════════════════════════════════════════
+function drawEnd(g, t) {
+  petrolBackdrop(g, t);
+  const t0 = T.end;
+  const U = 560, base = 640;
+  const prog = [0, 1, 2].map(i => spring(t - t0 - i * 0.12, 2.4, 9));
+  const wave = [0, 1, 2].map(i => 1 + Math.sin(Math.PI * P(t, t0 + 2.5 + i * 0.09, t0 + 2.9 + i * 0.09)) * 0.1);
+  logoBars(g, W / 2 - barsCentre() * U, base, U, [C.sand, C.sand, C.gold], prog, wave);
+
+  const S = 380, ws = L.new.words;
+  const wx0 = Math.min(...ws.map(q => q.x)), wx1 = Math.max(...ws.map(q => q.x + q.w));
+  const wordTop = 690;
+  ws.forEach((q, i) => {
+    const p = P(t, t0 + 0.4 + i * 0.12, t0 + 1.2 + i * 0.12);
+    if (p <= 0) return;
+    const x = W / 2 + (q.x - (wx0 + wx1) / 2) * S, w = q.w * S, h = q.h * S;
+    g.save(); g.beginPath(); g.rect(x - 20, wordTop - 20, w + 40, h + 40); g.clip();
+    g.globalAlpha = clamp(p * 2.5);
+    g.drawImage(tint(IM.words[i], C.sand), x, wordTop + (1 - eOutExpo(p)) * h * 1.05, w, h);
+    g.restore();
+  });
+  const ls = L.new.letters;
+  const lx0 = Math.min(...ls.map(l => l.x)), lx1 = Math.max(...ls.map(l => l.x + l.w)), mid = (lx0 + lx1) / 2;
+  const k = lerp(1.9, 1, eOutExpo(P(t, t0 + 0.8, t0 + 1.9)));
+  const latinTop = wordTop + (ls[0].y - ws[0].y) * S;
+  ls.forEach((l, i) => {
+    const c = l.x + l.w / 2;
+    const a = eOutCubic(P(t, t0 + 0.8 + Math.abs(c - mid) * 0.35, t0 + 1.3 + Math.abs(c - mid) * 0.35));
+    if (a <= 0) return;
+    g.save(); g.globalAlpha = a;
+    g.drawImage(tint(IM.letters[i], C.petrolSoft), W / 2 + (c - mid) * k * S - l.w * S / 2, latinTop, l.w * S, l.h * S);
+    g.restore();
+  });
+  const d = eOutExpo(P(t, t0 + 1.1, t0 + 1.8));
+  if (d > 0) { g.fillStyle = C.gold; rr(g, W / 2 - 44 * d, 900, 88 * d, 5, 2.5); g.fill(); }
+  const tp = P(t, t0 + 1.2, t0 + 2.0);
+  if (tp > 0) {
+    g.save(); g.beginPath(); g.rect(0, 925, W, 80); g.clip();
+    txt(g, SHOP.tagline, W / 2, 978 + (1 - eOutExpo(tp)) * 60, 46, C.sand, { w: 600, alpha: clamp(tp * 2) * 0.9 });
+    g.restore();
+  }
+  // CTA pill
+  const cp = spring(t - t0 - 1.6, 2.2, 8.5);
+  if (cp > 0.01) {
+    const w = 640, h = 124, y = 1150;
+    const tap = Math.sin(Math.PI * P(t, t0 + 2.9, t0 + 3.15)) * 0.05;
+    g.save(); g.translate(W / 2, y); g.scale(cp * (1 - tap), cp * (1 - tap));
+    g.shadowColor = "rgba(0,0,0,0.35)"; g.shadowBlur = 40; g.shadowOffsetY = 16;
+    g.fillStyle = C.gold; rr(g, -w / 2, -h / 2, w, h, h / 2); g.fill();
+    g.shadowColor = "transparent";
+    // shine
+    const sp = P(t, t0 + 2.3, t0 + 2.9);
+    if (sp > 0 && sp < 1) {
+      g.save(); rr(g, -w / 2, -h / 2, w, h, h / 2); g.clip();
+      const sx = lerp(-w, w, sp);
+      const gr = g.createLinearGradient(sx - 80, -h / 2, sx + 80, h / 2);
+      gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(255,255,255,0.5)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = gr; g.fillRect(-w / 2, -h / 2, w, h); g.restore();
+    }
+    waMark(g, w / 2 - 70, 0, 30, C.petrol);
+    txt(g, "اطلب عبر واتساب", -26, 16, 46, C.petrol, { w: 700 });
+    g.restore();
+    // finger tap ripple
+    const rp = P(t, t0 + 2.9, t0 + 3.5);
+    if (rp > 0 && rp < 1) {
+      g.strokeStyle = `rgba(242,238,227,${0.8 * (1 - rp)})`; g.lineWidth = 6;
+      g.beginPath(); g.arc(W / 2 + 120, y + 10, lerp(20, 110, eOutCubic(rp)), 0, 7); g.stroke();
+    }
+  }
+  // phone number, typed on
+  const np = P(t, t0 + 2.0, t0 + 2.7);
+  if (np > 0) {
+    const digits = Array.from(SHOP.phone);
+    const shown = digits.slice(0, Math.ceil(digits.length * np)).join("");
+    txt(g, shown, W / 2, 1320, 64, C.sand, { w: 700, dir: "ltr", spacing: 3 });
+  }
+  const la = eOutCubic(P(t, t0 + 2.4, t0 + 3.0));
+  if (la > 0) {
+    const lw = measure(g, SHOP.place, 30, 500);
+    icon(g, "pin", W / 2 + lw / 2 + 26, 1392, 30, C.gold, 2);
+    txt(g, SHOP.place, W / 2 - 8, 1403, 30, C.sand, { w: 500, alpha: la * 0.8 });
+    const hw = measure(g, SHOP.hours, 28, 500);
+    icon(g, "clock", W / 2 + hw / 2 + 24, 1452, 28, C.gold, 2);
+    txt(g, SHOP.hours, W / 2 - 8, 1462, 28, C.sand, { w: 500, alpha: la * 0.65 });
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Frame composition
+// ════════════════════════════════════════════════════════════════════
+function render(t) {
+  const g = ctx;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalAlpha = 1; g.filter = "none"; g.globalCompositeOperation = "source-over";
+
+  // Act 1: hook + chat (petrol).
+  if (t < T.zoomOut[1]) {
+    petrolBackdrop(g, t);
+    drawHook(g, t);
+    if (t >= T.phoneIn) {
+      const st = phoneState(t);
+      const z = eInOutCubic(P(t, T.zoomOut[0], T.zoomOut[1]));
+      if (z > 0) {
+        // zoom into the order card; the tracker detaches and flies to the top
+        const m5 = MSGS.find(m => m.id === "m5");
+        const it = chatLayout(t).find(i => i.m === m5);
+        const focus = screenToWorld(st, it.x + it.w / 2, it.y + it.h / 2);
+        const zs = lerp(1, 2.4, z);
+        const zst = { cx: focus.x + (st.cx - focus.x) * zs + (W / 2 - focus.x) * z, cy: focus.y + (st.cy - focus.y) * zs + (900 - focus.y) * z, s: st.s * zs, rot: st.rot, a: 1 - P(t, T.zoomOut[0] + 0.25, T.zoomOut[1] - 0.1) };
+        drawPhone(g, t, zst, { hideTracker: true });
+        const sand = P(t, T.zoomOut[0] + 0.2, T.zoomOut[1]);
+        g.fillStyle = `rgba(242,238,227,${eInOutCubic(sand)})`; g.fillRect(0, 0, W, H);
+        const from = miniTrackerDots(m5).map(d => screenToWorld(zst, it.x + d.x, it.y + d.y));
+        from.r = 9 * zst.s;
+        drawTracker(g, t, z, from);
+      } else {
+        drawPhone(g, t, st, { hide: t >= T.pop[0] && t < T.pop[1] ? "m3" : null });
+        drawPopout(g, t, st);
+      }
+    }
+    return;
+  }
+
+  // Act 2: packing → delivery (sand), with the tracker panel on top.
+  if (t < T.wipe1 + 0.87) {
+    const pan = eInOutCubic(P(t, T.pan[0], T.pan[1]));
+    if (pan < 1) {
+      g.save(); g.translate(pan * W, 0); drawPacking(g, t); g.restore();
+    }
+    if (pan > 0) drawDelivery(g, t, (pan - 1) * W);
+    // flying box between the scenes
+    if (t >= T.jump && t < T.land) {
+      const p = P(t, T.jump, T.land);
+      const a = boxAnchor(T.jump);
+      const scx = 640 + (pan - 1) * W;
+      const bx = lerp(a.x, scx + 155, eInOutCubic(p)), by = lerp(a.y, ROAD_Y + 80 - 200 + DY, eInCubic(p)) - Math.sin(Math.PI * p) * 420;
+      const s = lerp(420, 115, eInOutCubic(p));
+      g.save(); g.translate(bx, by); g.rotate(Math.sin(Math.PI * p) * -0.5);
+      drawBox(g, { x: 0, y: 0, s }, 99, closedBox());
+      g.restore();
+    }
+    drawTracker(g, t, 1);
+    chip(g, t, "طلبك بالطريق إليك 🛵", T.go - 0.1, T.brake[1], 470);
+    chip(g, t, "وصل طلبك! 🎉", T.arrived, 30, 470);
+    confetti(g, t, T.arrived, TRACK.xs[3], TRACK.y, 11, 70, [C.gold, C.petrol, C.aqua, "#E0566A"], 1.2);
+    capsuleWipe(g, t, T.wipe1, C.gold);
+    capsuleWipe(g, t, T.wipe1 + 0.12, C.petrol);
+    return;
+  }
+
+  // Act 3: back in the chat — delivered, rated.
+  if (t < T.wipe2 + 0.7) {
+    petrolBackdrop(g, t);
+    const cap = spring(t - T.phone2 - 0.1, 2, 9) * (1 - P(t, T.wipe2 - 0.2, T.wipe2));
+    if (cap > 0.01) {
+      g.save(); g.beginPath(); g.rect(0, 170, W, 90); g.clip();
+      txt(g, "وصل.. والزبون فرحان 😍", W / 2, 232 + (1 - clamp(cap)) * 60, 48, C.sand, { w: 700 });
+      g.restore();
+    }
+    drawPhone(g, t, phoneState(t));
+    confetti(g, t, T.stars + 0.55, W / 2, 1150, 23, 80, [C.gold, C.sand, C.aqua, "#E0566A"], 1.4);
+    capsuleWipe(g, t, T.wipe2, C.gold, 0.55, 0.07);
+    return;
+  }
+
+  // Act 4: end card (the gold capsules exit upwards to reveal it).
+  drawEnd(g, t);
+  capsuleWipe(g, t, T.wipe2 + 0.7, C.gold, 0.55, 0.07, true);
+}
+
+function post(t) {
+  const g = ctx;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+  const fin = 1 - P(t, 0, 0.25);
+  if (fin > 0) { g.fillStyle = `rgba(0,0,0,${fin})`; g.fillRect(0, 0, W, H); }
+}
+
+let acc;
+function renderFrame(t, samples = 1, shutter = 0) {
+  if (samples > 1) {
+    if (!acc) { acc = document.createElement("canvas"); acc.width = W; acc.height = H; }
+    const a = acc.getContext("2d");
+    for (let k = 0; k < samples; k++) {
+      render(t + shutter * ((k + 0.5) / samples - 0.5));
+      a.globalAlpha = 1 / (k + 1);
+      a.drawImage(cv, 0, 0);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+    ctx.drawImage(acc, 0, 0);
+  } else {
+    render(t);
+  }
+  post(t);
+}
+
+async function init() {
+  L = await (await fetch("assets/logo/layout.json")).json();
+  IM.words = await Promise.all(L.new.words.map(w => loadImg("assets/logo/" + w.file)));
+  IM.letters = await Promise.all(L.new.letters.map(w => loadImg("assets/logo/" + w.file)));
+  const sample = "تريد موبايل؟ أو إكسسوار Galaxy A54 0773 SUFYAN 🌷🎧🛵🎉👌❤️📱📦😍";
+  await Promise.all([500, 600, 700].map(w => document.fonts.load(`${w} 40px Plex`, sample)));
+  ctx.imageSmoothingQuality = "high";
+  prepareChat();
+  S_END = roadDistance(T.brake[1] + 1);
+  window.READY = true;
+}
+
+window.renderFrame = renderFrame;
+window.DUR = DUR;
+init().then(() => {
+  if (!navigator.webdriver) {
+    document.body.classList.add("preview");
+    const t0 = performance.now();
+    const loop = now => { renderFrame(((now - t0) / 1000) % DUR); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+});
+</script>
+</body>
+</html>
