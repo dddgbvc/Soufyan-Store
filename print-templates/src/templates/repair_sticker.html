@@ -1,0 +1,19 @@
+<div class="page st">
+  <div class="hd"><i class="lg" data-logo></i><div class="tt"><b>صيانة</b></div><div class="pr"><span class="n">{{ticket}}</span></div></div>
+  <div class="sp">
+    <div class="cols">
+      <div>
+        {{#customer}}<div class="r"><span class="l">الزبون</span><span class="v">{{customer}}</span></div>{{/customer}}
+        {{#device}}<div class="r"><span class="l">الجهاز</span><span class="v"><bdi>{{device}}</bdi></span></div>{{/device}}
+        {{#imei}}<div class="r"><span class="l">IMEI</span><span class="v n">{{imei}}</span></div>{{/imei}}
+      </div>
+      <div>
+        {{#color}}<div class="r"><span class="l">اللون</span><span class="v">{{color}}</span></div>{{/color}}
+        {{#received_at}}<div class="r"><span class="l">الاستلام</span><span class="v n">{{received_at}}</span></div>{{/received_at}}
+        {{#due_at}}<div class="r"><span class="l">التسليم</span><span class="v n">{{due_at}}</span></div>{{/due_at}}
+      </div>
+    </div>
+    {{#fault}}<div class="wide"><div class="r"><span class="l">العطل</span><span class="v">{{fault}}</span></div></div>{{/fault}}
+  </div>
+  <div class="ft"><div class="bc" data-code="{{ticket}}"></div><div class="code">{{ticket}}</div></div>
+</div>

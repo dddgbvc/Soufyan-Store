@@ -1,0 +1,19 @@
+<div class="page rc">
+  {{> rc_head}}
+  <div class="tl"><b>وصل مرتجعات</b><span>{{number}}</span></div>
+  {{> rc_people}}
+  {{#original_invoice}}<div class="r"><span class="l">الفاتورة الأصلية</span><span class="v n">{{original_invoice}}</span></div>{{/original_invoice}}
+  <div class="grp">
+    {{#items}}<div class="it"><span><b><bdi>{{name}}</bdi></b>{{#detail}}<small><bdi>{{detail}}</bdi></small>{{/detail}}</span><b class="n">{{amount}}</b></div>{{/items}}
+  </div>
+  <div class="grp">
+    {{#reason}}<div class="r"><span class="l">السبب</span><span class="v">{{reason}}</span></div>{{/reason}}
+    {{#item_condition}}<div class="r"><span class="l">حالة المادة</span><span class="v">{{item_condition}}</span></div>{{/item_condition}}
+    {{#resolution}}<div class="r"><span class="l">المعالجة</span><span class="v">{{resolution}}</span></div>{{/resolution}}
+  </div>
+  <div class="tot"><span>المبلغ المُسترَد</span><b><span class="n">{{refund}}</span> د.ع</b></div>
+  <div class="sign"><span>توقيع الزبون</span><div></div><span>الموظّف</span><div></div></div>
+  <div class="terms">الإرجاع أو الاستبدال خلال 3 أيام من الشراء · المادة سليمة وغير مستعملة مع علبتها · بإبراز الفاتورة الأصلية فقط</div>
+  <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
+  <div class="ft"><b>شكراً لتعاملك</b><br>{{> rc_contacts}}</div>
+</div>
