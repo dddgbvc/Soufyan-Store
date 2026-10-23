@@ -40,7 +40,7 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
 .st .code{font-size:var(--cs);font-weight:500;letter-spacing:.3em;line-height:1;margin-top:calc(1.4mm*var(--k));direction:ltr;padding-left:.3em}
 
 /* ============ الوصولات الحرارية 80mm (خفيفة الحبر) ============ */
-.rc{width:80mm;padding:5mm 5mm 4mm;font-size:7.6pt;line-height:1.3}
+.rc{width:80mm;min-height:166mm;padding:5mm 5mm 4mm;font-size:7.6pt;line-height:1.3;display:flex;flex-direction:column}
 .rc .hd{display:flex;align-items:center;justify-content:center;gap:2.4mm}
 .rc .hd i{display:block;width:7.5mm;height:7.5mm;flex:none}
 .rc .hd h1{font-size:11pt;font-weight:700;line-height:1}
@@ -62,10 +62,8 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
 .rc .tot span{font-size:8.4pt;font-weight:700}
 .rc .tot b{font-size:11pt;font-weight:700;line-height:1}
 .rc .txt{margin-top:2mm;font-weight:500;line-height:1.5}
-.rc .terms{margin-top:3.8mm;padding:0 2mm;font-size:6.2pt;line-height:1.6;text-align:center}
-.rc .sign{display:flex;gap:2mm;align-items:flex-end;margin-top:5mm;font-size:6.8pt}
-.rc .sign div{flex:1;border-bottom:.2mm solid #000;height:3.6mm}
-.rc .bc{height:7mm;margin:4.2mm 14mm 0}
+.rc .terms{margin:3.8mm 0 4.2mm;padding:0 2mm;font-size:6.2pt;line-height:1.6;text-align:center}
+.rc .bc{flex:none;height:7mm;margin:auto 14mm 0}
 .rc .code{text-align:center;font-size:7pt;font-weight:600;letter-spacing:.3em;margin-top:1.4mm;direction:ltr;line-height:1}
 .rc .ft{text-align:center;margin-top:3.6mm;font-size:6.8pt;line-height:1.75}
 .rc .ft b{font-size:8pt}$pt$, $pt$/* تشغيل مشترك لكل المطبوعات: الشعار، باركود Code128، ملاءمة الاسم، وطول الوصل */
@@ -120,10 +118,11 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
       var s = parseFloat(getComputedStyle(e).fontSize);
       while (e.scrollWidth > e.clientWidth + 0.5 && s > 6) { s -= 0.25; e.style.fontSize = s + 'px'; }
     });
-    // طول ورقة الوصل = طول المحتوى بالضبط
+    // طول ورقة الوصل: 166mm للوصل الاعتيادي (min-height بالـ CSS)، ويطول إذا المحتوى أكثر
     var rc = document.querySelector('.rc');
     if (rc) {
-      var mm = Math.ceil(rc.getBoundingClientRect().height * 25.4 / 96) + 1, st = document.createElement('style');
+      var px2mm = 25.4 / 96, min = Math.round(parseFloat(getComputedStyle(rc).minHeight) * px2mm) || 0;
+      var mm = Math.max(min, Math.ceil(rc.getBoundingClientRect().height * px2mm - 0.05)), st = document.createElement('style');
       st.textContent = '@page{size:80mm ' + mm + 'mm;margin:0}';
       document.head.appendChild(st);
     }
@@ -132,7 +131,7 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
     if (window.__autoPrint) window.print();
   }
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(finish);
-})();$pt$, $pt${"rc_contacts":"<span class=\"n\">{{shop.phone1}} · {{shop.phone2}}</span><br>خدمات الإنترنت <span class=\"n\">{{shop.internet}}</span>","rc_head":"<div class=\"hd\"><i data-logo></i><div><h1>{{shop.name}}</h1><div class=\"ad\">{{shop.address}}</div></div></div>","rc_people":"<div class=\"r\"><span class=\"l\">التاريخ</span><span class=\"v n\">{{date}}</span></div>\n{{#customer}}<div class=\"r\"><span class=\"l\">الزبون</span><span class=\"v\">{{customer}}</span></div>{{/customer}}\n{{#phone}}<div class=\"r\"><span class=\"l\">الهاتف</span><span class=\"v n\">{{phone}}</span></div>{{/phone}}\n{{#employee}}<div class=\"r\"><span class=\"l\">الموظّف</span><span class=\"v\">{{employee}}</span></div>{{/employee}}","st_product":"<div class=\"page st\">\n  <div class=\"hd\"><i class=\"lg\" data-logo></i><div class=\"tt\"><b><bdi>{{name}}</bdi></b></div><div class=\"pr\"><span class=\"n\">{{price}}</span> د.ع</div></div>\n  {{#spec}}<div class=\"sp\"><div class=\"cols\"><div><div class=\"r\"><span class=\"l\">المواصفات</span><span class=\"v\"><bdi>{{spec}}</bdi></span></div></div></div></div>\n  <div class=\"ft\">{{/spec}}{{^spec}}<div class=\"ft only\">{{/spec}}<div class=\"bc\" data-code=\"{{sku}}\"></div><div class=\"code\">{{sku}}</div></div>\n</div>"}$pt$::jsonb, '[]'::jsonb, $pt${"shop":{"name":"مكتب سفيان للموبايل","address":"سامراء — الحويش — الشارع الرئيسي","phone1":"07731644450","phone2":"07744485771","internet":"07729096991"}}$pt$::jsonb, 3),
+})();$pt$, $pt${"rc_contacts":"<span class=\"n\">{{shop.phone1}} · {{shop.phone2}}</span><br>خدمات الإنترنت <span class=\"n\">{{shop.internet}}</span>","rc_head":"<div class=\"hd\"><i data-logo></i><div><h1>{{shop.name}}</h1><div class=\"ad\">{{shop.address}}</div></div></div>","rc_people":"<div class=\"r\"><span class=\"l\">التاريخ</span><span class=\"v n\">{{date}}</span></div>\n{{#customer}}<div class=\"r\"><span class=\"l\">الزبون</span><span class=\"v\">{{customer}}</span></div>{{/customer}}\n{{#phone}}<div class=\"r\"><span class=\"l\">الهاتف</span><span class=\"v n\">{{phone}}</span></div>{{/phone}}\n{{#employee}}<div class=\"r\"><span class=\"l\">الموظّف</span><span class=\"v\">{{employee}}</span></div>{{/employee}}","st_product":"<div class=\"page st\">\n  <div class=\"hd\"><i class=\"lg\" data-logo></i><div class=\"tt\"><b><bdi>{{name}}</bdi></b></div><div class=\"pr\"><span class=\"n\">{{price}}</span> د.ع</div></div>\n  {{#spec}}<div class=\"sp\"><div class=\"cols\"><div><div class=\"r\"><span class=\"l\">المواصفات</span><span class=\"v\"><bdi>{{spec}}</bdi></span></div></div></div></div>\n  <div class=\"ft\">{{/spec}}{{^spec}}<div class=\"ft only\">{{/spec}}<div class=\"bc\" data-code=\"{{sku}}\"></div><div class=\"code\">{{sku}}</div></div>\n</div>"}$pt$::jsonb, '[]'::jsonb, $pt${"shop":{"name":"مكتب سفيان للموبايل","address":"سامراء — الحويش — الشارع الرئيسي","phone1":"07731644450","phone2":"07744485771","internet":"07729096991"}}$pt$::jsonb, 4),
 (null, $pt$phone_sticker$pt$, $pt$sticker$pt$, $pt$ستيكر هاتف$pt$, 75, 50, $pt$<div class="page st">
   <div class="hd"><i class="lg" data-logo></i><div class="tt"><b><bdi>{{model}}</bdi></b></div><div class="pr"><span class="n">{{price}}</span> د.ع</div></div>
   <div class="sp">
@@ -150,7 +149,7 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
     {{#notes}}<div class="wide"><div class="r"><span class="l">ملاحظات</span><span class="v">{{notes}}</span></div></div>{{/notes}}
   </div>
   <div class="ft"><div class="bc" data-code="{{sku}}"></div><div class="code">{{sku}}</div></div>
-</div>$pt$, $pt$.st{--w:75mm;--h:50mm}$pt$, '', '{}'::jsonb, $pt$[["model","الموديل"],["price","السعر"],["memory","الذاكرة"],["imei","IMEI"],["battery","البطارية %"],["color","اللون"],["condition","الحالة"],["notes","ملاحظات"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"model":"Samsung Galaxy A54","price":385000,"memory":"128GB · 8GB RAM","imei":"356938035643809","battery":92,"color":"أسود","condition":"مستعمل — ممتاز","notes":"خدش بسيط بزاوية الشاشة","sku":"SFN-PH-1042"}$pt$::jsonb, 3),
+</div>$pt$, $pt$.st{--w:75mm;--h:50mm}$pt$, '', '{}'::jsonb, $pt$[["model","الموديل"],["price","السعر"],["memory","الذاكرة"],["imei","IMEI"],["battery","البطارية %"],["color","اللون"],["condition","الحالة"],["notes","ملاحظات"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"model":"Samsung Galaxy A54","price":385000,"memory":"128GB · 8GB RAM","imei":"356938035643809","battery":92,"color":"أسود","condition":"مستعمل — ممتاز","notes":"خدش بسيط بزاوية الشاشة","sku":"SFN-PH-1042"}$pt$::jsonb, 4),
 (null, $pt$repair_sticker$pt$, $pt$sticker$pt$, $pt$ستيكر صيانة$pt$, 90, 50, $pt$<div class="page st">
   <div class="hd"><i class="lg" data-logo></i><div class="tt"><b>صيانة</b></div><div class="pr"><span class="n">{{ticket}}</span></div></div>
   <div class="sp">
@@ -169,10 +168,10 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
     {{#fault}}<div class="wide"><div class="r"><span class="l">العطل</span><span class="v">{{fault}}</span></div></div>{{/fault}}
   </div>
   <div class="ft"><div class="bc" data-code="{{ticket}}"></div><div class="code">{{ticket}}</div></div>
-</div>$pt$, $pt$.st{--w:90mm;--h:50mm;--gc:1.25fr 1fr;padding-inline:5.6mm}$pt$, '', '{}'::jsonb, $pt$[["ticket","رقم التذكرة"],["customer","الزبون"],["device","الجهاز"],["imei","IMEI"],["color","اللون"],["received_at","تاريخ الاستلام"],["due_at","موعد التسليم"],["fault","العطل"]]$pt$::jsonb, $pt${"ticket":"SFN-01427","customer":"أحمد عبد الله","device":"Samsung Galaxy A54","imei":"356938035643809","color":"أسود","received_at":"2026-10-22","due_at":"2026-10-24","fault":"شاشة + شحن"}$pt$::jsonb, 3),
-(null, $pt$product_sticker_l$pt$, $pt$sticker$pt$, $pt$ستيكر منتجات كبير$pt$, 60, 40, $pt${{> st_product}}$pt$, $pt$.st{--w:60mm;--h:40mm;--k:.9;--ps:11.5pt;--gc:1fr;--bw:30mm;--bh:7mm}$pt$, '', '{}'::jsonb, $pt$[["name","اسم المنتج"],["price","السعر"],["spec","المواصفات (اختياري)"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"name":"باور بانك 10000mAh","price":28000,"spec":"شحن سريع 22.5W","sku":"SFN-AC-2208"}$pt$::jsonb, 3),
-(null, $pt$product_sticker_m$pt$, $pt$sticker$pt$, $pt$ستيكر منتجات وسط$pt$, 50, 30, $pt${{> st_product}}$pt$, $pt$.st{--w:50mm;--h:30mm;--k:.78;--ps:8.6pt;--ts:8.2pt;--lw:4.2mm;--bw:28mm;--bh:6.4mm}$pt$, '', '{}'::jsonb, $pt$[["name","اسم المنتج"],["price","السعر"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"name":"سماعة بلوتوث لاسلكية","price":35000,"sku":"SFN-AC-1135"}$pt$::jsonb, 3),
-(null, $pt$product_sticker_s$pt$, $pt$sticker$pt$, $pt$ستيكر منتجات صغير$pt$, 40, 25, $pt${{> st_product}}$pt$, $pt$.st{--w:40mm;--h:25mm;--k:.66;--ps:9.5pt;--ts:8pt;--lw:3.4mm;--bw:24mm;--bh:5.4mm;--cs:5.2pt}$pt$, '', '{}'::jsonb, $pt$[["name","اسم المنتج"],["price","السعر"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"name":"محوّل OTG","price":4500,"sku":"SFN-AC-0045"}$pt$::jsonb, 3),
+</div>$pt$, $pt$.st{--w:90mm;--h:50mm;--gc:1.25fr 1fr;padding-inline:5.6mm}$pt$, '', '{}'::jsonb, $pt$[["ticket","رقم التذكرة"],["customer","الزبون"],["device","الجهاز"],["imei","IMEI"],["color","اللون"],["received_at","تاريخ الاستلام"],["due_at","موعد التسليم"],["fault","العطل"]]$pt$::jsonb, $pt${"ticket":"SFN-01427","customer":"أحمد عبد الله","device":"Samsung Galaxy A54","imei":"356938035643809","color":"أسود","received_at":"2026-10-22","due_at":"2026-10-24","fault":"شاشة + شحن"}$pt$::jsonb, 4),
+(null, $pt$product_sticker_l$pt$, $pt$sticker$pt$, $pt$ستيكر منتجات كبير$pt$, 60, 40, $pt${{> st_product}}$pt$, $pt$.st{--w:60mm;--h:40mm;--k:.9;--ps:11.5pt;--gc:1fr;--bw:30mm;--bh:7mm}$pt$, '', '{}'::jsonb, $pt$[["name","اسم المنتج"],["price","السعر"],["spec","المواصفات (اختياري)"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"name":"باور بانك 10000mAh","price":28000,"spec":"شحن سريع 22.5W","sku":"SFN-AC-2208"}$pt$::jsonb, 4),
+(null, $pt$product_sticker_m$pt$, $pt$sticker$pt$, $pt$ستيكر منتجات وسط$pt$, 50, 30, $pt${{> st_product}}$pt$, $pt$.st{--w:50mm;--h:30mm;--k:.78;--ps:8.6pt;--ts:8.2pt;--lw:4.2mm;--bw:28mm;--bh:6.4mm}$pt$, '', '{}'::jsonb, $pt$[["name","اسم المنتج"],["price","السعر"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"name":"سماعة بلوتوث لاسلكية","price":35000,"sku":"SFN-AC-1135"}$pt$::jsonb, 4),
+(null, $pt$product_sticker_s$pt$, $pt$sticker$pt$, $pt$ستيكر منتجات صغير$pt$, 40, 25, $pt${{> st_product}}$pt$, $pt$.st{--w:40mm;--h:25mm;--k:.66;--ps:9.5pt;--ts:8pt;--lw:3.4mm;--bw:24mm;--bh:5.4mm;--cs:5.2pt}$pt$, '', '{}'::jsonb, $pt$[["name","اسم المنتج"],["price","السعر"],["sku","رمز الباركود"]]$pt$::jsonb, $pt${"name":"محوّل OTG","price":4500,"sku":"SFN-AC-0045"}$pt$::jsonb, 4),
 (null, $pt$receipt_sale$pt$, $pt$receipt$pt$, $pt$وصل بيع$pt$, 80, null, $pt$<div class="page rc">
   {{> rc_head}}
   <div class="tl"><b>فاتورة بيع</b><span>{{number}}</span></div>
@@ -192,7 +191,7 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
   <div class="terms">الكفالة لعيوب التصنيع فقط ولا تشمل الكسر أو الماء · الاستبدال خلال 3 أيام بشرط سلامة الجهاز وملحقاته · لا تُقبل المراجعة بدون الوصل</div>
   <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
   <div class="ft"><b>شكراً لطلبك</b><br>{{> rc_contacts}}</div>
-</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الفاتورة"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["items","الأصناف [name, detail, amount]"],["subtotal","المجموع"],["discount","الخصم"],["total","الإجمالي"],["paid","المدفوع"],["remaining","المتبقّي دَين"],["imei","IMEI"],["warranty","الكفالة"]]$pt$::jsonb, $pt${"number":"SFN-B-00318","date":"2026-09-09 18:05","customer":"مصطفى كريم","phone":"07705551234","employee":"سفيان","items":[{"name":"Samsung Galaxy A54","detail":"128GB · أسود","amount":385000},{"name":"زجاج حماية شاشة","amount":5000},{"name":"حافظة سيليكون","detail":"2 × 6,000","amount":12000}],"subtotal":402000,"discount":2000,"total":400000,"paid":400000,"remaining":0,"imei":"356938035643809","warranty":"سنة — عيوب التصنيع"}$pt$::jsonb, 3),
+</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الفاتورة"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["items","الأصناف [name, detail, amount]"],["subtotal","المجموع"],["discount","الخصم"],["total","الإجمالي"],["paid","المدفوع"],["remaining","المتبقّي دَين"],["imei","IMEI"],["warranty","الكفالة"]]$pt$::jsonb, $pt${"number":"SFN-B-00318","date":"2026-09-09 18:05","customer":"مصطفى كريم","phone":"07705551234","employee":"سفيان","items":[{"name":"Samsung Galaxy A54","detail":"128GB · أسود","amount":385000},{"name":"زجاج حماية شاشة","amount":5000},{"name":"حافظة سيليكون","detail":"2 × 6,000","amount":12000}],"subtotal":402000,"discount":2000,"total":400000,"paid":400000,"remaining":0,"imei":"356938035643809","warranty":"سنة — عيوب التصنيع"}$pt$::jsonb, 4),
 (null, $pt$receipt_payment$pt$, $pt$receipt$pt$, $pt$وصل قبض$pt$, 80, null, $pt$<div class="page rc">
   {{> rc_head}}
   <div class="tl"><b>وصل قبض</b><span>{{number}}</span></div>
@@ -204,11 +203,10 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
   </div>
   <div class="tot"><span>الرصيد المتبقّي</span><b><span class="n">{{remaining}}</span> د.ع</b></div>
   {{#next_payment_date}}<div class="r"><span class="l">الدفعة القادمة</span><span class="v"><span class="n">{{next_payment_date}}</span>{{#next_payment_amount}} — <span class="n">{{next_payment_amount}}</span> د.ع{{/next_payment_amount}}</span></div>{{/next_payment_date}}
-  <div class="sign"><span>توقيع المستلم</span><div></div></div>
   <div class="terms">احتفظ بالوصل كإثبات للدفع · أي مبلغ بدون وصل رسمي لا يُعتمد</div>
   <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
   <div class="ft"><b>شكراً لتعاملك</b><br>{{> rc_contacts}}</div>
-</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الوصل"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["description","البيان"],["paid","المبلغ المقبوض"],["previous_balance","الرصيد السابق"],["remaining","الرصيد المتبقّي"],["next_payment_date","موعد الدفعة القادمة"],["next_payment_amount","مبلغ الدفعة القادمة"]]$pt$::jsonb, $pt${"number":"SFN-Q-00125","date":"2026-09-09 18:05","customer":"مصطفى كريم","phone":"07705551234","employee":"سفيان","description":"تسديد دفعة — نقداً","paid":50000,"previous_balance":150000,"remaining":100000,"next_payment_date":"2026-11-22","next_payment_amount":50000}$pt$::jsonb, 3),
+</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الوصل"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["description","البيان"],["paid","المبلغ المقبوض"],["previous_balance","الرصيد السابق"],["remaining","الرصيد المتبقّي"],["next_payment_date","موعد الدفعة القادمة"],["next_payment_amount","مبلغ الدفعة القادمة"]]$pt$::jsonb, $pt${"number":"SFN-Q-00125","date":"2026-09-09 18:05","customer":"مصطفى كريم","phone":"07705551234","employee":"سفيان","description":"تسديد دفعة — نقداً","paid":50000,"previous_balance":150000,"remaining":100000,"next_payment_date":"2026-11-22","next_payment_amount":50000}$pt$::jsonb, 4),
 (null, $pt$receipt_debt$pt$, $pt$receipt$pt$, $pt$وصل إضافة دين$pt$, 80, null, $pt$<div class="page rc">
   {{> rc_head}}
   <div class="tl"><b>وصل إضافة دين</b><span>{{number}}</span></div>
@@ -223,11 +221,10 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
   </div>
   <div class="tot"><span>الرصيد الكلّي</span><b><span class="n">{{balance}}</span> د.ع</b></div>
   {{#due_date}}<div class="r"><span class="l">موعد التسديد</span><span class="v"><span class="n">{{due_date}}</span>{{#due_amount}} — <span class="n">{{due_amount}}</span> د.ع{{/due_amount}}</span></div>{{/due_date}}
-  <div class="sign"><span>توقيع الزبون</span><div></div></div>
-  <div class="terms">أُقرّ بأن المبلغ أعلاه دَين بذمّتي للمحل ويُسدَّد بالموعد المتفق عليه · احتفظ بالوصل لمراجعة الرصيد</div>
+  <div class="terms">المبلغ أعلاه دَين على الزبون ويُسدَّد بالموعد المتفق عليه · احتفظ بالوصل لمراجعة الرصيد</div>
   <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
   <div class="ft"><b>شكراً لثقتك</b><br>{{> rc_contacts}}</div>
-</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الوصل"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["description","البيان"],["items","المواد بالدين [name, detail, amount] (اختياري)"],["amount","المبلغ المضاف"],["previous_balance","الرصيد السابق"],["balance","الرصيد الكلي"],["due_date","موعد التسديد"],["due_amount","مبلغ التسديد"]]$pt$::jsonb, $pt${"number":"SFN-D-00057","date":"2026-10-23 13:10","customer":"مصطفى كريم","phone":"07705551234","employee":"سفيان","description":"شراء بالآجل","items":[{"name":"Samsung Galaxy A15","detail":"128GB · أزرق","amount":185000}],"amount":185000,"previous_balance":100000,"balance":285000,"due_date":"2026-11-22","due_amount":50000}$pt$::jsonb, 3),
+</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الوصل"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["description","البيان"],["items","المواد بالدين [name, detail, amount] (اختياري)"],["amount","المبلغ المضاف"],["previous_balance","الرصيد السابق"],["balance","الرصيد الكلي"],["due_date","موعد التسديد"],["due_amount","مبلغ التسديد"]]$pt$::jsonb, $pt${"number":"SFN-D-00057","date":"2026-10-23 13:10","customer":"مصطفى كريم","phone":"07705551234","employee":"سفيان","description":"شراء بالآجل","items":[{"name":"Samsung Galaxy A15","detail":"128GB · أزرق","amount":185000}],"amount":185000,"previous_balance":100000,"balance":285000,"due_date":"2026-11-22","due_amount":50000}$pt$::jsonb, 4),
 (null, $pt$receipt_repair$pt$, $pt$receipt$pt$, $pt$وصل صيانة — نسخة الزبون$pt$, 80, null, $pt$<div class="page rc">
   {{> rc_head}}
   <div class="tl"><b>وصل صيانة · نسخة الزبون</b><span>{{ticket}}</span></div>
@@ -250,7 +247,8 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
   <div class="terms">المحل غير مسؤول عن البيانات · الكلفة تقديرية وقد تتغيّر بعد الفحص · الجهاز غير المستلَم خلال 30 يوماً خارج مسؤولية المحل · لا يُسلَّم الجهاز إلا بهذا الوصل</div>
   <div class="bc" data-code="{{ticket}}"></div><div class="code">{{ticket}}</div>
   <div class="ft"><b>شكراً لثقتك</b><br>{{> rc_contacts}}</div>
-</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["ticket","رقم التذكرة"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["device","الجهاز"],["color","اللون"],["imei","IMEI"],["lock_code","رمز القفل"],["accessories","الملحقات"],["fault","الخلل"],["fault_description","وصف الخلل"],["due_date","موعد التسليم"],["estimate","الكلفة التقديرية"],["paid","المدفوع مقدّماً"],["remaining","المتبقّي عند الاستلام"]]$pt$::jsonb, $pt${"ticket":"SFN-01427","date":"2026-09-06 12:40","customer":"أحمد عبد الله حسين","phone":"07712345678","device":"Samsung Galaxy A54","color":"أسود","imei":"356938035643809","lock_code":"1234","accessories":"كفر فقط","fault":"شاشة · شحن","fault_description":"الشاشة مكسورة من الزاوية العليا واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.","due_date":"2026-09-08","estimate":85000,"paid":25000,"remaining":60000}$pt$::jsonb, 3),
+</div>$pt$, $pt$.rc .r,.rc .it{margin-top:1.5mm}
+.rc .grp{margin-top:2.5mm;padding-top:2.2mm}$pt$, '', '{}'::jsonb, $pt$[["ticket","رقم التذكرة"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["device","الجهاز"],["color","اللون"],["imei","IMEI"],["lock_code","رمز القفل"],["accessories","الملحقات"],["fault","الخلل"],["fault_description","وصف الخلل"],["due_date","موعد التسليم"],["estimate","الكلفة التقديرية"],["paid","المدفوع مقدّماً"],["remaining","المتبقّي عند الاستلام"]]$pt$::jsonb, $pt${"ticket":"SFN-01427","date":"2026-09-06 12:40","customer":"أحمد عبد الله حسين","phone":"07712345678","device":"Samsung Galaxy A54","color":"أسود","imei":"356938035643809","lock_code":"1234","accessories":"كفر فقط","fault":"شاشة · شحن","fault_description":"الشاشة مكسورة من الزاوية العليا واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.","due_date":"2026-09-08","estimate":85000,"paid":25000,"remaining":60000}$pt$::jsonb, 4),
 (null, $pt$receipt_return$pt$, $pt$receipt$pt$, $pt$وصل مرتجعات$pt$, 80, null, $pt$<div class="page rc">
   {{> rc_head}}
   <div class="tl"><b>وصل مرتجعات</b><span>{{number}}</span></div>
@@ -265,11 +263,10 @@ body{font-family:'El Messiri',sans-serif;direction:rtl;-webkit-print-color-adjus
     {{#resolution}}<div class="r"><span class="l">المعالجة</span><span class="v">{{resolution}}</span></div>{{/resolution}}
   </div>
   <div class="tot"><span>المبلغ المُسترَد</span><b><span class="n">{{refund}}</span> د.ع</b></div>
-  <div class="sign"><span>توقيع الزبون</span><div></div><span>الموظّف</span><div></div></div>
   <div class="terms">الإرجاع أو الاستبدال خلال 3 أيام من الشراء · المادة سليمة وغير مستعملة مع علبتها · بإبراز الفاتورة الأصلية فقط</div>
   <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
   <div class="ft"><b>شكراً لتعاملك</b><br>{{> rc_contacts}}</div>
-</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الوصل"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["original_invoice","الفاتورة الأصلية"],["items","المواد المرجعة [name, detail, amount]"],["reason","سبب الإرجاع"],["item_condition","حالة المادة"],["resolution","المعالجة"],["refund","المبلغ المسترد"]]$pt$::jsonb, $pt${"number":"SFN-RT-00042","date":"2026-09-11 16:20","customer":"مصطفى كريم","phone":"07705551234","original_invoice":"SFN-B-00318","items":[{"name":"حافظة سيليكون","detail":"1 × 6,000","amount":6000},{"name":"زجاج حماية شاشة","detail":"1 × 5,000","amount":5000}],"reason":"المقاس غير مناسب للجهاز","item_condition":"سليمة مع العلبة","resolution":"استرداد نقدي","refund":11000}$pt$::jsonb, 3)
+</div>$pt$, $pt$$pt$, '', '{}'::jsonb, $pt$[["number","رقم الوصل"],["date","التاريخ"],["customer","الزبون"],["phone","الهاتف"],["employee","الموظّف"],["original_invoice","الفاتورة الأصلية"],["items","المواد المرجعة [name, detail, amount]"],["reason","سبب الإرجاع"],["item_condition","حالة المادة"],["resolution","المعالجة"],["refund","المبلغ المسترد"]]$pt$::jsonb, $pt${"number":"SFN-RT-00042","date":"2026-09-11 16:20","customer":"مصطفى كريم","phone":"07705551234","original_invoice":"SFN-B-00318","items":[{"name":"حافظة سيليكون","detail":"1 × 6,000","amount":6000},{"name":"زجاج حماية شاشة","detail":"1 × 5,000","amount":5000}],"reason":"المقاس غير مناسب للجهاز","item_condition":"سليمة مع العلبة","resolution":"استرداد نقدي","refund":11000}$pt$::jsonb, 4)
 on conflict on constraint print_templates_tenant_key do update set
   kind = excluded.kind, name = excluded.name, width_mm = excluded.width_mm, height_mm = excluded.height_mm,
   html = excluded.html, css = excluded.css, js = excluded.js, partials = excluded.partials,

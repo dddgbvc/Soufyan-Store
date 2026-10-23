@@ -50,10 +50,11 @@
       var s = parseFloat(getComputedStyle(e).fontSize);
       while (e.scrollWidth > e.clientWidth + 0.5 && s > 6) { s -= 0.25; e.style.fontSize = s + 'px'; }
     });
-    // طول ورقة الوصل = طول المحتوى بالضبط
+    // طول ورقة الوصل: 166mm للوصل الاعتيادي (min-height بالـ CSS)، ويطول إذا المحتوى أكثر
     var rc = document.querySelector('.rc');
     if (rc) {
-      var mm = Math.ceil(rc.getBoundingClientRect().height * 25.4 / 96) + 1, st = document.createElement('style');
+      var px2mm = 25.4 / 96, min = Math.round(parseFloat(getComputedStyle(rc).minHeight) * px2mm) || 0;
+      var mm = Math.max(min, Math.ceil(rc.getBoundingClientRect().height * px2mm - 0.05)), st = document.createElement('style');
       st.textContent = '@page{size:80mm ' + mm + 'mm;margin:0}';
       document.head.appendChild(st);
     }

@@ -33,6 +33,7 @@ const html = SufyanPrint.render(bundle, 'receipt_sale', {
 - الأرقام تنكتب بفواصل تلقائياً، والحقل الفارغ ينخفي سطره.
 - الخط: يحمّل El Messiri من Google Fonts. بدون إنترنت مرّر `{ fontsCss: 'print-templates/fonts/fonts.css' }`.
 - الباركود Code128 يتولد داخل القالب بدون أي مكتبة خارجية.
+- الوصولات بعرض 80mm وطولها 166mm (`min-height` بـ `.rc`)، وإذا المحتوى أكثر يطول الوصل وحده.
 
 ## التعديل
 
