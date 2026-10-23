@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "shop": {
     "name": "مكتب سفيان للموبايل",
     "address": "سامراء — الحويش — الشارع الرئيسي",
@@ -9,53 +9,594 @@
   },
   "templates": [
     {
-      "key": "phone_sticker", "kind": "sticker", "name": "ستيكر هاتف", "width_mm": 75, "height_mm": 50,
-      "fields": [["model", "الموديل"], ["price", "السعر"], ["memory", "الذاكرة"], ["imei", "IMEI"], ["battery", "البطارية %"], ["color", "اللون"], ["condition", "الحالة"], ["notes", "ملاحظات"], ["sku", "رمز الباركود"]],
-      "sample": { "model": "Samsung Galaxy A54", "price": 385000, "memory": "128GB · 8GB RAM", "imei": "356938035643809", "battery": 92, "color": "أسود", "condition": "مستعمل — ممتاز", "notes": "خدش بسيط بزاوية الشاشة", "sku": "SFN-PH-1042" }
+      "key": "phone_sticker",
+      "kind": "sticker",
+      "name": "ستيكر هاتف",
+      "width_mm": 75,
+      "height_mm": 50,
+      "fields": [
+        [
+          "model",
+          "الموديل"
+        ],
+        [
+          "price",
+          "السعر"
+        ],
+        [
+          "memory",
+          "الذاكرة"
+        ],
+        [
+          "imei",
+          "IMEI"
+        ],
+        [
+          "battery",
+          "البطارية %"
+        ],
+        [
+          "color",
+          "اللون"
+        ],
+        [
+          "condition",
+          "الحالة"
+        ],
+        [
+          "notes",
+          "ملاحظات"
+        ],
+        [
+          "sku",
+          "رمز الباركود"
+        ]
+      ],
+      "sample": {
+        "model": "Samsung Galaxy A54",
+        "price": 385000,
+        "memory": "128GB · 8GB RAM",
+        "imei": "356938035643809",
+        "battery": 92,
+        "color": "أسود",
+        "condition": "مستعمل — ممتاز",
+        "notes": "خدش بسيط بزاوية الشاشة",
+        "sku": "SFN-PH-1042"
+      }
     },
     {
-      "key": "repair_sticker", "kind": "sticker", "name": "ستيكر صيانة", "width_mm": 90, "height_mm": 50,
-      "fields": [["ticket", "رقم التذكرة"], ["customer", "الزبون"], ["device", "الجهاز"], ["imei", "IMEI"], ["color", "اللون"], ["received_at", "تاريخ الاستلام"], ["due_at", "موعد التسليم"], ["fault", "العطل"]],
-      "sample": { "ticket": "SFN-01427", "customer": "أحمد عبد الله", "device": "Samsung Galaxy A54", "imei": "356938035643809", "color": "أسود", "received_at": "2026-10-22", "due_at": "2026-10-24", "fault": "شاشة + شحن" }
+      "key": "repair_sticker",
+      "kind": "sticker",
+      "name": "ستيكر صيانة",
+      "width_mm": 90,
+      "height_mm": 50,
+      "fields": [
+        [
+          "ticket",
+          "رقم التذكرة"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "device",
+          "الجهاز"
+        ],
+        [
+          "imei",
+          "IMEI"
+        ],
+        [
+          "color",
+          "اللون"
+        ],
+        [
+          "received_at",
+          "تاريخ الاستلام"
+        ],
+        [
+          "due_at",
+          "موعد التسليم"
+        ],
+        [
+          "fault",
+          "العطل"
+        ]
+      ],
+      "sample": {
+        "ticket": "SFN-01427",
+        "customer": "أحمد عبد الله",
+        "device": "Samsung Galaxy A54",
+        "imei": "356938035643809",
+        "color": "أسود",
+        "received_at": "2026-10-22",
+        "due_at": "2026-10-24",
+        "fault": "شاشة + شحن"
+      }
     },
     {
-      "key": "product_sticker_l", "kind": "sticker", "name": "ستيكر منتجات كبير", "width_mm": 60, "height_mm": 40,
-      "fields": [["name", "اسم المنتج"], ["price", "السعر"], ["spec", "المواصفات (اختياري)"], ["sku", "رمز الباركود"]],
-      "sample": { "name": "باور بانك 10000mAh", "price": 28000, "spec": "شحن سريع 22.5W", "sku": "SFN-AC-2208" }
+      "key": "product_sticker_l",
+      "kind": "sticker",
+      "name": "ستيكر منتجات كبير",
+      "width_mm": 60,
+      "height_mm": 40,
+      "fields": [
+        [
+          "name",
+          "اسم المنتج"
+        ],
+        [
+          "price",
+          "السعر"
+        ],
+        [
+          "spec",
+          "المواصفات (اختياري)"
+        ],
+        [
+          "sku",
+          "رمز الباركود"
+        ]
+      ],
+      "sample": {
+        "name": "باور بانك 10000mAh",
+        "price": 28000,
+        "spec": "شحن سريع 22.5W",
+        "sku": "SFN-AC-2208"
+      }
     },
     {
-      "key": "product_sticker_m", "kind": "sticker", "name": "ستيكر منتجات وسط", "width_mm": 50, "height_mm": 30,
-      "fields": [["name", "اسم المنتج"], ["price", "السعر"], ["sku", "رمز الباركود"]],
-      "sample": { "name": "سماعة بلوتوث لاسلكية", "price": 35000, "sku": "SFN-AC-1135" }
+      "key": "product_sticker_m",
+      "kind": "sticker",
+      "name": "ستيكر منتجات وسط",
+      "width_mm": 50,
+      "height_mm": 30,
+      "fields": [
+        [
+          "name",
+          "اسم المنتج"
+        ],
+        [
+          "price",
+          "السعر"
+        ],
+        [
+          "sku",
+          "رمز الباركود"
+        ]
+      ],
+      "sample": {
+        "name": "سماعة بلوتوث لاسلكية",
+        "price": 35000,
+        "sku": "SFN-AC-1135"
+      }
     },
     {
-      "key": "product_sticker_s", "kind": "sticker", "name": "ستيكر منتجات صغير", "width_mm": 40, "height_mm": 25,
-      "fields": [["name", "اسم المنتج"], ["price", "السعر"], ["sku", "رمز الباركود"]],
-      "sample": { "name": "محوّل OTG", "price": 4500, "sku": "SFN-AC-0045" }
+      "key": "product_sticker_s",
+      "kind": "sticker",
+      "name": "ستيكر منتجات صغير",
+      "width_mm": 40,
+      "height_mm": 25,
+      "fields": [
+        [
+          "name",
+          "اسم المنتج"
+        ],
+        [
+          "price",
+          "السعر"
+        ],
+        [
+          "sku",
+          "رمز الباركود"
+        ]
+      ],
+      "sample": {
+        "name": "محوّل OTG",
+        "price": 4500,
+        "sku": "SFN-AC-0045"
+      }
     },
     {
-      "key": "receipt_sale", "kind": "receipt", "name": "وصل بيع", "width_mm": 80, "height_mm": null,
-      "fields": [["number", "رقم الفاتورة"], ["date", "التاريخ"], ["customer", "الزبون"], ["phone", "الهاتف"], ["employee", "الموظّف"], ["items", "الأصناف [name, detail, amount]"], ["subtotal", "المجموع"], ["discount", "الخصم"], ["total", "الإجمالي"], ["paid", "المدفوع"], ["remaining", "المتبقّي دَين"], ["imei", "IMEI"], ["warranty", "الكفالة"]],
-      "sample": { "number": "SFN-B-00318", "date": "2026-09-09 18:05", "customer": "مصطفى كريم", "phone": "07705551234", "employee": "سفيان",
-        "items": [{ "name": "Samsung Galaxy A54", "detail": "128GB · أسود", "amount": 385000 }, { "name": "زجاج حماية شاشة", "amount": 5000 }, { "name": "حافظة سيليكون", "detail": "2 × 6,000", "amount": 12000 }],
-        "subtotal": 402000, "discount": 2000, "total": 400000, "paid": 400000, "remaining": 0, "imei": "356938035643809", "warranty": "سنة — عيوب التصنيع" }
+      "key": "receipt_sale",
+      "kind": "receipt",
+      "name": "وصل بيع",
+      "width_mm": 80,
+      "height_mm": null,
+      "fields": [
+        [
+          "number",
+          "رقم الفاتورة"
+        ],
+        [
+          "date",
+          "التاريخ"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "phone",
+          "الهاتف"
+        ],
+        [
+          "employee",
+          "الموظّف"
+        ],
+        [
+          "items",
+          "الأصناف [name, detail, amount]"
+        ],
+        [
+          "subtotal",
+          "المجموع"
+        ],
+        [
+          "discount",
+          "الخصم"
+        ],
+        [
+          "total",
+          "الإجمالي"
+        ],
+        [
+          "paid",
+          "المدفوع"
+        ],
+        [
+          "remaining",
+          "المتبقّي دَين"
+        ],
+        [
+          "imei",
+          "IMEI"
+        ],
+        [
+          "warranty",
+          "الكفالة"
+        ]
+      ],
+      "sample": {
+        "number": "SFN-B-00318",
+        "date": "2026-09-09 18:05",
+        "customer": "مصطفى كريم",
+        "phone": "07705551234",
+        "employee": "سفيان",
+        "items": [
+          {
+            "name": "Samsung Galaxy A54",
+            "detail": "128GB · أسود",
+            "amount": 385000
+          },
+          {
+            "name": "زجاج حماية شاشة",
+            "amount": 5000
+          },
+          {
+            "name": "حافظة سيليكون",
+            "detail": "2 × 6,000",
+            "amount": 12000
+          }
+        ],
+        "subtotal": 402000,
+        "discount": 2000,
+        "total": 400000,
+        "paid": 400000,
+        "remaining": 0,
+        "imei": "356938035643809",
+        "warranty": "سنة — عيوب التصنيع"
+      }
     },
     {
-      "key": "receipt_payment", "kind": "receipt", "name": "وصل قبض وديون", "width_mm": 80, "height_mm": null,
-      "fields": [["number", "رقم الوصل"], ["date", "التاريخ"], ["customer", "الزبون"], ["phone", "الهاتف"], ["employee", "الموظّف"], ["description", "البيان"], ["paid", "المبلغ المقبوض"], ["added_debt", "دين مُضاف"], ["previous_balance", "الرصيد السابق"], ["remaining", "الرصيد المتبقّي"], ["next_payment_date", "موعد الدفعة القادمة"], ["next_payment_amount", "مبلغ الدفعة القادمة"]],
-      "sample": { "number": "SFN-Q-00125", "date": "2026-09-09 18:05", "customer": "مصطفى كريم", "phone": "07705551234", "employee": "سفيان", "description": "تسديد دفعة — نقداً", "paid": 50000, "added_debt": 0, "previous_balance": 150000, "remaining": 100000, "next_payment_date": "2026-11-22", "next_payment_amount": 50000 }
+      "key": "receipt_payment",
+      "kind": "receipt",
+      "name": "وصل قبض",
+      "width_mm": 80,
+      "height_mm": null,
+      "fields": [
+        [
+          "number",
+          "رقم الوصل"
+        ],
+        [
+          "date",
+          "التاريخ"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "phone",
+          "الهاتف"
+        ],
+        [
+          "employee",
+          "الموظّف"
+        ],
+        [
+          "description",
+          "البيان"
+        ],
+        [
+          "paid",
+          "المبلغ المقبوض"
+        ],
+        [
+          "previous_balance",
+          "الرصيد السابق"
+        ],
+        [
+          "remaining",
+          "الرصيد المتبقّي"
+        ],
+        [
+          "next_payment_date",
+          "موعد الدفعة القادمة"
+        ],
+        [
+          "next_payment_amount",
+          "مبلغ الدفعة القادمة"
+        ]
+      ],
+      "sample": {
+        "number": "SFN-Q-00125",
+        "date": "2026-09-09 18:05",
+        "customer": "مصطفى كريم",
+        "phone": "07705551234",
+        "employee": "سفيان",
+        "description": "تسديد دفعة — نقداً",
+        "paid": 50000,
+        "previous_balance": 150000,
+        "remaining": 100000,
+        "next_payment_date": "2026-11-22",
+        "next_payment_amount": 50000
+      }
     },
     {
-      "key": "receipt_repair", "kind": "receipt", "name": "وصل صيانة — نسخة الزبون", "width_mm": 80, "height_mm": null,
-      "fields": [["ticket", "رقم التذكرة"], ["date", "التاريخ"], ["customer", "الزبون"], ["phone", "الهاتف"], ["employee", "الموظّف"], ["device", "الجهاز"], ["color", "اللون"], ["imei", "IMEI"], ["lock_code", "رمز القفل"], ["accessories", "الملحقات"], ["fault", "الخلل"], ["fault_description", "وصف الخلل"], ["due_date", "موعد التسليم"], ["estimate", "الكلفة التقديرية"], ["paid", "المدفوع مقدّماً"], ["remaining", "المتبقّي عند الاستلام"]],
-      "sample": { "ticket": "SFN-01427", "date": "2026-09-06 12:40", "customer": "أحمد عبد الله حسين", "phone": "07712345678", "device": "Samsung Galaxy A54", "color": "أسود", "imei": "356938035643809", "lock_code": "1234", "accessories": "كفر فقط", "fault": "شاشة · شحن", "fault_description": "الشاشة مكسورة من الزاوية العليا واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.", "due_date": "2026-09-08", "estimate": 85000, "paid": 25000, "remaining": 60000 }
+      "key": "receipt_debt",
+      "kind": "receipt",
+      "name": "وصل إضافة دين",
+      "width_mm": 80,
+      "height_mm": null,
+      "fields": [
+        [
+          "number",
+          "رقم الوصل"
+        ],
+        [
+          "date",
+          "التاريخ"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "phone",
+          "الهاتف"
+        ],
+        [
+          "employee",
+          "الموظّف"
+        ],
+        [
+          "description",
+          "البيان"
+        ],
+        [
+          "items",
+          "المواد بالدين [name, detail, amount] (اختياري)"
+        ],
+        [
+          "amount",
+          "المبلغ المضاف"
+        ],
+        [
+          "previous_balance",
+          "الرصيد السابق"
+        ],
+        [
+          "balance",
+          "الرصيد الكلي"
+        ],
+        [
+          "due_date",
+          "موعد التسديد"
+        ],
+        [
+          "due_amount",
+          "مبلغ التسديد"
+        ]
+      ],
+      "sample": {
+        "number": "SFN-D-00057",
+        "date": "2026-10-23 13:10",
+        "customer": "مصطفى كريم",
+        "phone": "07705551234",
+        "employee": "سفيان",
+        "description": "شراء بالآجل",
+        "items": [
+          {
+            "name": "Samsung Galaxy A15",
+            "detail": "128GB · أزرق",
+            "amount": 185000
+          }
+        ],
+        "amount": 185000,
+        "previous_balance": 100000,
+        "balance": 285000,
+        "due_date": "2026-11-22",
+        "due_amount": 50000
+      }
     },
     {
-      "key": "receipt_return", "kind": "receipt", "name": "وصل مرتجعات", "width_mm": 80, "height_mm": null,
-      "fields": [["number", "رقم الوصل"], ["date", "التاريخ"], ["customer", "الزبون"], ["phone", "الهاتف"], ["employee", "الموظّف"], ["original_invoice", "الفاتورة الأصلية"], ["items", "المواد المرجعة [name, detail, amount]"], ["reason", "سبب الإرجاع"], ["item_condition", "حالة المادة"], ["resolution", "المعالجة"], ["refund", "المبلغ المسترد"]],
-      "sample": { "number": "SFN-RT-00042", "date": "2026-09-11 16:20", "customer": "مصطفى كريم", "phone": "07705551234", "original_invoice": "SFN-B-00318",
-        "items": [{ "name": "حافظة سيليكون", "detail": "1 × 6,000", "amount": 6000 }, { "name": "زجاج حماية شاشة", "detail": "1 × 5,000", "amount": 5000 }],
-        "reason": "المقاس غير مناسب للجهاز", "item_condition": "سليمة مع العلبة", "resolution": "استرداد نقدي", "refund": 11000 }
+      "key": "receipt_repair",
+      "kind": "receipt",
+      "name": "وصل صيانة — نسخة الزبون",
+      "width_mm": 80,
+      "height_mm": null,
+      "fields": [
+        [
+          "ticket",
+          "رقم التذكرة"
+        ],
+        [
+          "date",
+          "التاريخ"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "phone",
+          "الهاتف"
+        ],
+        [
+          "employee",
+          "الموظّف"
+        ],
+        [
+          "device",
+          "الجهاز"
+        ],
+        [
+          "color",
+          "اللون"
+        ],
+        [
+          "imei",
+          "IMEI"
+        ],
+        [
+          "lock_code",
+          "رمز القفل"
+        ],
+        [
+          "accessories",
+          "الملحقات"
+        ],
+        [
+          "fault",
+          "الخلل"
+        ],
+        [
+          "fault_description",
+          "وصف الخلل"
+        ],
+        [
+          "due_date",
+          "موعد التسليم"
+        ],
+        [
+          "estimate",
+          "الكلفة التقديرية"
+        ],
+        [
+          "paid",
+          "المدفوع مقدّماً"
+        ],
+        [
+          "remaining",
+          "المتبقّي عند الاستلام"
+        ]
+      ],
+      "sample": {
+        "ticket": "SFN-01427",
+        "date": "2026-09-06 12:40",
+        "customer": "أحمد عبد الله حسين",
+        "phone": "07712345678",
+        "device": "Samsung Galaxy A54",
+        "color": "أسود",
+        "imei": "356938035643809",
+        "lock_code": "1234",
+        "accessories": "كفر فقط",
+        "fault": "شاشة · شحن",
+        "fault_description": "الشاشة مكسورة من الزاوية العليا واللمس ما يشتغل بالنص. الشحن يفصل ويرجع.",
+        "due_date": "2026-09-08",
+        "estimate": 85000,
+        "paid": 25000,
+        "remaining": 60000
+      }
+    },
+    {
+      "key": "receipt_return",
+      "kind": "receipt",
+      "name": "وصل مرتجعات",
+      "width_mm": 80,
+      "height_mm": null,
+      "fields": [
+        [
+          "number",
+          "رقم الوصل"
+        ],
+        [
+          "date",
+          "التاريخ"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "phone",
+          "الهاتف"
+        ],
+        [
+          "employee",
+          "الموظّف"
+        ],
+        [
+          "original_invoice",
+          "الفاتورة الأصلية"
+        ],
+        [
+          "items",
+          "المواد المرجعة [name, detail, amount]"
+        ],
+        [
+          "reason",
+          "سبب الإرجاع"
+        ],
+        [
+          "item_condition",
+          "حالة المادة"
+        ],
+        [
+          "resolution",
+          "المعالجة"
+        ],
+        [
+          "refund",
+          "المبلغ المسترد"
+        ]
+      ],
+      "sample": {
+        "number": "SFN-RT-00042",
+        "date": "2026-09-11 16:20",
+        "customer": "مصطفى كريم",
+        "phone": "07705551234",
+        "original_invoice": "SFN-B-00318",
+        "items": [
+          {
+            "name": "حافظة سيليكون",
+            "detail": "1 × 6,000",
+            "amount": 6000
+          },
+          {
+            "name": "زجاج حماية شاشة",
+            "detail": "1 × 5,000",
+            "amount": 5000
+          }
+        ],
+        "reason": "المقاس غير مناسب للجهاز",
+        "item_condition": "سليمة مع العلبة",
+        "resolution": "استرداد نقدي",
+        "refund": 11000
+      }
     }
   ]
 }

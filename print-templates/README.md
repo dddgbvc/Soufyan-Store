@@ -8,7 +8,8 @@
 | `repair_sticker` | ستيكر صيانة | 90×50 |
 | `product_sticker_l` / `_m` / `_s` | ستيكر منتجات | 60×40 / 50×30 / 40×25 |
 | `receipt_sale` | وصل بيع | 80mm |
-| `receipt_payment` | وصل قبض وديون | 80mm |
+| `receipt_payment` | وصل قبض | 80mm |
+| `receipt_debt` | وصل إضافة دين | 80mm |
 | `receipt_repair` | وصل صيانة — نسخة الزبون | 80mm |
 | `receipt_return` | وصل مرتجعات | 80mm |
 

@@ -1,17 +1,16 @@
 <div class="page rc">
   {{> rc_head}}
-  <div class="tl"><b>وصل قبض · إضافة دين</b><span>{{number}}</span></div>
+  <div class="tl"><b>وصل قبض</b><span>{{number}}</span></div>
   {{> rc_people}}
   <div class="grp">
     {{#description}}<div class="r"><span class="l">البيان</span><span class="v">{{description}}</span></div>{{/description}}
     {{#paid}}<div class="r"><span class="l">المبلغ المقبوض</span><span class="v"><span class="n">{{paid}}</span> د.ع</span></div>{{/paid}}
-    {{#added_debt}}<div class="r"><span class="l">دين مُضاف</span><span class="v"><span class="n">{{added_debt}}</span> د.ع</span></div>{{/added_debt}}
     <div class="r"><span class="l">الرصيد السابق</span><span class="v"><span class="n">{{previous_balance}}</span> د.ع</span></div>
   </div>
   <div class="tot"><span>الرصيد المتبقّي</span><b><span class="n">{{remaining}}</span> د.ع</b></div>
   {{#next_payment_date}}<div class="r"><span class="l">الدفعة القادمة</span><span class="v"><span class="n">{{next_payment_date}}</span>{{#next_payment_amount}} — <span class="n">{{next_payment_amount}}</span> د.ع{{/next_payment_amount}}</span></div>{{/next_payment_date}}
   <div class="sign"><span>توقيع المستلم</span><div></div></div>
-  <div class="terms">احتفظ بالوصل كإثبات للدفع أو الدين · أي مبلغ بدون وصل رسمي لا يُعتمد</div>
+  <div class="terms">احتفظ بالوصل كإثبات للدفع · أي مبلغ بدون وصل رسمي لا يُعتمد</div>
   <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
   <div class="ft"><b>شكراً لتعاملك</b><br>{{> rc_contacts}}</div>
 </div>

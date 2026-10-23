@@ -1,0 +1,19 @@
+<div class="page rc">
+  {{> rc_head}}
+  <div class="tl"><b>وصل إضافة دين</b><span>{{number}}</span></div>
+  {{> rc_people}}
+  <div class="grp">
+    {{#description}}<div class="r"><span class="l">البيان</span><span class="v">{{description}}</span></div>{{/description}}
+    {{#items}}<div class="it"><span><b><bdi>{{name}}</bdi></b>{{#detail}}<small><bdi>{{detail}}</bdi></small>{{/detail}}</span><b class="n">{{amount}}</b></div>{{/items}}
+  </div>
+  <div class="grp">
+    <div class="r"><span class="l">المبلغ المُضاف</span><span class="v"><span class="n">{{amount}}</span> د.ع</span></div>
+    <div class="r"><span class="l">الرصيد السابق</span><span class="v"><span class="n">{{previous_balance}}</span> د.ع</span></div>
+  </div>
+  <div class="tot"><span>الرصيد الكلّي</span><b><span class="n">{{balance}}</span> د.ع</b></div>
+  {{#due_date}}<div class="r"><span class="l">موعد التسديد</span><span class="v"><span class="n">{{due_date}}</span>{{#due_amount}} — <span class="n">{{due_amount}}</span> د.ع{{/due_amount}}</span></div>{{/due_date}}
+  <div class="sign"><span>توقيع الزبون</span><div></div></div>
+  <div class="terms">أُقرّ بأن المبلغ أعلاه دَين بذمّتي للمحل ويُسدَّد بالموعد المتفق عليه · احتفظ بالوصل لمراجعة الرصيد</div>
+  <div class="bc" data-code="{{number}}"></div><div class="code">{{number}}</div>
+  <div class="ft"><b>شكراً لثقتك</b><br>{{> rc_contacts}}</div>
+</div>

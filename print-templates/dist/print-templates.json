@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "version": 1,
+  "version": 2,
   "shop": {
     "name": "مكتب سفيان للموبايل",
     "address": "سامراء — الحويش — الشارع الرئيسي",
@@ -315,10 +315,10 @@
     {
       "key": "receipt_payment",
       "kind": "receipt",
-      "name": "وصل قبض وديون",
+      "name": "وصل قبض",
       "width_mm": 80,
       "height_mm": null,
-      "html": "<div class=\"page rc\">\n  {{> rc_head}}\n  <div class=\"tl\"><b>وصل قبض · إضافة دين</b><span>{{number}}</span></div>\n  {{> rc_people}}\n  <div class=\"grp\">\n    {{#description}}<div class=\"r\"><span class=\"l\">البيان</span><span class=\"v\">{{description}}</span></div>{{/description}}\n    {{#paid}}<div class=\"r\"><span class=\"l\">المبلغ المقبوض</span><span class=\"v\"><span class=\"n\">{{paid}}</span> د.ع</span></div>{{/paid}}\n    {{#added_debt}}<div class=\"r\"><span class=\"l\">دين مُضاف</span><span class=\"v\"><span class=\"n\">{{added_debt}}</span> د.ع</span></div>{{/added_debt}}\n    <div class=\"r\"><span class=\"l\">الرصيد السابق</span><span class=\"v\"><span class=\"n\">{{previous_balance}}</span> د.ع</span></div>\n  </div>\n  <div class=\"tot\"><span>الرصيد المتبقّي</span><b><span class=\"n\">{{remaining}}</span> د.ع</b></div>\n  {{#next_payment_date}}<div class=\"r\"><span class=\"l\">الدفعة القادمة</span><span class=\"v\"><span class=\"n\">{{next_payment_date}}</span>{{#next_payment_amount}} — <span class=\"n\">{{next_payment_amount}}</span> د.ع{{/next_payment_amount}}</span></div>{{/next_payment_date}}\n  <div class=\"sign\"><span>توقيع المستلم</span><div></div></div>\n  <div class=\"terms\">احتفظ بالوصل كإثبات للدفع أو الدين · أي مبلغ بدون وصل رسمي لا يُعتمد</div>\n  <div class=\"bc\" data-code=\"{{number}}\"></div><div class=\"code\">{{number}}</div>\n  <div class=\"ft\"><b>شكراً لتعاملك</b><br>{{> rc_contacts}}</div>\n</div>",
+      "html": "<div class=\"page rc\">\n  {{> rc_head}}\n  <div class=\"tl\"><b>وصل قبض</b><span>{{number}}</span></div>\n  {{> rc_people}}\n  <div class=\"grp\">\n    {{#description}}<div class=\"r\"><span class=\"l\">البيان</span><span class=\"v\">{{description}}</span></div>{{/description}}\n    {{#paid}}<div class=\"r\"><span class=\"l\">المبلغ المقبوض</span><span class=\"v\"><span class=\"n\">{{paid}}</span> د.ع</span></div>{{/paid}}\n    <div class=\"r\"><span class=\"l\">الرصيد السابق</span><span class=\"v\"><span class=\"n\">{{previous_balance}}</span> د.ع</span></div>\n  </div>\n  <div class=\"tot\"><span>الرصيد المتبقّي</span><b><span class=\"n\">{{remaining}}</span> د.ع</b></div>\n  {{#next_payment_date}}<div class=\"r\"><span class=\"l\">الدفعة القادمة</span><span class=\"v\"><span class=\"n\">{{next_payment_date}}</span>{{#next_payment_amount}} — <span class=\"n\">{{next_payment_amount}}</span> د.ع{{/next_payment_amount}}</span></div>{{/next_payment_date}}\n  <div class=\"sign\"><span>توقيع المستلم</span><div></div></div>\n  <div class=\"terms\">احتفظ بالوصل كإثبات للدفع · أي مبلغ بدون وصل رسمي لا يُعتمد</div>\n  <div class=\"bc\" data-code=\"{{number}}\"></div><div class=\"code\">{{number}}</div>\n  <div class=\"ft\"><b>شكراً لتعاملك</b><br>{{> rc_contacts}}</div>\n</div>",
       "css": "",
       "fields": [
         [
@@ -350,10 +350,6 @@
           "المبلغ المقبوض"
         ],
         [
-          "added_debt",
-          "دين مُضاف"
-        ],
-        [
           "previous_balance",
           "الرصيد السابق"
         ],
@@ -378,11 +374,89 @@
         "employee": "سفيان",
         "description": "تسديد دفعة — نقداً",
         "paid": 50000,
-        "added_debt": 0,
         "previous_balance": 150000,
         "remaining": 100000,
         "next_payment_date": "2026-11-22",
         "next_payment_amount": 50000
+      }
+    },
+    {
+      "key": "receipt_debt",
+      "kind": "receipt",
+      "name": "وصل إضافة دين",
+      "width_mm": 80,
+      "height_mm": null,
+      "html": "<div class=\"page rc\">\n  {{> rc_head}}\n  <div class=\"tl\"><b>وصل إضافة دين</b><span>{{number}}</span></div>\n  {{> rc_people}}\n  <div class=\"grp\">\n    {{#description}}<div class=\"r\"><span class=\"l\">البيان</span><span class=\"v\">{{description}}</span></div>{{/description}}\n    {{#items}}<div class=\"it\"><span><b><bdi>{{name}}</bdi></b>{{#detail}}<small><bdi>{{detail}}</bdi></small>{{/detail}}</span><b class=\"n\">{{amount}}</b></div>{{/items}}\n  </div>\n  <div class=\"grp\">\n    <div class=\"r\"><span class=\"l\">المبلغ المُضاف</span><span class=\"v\"><span class=\"n\">{{amount}}</span> د.ع</span></div>\n    <div class=\"r\"><span class=\"l\">الرصيد السابق</span><span class=\"v\"><span class=\"n\">{{previous_balance}}</span> د.ع</span></div>\n  </div>\n  <div class=\"tot\"><span>الرصيد الكلّي</span><b><span class=\"n\">{{balance}}</span> د.ع</b></div>\n  {{#due_date}}<div class=\"r\"><span class=\"l\">موعد التسديد</span><span class=\"v\"><span class=\"n\">{{due_date}}</span>{{#due_amount}} — <span class=\"n\">{{due_amount}}</span> د.ع{{/due_amount}}</span></div>{{/due_date}}\n  <div class=\"sign\"><span>توقيع الزبون</span><div></div></div>\n  <div class=\"terms\">أُقرّ بأن المبلغ أعلاه دَين بذمّتي للمحل ويُسدَّد بالموعد المتفق عليه · احتفظ بالوصل لمراجعة الرصيد</div>\n  <div class=\"bc\" data-code=\"{{number}}\"></div><div class=\"code\">{{number}}</div>\n  <div class=\"ft\"><b>شكراً لثقتك</b><br>{{> rc_contacts}}</div>\n</div>",
+      "css": "",
+      "fields": [
+        [
+          "number",
+          "رقم الوصل"
+        ],
+        [
+          "date",
+          "التاريخ"
+        ],
+        [
+          "customer",
+          "الزبون"
+        ],
+        [
+          "phone",
+          "الهاتف"
+        ],
+        [
+          "employee",
+          "الموظّف"
+        ],
+        [
+          "description",
+          "البيان"
+        ],
+        [
+          "items",
+          "المواد بالدين [name, detail, amount] (اختياري)"
+        ],
+        [
+          "amount",
+          "المبلغ المضاف"
+        ],
+        [
+          "previous_balance",
+          "الرصيد السابق"
+        ],
+        [
+          "balance",
+          "الرصيد الكلي"
+        ],
+        [
+          "due_date",
+          "موعد التسديد"
+        ],
+        [
+          "due_amount",
+          "مبلغ التسديد"
+        ]
+      ],
+      "sample": {
+        "number": "SFN-D-00057",
+        "date": "2026-10-23 13:10",
+        "customer": "مصطفى كريم",
+        "phone": "07705551234",
+        "employee": "سفيان",
+        "description": "شراء بالآجل",
+        "items": [
+          {
+            "name": "Samsung Galaxy A15",
+            "detail": "128GB · أزرق",
+            "amount": 185000
+          }
+        ],
+        "amount": 185000,
+        "previous_balance": 100000,
+        "balance": 285000,
+        "due_date": "2026-11-22",
+        "due_amount": 50000
       }
     },
     {
