@@ -6,7 +6,7 @@ export type Row = Record<string, any>;
 
 export type SectionKey =
   | 'dashboard' | 'invoices' | 'customers' | 'vault' | 'products' | 'shortages' | 'repairs'
-  | 'returns' | 'expenses' | 'shipping' | 'employees' | 'sessions' | 'notifications' | 'settings';
+  | 'returns' | 'expenses' | 'shipping' | 'isp' | 'employees' | 'sessions' | 'notifications' | 'settings';
 
 export type Section = {
   key: SectionKey;
@@ -27,6 +27,7 @@ export const sections: Section[] = [
   {key: 'repairs', title: 'الصيانة', desc: 'تذاكر الصيانة وحالتها', group: 'ops', perms: ['repairs']},
   {key: 'returns', title: 'المرتجعات', desc: 'مرتجعات البيع وأصنافها', group: 'ops', perms: ['returns']},
   {key: 'expenses', title: 'المصروفات', desc: 'سندات الصرف والمصاريف', group: 'ops', perms: ['expenses']},
+  {key: 'isp', title: 'الإنترنت (ISP)', desc: 'مشتركو SAS، الانتهاء، والتذكير بالتجديد', group: 'ops', perms: ['customers']},
   {key: 'shipping', title: 'الشحن والتوصيل', desc: 'طلبات شركات الشحن وحالتها', group: 'ops', perms: ['shipping', 'shipping.view']},
   {key: 'employees', title: 'الموظفون', desc: 'الموظفون وأدوارهم ورموزهم', group: 'admin', perms: ['employees']},
   {key: 'sessions', title: 'الجلسات والأجهزة', desc: 'من دخل، من أي جهاز، ومتى', group: 'admin', perms: ['employees', 'employees.permissions']},

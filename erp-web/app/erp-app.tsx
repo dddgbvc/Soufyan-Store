@@ -3,7 +3,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   AlertCircle, AlertTriangle, ArrowLeft, Bell, Boxes, Check, ChevronLeft, Gem, KeyRound, LayoutDashboard, Loader2,
   Lock, LogOut, Menu, Monitor, Moon, Package, Receipt, RefreshCw, RotateCcw, Search, Settings, ShieldCheck,
-  Store, Sun, Truck, UserCog, Users, Wallet, Wrench, X, Landmark, Plus,
+  Store, Sun, Truck, UserCog, Users, Wallet, Wrench, X, Landmark, Plus, Wifi,
 } from 'lucide-react';
 import {PushSettings} from './push-settings';
 import {Welcome, fontOptions} from './welcome';
@@ -14,13 +14,14 @@ import {
   Badge, DataTable, ListPanel, NameCell, SearchBox, Segmented, SessionExpired, ToastProvider, api, cash, useList,
 } from './ui';
 import Debts from './views/debts';
+import Isp from './views/isp';
 import NotificationCenter from './views/notifications';
 import {Dashboard, InvoiceDetail, NewExpense, RepairDetail, Vault} from './views/ops';
 
 const icons: Record<SectionKey, any> = {
   dashboard: LayoutDashboard, invoices: Receipt, customers: Wallet, vault: Landmark, products: Package, shortages: Boxes,
   repairs: Wrench, returns: RotateCcw, expenses: Receipt, shipping: Truck, employees: Users, sessions: Monitor,
-  notifications: Bell, settings: Settings,
+  notifications: Bell, settings: Settings, isp: Wifi,
 };
 const groupLabel = {work: 'مساحة العمل', ops: 'العمليات', admin: 'الإدارة'};
 const PREFS = 'yaqoot-prefs-v2';
@@ -195,6 +196,7 @@ function Shell({storeName, employee, permissions, onLock, onSignOut}: {
           {page === 'dashboard' && <Dashboard permissions={permissions} onExpired={expired} nav={nav} openInvoice={r => setInvoiceId(r.id)}/>}
           {page === 'invoices' && <Invoices onExpired={expired} open={r => setInvoiceId(r.id)}/>}
           {page === 'customers' && <Debts permissions={permissions} storeName={storeName} onExpired={expired}/>}
+          {page === 'isp' && <Isp storeName={storeName} onExpired={expired}/>}
           {page === 'vault' && <Vault permissions={permissions} onExpired={expired}/>}
           {page === 'notifications' && <NotificationCenter permissions={permissions} onExpired={expired} onUnread={setUnread}/>}
           {page === 'products' && <Products onExpired={expired} open={open('منتج')}/>}

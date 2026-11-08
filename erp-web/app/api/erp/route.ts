@@ -22,6 +22,7 @@ const RESOURCES: Record<string, {fn: string; params: string[]}> = {
   security: {fn: 'web_security_events', params: ['limit']},
   inbox: {fn: 'web_notify_inbox', params: ['limit', 'before', 'kind', 'unread_only']},
   notify_admin: {fn: 'web_notify_admin', params: []},
+  isp: {fn: 'web_isp_overview', params: ['q', 'status', 'limit']},
 };
 const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine', 'unread_only']);
 const INT = new Set(['limit', 'offset', 'before']);

@@ -1,7 +1,7 @@
 'use client';
 import {useCallback, useEffect, useState} from 'react';
 import {
-  Activity, Bell, BellRing, CalendarDays, CheckCheck, HandCoins, Megaphone, Moon, Package, Receipt, Send, Settings2, Smartphone, Users, Wallet, Wrench,
+  Activity, Bell, BellRing, Wifi, CalendarDays, CheckCheck, HandCoins, Megaphone, Moon, Package, Receipt, Send, Settings2, Smartphone, Users, Wallet, Wrench,
 } from 'lucide-react';
 import {Row, money, roleLabel, when} from '../data';
 import {Badge, Field, FormError, Loader2, Modal, MoneyInput, Segmented, SessionExpired, SubmitRow, act, api, useToast} from '../ui';
@@ -12,6 +12,7 @@ export const kindMeta: Record<string, {label: string; icon: any; tone: string; h
   debt_added: {label: 'دين جديد', icon: Wallet, tone: 'gold', hint: 'عند إضافة دين على زبون', perms: ['customers']},
   debt_paid: {label: 'تسديد دين', icon: HandCoins, tone: 'green', hint: 'عند قبض دفعة أو مسامحة', perms: ['customers']},
   shortage: {label: 'النواقص', icon: Package, tone: 'amber', hint: 'نقص يدوي أو منتج تحت حد التنبيه', perms: ['shortages', 'inventory']},
+  isp_expiring: {label: 'اشتراكات الإنترنت', icon: Wifi, tone: 'blue', hint: 'قبل انتهاء الاشتراك بـ3 أيام وعند انتهائه', perms: ['customers']},
   repair_ready: {label: 'صيانة جاهزة', icon: Wrench, tone: 'blue', hint: 'عندما تصبح التذكرة «جاهز للاستلام»', perms: ['repairs']},
   report_daily: {label: 'التقرير اليومي', icon: CalendarDays, tone: 'purple', hint: 'كل يوم 11:00 مساءً', perms: ['dashboard']},
   report_weekly: {label: 'التقرير الأسبوعي', icon: CalendarDays, tone: 'purple', hint: 'الجمعة 11:00 مساءً (السبت ← الجمعة)', perms: ['dashboard']},
@@ -116,7 +117,7 @@ function Inbox({onExpired, onUnread}: {onExpired: () => void; onUnread: (n: numb
   return (
     <section className="panel module-panel">
       <div className="table-toolbar">
-        <Segmented value={kind} onChange={setKind} options={[['all', 'الكل'], ['activity', 'الحركات'], ['invoice', 'الفواتير'], ['debt', 'الديون'], ['shortage', 'النواقص'], ['repair_ready', 'الصيانة'], ['report', 'التقارير'], ['custom', 'الإدارة']]}/>
+        <Segmented value={kind} onChange={setKind} options={[['all', 'الكل'], ['activity', 'الحركات'], ['invoice', 'الفواتير'], ['debt', 'الديون'], ['shortage', 'النواقص'], ['repair_ready', 'الصيانة'], ['isp_expiring', 'الإنترنت'], ['report', 'التقارير'], ['custom', 'الإدارة']]}/>
         <div className="table-filters">
           <label className="check"><input type="checkbox" checked={unreadOnly} onChange={e => setUnreadOnly(e.target.checked)}/>غير المقروءة فقط</label>
           <button className="button secondary" disabled={!unread} onClick={() => mark({all: true})}><CheckCheck size={16}/>تعليم الكل كمقروء ({unread})</button>
