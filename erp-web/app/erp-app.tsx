@@ -207,7 +207,7 @@ function Shell({storeName, employee, permissions, onLock, onSignOut}: {
           {page === 'sessions' && <Sessions onExpired={expired}/>}
           {page === 'settings' && (
             <div className="settings-grid">
-              <PushSettings permissions={permissions}/>
+              <PushSettings permissions={employee.role === 'ADMIN' ? [...permissions, '__admin'] : permissions}/>
               <section className="panel settings-card">
                 <h3>هويتي في المحل</h3>
                 <div className="settings-row"><div><b>{employee.name}</b><p>{roleLabel[employee.role] || employee.role}{employee.department ? ' • ' + employee.department : ''}</p></div><span className="avatar">{employee.name.slice(0, 1)}</span></div>

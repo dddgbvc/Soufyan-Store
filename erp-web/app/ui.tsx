@@ -17,7 +17,9 @@ export async function api(resource: string, params: Record<string, string | numb
   const data: any = await res.json().catch(() => ({ok: false, reason: 'server_error'}));
   if (res.status === 401) throw new SessionExpired();
   if (!res.ok || !data.ok) {
-    throw new Error(data.reason === 'forbidden' ? 'ليست لديك صلاحية لهذا القسم.' : data.message || 'تعذر تحميل البيانات.');
+    throw new Error(data.reason === 'forbidden' ? 'ليست لديك صلاحية لهذا القسم.'
+      : data.reason === 'migration_missing' ? 'قاعدة البيانات لم تُحدَّث بعد: شغّل ملف supabase/run-in-sql-editor-v8.sql في Supabase ← SQL Editor.'
+      : data.message || 'تعذر تحميل البيانات.');
   }
   return data;
 }
@@ -144,7 +146,9 @@ export async function act(action: string, payload: Record<string, unknown>): Pro
   const data: any = await res.json().catch(() => ({ok: false, reason: 'server_error'}));
   if (res.status === 401) throw new SessionExpired();
   if (!res.ok || data.ok === false && data.reason !== 'duplicate') {
-    throw new Error(data.reason === 'forbidden' ? (data.message || 'ليست لديك صلاحية لهذا الإجراء.') : data.message || 'تعذر حفظ العملية. حاول مجدداً.');
+    throw new Error(data.reason === 'forbidden' ? (data.message || 'ليست لديك صلاحية لهذا الإجراء.')
+      : data.reason === 'migration_missing' ? 'قاعدة البيانات لم تُحدَّث بعد: شغّل ملف supabase/run-in-sql-editor-v8.sql في Supabase ← SQL Editor.'
+      : data.message || 'تعذر حفظ العملية. حاول مجدداً.');
   }
   return data;
 }

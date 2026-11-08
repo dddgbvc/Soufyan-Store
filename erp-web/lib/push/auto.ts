@@ -2,7 +2,7 @@
 // قاعدة البيانات (web_push_collect) تحدد ما الجديد ومن يستلمه حسب التفضيلات والصلاحيات.
 import {env} from 'cloudflare:workers';
 import webpush from 'web-push';
-import {serviceRpc} from '../yaqoot/server';
+import {ServerError, serviceRpc} from '../yaqoot/server';
 import {validEndpoint} from './validation';
 import {pushStore} from './server';
 
@@ -32,7 +32,14 @@ export async function deliver(device: Device, payload: {title: string; body: str
 
 export async function runAutoPush() {
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !env.VAPID_SUBJECT) return {skipped: 'vapid_missing'};
-  const items = await serviceRpc<Item[]>('web_push_collect', {});
+  // web_push_collect_all = الأحداث المخصصة + كل حركات المحل للمدير العام (ترحيل 160000).
+  let items: Item[];
+  try {
+    items = await serviceRpc<Item[]>('web_push_collect_all', {});
+  } catch (e) {
+    if (!(e instanceof ServerError && e.code === 'migration_missing')) throw e;
+    items = await serviceRpc<Item[]>('web_push_collect', {});
+  }
   const expired = new Set<string>();
   let accepted = 0, failed = 0;
   for (const item of items || []) {

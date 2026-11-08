@@ -1,12 +1,13 @@
 'use client';
 import {useCallback, useEffect, useState} from 'react';
 import {
-  Bell, BellRing, CalendarDays, CheckCheck, HandCoins, Megaphone, Moon, Package, Receipt, Send, Settings2, Smartphone, Users, Wallet, Wrench,
+  Activity, Bell, BellRing, CalendarDays, CheckCheck, HandCoins, Megaphone, Moon, Package, Receipt, Send, Settings2, Smartphone, Users, Wallet, Wrench,
 } from 'lucide-react';
 import {Row, money, roleLabel, when} from '../data';
 import {Badge, Field, FormError, Loader2, Modal, MoneyInput, Segmented, SessionExpired, SubmitRow, act, api, useToast} from '../ui';
 
 export const kindMeta: Record<string, {label: string; icon: any; tone: string; hint: string; perms: string[]}> = {
+  activity: {label: 'كل حركات المحل', icon: Activity, tone: 'teal', hint: 'للمدير العام: كل عملية من أي جهاز — دخول، مرتجع، مصروف، خزنة، أسعار، مخزون، موظفون، مشتريات…', perms: ['__admin']},
   invoice: {label: 'فاتورة جديدة', icon: Receipt, tone: 'teal', hint: 'كل فاتورة بيع • أكثر من 3 بالدقيقة تُجمع', perms: ['pos']},
   debt_added: {label: 'دين جديد', icon: Wallet, tone: 'gold', hint: 'عند إضافة دين على زبون', perms: ['customers']},
   debt_paid: {label: 'تسديد دين', icon: HandCoins, tone: 'green', hint: 'عند قبض دفعة أو مسامحة', perms: ['customers']},
@@ -115,7 +116,7 @@ function Inbox({onExpired, onUnread}: {onExpired: () => void; onUnread: (n: numb
   return (
     <section className="panel module-panel">
       <div className="table-toolbar">
-        <Segmented value={kind} onChange={setKind} options={[['all', 'الكل'], ['invoice', 'الفواتير'], ['debt', 'الديون'], ['shortage', 'النواقص'], ['repair_ready', 'الصيانة'], ['report', 'التقارير'], ['custom', 'الإدارة']]}/>
+        <Segmented value={kind} onChange={setKind} options={[['all', 'الكل'], ['activity', 'الحركات'], ['invoice', 'الفواتير'], ['debt', 'الديون'], ['shortage', 'النواقص'], ['repair_ready', 'الصيانة'], ['report', 'التقارير'], ['custom', 'الإدارة']]}/>
         <div className="table-filters">
           <label className="check"><input type="checkbox" checked={unreadOnly} onChange={e => setUnreadOnly(e.target.checked)}/>غير المقروءة فقط</label>
           <button className="button secondary" disabled={!unread} onClick={() => mark({all: true})}><CheckCheck size={16}/>تعليم الكل كمقروء ({unread})</button>
@@ -176,7 +177,8 @@ function Admin({onExpired}: {onExpired: () => void}) {
         <thead><tr><th>الموظف</th><th>الأجهزة</th><th>الأنواع المفعّلة</th><th>الهدوء</th><th>غير مقروءة</th><th>آخر إشعار</th><th/></tr></thead>
         <tbody>
           {(data?.employees || []).map(e => {
-            const enabled = autoKinds.filter(k => kindMeta[k].perms.some(p => e.permissions.includes(p)));
+            const eperms = e.role === 'ADMIN' ? [...e.permissions, '__admin'] : e.permissions;
+            const enabled = autoKinds.filter(k => kindMeta[k].perms.some(p => eperms.includes(p)));
             const on = enabled.filter(k => e.prefs[k] !== false).length;
             return (
               <tr key={e.id}>
@@ -228,7 +230,7 @@ function EmployeePrefs({employee, onClose, onExpired, onSaved}: {employee: Row; 
   return (
     <Modal title={'إشعارات ' + employee.name} eyebrow={roleLabel[employee.role] || employee.role} onClose={onClose}>
       <p className="muted">تظهر فقط الأنواع التي تسمح بها صلاحيات الموظف. التعديل يُحفظ فوراً ويُسجَّل في سجل الأمان.</p>
-      <PrefsEditor prefs={prefs} permissions={employee.permissions} onChange={change} busyKey={busy}/>
+      <PrefsEditor prefs={prefs} permissions={employee.role === 'ADMIN' ? [...employee.permissions, '__admin'] : employee.permissions} onChange={change} busyKey={busy}/>
       <div className="modal-actions"><button className="button secondary" onClick={onClose}>تم</button></div>
     </Modal>
   );
