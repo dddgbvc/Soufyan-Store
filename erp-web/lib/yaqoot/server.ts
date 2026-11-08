@@ -112,7 +112,13 @@ async function rpcCall(fn: string, args: Record<string, unknown>, bearer: string
   try {
     res = await fetch(`${url}/rest/v1/rpc/${fn}`, {
       method: 'POST',
-      headers: {apikey, Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json', Accept: 'application/json'},
+      // مفاتيح Supabase الجديدة (sb_secret_/sb_publishable_) تُرسل في apikey فقط، ليست JWT.
+      headers: {
+        apikey,
+        ...(bearer.startsWith('sb_') ? {} : {Authorization: `Bearer ${bearer}`}),
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
       body: JSON.stringify(args),
       signal: AbortSignal.timeout(15000),
     });
