@@ -34,9 +34,11 @@ test('service worker displays visible Arabic notification and ignores external c
  const self={location:{origin:'https://example.com'},addEventListener:(n,f)=>handlers[n]=f,registration:{showNotification:async(...x)=>{shown=x}},clients:{matchAll:async()=>[],openWindow:async u=>{opened=u}}};
  vm.runInNewContext(readFileSync(new URL('../public/sw.js',import.meta.url),'utf8'),{self,URL});
  handlers.push({data:{json:()=>({title:'ياقوت',body:'تجربة',url:'https://evil.test'})},waitUntil:p=>pending=p});await pending;
- assert.equal(shown[0],'ياقوت');assert.equal(shown[1].dir,'rtl');assert.equal(shown[1].data.url,'/#alerts');
+ assert.equal(shown[0],'ياقوت');assert.equal(shown[1].dir,'rtl');assert.equal(shown[1].data.url,'/');
  handlers.notificationclick({notification:{close:()=>closed=true,data:{url:'https://evil.test'}},waitUntil:p=>pending=p});await pending;
- assert.equal(closed,true);assert.equal(opened,'https://example.com/#alerts');
+ assert.equal(closed,true);assert.equal(opened,'https://example.com/');
+ handlers.push({data:{json:()=>({title:'فاتورة',body:'x',url:'/#invoices'})},waitUntil:p=>pending=p});await pending;assert.equal(shown[1].data.url,'/#invoices');
+ handlers.notificationclick({notification:{close:()=>{},data:{url:'/#invoices'}},waitUntil:p=>pending=p});await pending;assert.equal(opened,'https://example.com/#invoices');
  handlers.push({data:{json:()=>{throw Error('bad json')}},waitUntil:p=>pending=p});await pending;assert.equal(shown[0],'ياقوت ERP');
 });
 

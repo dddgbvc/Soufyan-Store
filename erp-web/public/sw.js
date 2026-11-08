@@ -6,12 +6,14 @@ self.addEventListener('push',event=>{
  const title=typeof data.title==='string'?data.title:'ياقوت ERP';
  const body=typeof data.body==='string'?data.body:'لديك إشعار جديد من ياقوت.';
  // Always show a user-visible notification; do not fetch an authenticated page here.
- event.waitUntil(self.registration.showNotification(title,{body,dir:'rtl',lang:'ar',icon:'/icons/icon-192.png',badge:'/icons/badge-96.png',tag:typeof data.tag==='string'?data.tag:undefined,data:{url:'/#alerts'}}));
+ event.waitUntil(self.registration.showNotification(title,{body,dir:'rtl',lang:'ar',icon:'/icons/icon-192.png',badge:'/icons/badge-96.png',tag:typeof data.tag==='string'?data.tag:undefined,data:{url:typeof data.url==='string'&&/^\/#[a-z]{1,20}$/.test(data.url)?data.url:'/'}}));
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
  event.waitUntil((async()=>{
-  const url=new URL('/#alerts',self.location.origin).href;
+  const raw=event.notification.data&&event.notification.data.url;
+  const target=typeof raw==='string'&&/^\/#[a-z]{1,20}$/.test(raw)?raw:'/';
+  const url=new URL(target,self.location.origin).href;
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   for(const win of windows){if(new URL(win.url).origin===self.location.origin){await win.navigate(url);return win.focus()}}
   return self.clients.openWindow(url);

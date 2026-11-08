@@ -21,6 +21,8 @@ config.workers_dev = true;
 config.preview_urls = false;
 // كل البيانات (ومنها الإشعارات) في Supabase؛ لا قواعد D1.
 config.d1_databases = [];
+// الإشعارات التلقائية (فواتير، نواقص، صيانة، تقارير): فحص كل دقيقة.
+config.triggers = {crons: ['* * * * *']};
 
 if (process.env.CF_EMBED_ASSETS === '1') {
   const types = {

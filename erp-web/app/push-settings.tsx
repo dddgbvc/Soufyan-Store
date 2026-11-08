@@ -1,15 +1,38 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {Bell,BellOff,Check,RefreshCw,Smartphone,AlertCircle} from 'lucide-react';
+import {Bell,BellOff,Check,RefreshCw,Smartphone,AlertCircle,Send,Receipt,Package,Wrench,CalendarDays} from 'lucide-react';
 type Device={id:string;device_name:string};
 type History={id:string;title:string;created_at:number;status:string;accepted:number;failed:number;expired:number};
 const messages:Record<string,string>={sign_in_required:'سجّل الدخول إلى التطبيق أولاً.',push_not_configured:'خدمة الإشعارات غير جاهزة بعد.',subscription_save_failed:'تعذر حفظ تسجيل الجهاز. حاول مرة أخرى.',no_registered_devices:'فعّل الإشعارات على جهازك أولاً.',too_many_devices:'وصلت إلى الحد الأقصى للأجهزة المسجلة.',subscription_remove_failed:'تعذر إلغاء التسجيل على الخادم. حاول مرة أخرى.'};
 async function api<T=Record<string,unknown>>(path:string,init?:RequestInit){const res=await fetch('/api/push/'+path,{...init,credentials:'same-origin',headers:{'Content-Type':'application/json',...init?.headers}});if(res.headers.get('content-type')?.includes('application/json')){const d=await res.json() as T&{error?:string};if(!res.ok)throw new Error(messages[d.error||'']||'تعذر إكمال الطلب. أعد المحاولة.');return d}throw new Error('انتهت جلسة الدخول. افتح التطبيق وسجّل الدخول مجدداً.')}
 function keyBytes(key:string){return Uint8Array.from(atob(key.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(key.length/4)*4,'=')),c=>c.charCodeAt(0))}
 async function endpointId(endpoint:string){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(endpoint));return Array.from(new Uint8Array(h),x=>x.toString(16).padStart(2,'0')).join('')}
-export function PushSettings(){
+const autoKinds:{key:string;label:string;hint:string;perms:string[];icon:any}[]=[
+ {key:'invoice',label:'فاتورة جديدة',hint:'عند تسجيل كل فاتورة بيع • أكثر من 3 بالدقيقة تُجمع بإشعار واحد',perms:['pos'],icon:Receipt},
+ {key:'shortage',label:'النواقص',hint:'نقص مسجّل يدوياً، أو منتج نزل تحت حد التنبيه',perms:['shortages','inventory'],icon:Package},
+ {key:'repair_ready',label:'صيانة جاهزة',hint:'عندما تتحول تذكرة صيانة إلى «جاهز للاستلام»',perms:['repairs'],icon:Wrench},
+ {key:'report_daily',label:'التقرير اليومي',hint:'كل يوم الساعة 11:00 مساءً',perms:['dashboard'],icon:CalendarDays},
+ {key:'report_weekly',label:'التقرير الأسبوعي',hint:'الجمعة 11:00 مساءً • من السبت إلى الجمعة',perms:['dashboard'],icon:CalendarDays},
+ {key:'report_monthly',label:'التقرير الشهري',hint:'يوم 1 من كل شهر 9:00 صباحاً • الشهر السابق',perms:['dashboard'],icon:CalendarDays},
+ {key:'report_bimonthly',label:'تقرير الشهرين',hint:'يوم 1 من كانون الثاني، آذار، أيار، تموز، أيلول، تشرين الثاني 9:00 صباحاً',perms:['dashboard'],icon:CalendarDays},
+ {key:'report_yearly',label:'التقرير السنوي',hint:'1 كانون الثاني 9:00 صباحاً • السنة السابقة',perms:['dashboard'],icon:CalendarDays},
+];
+function AutoPrefs({permissions}:{permissions:string[]}){
+ const [prefs,setPrefs]=useState<Record<string,boolean>|null>(null),[saving,setSaving]=useState(''),[err,setErr]=useState('');
+ useEffect(()=>{api<{prefs:Record<string,boolean>}>('prefs').then(d=>setPrefs(d.prefs)).catch(e=>setErr((e as Error).message))},[]);
+ const visible=autoKinds.filter(k=>k.perms.some(p=>permissions.includes(p)));
+ async function toggle(key:string){if(!prefs)return;const next=!prefs[key];setPrefs({...prefs,[key]:next});setSaving(key);setErr('');
+  try{const d=await api<{prefs:Record<string,boolean>}>('prefs',{method:'PUT',body:JSON.stringify({prefs:{[key]:next}})});setPrefs(d.prefs)}catch(e){setPrefs({...prefs,[key]:!next});setErr((e as Error).message)}finally{setSaving('')}}
+ if(!visible.length)return null;
+ return <div className="auto-prefs"><div className="settings-label"><b>الإشعارات التلقائية</b><span>تصل لكل أجهزتك المفعّلة • حسب صلاحياتك</span></div>
+  {visible.map(k=>{const I=k.icon;const on=!!prefs?.[k.key];return <div className="settings-row" key={k.key}><span className="auto-icon"><I size={17}/></span><div><b>{k.label}</b><p>{k.hint}</p></div><button className={'toggle '+(on?'on':'')} role="switch" aria-checked={on} aria-label={k.label} disabled={!prefs||saving===k.key} onClick={()=>toggle(k.key)}><i/></button></div>})}
+  {err&&<div className="form-error" role="alert"><AlertCircle size={16}/>{err}</div>}</div>
+}
+export function PushSettings({permissions=[]}:{permissions?:string[]}){
  const [supported,setSupported]=useState(false),[installNeeded,setInstallNeeded]=useState(false),[permission,setPermission]=useState<NotificationPermission>('default'),[publicKey,setPublicKey]=useState(''),[busy,setBusy]=useState(true),[registered,setRegistered]=useState(false),[error,setError]=useState(''),[note,setNote]=useState(''),[devices,setDevices]=useState<Device[]>([]),[history,setHistory]=useState<History[]>([]);
  const registration=useRef<ServiceWorkerRegistration|null>(null);
+ const [testing,setTesting]=useState(false);
+ async function test(){setError('');setNote('');setTesting(true);try{const requestId=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,'0')).join('');const r=await api<{accepted:number}>('send',{method:'POST',body:JSON.stringify({requestId,title:'ياقوت | إشعار تجريبي',body:'وصل إشعار التجربة ✅ الإشعارات التلقائية تعمل على هذا الجهاز.'})});setNote(r.accepted?'أُرسل الإشعار التجريبي. يفترض أن يظهر خلال ثوانٍ.':'لم تقبل خدمة الدفع الإرسال. أعد تفعيل الإشعارات على الجهاز.');await refresh()}catch(e){setError((e as Error).message)}finally{setTesting(false)}}
  async function refresh(){setError('');setBusy(true);try{
   const c=await api<{publicKey:string;configured:boolean}>('config');setPublicKey(c.publicKey||'');if(!c.configured)throw new Error('خدمة الإشعارات غير جاهزة بعد.');
   const s=await api<{devices:Device[];history:History[]}>('status');setDevices(s.devices||[]);setHistory(s.history||[]);
@@ -29,16 +52,17 @@ export function PushSettings(){
    if(!reg.active)await Promise.race([navigator.serviceWorker.ready,new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('تأخر تجهيز الإشعارات. أعد فتح التطبيق وحاول مجدداً.')),12000))]);
    const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(publicKey)});
    const deviceName=/iPhone/.test(navigator.userAgent)?'iPhone':/iPad/.test(navigator.userAgent)?'iPad':/Android/.test(navigator.userAgent)?'Android':'متصفح الكمبيوتر';
-   await api('subscription',{method:'POST',body:JSON.stringify({subscription:sub.toJSON(),deviceName})});setRegistered(true);setNote('تم تفعيل الإشعارات على هذا الجهاز. ارجع للمحادثة وقل: دز إشعار للتجربة.');await refresh();
+   await api('subscription',{method:'POST',body:JSON.stringify({subscription:sub.toJSON(),deviceName})});setRegistered(true);setNote('تم تفعيل الإشعارات على هذا الجهاز. جرّبها بزر «إرسال إشعار تجريبي».');await refresh();
   }catch(e){setError((e as Error).message||'تعذر تفعيل الإشعارات.')}finally{setBusy(false)}
  }
  async function disable(){setError('');setNote('');setBusy(true);try{const reg=registration.current||await navigator.serviceWorker.getRegistration('/');const sub=await reg?.pushManager.getSubscription();if(sub){await api('subscription',{method:'DELETE',body:JSON.stringify({endpoint:sub.endpoint})});await sub.unsubscribe()}setRegistered(false);setNote('أُوقفت إشعارات هذا الجهاز.');await refresh()}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
- return <section className="panel settings-card span-two push-settings"><div className="push-heading"><div className="push-symbol"><Bell size={25}/></div><div><h3>إشعارات ياقوت على جهازك</h3><p>استقبل إشعار التجربة حتى عندما يكون التطبيق مغلقاً.</p></div><span className={'badge '+(registered?'green':'amber')}>{registered?'مفعّلة على هذا الجهاز':'غير مفعّلة'}</span></div>
+ return <section className="panel settings-card span-two push-settings"><div className="push-heading"><div className="push-symbol"><Bell size={25}/></div><div><h3>إشعارات ياقوت على جهازك</h3><p>فواتير، نواقص، صيانة جاهزة وتقارير دورية — حتى والتطبيق مغلق.</p></div><span className={'badge '+(registered?'green':'amber')}>{registered?'مفعّلة على هذا الجهاز':'غير مفعّلة'}</span></div>
  {installNeeded&&<div className="info-banner"><Smartphone size={22}/><div><b>أضف ياقوت إلى الشاشة الرئيسية أولاً</b><p>من Safari: مشاركة ← إضافة إلى الشاشة الرئيسية ← فتح كتطبيق ويب. ثم افتح أيقونة ياقوت وارجع إلى هذه الصفحة.</p></div></div>}
  {!supported&&!installNeeded&&<div className="info-banner"><AlertCircle size={20}/><p>هذا المتصفح لا يتيح إشعارات الويب هنا. افتح التطبيق المضاف للشاشة الرئيسية على الآيفون، أو متصفحاً يدعم الإشعارات.</p></div>}
- <div className="push-actions">{registered?<button className="button secondary" disabled={busy} onClick={disable}><BellOff size={17}/>إيقاف إشعارات هذا الجهاز</button>:<button className="button primary" disabled={busy||!supported||installNeeded||!publicKey||permission==='denied'} onClick={enable}><Bell size={17}/>{permission==='denied'?'الإذن مرفوض من إعدادات الجهاز':'تفعيل الإشعارات على هذا الجهاز'}</button>}<button className="button secondary" disabled={busy} onClick={refresh}><RefreshCw size={16} className={busy?'spin':''}/>تحديث الحالة</button><span className="muted">{devices.length} أجهزة مسجلة</span></div>
+ <div className="push-actions">{registered?<button className="button secondary" disabled={busy} onClick={disable}><BellOff size={17}/>إيقاف إشعارات هذا الجهاز</button>:<button className="button primary" disabled={busy||!supported||installNeeded||!publicKey||permission==='denied'} onClick={enable}><Bell size={17}/>{permission==='denied'?'الإذن مرفوض من إعدادات الجهاز':'تفعيل الإشعارات على هذا الجهاز'}</button>}{registered&&<button className="button secondary" disabled={busy||testing} onClick={test}><Send size={16}/>{testing?'جارٍ الإرسال…':'إرسال إشعار تجريبي'}</button>}<button className="button secondary" disabled={busy} onClick={refresh}><RefreshCw size={16} className={busy?'spin':''}/>تحديث الحالة</button><span className="muted">{devices.length} أجهزة مسجلة</span></div>
  {permission==='denied'&&<p className="push-help">اسمح بالإشعارات من إعدادات الآيفون ← الإشعارات ← ياقوت، ثم اضغط «تحديث الحالة».</p>}
  {error&&<div className="form-error" role="alert"><AlertCircle size={17}/>{error}</div>}{note&&<div className="push-note" role="status"><Check size={17}/>{note}</div>}
- <p className="push-help">لن يُرسل إشعار تلقائياً عند التفعيل. عندما تصبح الحالة «مفعّلة»، قل في المحادثة: <b>دز إشعار للتجربة</b>. يلزم اتصال بالإنترنت، وقد تؤثر إعدادات التركيز على ظهور التنبيه.</p>
- <div className="push-history"><h3>سجل الإرسال</h3>{!history.length?<p>لم تُرسل إشعارات بعد. سجلات هذا القسم حقيقية ومستقلة عن البيانات التجريبية.</p>:history.map(h=><div className="push-history-row" key={h.id}><span><b>{h.title}</b><small>{new Date(h.created_at).toLocaleString('ar-IQ',{timeZone:'Asia/Baghdad'})}</small></span><span className={'badge '+(h.accepted?'green':'amber')}>{h.status==='sending'?'قيد الإرسال':h.accepted?`قبلت خدمة الدفع ${h.accepted} إشعار`:'لم تقبل خدمة الدفع الإرسال'}</span></div>)}<p>قبول خدمة الدفع للرسالة لا يؤكد ظهورها أو قراءتها على الجهاز.</p></div></section>
+ <AutoPrefs permissions={permissions}/>
+ <p className="push-help">الفحص كل دقيقة على الخادم. يلزم اتصال بالإنترنت، وقد تؤثر إعدادات التركيز (Focus) على ظهور التنبيه.</p>
+ <div className="push-history"><h3>سجل الإشعارات التجريبية</h3>{!history.length?<p>لم تُرسل إشعارات تجريبية بعد.</p>:history.map(h=><div className="push-history-row" key={h.id}><span><b>{h.title}</b><small>{new Date(h.created_at).toLocaleString('ar-IQ',{timeZone:'Asia/Baghdad'})}</small></span><span className={'badge '+(h.accepted?'green':'amber')}>{h.status==='sending'?'قيد الإرسال':h.accepted?`قبلت خدمة الدفع ${h.accepted} إشعار`:'لم تقبل خدمة الدفع الإرسال'}</span></div>)}<p>قبول خدمة الدفع للرسالة لا يؤكد ظهورها أو قراءتها على الجهاز.</p></div></section>
 }

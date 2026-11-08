@@ -283,6 +283,7 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
             <span className="demo-badge"><i className="live"/>بيانات حقيقية</span>
             <span className="top-divider"/>
             <button className="icon-button" onClick={() => setDark(!dark)} aria-label={dark ? 'الوضع النهاري' : 'الوضع الليلي'}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button>
+            <button className="icon-button" onClick={() => nav('settings')} aria-label="الإعدادات: الإشعارات والخطوط"><Settings size={19}/></button>
             <button className="icon-button" onClick={() => onLock()} aria-label="قفل الشاشة"><Lock size={19}/></button>
             <span className="avatar small" title={employee.name}>{employee.name.slice(0, 1)}</span>
           </div>
@@ -308,13 +309,14 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
           {page === 'sessions' && <Sessions onExpired={expired}/>}
           {page === 'settings' && (
             <div className="settings-grid">
+              <PushSettings permissions={permissions}/>
               <section className="panel settings-card">
                 <h3>هويتي في المحل</h3>
                 <div className="settings-row"><div><b>{employee.name}</b><p>{roleLabel[employee.role] || employee.role}{employee.department ? ' • ' + employee.department : ''}</p></div><span className="avatar">{employee.name.slice(0, 1)}</span></div>
                 <MyPermissions permissions={permissions}/>
               </section>
               <section className="panel settings-card">
-                <h3>المظهر والتفضيلات</h3>
+                <h3>الخطوط والمظهر</h3>
                 <div className="settings-row"><div><b>المظهر الليلي</b><p>واجهة مريحة للعمل في المساء</p></div><button className={'toggle ' + (dark ? 'on' : '')} onClick={() => setDark(!dark)} role="switch" aria-checked={dark} aria-label="تفعيل المظهر الليلي"><i/></button></div>
                 <div className="typography-settings">
                   <div className="settings-label"><b>خط الواجهة</b><span>اختر الخط الأقرب لذوقك</span></div>
@@ -329,7 +331,6 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
                 </div>
                 <div className="settings-row welcome-settings"><div><b>ترحيب خفيف عند الدخول</b><p>يظهر عند دخول كل موظف</p></div><button className={'toggle ' + (welcomeEnabled ? 'on' : '')} onClick={() => setWelcomeEnabled(!welcomeEnabled)} role="switch" aria-checked={welcomeEnabled} aria-label="تفعيل ترحيب الدخول"><i/></button></div>
               </section>
-              <PushSettings/>
               <section className="panel settings-card">
                 <h3>الأمان على هذا الجهاز</h3>
                 <label>القفل التلقائي بعد الخمول

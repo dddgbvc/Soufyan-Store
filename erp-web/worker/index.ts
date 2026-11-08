@@ -1,6 +1,7 @@
 import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
+import { runAutoPush } from "../lib/push/auto";
 
 const worker = {
   fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
@@ -24,6 +25,10 @@ const worker = {
       };
     }
     return runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
+  },
+  // الإشعارات التلقائية: Cron كل دقيقة (يُضبط في scripts/deploy-cloudflare.mjs).
+  scheduled(_controller: ScheduledController, _env: Cloudflare.Env, ctx: ExecutionContext) {
+    ctx.waitUntil(runAutoPush().then(r => console.log("auto-push", JSON.stringify(r))).catch(e => console.error("auto-push failed", e instanceof Error ? e.message : e)));
   },
 };
 

@@ -69,3 +69,9 @@
 .settings-card label{display:grid;gap:6px;font-size:12px;margin:12px 0}
 @media(max-width:480px){.auth-card{padding:24px 18px;border-radius:14px}.pin-grid button{height:56px}}
 @media(prefers-reduced-motion:reduce){.auth-card,.pin-dots.shake{animation:none}}
+/* ===== الإشعارات التلقائية ===== */
+.auto-prefs{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
+.auto-prefs .settings-label{margin-bottom:4px}
+.auto-prefs .settings-row{gap:12px}
+.auto-prefs .settings-row>div{flex:1}
+.auto-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--soft);color:var(--accent);flex-shrink:0}
