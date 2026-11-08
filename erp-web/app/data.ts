@@ -5,8 +5,8 @@ export type Employee = {id: string; name: string; role: string; department: stri
 export type Row = Record<string, any>;
 
 export type SectionKey =
-  | 'dashboard' | 'invoices' | 'customers' | 'products' | 'shortages' | 'repairs'
-  | 'returns' | 'expenses' | 'shipping' | 'employees' | 'sessions' | 'settings';
+  | 'dashboard' | 'invoices' | 'customers' | 'vault' | 'products' | 'shortages' | 'repairs'
+  | 'returns' | 'expenses' | 'shipping' | 'employees' | 'sessions' | 'notifications' | 'settings';
 
 export type Section = {
   key: SectionKey;
@@ -20,7 +20,8 @@ export type Section = {
 export const sections: Section[] = [
   {key: 'dashboard', title: 'نظرة عامة', desc: 'ملخص يومك من بيانات المحل الفعلية', group: 'work', perms: ['dashboard']},
   {key: 'invoices', title: 'المبيعات والفواتير', desc: 'فواتير البيع المسجلة من برنامج المكتب', group: 'work', perms: ['pos']},
-  {key: 'customers', title: 'الزبائن والديون', desc: 'أرصدة الزبائن والمستحقات', group: 'work', perms: ['customers']},
+  {key: 'customers', title: 'الديون والزبائن', desc: 'إضافة دين، تسديد، كشف حساب، وتذكير واتساب', group: 'work', perms: ['customers']},
+  {key: 'vault', title: 'الخزنة', desc: 'الرصيد والحركات، إيداع وسحب', group: 'work', perms: ['vaults']},
   {key: 'products', title: 'المخزون', desc: 'المنتجات وكمياتها وأسعارها', group: 'work', perms: ['inventory']},
   {key: 'shortages', title: 'النواقص', desc: 'نواقص يدوية ومنتجات تحت حد التنبيه', group: 'work', perms: ['shortages']},
   {key: 'repairs', title: 'الصيانة', desc: 'تذاكر الصيانة وحالتها', group: 'ops', perms: ['repairs']},
@@ -29,7 +30,8 @@ export const sections: Section[] = [
   {key: 'shipping', title: 'الشحن والتوصيل', desc: 'طلبات شركات الشحن وحالتها', group: 'ops', perms: ['shipping', 'shipping.view']},
   {key: 'employees', title: 'الموظفون', desc: 'الموظفون وأدوارهم ورموزهم', group: 'admin', perms: ['employees']},
   {key: 'sessions', title: 'الجلسات والأجهزة', desc: 'من دخل، من أي جهاز، ومتى', group: 'admin', perms: ['employees', 'employees.permissions']},
-  {key: 'settings', title: 'الإعدادات', desc: 'تفضيلاتك وصلاحياتك وحساب المحل', group: 'admin', perms: []},
+  {key: 'notifications', title: 'مركز الإشعارات', desc: 'صندوقك، وإدارة إشعارات المحل', group: 'admin', perms: []},
+  {key: 'settings', title: 'الإعدادات', desc: 'الإشعارات، الخطوط، المظهر، وحساب المحل', group: 'admin', perms: []},
 ];
 
 export const can = (perms: string[], need: string[]) => need.every(p => perms.includes(p));
@@ -54,6 +56,6 @@ export const dayOf = (iso?: string | null) =>
   iso ? new Intl.DateTimeFormat('en-CA', {timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'}).format(new Date(iso)) : '';
 export const money = (v: unknown) => new Intl.NumberFormat('en-US', {maximumFractionDigits: 0}).format(Number(v) || 0);
 export const when = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleString('ar-IQ', {timeZone: TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : '—';
+  iso ? new Date(iso).toLocaleString('ar-IQ-u-nu-latn', {timeZone: TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : '—';
 export const dateOnly = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString('ar-IQ', {timeZone: TZ, day: 'numeric', month: 'short', year: 'numeric'}) : '—';
+  iso ? new Date(iso).toLocaleDateString('ar-IQ-u-nu-latn', {timeZone: TZ, day: 'numeric', month: 'short', year: 'numeric'}) : '—';

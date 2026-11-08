@@ -134,6 +134,10 @@ async function rpcCall(fn: string, args: Record<string, unknown>, bearer: string
     if (err.code === '28000') throw new ServerError('session_expired', 401, err.message);
     if (err.code === '42501') throw new ServerError('forbidden', 403, err.message);
     if (err.code === 'PGRST202') throw new ServerError('migration_missing', 503);
+    // رفض منطقي من قاعدة البيانات (رسالة عربية جاهزة للعرض): مبلغ غير صالح، سقف دين، غير موجود…
+    if (err.code && ['22023', '23514', '23503', '23505', '22003', 'P0001'].includes(err.code)) {
+      throw new ServerError('rejected', 400, err.message);
+    }
     throw new ServerError('upstream_error', 502, err.message);
   }
   return body;

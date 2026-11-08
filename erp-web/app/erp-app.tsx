@@ -3,152 +3,34 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   AlertCircle, AlertTriangle, ArrowLeft, Bell, Boxes, Check, ChevronLeft, Gem, KeyRound, LayoutDashboard, Loader2,
   Lock, LogOut, Menu, Monitor, Moon, Package, Receipt, RefreshCw, RotateCcw, Search, Settings, ShieldCheck,
-  Store, Sun, Truck, UserCog, Users, Wallet, Wrench, X,
+  Store, Sun, Truck, UserCog, Users, Wallet, Wrench, X, Landmark, Plus,
 } from 'lucide-react';
 import {PushSettings} from './push-settings';
 import {Welcome, fontOptions} from './welcome';
 import {
-  Employee, Row, SectionKey, can, dateOnly, dayOf, money, paymentLabel, permissionGroups, roleLabel,
-  sections, today, when,
+  Employee, Row, SectionKey, can, money, paymentLabel, permissionGroups, roleLabel, sections, when,
 } from './data';
+import {
+  Badge, DataTable, ListPanel, NameCell, SearchBox, Segmented, SessionExpired, ToastProvider, api, cash, useList,
+} from './ui';
+import Debts from './views/debts';
+import NotificationCenter from './views/notifications';
+import {Dashboard, InvoiceDetail, NewExpense, RepairDetail, Vault} from './views/ops';
 
 const icons: Record<SectionKey, any> = {
-  dashboard: LayoutDashboard, invoices: Receipt, customers: Wallet, products: Package, shortages: Boxes,
-  repairs: Wrench, returns: RotateCcw, expenses: Receipt, shipping: Truck, employees: Users, sessions: Monitor, settings: Settings,
+  dashboard: LayoutDashboard, invoices: Receipt, customers: Wallet, vault: Landmark, products: Package, shortages: Boxes,
+  repairs: Wrench, returns: RotateCcw, expenses: Receipt, shipping: Truck, employees: Users, sessions: Monitor,
+  notifications: Bell, settings: Settings,
 };
 const groupLabel = {work: 'مساحة العمل', ops: 'العمليات', admin: 'الإدارة'};
 const PREFS = 'yaqoot-prefs-v2';
 
-const cash = (n: unknown) => <><bdi>{money(n)}</bdi> <small>د.ع</small></>;
-function Badge({tone, children}: {tone: 'green' | 'red' | 'amber'; children: React.ReactNode}) {
-  return <span className={'badge ' + tone}><i/>{children}</span>;
-}
-
-export class SessionExpired extends Error {}
-
-async function api(resource: string, params: Record<string, string | number | boolean | undefined> = {}): Promise<any> {
-  const qs = new URLSearchParams({r: resource});
-  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '' && v !== false) qs.set(k, String(v === true ? 1 : v));
-  const res = await fetch('/api/erp?' + qs, {credentials: 'same-origin', cache: 'no-store'});
-  const data: any = await res.json().catch(() => ({ok: false, reason: 'server_error'}));
-  if (res.status === 401) throw new SessionExpired();
-  if (!res.ok || !data.ok) {
-    throw new Error(data.reason === 'forbidden' ? 'ليست لديك صلاحية لهذا القسم.' : data.message || 'تعذر تحميل البيانات.');
-  }
-  return data;
-}
-
-type Column = {label: string; cell: (r: Row) => React.ReactNode; className?: string};
-
-function DataTable({rows, columns, onOpen, empty = 'لا توجد سجلات'}: {rows: Row[]; columns: Column[]; onOpen?: (r: Row) => void; empty?: string}) {
-  return (
-    <div className="table-scroll">
-      <table>
-        <thead><tr>{columns.map(c => <th key={c.label}>{c.label}</th>)}{onOpen && <th/>}</tr></thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={r.id || i}>
-              {columns.map(c => <td key={c.label} className={c.className}>{c.cell(r)}</td>)}
-              {onOpen && <td><button className="small-btn" onClick={() => onOpen(r)}>التفاصيل</button></td>}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {rows.length === 0 && <div className="empty"><Search size={30}/><h3>{empty}</h3></div>}
-    </div>
-  );
-}
-
-function NameCell({title, sub, avatar}: {title: string; sub?: string | null; avatar?: React.ReactNode}) {
-  return (
-    <div className="row-name">
-      <span className="row-avatar">{avatar ?? (title || '؟').slice(0, 1)}</span>
-      <span><strong>{title || '—'}</strong>{sub ? <small>{sub}</small> : null}</span>
-    </div>
-  );
-}
-
-/** تحميل قائمة من الخادم مع بحث مؤجل وتحميل المزيد. */
-function useList(resource: string, key: string, params: Record<string, any>, onExpired: () => void, enabled = true) {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [meta, setMeta] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [more, setMore] = useState(false);
-  const paramsKey = JSON.stringify(params);
-  const seq = useRef(0);
-
-  const load = useCallback(async (append = false, cursor?: Record<string, any>) => {
-    if (!enabled) return;
-    const n = ++seq.current;
-    setLoading(true);
-    setError('');
-    try {
-      const data = await api(resource, {...JSON.parse(paramsKey), limit: 50, ...(cursor || {})});
-      if (n !== seq.current) return;
-      const list: Row[] = data[key] || [];
-      setRows(prev => (append ? [...prev, ...list] : list));
-      setMeta(data);
-      setMore(list.length === 50);
-    } catch (e) {
-      if (e instanceof SessionExpired) { onExpired(); return; }
-      if (n === seq.current) setError((e as Error).message);
-    } finally {
-      if (n === seq.current) setLoading(false);
-    }
-  }, [resource, key, paramsKey, onExpired, enabled]);
-
-  useEffect(() => {
-    const t = setTimeout(() => load(false), 250);
-    return () => clearTimeout(t);
-  }, [load]);
-
-  return {rows, meta, loading, error, more, load};
-}
-
-function ListPanel({list, toolbar, children, cursor}: {
-  list: ReturnType<typeof useList>;
-  toolbar?: React.ReactNode;
-  children: React.ReactNode;
-  cursor?: (last: Row, count: number) => Record<string, any>;
-}) {
-  return (
-    <section className="panel module-panel">
-      {toolbar && <div className="table-toolbar">{toolbar}</div>}
-      {list.error ? <div className="form-error" role="alert"><AlertCircle size={16}/>{list.error}</div> : children}
-      <div className="table-footer">
-        <span>{list.loading ? <><Loader2 size={14} className="spin"/> جارٍ التحميل…</> : `عرض ${list.rows.length} سجل`}</span>
-        <span>
-          {list.more && cursor && !list.loading && (
-            <button className="text-button" onClick={() => list.load(true, cursor(list.rows[list.rows.length - 1], list.rows.length))}>تحميل المزيد</button>
-          )}
-          <button className="icon-button" aria-label="تحديث" onClick={() => list.load(false)}><RefreshCw size={15} className={list.loading ? 'spin' : ''}/></button>
-        </span>
-      </div>
-    </section>
-  );
-}
-
-function SearchBox({value, onChange, placeholder}: {value: string; onChange: (v: string) => void; placeholder: string}) {
-  return (
-    <div className="search-field">
-      <Search size={18}/>
-      <input aria-label="بحث" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} maxLength={100}/>
-      {value && <button className="icon-button" onClick={() => onChange('')} aria-label="مسح البحث"><X size={14}/></button>}
-    </div>
-  );
-}
-
-function Segmented<T extends string>({value, options, onChange}: {value: T; options: [T, string][]; onChange: (v: T) => void}) {
-  return (
-    <div className="segmented">
-      {options.map(([k, l]) => <button key={k} className={value === k ? 'selected' : ''} onClick={() => onChange(k)}>{l}</button>)}
-    </div>
-  );
-}
-
 // ======================================================================
-export default function ErpApp({storeName, employee, permissions, onLock, onSignOut}: {
+export default function ErpApp(props: Parameters<typeof Shell>[0]) {
+  return <ToastProvider><Shell {...props}/></ToastProvider>;
+}
+
+function Shell({storeName, employee, permissions, onLock, onSignOut}: {
   storeName: string;
   employee: Employee;
   permissions: string[];
@@ -166,9 +48,22 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
   const [idleMinutes, setIdleMinutes] = useState(10);
   const [detail, setDetail] = useState<{title: string; row: Row} | null>(null);
   const [toast, setToast] = useState('');
+  const [unread, setUnread] = useState(0);
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
+  const [repairId, setRepairId] = useState<string | null>(null);
+  const [listKey, setListKey] = useState(0);
   const prefsReady = useRef(false);
 
   const expired = useCallback(() => onLock('انتهت الجلسة. أدخل رمزك من جديد.'), [onLock]);
+
+  // عدّاد الإشعارات غير المقروءة (الجرس) — كل دقيقة.
+  useEffect(() => {
+    let stop = false;
+    const poll = () => api('inbox', {limit: 1}).then(d => { if (!stop) setUnread(d.unread || 0); }).catch(e => { if (e instanceof SessionExpired) expired(); });
+    poll();
+    const t = setInterval(poll, 60_000);
+    return () => { stop = true; clearInterval(t); };
+  }, [expired]);
 
   // التفضيلات محلية لكل جهاز (المظهر والخط والترحيب ومدة القفل التلقائي).
   useEffect(() => {
@@ -255,7 +150,7 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
                   const I = icons[s.key];
                   return (
                     <button key={s.key} className={page === s.key ? 'active' : ''} onClick={() => nav(s.key)} aria-current={page === s.key ? 'page' : undefined}>
-                      <I size={19}/><span>{s.title}</span>{page === s.key && <span className="active-dot"/>}
+                      <I size={19}/><span>{s.title}</span>{s.key === 'notifications' && unread > 0 && <em className="alert-count">{unread}</em>}{page === s.key && <span className="active-dot"/>}
                     </button>
                   );
                 })}
@@ -283,6 +178,7 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
             <span className="demo-badge"><i className="live"/>بيانات حقيقية</span>
             <span className="top-divider"/>
             <button className="icon-button" onClick={() => setDark(!dark)} aria-label={dark ? 'الوضع النهاري' : 'الوضع الليلي'}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button>
+            <button className="icon-button notification" onClick={() => nav('notifications')} aria-label={`مركز الإشعارات${unread ? ` (${unread} غير مقروء)` : ''}`}><Bell size={20}/>{unread > 0 && <em className="bell-count">{unread > 99 ? '99+' : unread}</em>}</button>
             <button className="icon-button" onClick={() => nav('settings')} aria-label="الإعدادات: الإشعارات والخطوط"><Settings size={19}/></button>
             <button className="icon-button" onClick={() => onLock()} aria-label="قفل الشاشة"><Lock size={19}/></button>
             <span className="avatar small" title={employee.name}>{employee.name.slice(0, 1)}</span>
@@ -296,14 +192,16 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
               <p>{section.desc}</p>
             </div>
           </div>
-          {page === 'dashboard' && <Dashboard permissions={permissions} onExpired={expired} nav={nav} open={open}/>}
-          {page === 'invoices' && <Invoices onExpired={expired} open={open('فاتورة')}/>}
-          {page === 'customers' && <Customers onExpired={expired} open={open('زبون')}/>}
+          {page === 'dashboard' && <Dashboard permissions={permissions} onExpired={expired} nav={nav} openInvoice={r => setInvoiceId(r.id)}/>}
+          {page === 'invoices' && <Invoices onExpired={expired} open={r => setInvoiceId(r.id)}/>}
+          {page === 'customers' && <Debts permissions={permissions} storeName={storeName} onExpired={expired}/>}
+          {page === 'vault' && <Vault permissions={permissions} onExpired={expired}/>}
+          {page === 'notifications' && <NotificationCenter permissions={permissions} onExpired={expired} onUnread={setUnread}/>}
           {page === 'products' && <Products onExpired={expired} open={open('منتج')}/>}
           {page === 'shortages' && <Shortages onExpired={expired}/>}
-          {page === 'repairs' && <Repairs onExpired={expired} open={open('تذكرة صيانة')}/>}
+          {page === 'repairs' && <Repairs key={listKey} onExpired={expired} open={r => setRepairId(r.id)}/>}
           {page === 'returns' && <Returns onExpired={expired} open={open('مرتجع')}/>}
-          {page === 'expenses' && <Expenses onExpired={expired} open={open('مصروف')}/>}
+          {page === 'expenses' && <Expenses key={listKey} onExpired={expired} open={open('مصروف')} canCreate={permissions.includes('expenses.create')} onNew={() => setDetail({title: '__new_expense', row: {}})}/>}
           {page === 'shipping' && <Shipping onExpired={expired} open={open('شحنة')}/>}
           {page === 'employees' && <Employees onExpired={expired} open={open('موظف')}/>}
           {page === 'sessions' && <Sessions onExpired={expired}/>}
@@ -353,7 +251,10 @@ export default function ErpApp({storeName, employee, permissions, onLock, onSign
         </div>
       </main>
       {toast && <div className="toast" role="status"><Check size={18}/>{toast}<button aria-label="إغلاق الإشعار" onClick={() => setToast('')}><X size={15}/></button></div>}
-      {detail && <DetailModal title={detail.title} row={detail.row} onClose={() => setDetail(null)}/>}
+      {detail && detail.title === '__new_expense' && <NewExpense onClose={() => setDetail(null)} onExpired={expired} onDone={() => setListKey(k => k + 1)}/>}
+      {detail && detail.title !== '__new_expense' && <DetailModal title={detail.title} row={detail.row} onClose={() => setDetail(null)}/>}
+      {invoiceId && <InvoiceDetail id={invoiceId} onClose={() => setInvoiceId(null)} onExpired={expired}/>}
+      {repairId && <RepairDetail id={repairId} onClose={() => setRepairId(null)} onExpired={expired} onChanged={() => setListKey(k => k + 1)}/>}
     </div>
   );
 }
@@ -439,122 +340,6 @@ function MyPermissions({permissions, title = 'صلاحياتي'}: {permissions: 
 // ======================================================================
 type PageProps = {onExpired: () => void; open: (r: Row) => void};
 
-function Dashboard({permissions, onExpired, nav, open}: {permissions: string[]; onExpired: () => void; nav: (k: SectionKey) => void; open: (t: string) => (r: Row) => void}) {
-  const [stats, setStats] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const permKey = permissions.join(',');
-  const has = useCallback((p: string) => permKey.split(',').includes(p), [permKey]);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    const s: Record<string, any> = {};
-    try {
-      const tasks: Promise<void>[] = [];
-      if (has('pos')) tasks.push((async () => {
-        // نقلب صفحات الفواتير حتى نتجاوز بداية اليوم لحساب مبيعات اليوم بدقة.
-        const t = today();
-        let all: Row[] = [], before: string | undefined;
-        for (let i = 0; i < 5; i++) {
-          const d = await api('invoices', {limit: 100, before});
-          const list: Row[] = d.invoices || [];
-          all = all.concat(list);
-          if (list.length < 100 || dayOf(list[list.length - 1].created_at) < t) break;
-          before = list[list.length - 1].created_at;
-        }
-        const todays = all.filter(r => dayOf(r.created_at) === t);
-        s.latest = all.slice(0, 6);
-        s.todayTotal = todays.reduce((a, r) => a + Number(r.total_amount || 0), 0);
-        s.todayCount = todays.length;
-        s.todayDebt = todays.reduce((a, r) => a + Math.max(0, Number(r.total_amount || 0) - Number(r.paid_amount || 0)), 0);
-      })());
-      if (has('customers')) tasks.push(api('customers', {debtors_only: true, limit: 100}).then(d => {
-        const list: Row[] = d.customers || [];
-        s.debtTotal = list.reduce((a, r) => a + Number(r.balance || 0), 0);
-        s.debtors = list.length;
-        s.topDebtors = list.slice(0, 3);
-      }));
-      if (has('inventory')) tasks.push(api('products', {low_only: true, limit: 100}).then(d => {
-        s.low = d.products || [];
-      }));
-      if (has('repairs')) tasks.push(api('repairs', {status: 'OPEN', limit: 100}).then(d => {
-        const list: Row[] = d.repairs || [];
-        s.openRepairs = list.length;
-        s.readyRepairs = list.filter(r => r.status === 'READY').length;
-      }));
-      await Promise.all(tasks);
-      setStats(s);
-    } catch (e) {
-      if (e instanceof SessionExpired) { onExpired(); return; }
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [has, onExpired]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const tiles = [
-    has('pos') && {label: 'مبيعات اليوم', value: stats.todayTotal, hint: `${stats.todayCount ?? 0} فاتورة • منها آجل ${money(stats.todayDebt)}`, key: 'invoices' as SectionKey, icon: Receipt, color: 'teal'},
-    has('customers') && {label: 'ديون الزبائن', value: stats.debtTotal, hint: `${stats.debtors ?? 0} زبون عليهم رصيد`, key: 'customers' as SectionKey, icon: Wallet, color: 'gold'},
-    has('inventory') && {label: 'منتجات تحت الحد', value: null, count: stats.low?.length ?? 0, hint: 'تحتاج إعادة طلب', key: (has('shortages') ? 'shortages' : 'products') as SectionKey, icon: Package, color: 'blue'},
-    has('repairs') && {label: 'صيانة مفتوحة', value: null, count: stats.openRepairs ?? 0, hint: `${stats.readyRepairs ?? 0} جاهزة للتسليم`, key: 'repairs' as SectionKey, icon: Wrench, color: 'purple'},
-  ].filter(Boolean) as any[];
-
-  return <>
-    <div className="overview-tools">
-      <div className="overview-label"><span className="status-led"/>نظرة على أداء المحل <span className="muted">• {dateOnly(new Date().toISOString())}</span></div>
-      <button className="button secondary" onClick={load} disabled={loading}><RefreshCw size={16} className={loading ? 'spin' : ''}/>تحديث</button>
-    </div>
-    {error && <div className="form-error" role="alert"><AlertCircle size={16}/>{error}</div>}
-    {tiles.length > 0 && (
-      <div className="kpis">
-        {tiles.map(t => (
-          <button className="kpi" key={t.key + t.label} onClick={() => nav(t.key)}>
-            <div className="kpi-top"><span>{t.label}</span><span className={'iconbox ' + t.color}><t.icon size={19}/></span></div>
-            <div className="kpi-value">{loading ? <Loader2 size={22} className="spin"/> : t.value === null ? <bdi>{money(t.count)}</bdi> : cash(t.value)}</div>
-            <div className="kpi-bottom"><span className={t.color}><i className="mini-dot"/>{t.hint}</span></div>
-          </button>
-        ))}
-      </div>
-    )}
-    <div className="dashboard-grid lower">
-      {has('pos') && (
-        <section className="panel">
-          <div className="panel-head"><div><h3>آخر الفواتير</h3><p>أحدث عمليات البيع من برنامج المكتب</p></div><button className="text-button" onClick={() => nav('invoices')}>عرض الكل <ArrowLeft size={15}/></button></div>
-          <DataTable rows={stats.latest || []} onOpen={open('فاتورة')} columns={[
-            {label: 'الفاتورة', cell: r => <bdi>{r.invoice_number}</bdi>},
-            {label: 'الزبون', cell: r => <NameCell title={r.customer_name || 'زبون نقدي'} sub={r.actor}/>},
-            {label: 'الوقت', cell: r => when(r.created_at)},
-            {label: 'المبلغ', cell: r => cash(r.total_amount), className: 'number'},
-            {label: 'الدفع', cell: r => <Badge tone={Number(r.total_amount) > Number(r.paid_amount) ? 'amber' : 'green'}>{paymentLabel(r.payment_type)}</Badge>},
-          ]}/>
-        </section>
-      )}
-      <section className="panel attention">
-        <div className="panel-head"><div><h3>تحتاج انتباهك</h3><p>متابعات من بيانات المحل الآن</p></div><Bell size={18}/></div>
-        {(stats.low || []).slice(0, 3).map((r: Row) => (
-          <button className="attention-item" key={r.id} onClick={() => nav(has('shortages') ? 'shortages' : 'products')}>
-            <span className="attention-icon amber-bg"><Package size={18}/></span><span><b>مخزون منخفض</b><small>{r.name} • {r.stock_quantity} متبقية</small></span><ChevronLeft size={15}/>
-          </button>
-        ))}
-        {(stats.topDebtors || []).map((r: Row) => (
-          <button className="attention-item" key={r.id} onClick={() => nav('customers')}>
-            <span className="attention-icon red-bg"><Wallet size={18}/></span><span><b>{r.name}</b><small>عليه {money(r.balance)} د.ع</small></span><ChevronLeft size={15}/>
-          </button>
-        ))}
-        {stats.readyRepairs > 0 && (
-          <button className="attention-item" onClick={() => nav('repairs')}>
-            <span className="attention-icon blue-bg"><Wrench size={18}/></span><span><b>صيانة جاهزة</b><small>{stats.readyRepairs} أجهزة بانتظار التسليم</small></span><ChevronLeft size={15}/>
-          </button>
-        )}
-        {!loading && !stats.low?.length && !stats.topDebtors?.length && !stats.readyRepairs && <div className="empty"><Check size={26}/><h3>لا شيء عاجل الآن</h3></div>}
-      </section>
-    </div>
-  </>;
-}
-
 function Invoices({onExpired, open}: PageProps) {
   const [q, setQ] = useState('');
   const [debt, setDebt] = useState<'all' | 'debt'>('all');
@@ -573,26 +358,6 @@ function Invoices({onExpired, open}: PageProps) {
       ]}/>
     </ListPanel>
   );
-}
-
-function Customers({onExpired, open}: PageProps) {
-  const [q, setQ] = useState('');
-  const [mode, setMode] = useState<'debt' | 'all'>('debt');
-  const list = useList('customers', 'customers', {q, debtors_only: mode === 'debt'}, onExpired);
-  const total = list.rows.reduce((a, r) => a + Math.max(0, Number(r.balance || 0)), 0);
-  return <>
-    <div className="module-summary"><div><small>مجموع الأرصدة المعروضة</small><b>{cash(total)}</b></div><div><small>عدد الزبائن المعروضين</small><b>{list.rows.length}</b></div></div>
-    <ListPanel list={list} cursor={(_, n) => ({offset: n})}
-      toolbar={<><SearchBox value={q} onChange={setQ} placeholder="اسم الزبون أو رقم الهاتف…"/><div className="table-filters"><Segmented value={mode} onChange={setMode} options={[['debt', 'عليهم ديون'], ['all', 'كل الزبائن']]}/></div></>}>
-      <DataTable rows={list.rows} onOpen={open} columns={[
-        {label: 'الزبون', cell: r => <NameCell title={r.name} sub={r.address}/>},
-        {label: 'الهاتف', cell: r => <bdi dir="ltr">{r.phone || '—'}</bdi>},
-        {label: 'الرصيد', cell: r => Number(r.balance) > 0 ? <span className="warning-text">{cash(r.balance)}</span> : cash(r.balance), className: 'number'},
-        {label: 'حد الدين', cell: r => (r.credit_limit ? cash(r.credit_limit) : '—'), className: 'number'},
-        {label: 'آخر تحديث', cell: r => when(r.updated_at)},
-      ]}/>
-    </ListPanel>
-  </>;
 }
 
 function Products({onExpired, open}: PageProps) {
@@ -679,9 +444,10 @@ function Returns({onExpired, open}: PageProps) {
   );
 }
 
-function Expenses({onExpired, open}: PageProps) {
+function Expenses({onExpired, open, canCreate, onNew}: PageProps & {canCreate: boolean; onNew: () => void}) {
   const list = useList('expenses', 'expenses', {}, onExpired);
   return <>
+    {canCreate && <div className="action-bar"><button className="button primary" onClick={onNew}><Plus size={17}/>مصروف جديد</button></div>}
     {list.meta.ok && !list.meta.can_see_payroll && <div className="info-banner"><ShieldCheck size={20}/><p>سندات الرواتب مخفية: صلاحية expenses.payroll_view غير ممنوحة لك.</p></div>}
     <ListPanel list={list} cursor={last => ({before: last.created_at})}>
       <DataTable rows={list.rows} onOpen={open} columns={[

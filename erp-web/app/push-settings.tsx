@@ -1,31 +1,20 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {Bell,BellOff,Check,RefreshCw,Smartphone,AlertCircle,Send,Receipt,Package,Wrench,CalendarDays} from 'lucide-react';
+import {Bell,BellOff,Check,RefreshCw,Smartphone,AlertCircle,Send} from 'lucide-react';
+import {PrefsEditor,type Prefs} from './views/notifications';
 type Device={id:string;device_name:string};
 type History={id:string;title:string;created_at:number;status:string;accepted:number;failed:number;expired:number};
 const messages:Record<string,string>={sign_in_required:'سجّل الدخول إلى التطبيق أولاً.',push_not_configured:'خدمة الإشعارات غير جاهزة بعد.',subscription_save_failed:'تعذر حفظ تسجيل الجهاز. حاول مرة أخرى.',no_registered_devices:'فعّل الإشعارات على جهازك أولاً.',too_many_devices:'وصلت إلى الحد الأقصى للأجهزة المسجلة.',subscription_remove_failed:'تعذر إلغاء التسجيل على الخادم. حاول مرة أخرى.'};
 async function api<T=Record<string,unknown>>(path:string,init?:RequestInit){const res=await fetch('/api/push/'+path,{...init,credentials:'same-origin',headers:{'Content-Type':'application/json',...init?.headers}});if(res.headers.get('content-type')?.includes('application/json')){const d=await res.json() as T&{error?:string};if(!res.ok)throw new Error(messages[d.error||'']||'تعذر إكمال الطلب. أعد المحاولة.');return d}throw new Error('انتهت جلسة الدخول. افتح التطبيق وسجّل الدخول مجدداً.')}
 function keyBytes(key:string){return Uint8Array.from(atob(key.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(key.length/4)*4,'=')),c=>c.charCodeAt(0))}
 async function endpointId(endpoint:string){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(endpoint));return Array.from(new Uint8Array(h),x=>x.toString(16).padStart(2,'0')).join('')}
-const autoKinds:{key:string;label:string;hint:string;perms:string[];icon:any}[]=[
- {key:'invoice',label:'فاتورة جديدة',hint:'عند تسجيل كل فاتورة بيع • أكثر من 3 بالدقيقة تُجمع بإشعار واحد',perms:['pos'],icon:Receipt},
- {key:'shortage',label:'النواقص',hint:'نقص مسجّل يدوياً، أو منتج نزل تحت حد التنبيه',perms:['shortages','inventory'],icon:Package},
- {key:'repair_ready',label:'صيانة جاهزة',hint:'عندما تتحول تذكرة صيانة إلى «جاهز للاستلام»',perms:['repairs'],icon:Wrench},
- {key:'report_daily',label:'التقرير اليومي',hint:'كل يوم الساعة 11:00 مساءً',perms:['dashboard'],icon:CalendarDays},
- {key:'report_weekly',label:'التقرير الأسبوعي',hint:'الجمعة 11:00 مساءً • من السبت إلى الجمعة',perms:['dashboard'],icon:CalendarDays},
- {key:'report_monthly',label:'التقرير الشهري',hint:'يوم 1 من كل شهر 9:00 صباحاً • الشهر السابق',perms:['dashboard'],icon:CalendarDays},
- {key:'report_bimonthly',label:'تقرير الشهرين',hint:'يوم 1 من كانون الثاني، آذار، أيار، تموز، أيلول، تشرين الثاني 9:00 صباحاً',perms:['dashboard'],icon:CalendarDays},
- {key:'report_yearly',label:'التقرير السنوي',hint:'1 كانون الثاني 9:00 صباحاً • السنة السابقة',perms:['dashboard'],icon:CalendarDays},
-];
 function AutoPrefs({permissions}:{permissions:string[]}){
- const [prefs,setPrefs]=useState<Record<string,boolean>|null>(null),[saving,setSaving]=useState(''),[err,setErr]=useState('');
- useEffect(()=>{api<{prefs:Record<string,boolean>}>('prefs').then(d=>setPrefs(d.prefs)).catch(e=>setErr((e as Error).message))},[]);
- const visible=autoKinds.filter(k=>k.perms.some(p=>permissions.includes(p)));
- async function toggle(key:string){if(!prefs)return;const next=!prefs[key];setPrefs({...prefs,[key]:next});setSaving(key);setErr('');
-  try{const d=await api<{prefs:Record<string,boolean>}>('prefs',{method:'PUT',body:JSON.stringify({prefs:{[key]:next}})});setPrefs(d.prefs)}catch(e){setPrefs({...prefs,[key]:!next});setErr((e as Error).message)}finally{setSaving('')}}
- if(!visible.length)return null;
- return <div className="auto-prefs"><div className="settings-label"><b>الإشعارات التلقائية</b><span>تصل لكل أجهزتك المفعّلة • حسب صلاحياتك</span></div>
-  {visible.map(k=>{const I=k.icon;const on=!!prefs?.[k.key];return <div className="settings-row" key={k.key}><span className="auto-icon"><I size={17}/></span><div><b>{k.label}</b><p>{k.hint}</p></div><button className={'toggle '+(on?'on':'')} role="switch" aria-checked={on} aria-label={k.label} disabled={!prefs||saving===k.key} onClick={()=>toggle(k.key)}><i/></button></div>})}
+ const [prefs,setPrefs]=useState<Prefs|null>(null),[busy,setBusy]=useState(''),[err,setErr]=useState('');
+ useEffect(()=>{api<{prefs:Prefs}>('prefs').then(d=>setPrefs(d.prefs)).catch(e=>setErr((e as Error).message))},[]);
+ async function change(patch:Prefs){if(!prefs)return;const before=prefs;const key=Object.keys(patch)[0];setPrefs({...prefs,...patch});setBusy(key);setErr('');
+  try{const d=await api<{prefs:Prefs}>('prefs',{method:'PUT',body:JSON.stringify({prefs:patch})});setPrefs(d.prefs)}catch(e){setPrefs(before);setErr((e as Error).message)}finally{setBusy('')}}
+ return <div className="auto-prefs"><div className="settings-label"><b>الإشعارات التلقائية</b><span>تصل لصندوقك دائماً، وللهاتف إذا فعّلته • حسب صلاحياتك</span></div>
+  {prefs?<PrefsEditor prefs={prefs} permissions={permissions} onChange={change} busyKey={busy}/>:!err&&<p className="muted">جارٍ التحميل…</p>}
   {err&&<div className="form-error" role="alert"><AlertCircle size={16}/>{err}</div>}</div>
 }
 export function PushSettings({permissions=[]}:{permissions?:string[]}){

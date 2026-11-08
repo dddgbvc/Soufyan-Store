@@ -14,9 +14,18 @@ const RESOURCES: Record<string, {fn: string; params: string[]}> = {
   shipping: {fn: 'web_shipping_orders_list', params: ['limit', 'status']},
   employees: {fn: 'web_employees_list', params: []},
   sessions: {fn: 'web_sessions_list', params: []},
+  dashboard: {fn: 'web_dashboard', params: []},
+  statement: {fn: 'web_customer_statement', params: ['id']},
+  invoice: {fn: 'web_invoice_get', params: ['id']},
+  repair: {fn: 'web_repair_get', params: ['id']},
+  vault: {fn: 'web_vault', params: ['limit']},
+  security: {fn: 'web_security_events', params: ['limit']},
+  inbox: {fn: 'web_notify_inbox', params: ['limit', 'before', 'kind', 'unread_only']},
+  notify_admin: {fn: 'web_notify_admin', params: []},
 };
-const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine']);
-const INT = new Set(['limit', 'offset']);
+const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine', 'unread_only']);
+const INT = new Set(['limit', 'offset', 'before']);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -30,7 +39,11 @@ export async function GET(req: Request) {
     const raw = url.searchParams.get(key);
     if (raw === null || raw === '') continue;
     if (BOOL.has(key)) params[key] = raw === '1' || raw === 'true';
-    else if (INT.has(key)) {
+    else if (key === 'id') {
+      if (UUID.test(raw)) params.id = raw;
+    } else if (key === 'before' && resource.fn !== 'web_notify_inbox') {
+      params.before = raw.slice(0, 40);
+    } else if (INT.has(key)) {
       const n = Number(raw);
       if (Number.isInteger(n) && n >= 0) params[key] = n;
     } else params[key] = raw.slice(0, 100);
