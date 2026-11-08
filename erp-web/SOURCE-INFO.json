@@ -1,0 +1,11 @@
+{
+  "name": "Yaqoot ERP WebApp",
+  "version": 7,
+  "source_commit": "17d51cd33ad256c54fad42a3b7351bf153565239",
+  "export_date": "2026-11-08",
+  "original_site": "https://yaqoot-sufyan-erp.beefycup1.chatgpt.site",
+  "source_file_count": 147,
+  "secrets_included": false,
+  "production_database_included": false,
+  "notes": "v7: store-account + PIN login, Supabase-backed data, permission-gated sections. See UPGRADE-AR.md"
+}
