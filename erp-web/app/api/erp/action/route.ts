@@ -33,8 +33,9 @@ export async function POST(req: Request) {
     // الإشعار المخصص يُرسل فوراً لأجهزة المستلمين.
     if (body.action === 'notify_broadcast' && result?.item) {
       const item = result.item as {title: string; body: string; tag: string; url: string; devices: Device[]; recipients: number};
-      const outcomes = await Promise.all((item.devices || []).map(d => deliver(d, {title: item.title, body: item.body, tag: item.tag, url: item.url})));
-      await Promise.all(item.devices.filter((_, i) => outcomes[i] === 'expired').map(d => pushStore.removeExpired(d.id).catch(() => null)));
+      const webDevices = (item.devices || []).filter(d => !d.endpoint.startsWith('native:'));
+      const outcomes = await Promise.all(webDevices.map(d => deliver(d, {title: item.title, body: item.body, tag: item.tag, url: item.url})));
+      await Promise.all(webDevices.filter((_, i) => outcomes[i] === 'expired').map(d => pushStore.removeExpired(d.id).catch(() => null)));
       return json({ok: true, recipients: item.recipients, pushed: outcomes.filter(o => o === 'accepted').length, devices: outcomes.length});
     }
     return json(result);

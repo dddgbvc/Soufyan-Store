@@ -1,0 +1,37 @@
+name: yaqoot
+description: "ياقوت ERP — تطبيق أندرويد لمكتب سفيان للموبايل"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.6.0
+  flutter_secure_storage: ^11.2.0
+  url_launcher: ^6.3.3
+  flutter_local_notifications: ^23.0.0
+  workmanager: ^0.10.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/cairo-400.ttf
+          weight: 400
+        - asset: assets/fonts/cairo-500.ttf
+          weight: 500
+        - asset: assets/fonts/cairo-600.ttf
+          weight: 600
+        - asset: assets/fonts/cairo-700.ttf
+          weight: 700

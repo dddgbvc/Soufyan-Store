@@ -44,7 +44,7 @@ export async function runAutoPush() {
   let accepted = 0, failed = 0;
   for (const item of items || []) {
     const payload = {title: item.title, body: item.body, tag: item.tag, url: item.url};
-    const results = await Promise.all(item.devices.filter(d => !expired.has(d.id)).map(async d => {
+    const results = await Promise.all(item.devices.filter(d => !expired.has(d.id) && !d.endpoint.startsWith('native:')).map(async d => {
       const r = await deliver(d, payload);
       if (r === 'expired') expired.add(d.id);
       return r;

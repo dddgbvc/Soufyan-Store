@@ -16,7 +16,7 @@ export async function POST(req:Request){
  if(!validTestMessage(message))return json({error:'invalid_message'},400);
  const scope=who.userId;
  let devices:Device[];
- try{devices=await pushStore.devices(scope)}catch{return json({error:'push_storage_unavailable'},503)}
+ try{devices=(await pushStore.devices(scope)).filter(d=>!d.endpoint.startsWith('native:'))}catch{return json({error:'push_storage_unavailable'},503)}
  if(!devices.length)return json({error:'no_registered_devices',message:'فعّل الإشعارات من التطبيق على جهازك أولاً.'},409);
  const claim=await pushStore.claim(message.requestId,scope,message.title,message.body);
  if(claim.replayed)return json(claim);
