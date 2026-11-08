@@ -68,6 +68,6 @@ cp .dev.vars.example .dev.vars    # املأ SUPABASE_ANON_KEY و SUPABASE_SERVI
 npx pnpm@11.25.0 dev
 ```
 
-- **قاعدة البيانات:** طبّق `supabase/migrations/20261108120000_web_store_account_pin_login.sql`. الترحيل إضافة فقط: جدول ودوال جديدة، و`web_guard` صار يقبل أجهزة المحل بجانب الأجهزة الحالية دون تغيير سلوكها.
-- **النشر:** ضع `SUPABASE_URL` و`SUPABASE_ANON_KEY` و`SUPABASE_SERVICE_ROLE_KEY` كمتغيرات سرّية على الخادم (Cloudflare Worker). مفتاح service_role لا يدخل الواجهة أبداً.
+- **قاعدة البيانات (Supabase فقط، لا Cloudflare D1):** طبّق ملفي `supabase/migrations/`: `20261108120000_web_store_account_pin_login.sql` (الدخول) و`20261108130000_web_push_storage.sql` (تخزين الإشعارات في جداول `web_push_*`). الترحيل إضافة فقط: جدول ودوال جديدة، و`web_guard` صار يقبل أجهزة المحل بجانب الأجهزة الحالية دون تغيير سلوكها.
+- **النشر:** `CF_WORKER_NAME=<اسم طويل> pnpm build && pnpm deploy:cf` (مفتاح Cloudflare بصلاحية Workers Scripts: Edit). ضع `SUPABASE_URL` و`SUPABASE_ANON_KEY` و`SUPABASE_SERVICE_ROLE_KEY` كمتغيرات سرّية على الخادم (Cloudflare Worker). مفتاح service_role لا يدخل الواجهة أبداً.
 - **الفحوص:** `tsc --noEmit` والبناء الإنتاجي نجحا. التدفق (حساب المحل ← PIN خاطئ ← PIN صحيح ← أقسام الكاشير فقط ← قفل) فُحص في المتصفح مع واجهة API محاكاة.

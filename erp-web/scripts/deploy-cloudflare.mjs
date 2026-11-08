@@ -1,6 +1,5 @@
 // نشر على Cloudflare Workers بعد `pnpm build`.
 //   CF_WORKER_NAME       اسم العامل (يحدد الرابط: <name>.<subdomain>.workers.dev) — لا يُحفظ في Git
-//   CF_D1_DATABASE_ID    معرف قاعدة D1 للإشعارات (اختياري؛ بدونها تتعطل الإشعارات فقط)
 //   CLOUDFLARE_API_TOKEN و CLOUDFLARE_ACCOUNT_ID لأداة wrangler
 import {readFileSync, writeFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
@@ -15,8 +14,8 @@ config.name = name;
 config.topLevelName = name;
 config.workers_dev = true;
 config.preview_urls = false;
-const d1 = process.env.CF_D1_DATABASE_ID;
-config.d1_databases = d1 ? [{binding: 'DB', database_name: 'yaqoot-push', database_id: d1}] : [];
+// كل البيانات (ومنها الإشعارات) في Supabase؛ لا قواعد D1.
+config.d1_databases = [];
 writeFileSync(configPath, JSON.stringify(config));
 
 const wrangler = fileURLToPath(new URL('../node_modules/wrangler/bin/wrangler.js', import.meta.url));
