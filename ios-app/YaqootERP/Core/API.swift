@@ -232,6 +232,17 @@ final class API {
         return r.json["prefs"]
     }
 
+    // MARK: - SAS4 المباشر (قراءة فقط عبر الخادم)
+
+    func sas4(_ op: String, _ params: [String: String] = [:]) async throws -> JSON {
+        var q = params.filter { !$0.value.isEmpty }
+        q["op"] = op
+        let r = try await send("GET", "/api/sas4", query: q)
+        if r.status == 401 { throw APIError.sessionExpired }
+        guard r.json["ok"].isTrue else { throw error(r, fallback: "تعذر الاتصال بـ SAS4.") }
+        return r.json
+    }
+
     // MARK: - المساعد الذكي
 
     struct ChatTurn: Sendable { let role: String; let content: String }

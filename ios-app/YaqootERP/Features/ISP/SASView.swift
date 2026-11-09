@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// البحث المباشر في SAS4 عبر ربط البرنامج: التطبيق يضع طلب قراءة في طابور البرنامج (sas_remote_commands)،
-/// ووكيل SAS4 في برنامج المكتب ينفّذه بحساب الموزع ويعيد النتيجة. لا يحمل الهاتف أي كلمة مرور للمزوّد.
+/// البحث في SAS4 بطريقتين، ولا يحمل الهاتف أي كلمة مرور للمزوّد في الحالتين:
+/// • مباشر: الخادم يتصل بـ SAS4 بحساب الموزع المحفوظ كسرّ في الخادم (‎/api/sas4‎، قراءة فقط).
+/// • عبر البرنامج: طلب قراءة في طابور البرنامج (sas_remote_commands) ينفّذه وكيل SAS4 في برنامج المكتب.
 struct SASSearchView: View {
     @State private var status: JSON?
     @State private var account: String?
@@ -9,6 +10,7 @@ struct SASSearchView: View {
     @State private var users: [JSON] = []
     @State private var waiting = false
     @State private var error: String?
+    @State private var direct = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -19,7 +21,10 @@ struct SASSearchView: View {
                         Picker("حساب الموزع", selection: Binding(get: { account ?? accounts.first?["id"].string }, set: { account = $0 })) {
                             ForEach(accounts.records) { a in Text(a["name"].text).tag(Optional(a.id)) }
                         }
-                        if let a = accounts.first(where: { $0["id"].string == (account ?? accounts.first?["id"].string) }) {
+                        if direct {
+                            Label("متصل مباشرة بـ SAS4 من الخادم", systemImage: "checkmark.circle.fill")
+                                .font(.footnote).foregroundStyle(Yq.green)
+                        } else if let a = accounts.first(where: { $0["id"].string == (account ?? accounts.first?["id"].string) }) {
                             agentStatus(a)
                         }
                     } else if status != nil {
@@ -37,17 +42,18 @@ struct SASSearchView: View {
                             .disabled(waiting || q.trimmingCharacters(in: .whitespaces).count < 2 || account == nil)
                     }
                     if waiting {
-                        HStack { ProgressView(); Text("بانتظار برنامج المكتب…").foregroundStyle(.secondary) }
+                        HStack { ProgressView(); Text(direct ? "جارِ البحث في SAS4…" : "بانتظار برنامج المكتب…").foregroundStyle(.secondary) }
                     }
                     if let error { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(Yq.red).font(.footnote) }
                 } footer: {
-                    Text("الطلب يُنفّذ عبر ربط SAS4 في برنامج المكتب، لذلك يجب أن يكون البرنامج مفتوحاً ومتصلاً.")
+                    Text(direct ? "البحث يتم مباشرة من الخادم بحساب الموزع، للقراءة فقط."
+                         : "الطلب يُنفّذ عبر ربط SAS4 في برنامج المكتب، لذلك يجب أن يكون البرنامج مفتوحاً ومتصلاً.")
                 }
                 if !users.isEmpty {
                     SwiftUI.Section("النتائج (\(users.count))") {
                         ForEach(users.records) { u in
                             NavigationLink {
-                                SASUserView(accountID: account ?? "", user: u.json)
+                                SASUserView(accountID: account ?? "", user: u.json, direct: direct)
                             } label: {
                                 RowView(icon: "person.wave.2", color: u["enabled"].isTrue ? Yq.green : .gray,
                                         title: u["username"].text,
@@ -84,6 +90,7 @@ struct SASSearchView: View {
     private func loadStatus() async {
         do {
             let s = try await API.shared.get("sas_status")
+            direct = (try? await API.shared.sas4("status"))?["direct"].isTrue ?? false
             status = s
             if account == nil { account = s["accounts"][0]["id"].string }
         } catch APIError.sessionExpired {
@@ -99,8 +106,13 @@ struct SASSearchView: View {
         error = nil
         defer { waiting = false }
         do {
-            let r = try await SASCommand.run(account: account, type: "get_users", payload: ["search": .string(q.trimmingCharacters(in: .whitespaces))])
-            users = r["users"].array
+            let text = q.trimmingCharacters(in: .whitespaces)
+            if direct {
+                users = try await API.shared.sas4("users", ["q": text, "account_id": account])["users"].array
+            } else {
+                let r = try await SASCommand.run(account: account, type: "get_users", payload: ["search": .string(text)])
+                users = r["users"].array
+            }
             if users.isEmpty { error = "لا توجد نتائج." }
         } catch APIError.sessionExpired {
             AppState.shared.expire()
@@ -114,6 +126,7 @@ struct SASSearchView: View {
 struct SASUserView: View {
     let accountID: String
     let user: JSON
+    var direct = false
     @State private var detail: JSON?
     @State private var activation: JSON?
     @State private var error: String?
@@ -129,6 +142,14 @@ struct SASUserView: View {
                 field("الانتهاء", (detail ?? user)["expiration"].string)
                 field("الحالة", (detail ?? user)["enabled"].isTrue ? "مفعّل" : "موقوف")
                 field("الرصيد لدى المزوّد", (detail ?? user)["balance"].string)
+                field("الباقة", user["profile_name"].string)
+            }
+            if direct && activation == nil && !loading {
+                SwiftUI.Section {
+                    Button("جلب بيانات التفعيل من برنامج المكتب", systemImage: "arrow.down.circle") { Task { await load() } }
+                } footer: {
+                    Text("سعر الباقة وبيانات التفعيل تأتي من ربط البرنامج، لذلك يجب أن يكون البرنامج مفتوحاً.")
+                }
             }
             if let a = activation {
                 SwiftUI.Section {
@@ -148,7 +169,7 @@ struct SASUserView: View {
         }
         .yaqootBackground()
         .navigationTitle(user["username"].text)
-        .task { await load() }
+        .task { if !direct { await load() } }
     }
 
     @ViewBuilder private func field(_ label: String, _ value: String?) -> some View {
