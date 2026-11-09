@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 // النموذج عبر OpenRouter (Gemini افتراضياً). المفتاح OPENROUTER_API_KEY سرّ في Cloudflare Worker ولا يصل للتطبيق،
 // واسم النموذج قابل للتغيير بالمتغير OPENROUTER_MODEL دون تعديل الكود.
 
-const DEFAULT_MODEL = 'google/gemini-2.5-flash';
+const DEFAULT_MODEL = 'google/gemini-3.5-flash';
 
 type ToolDef = {fn: string; description: string; properties: Record<string, unknown>; map?: (i: Record<string, unknown>) => Record<string, unknown>};
 
