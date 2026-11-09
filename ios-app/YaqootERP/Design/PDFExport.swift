@@ -41,28 +41,8 @@ struct ReportDocument: View {
                 }
                 Spacer()
             }
-            ForEach(sections) { part in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(part.title) (\(part.rows.count))").font(.system(size: 16, weight: .semibold)).foregroundStyle(Yq.navy)
-                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
-                        GridRow {
-                            ForEach(Array(part.header.enumerated()), id: \.offset) { _, h in
-                                Text(h).font(.system(size: 11, weight: .bold)).foregroundStyle(.gray)
-                            }
-                        }
-                        Divider()
-                        if part.rows.isEmpty {
-                            GridRow { Text("لا يوجد").font(.system(size: 11)).foregroundStyle(.gray) }
-                        }
-                        ForEach(Array(part.rows.enumerated()), id: \.offset) { _, row in
-                            GridRow {
-                                ForEach(Array(row.enumerated()), id: \.offset) { _, cell in
-                                    Text(cell).font(.system(size: 11)).lineLimit(2)
-                                }
-                            }
-                        }
-                    }
-                }
+            ForEach(sections.indices, id: \.self) { i in
+                ReportPartView(part: sections[i])
             }
             Spacer(minLength: 0)
             Text("أُنشئ من تطبيق متابعة مكتب سفيان للموبايل").font(.system(size: 9)).foregroundStyle(.gray)
@@ -73,6 +53,44 @@ struct ReportDocument: View {
         .foregroundStyle(Color.black)
         .environment(\.layoutDirection, .rightToLeft)
         .environment(\.colorScheme, .light)
+    }
+}
+
+/// جدول قسم واحد من التقرير (منفصل حتى يبقى التحقق من الأنواع بسيطاً).
+struct ReportPartView: View {
+    let part: ReportDocument.Part
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("\(part.title) (\(part.rows.count))")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Yq.navy)
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+                GridRow {
+                    ForEach(part.header.indices, id: \.self) { c in
+                        Text(part.header[c]).font(.system(size: 11, weight: .bold)).foregroundStyle(.gray)
+                    }
+                }
+                Divider()
+                if part.rows.isEmpty {
+                    GridRow { Text("لا يوجد").font(.system(size: 11)).foregroundStyle(.gray) }
+                }
+                ForEach(part.rows.indices, id: \.self) { r in
+                    ReportRowView(cells: part.rows[r])
+                }
+            }
+        }
+    }
+}
+
+struct ReportRowView: View {
+    let cells: [String]
+    var body: some View {
+        GridRow {
+            ForEach(cells.indices, id: \.self) { c in
+                Text(cells[c]).font(.system(size: 11)).lineLimit(2)
+            }
+        }
     }
 }
 
