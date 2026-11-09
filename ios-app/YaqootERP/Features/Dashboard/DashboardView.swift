@@ -16,9 +16,12 @@ struct DashboardView: View {
         RemoteView(load: load) { d, remote in
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("أهلاً \(app.employeeName)").font(.largeTitle.bold())
-                        Text("\(Fmt.todayLong()) • \(app.storeName)").foregroundStyle(.secondary)
+                    HStack(spacing: 14) {
+                        BrandMark(size: 52)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("أهلاً \(app.employeeName)").font(.title.bold())
+                            Text("\(Fmt.todayLong()) • \(app.storeName)").foregroundStyle(.secondary)
+                        }
                     }
                     KPIGrid { tiles(d) }
                     chart(d)

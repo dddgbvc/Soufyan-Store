@@ -110,7 +110,7 @@ struct SettingsView: View {
         do {
             if on {
                 guard await notifier.requestPermission() else {
-                    toast = Toast(text: "اسمح بالإشعارات من الإعدادات ← ياقوت", error: true)
+                    toast = Toast(text: "اسمح بالإشعارات من الإعدادات ← متابعة مكتب سفيان", error: true)
                     return
                 }
                 try await notifier.enable(deviceName: "\(UIDevice.current.model) • \(app.employeeName)")

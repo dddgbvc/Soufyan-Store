@@ -39,7 +39,7 @@ targets:
     info:
       path: YaqootERP/Info.plist
       properties:
-        CFBundleDisplayName: ياقوت
+        CFBundleDisplayName: متابعة مكتب سفيان للموبايل
         CFBundleDevelopmentRegion: ar
         CFBundleLocalizations: [ar, en]
         CFBundleShortVersionString: $(MARKETING_VERSION)
@@ -61,8 +61,8 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UIBackgroundModes: [fetch, processing]
         BGTaskSchedulerPermittedIdentifiers: [iq.yaqoot.erp.refresh]
-        NSFaceIDUsageDescription: يستعمل ياقوت Face ID لفتح جلستك بسرعة بدل كتابة رمز PIN.
-        NSLocalNetworkUsageDescription: يتصل ياقوت بأجهزة MikroTik وUISP داخل شبكة المكتب أو عبر VPN لعرض حالتها وإدارتها.
+        NSFaceIDUsageDescription: يستعمل التطبيق Face ID لفتح جلستك بسرعة بدل كتابة رمز PIN.
+        NSLocalNetworkUsageDescription: يتصل التطبيق بأجهزة MikroTik وUISP داخل شبكة المكتب أو عبر VPN لعرض حالتها وإدارتها.
         NSCameraUsageDescription: لتصوير كشوفات المشتركين الورقية واستيرادها.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true

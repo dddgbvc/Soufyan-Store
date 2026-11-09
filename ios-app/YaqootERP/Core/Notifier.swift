@@ -67,7 +67,7 @@ final class Notifier {
         let center = UNUserNotificationCenter.current()
         for n in r.json["items"].array {
             let content = UNMutableNotificationContent()
-            content.title = n["title"].string ?? "ياقوت"
+            content.title = n["title"].string ?? "مكتب سفيان للموبايل"
             content.body = n["body"].text
             content.sound = quiet ? nil : .default
             content.interruptionLevel = quiet ? .passive : .active

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 /// تنسيق الأرقام والتواريخ (بتوقيت بغداد) والتسميات. أرقام لاتينية دائماً كما في الويب والأندرويد.
 enum Fmt {
@@ -162,11 +163,18 @@ enum Fmt {
     }
 }
 
-/// ألوان العلامة.
+/// ألوان العلامة (من شعار مكتب سفيان للموبايل): كحلي #14343F، ذهبي #C8A969، عاجي #F1EDE4.
 enum Yq {
-    static let teal = Color(red: 0x19 / 255, green: 0x57 / 255, blue: 0x4E / 255)
-    static let gold = Color(red: 0xE7 / 255, green: 0xCC / 255, blue: 0x95 / 255)
-    static let deepGold = Color(red: 0xB8 / 255, green: 0x8A / 255, blue: 0x3B / 255)
+    static let navy = Color(red: 0x14 / 255, green: 0x34 / 255, blue: 0x3F / 255)
+    static let cream = Color(red: 0xF1 / 255, green: 0xED / 255, blue: 0xE4 / 255)
+    /// اللون الأساسي للتطبيق: كحلي الشعار في الوضع الفاتح، ودرجة أفتح منه في الداكن حتى يبقى مقروءاً.
+    static let teal = Color(uiColor: UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(red: 0x86 / 255, green: 0xAE / 255, blue: 0xBD / 255, alpha: 1)
+            : UIColor(red: 0x14 / 255, green: 0x34 / 255, blue: 0x3F / 255, alpha: 1)
+    })
+    static let gold = Color(red: 0xC8 / 255, green: 0xA9 / 255, blue: 0x69 / 255)
+    static let deepGold = Color(red: 0xA8 / 255, green: 0x88 / 255, blue: 0x48 / 255)
     static let green = Color(red: 0x1F / 255, green: 0x9D / 255, blue: 0x6B / 255)
     static let blue = Color(red: 0x2F / 255, green: 0x6F / 255, blue: 0xDB / 255)
     static let purple = Color(red: 0x7A / 255, green: 0x55 / 255, blue: 0xD8 / 255)

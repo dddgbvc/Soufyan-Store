@@ -1,4 +1,4 @@
-# ياقوت ERP — تطبيق iOS وiPadOS (Swift 6 + SwiftUI + Liquid Glass)
+# متابعة مكتب سفيان للموبايل — تطبيق iOS وiPadOS (Swift 6 + SwiftUI + Liquid Glass)
 
 تطبيق Apple أصلي لمكتب سفيان للموبايل. يعمل على نفس خادم ياقوت ونفس قاعدة بيانات Supabase والصلاحيات، مثل الويب والأندرويد.
 

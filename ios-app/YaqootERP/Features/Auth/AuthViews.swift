@@ -1,15 +1,58 @@
 import SwiftUI
 
-/// شعار ياقوت: جوهرة على زجاج بلون العلامة.
+/// شعار مكتب سفيان للموبايل: مربع كحلي بثلاثة أعمدة (عاجيان وذهبي)، مرسوم متجهياً بنفس نسب الشعار.
 struct BrandMark: View {
     var size: CGFloat = 84
+    /// يرتفع العمود الذهبي من الصفر عند الظهور (يتوقف مع «تقليل الحركة»).
+    var animated = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var grown = false
+
     var body: some View {
-        Image(systemName: "diamond.fill")
-            .font(.system(size: size * 0.44, weight: .semibold))
-            .foregroundStyle(LinearGradient(colors: [Yq.gold, Yq.deepGold], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .frame(width: size, height: size)
-            .glassEffect(.regular.tint(Yq.teal.opacity(0.55)), in: .rect(cornerRadius: size * 0.28))
-            .accessibilityLabel("ياقوت")
+        let w = size * 0.101, gap = size * 0.155
+        let heights: [CGFloat] = [0.185, 0.272, 0.36].map { $0 * size }
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.27, style: .continuous).fill(Yq.navy)
+            HStack(alignment: .bottom, spacing: gap - w) {
+                ForEach(0..<3, id: \.self) { i in
+                    Capsule()
+                        .fill(i == 2 ? AnyShapeStyle(LinearGradient(colors: [Color(red: 0.81, green: 0.69, blue: 0.45), Yq.gold],
+                                                                    startPoint: .top, endPoint: .bottom))
+                                     : AnyShapeStyle(Yq.cream))
+                        .frame(width: w, height: (animated && !grown && !reduceMotion) ? w : heights[i])
+                }
+            }
+            .environment(\.layoutDirection, .leftToRight)
+            .frame(height: heights[2], alignment: .bottom)
+        }
+        .frame(width: size, height: size)
+        .shadow(color: Yq.navy.opacity(0.25), radius: size * 0.12, y: size * 0.06)
+        .accessibilityElement()
+        .accessibilityLabel("مكتب سفيان للموبايل")
+        .onAppear {
+            guard animated, !reduceMotion else { return }
+            withAnimation(.spring(duration: 0.8, bounce: 0.3).delay(0.15)) { grown = true }
+        }
+    }
+}
+
+/// الشعار الكامل: الرمز مع «مكتب سفيان للموبايل» و SUFYAN MOBILE.
+struct BrandLockup: View {
+    var size: CGFloat = 84
+    var animated = false
+    var body: some View {
+        VStack(spacing: 10) {
+            BrandMark(size: size, animated: animated)
+            Text("مكتب سفيان للموبايل")
+                .font(.system(size: size * 0.36, weight: .bold))
+                .foregroundStyle(Yq.teal)
+            Text("SUFYAN MOBILE")
+                .font(.system(size: size * 0.13, weight: .medium))
+                .tracking(size * 0.06)
+                .foregroundStyle(.secondary)
+                .environment(\.layoutDirection, .leftToRight)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -31,12 +74,15 @@ struct WelcomeView: View {
             YaqootBackground()
             VStack(spacing: 28) {
                 Spacer()
-                BrandMark(size: 96)
+                BrandMark(size: 96, animated: true)
                     .scaleEffect(step >= 1 || reduceMotion ? 1 : 0.6)
                     .opacity(step >= 1 || reduceMotion ? 1 : 0)
                 VStack(spacing: 6) {
-                    Text("ياقوت").font(.system(size: 44, weight: .bold, design: .rounded))
-                    Text("كل أعمالك، بتناغم.").font(.title3).foregroundStyle(.secondary)
+                    Text("متابعة").font(.title3.weight(.semibold)).foregroundStyle(Yq.deepGold)
+                    Text("مكتب سفيان للموبايل").font(.system(size: 34, weight: .bold)).foregroundStyle(Yq.teal)
+                        .multilineTextAlignment(.center)
+                    Text("SUFYAN MOBILE").font(.footnote.weight(.medium)).tracking(5).foregroundStyle(.secondary)
+                        .environment(\.layoutDirection, .leftToRight)
                 }
                 .opacity(step >= 2 || reduceMotion ? 1 : 0)
                 .offset(y: step >= 2 || reduceMotion ? 0 : 12)
@@ -91,7 +137,7 @@ struct AuthFrame<Content: View>: View {
             YaqootBackground()
             ScrollView {
                 VStack(spacing: 22) {
-                    BrandMark()
+                    BrandLockup(size: 72)
                     content
                 }
                 .frame(maxWidth: 440)
@@ -113,7 +159,7 @@ struct ServerSetupView: View {
         AuthFrame {
             VStack(alignment: .leading, spacing: 8) {
                 Text("عنوان الخادم").font(.title2.bold())
-                Text("أدخل رابط موقع ياقوت الخاص بمحلك مرة واحدة. يُحفظ في Keychain.").foregroundStyle(.secondary)
+                Text("أدخل رابط خادم المحل مرة واحدة. يُحفظ في Keychain.").foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             GlassPanel {

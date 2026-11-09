@@ -5,10 +5,13 @@ import 'package:flutter/services.dart';
 import 'api.dart';
 import 'format.dart';
 
+/// ألوان الشعار: كحلي #14343F، ذهبي #C8A969، عاجي #F1EDE4.
 class Yq {
-  static const teal = Color(0xFF246358);
-  static const tealSoft = Color(0xFFEAF3F0);
-  static const gold = Color(0xFFB9934F);
+  static const navy = Color(0xFF14343F);
+  static const cream = Color(0xFFF1EDE4);
+  static const teal = navy;
+  static const tealSoft = Color(0xFFE9EEF0);
+  static const gold = Color(0xFFC8A969);
   static const red = Color(0xFFC0645A);
   static const green = Color(0xFF4C8C63);
   static const blue = Color(0xFF5E7FA0);
@@ -18,24 +21,24 @@ class Yq {
 
 ThemeData buildTheme(Brightness b) {
   final dark = b == Brightness.dark;
-  final scheme = ColorScheme.fromSeed(seedColor: Yq.teal, brightness: b, primary: dark ? const Color(0xFF83C4B5) : Yq.teal);
+  final scheme = ColorScheme.fromSeed(seedColor: Yq.teal, brightness: b, primary: dark ? const Color(0xFF86AEBD) : Yq.teal);
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
     fontFamily: 'Cairo',
-    scaffoldBackgroundColor: dark ? const Color(0xFF131F21) : const Color(0xFFF6F7F9),
+    scaffoldBackgroundColor: dark ? const Color(0xFF0E1D23) : const Color(0xFFF6F3EE),
     cardTheme: CardThemeData(
       elevation: 0,
       margin: EdgeInsets.zero,
-      color: dark ? const Color(0xFF1B292B) : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: dark ? const Color(0xFF2B3B3C) : const Color(0xFFEAEDEF))),
+      color: dark ? const Color(0xFF15282F) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: dark ? const Color(0xFF24404A) : const Color(0xFFEAE5DC))),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: dark ? const Color(0xFF182628) : Colors.white,
+      backgroundColor: dark ? const Color(0xFF12252C) : Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.w700, color: dark ? Colors.white : const Color(0xFF263638)),
+      titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 18, fontWeight: FontWeight.w700, color: dark ? Colors.white : Yq.navy),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -330,4 +333,42 @@ class Busy extends StatelessWidget {
   const Busy({super.key});
   @override
   Widget build(BuildContext context) => const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white));
+}
+
+
+/// شعار مكتب سفيان للموبايل: مربع كحلي بثلاثة أعمدة (عاجيان وذهبي) بنفس نسب الشعار.
+class BrandMark extends StatelessWidget {
+  const BrandMark({super.key, this.size = 72});
+  final double size;
+  @override
+  Widget build(BuildContext context) {
+    final w = size * 0.101, gap = size * 0.155 - w;
+    const heights = [0.185, 0.272, 0.36];
+    Widget bar(int i) => Container(
+          width: w,
+          height: heights[i] * size,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(w / 2),
+            color: i < 2 ? Yq.cream : null,
+            gradient: i == 2 ? const LinearGradient(colors: [Color(0xFFCFB072), Color(0xFFC2A262)], begin: Alignment.topCenter, end: Alignment.bottomCenter) : null,
+          ),
+        );
+    return Semantics(
+      label: 'مكتب سفيان للموبايل',
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Yq.navy,
+          borderRadius: BorderRadius.circular(size * 0.27),
+          boxShadow: [BoxShadow(color: Yq.navy.withValues(alpha: 0.25), blurRadius: size * 0.2, offset: Offset(0, size * 0.08))],
+        ),
+        alignment: Alignment.center,
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [bar(0), SizedBox(width: gap), bar(1), SizedBox(width: gap), bar(2)]),
+        ),
+      ),
+    );
+  }
 }

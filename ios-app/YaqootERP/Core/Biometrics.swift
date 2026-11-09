@@ -59,7 +59,7 @@ enum Biometrics {
     /// يعرض نافذة Face ID ويعيد الرمز إن نجح التحقق.
     static func unlock() async -> String? {
         await Task.detached(priority: .userInitiated) {
-            Keychain.getBiometric("bio_pin", prompt: "افتح جلستك في ياقوت")
+            Keychain.getBiometric("bio_pin", prompt: "افتح جلستك في متابعة مكتب سفيان")
         }.value
     }
 }

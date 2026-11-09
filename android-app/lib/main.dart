@@ -114,7 +114,7 @@ class YaqootApp extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: app,
         builder: (context, _) => MaterialApp(
-          title: 'ياقوت ERP',
+          title: 'متابعة مكتب سفيان للموبايل',
           debugShowCheckedModeBanner: false,
           theme: buildTheme(Brightness.light),
           darkTheme: buildTheme(Brightness.dark),

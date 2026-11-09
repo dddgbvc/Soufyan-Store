@@ -9,15 +9,13 @@ class Brand extends StatelessWidget {
   const Brand({super.key});
   @override
   Widget build(BuildContext context) => Column(children: [
-        Container(
-          width: 72, height: 72,
-          decoration: BoxDecoration(color: const Color(0xFF19574E), borderRadius: BorderRadius.circular(22),
-              boxShadow: const [BoxShadow(color: Color(0x2211443E), blurRadius: 18, offset: Offset(0, 8))]),
-          child: const Icon(Icons.diamond_outlined, color: Color(0xFFE7CC95), size: 38),
-        ),
-        const SizedBox(height: 12),
-        const Text('ياقوت', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, height: 1.1)),
-        Text('كل أعمالك، بتناغم.', style: TextStyle(color: Theme.of(context).colorScheme.outline)),
+        const BrandMark(size: 80),
+        const SizedBox(height: 14),
+        Text('متابعة', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Theme.of(context).brightness == Brightness.dark ? Yq.gold : const Color(0xFFA88848))),
+        Text('مكتب سفيان للموبايل', textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, height: 1.2, color: Theme.of(context).colorScheme.primary)),
+        const SizedBox(height: 4),
+        Text('SUFYAN MOBILE', textDirection: TextDirection.ltr, style: TextStyle(fontSize: 12, letterSpacing: 5, color: Theme.of(context).colorScheme.outline)),
       ]);
 }
 
@@ -59,7 +57,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
   @override
   Widget build(BuildContext context) => _AuthFrame(children: [
         const Text('عنوان الخادم', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-        const Text('أدخل رابط موقع ياقوت الخاص بمحلك مرة واحدة.'),
+        const Text('أدخل رابط خادم المحل مرة واحدة.'),
         const SizedBox(height: 16),
         TextField(controller: _url, keyboardType: TextInputType.url, textDirection: TextDirection.ltr, decoration: InputDecoration(labelText: 'https://…', errorText: _error)),
         const SizedBox(height: 16),

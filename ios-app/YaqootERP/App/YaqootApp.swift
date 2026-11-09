@@ -72,7 +72,7 @@ struct RootView: View {
         ZStack {
             switch app.phase {
             case .loading:
-                ZStack { YaqootBackground(); BrandMark(size: 96) }
+                ZStack { YaqootBackground(); BrandLockup(size: 96, animated: true) }
             case .setup:
                 ServerSetupView()
             case .unpaired:

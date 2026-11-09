@@ -253,7 +253,7 @@ struct ImportView: View {
                 GlassPanel {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("ما الذي يُحفظ؟", systemImage: "info.circle").font(.headline)
-                        Text("• زبون جديد لمن لا يوجد في ياقوت (يُطابق بالهاتف ثم بالاسم).")
+                        Text("• زبون جديد لمن لا يوجد في حسابات المحل (يُطابق بالهاتف ثم بالاسم).")
                         Text("• الدين المستحق يُضاف عبر نفس خدمة «إضافة دين» بصلاحياتك وسقف الدين.")
                         Text("• اسم المستخدم والباقة والانتهاء تُحفظ كملاحظة للمرجعية فقط، ولا تُخلط برقم الزبون.")
                         Text("• لا تُغيَّر أي أسعار ولا يُجدَّد أي اشتراك.")
@@ -277,7 +277,7 @@ struct ImportView: View {
                 LabeledContent("مجموع الديون المحددة", value: Fmt.iqd(model.totalDebt))
                 if model.checking {
                     ProgressView(value: Double(model.checked), total: Double(max(1, model.rows.count))) {
-                        Text("مطابقة مع زبائن ياقوت…")
+                        Text("مطابقة مع زبائن المحل…")
                     }
                 }
             }

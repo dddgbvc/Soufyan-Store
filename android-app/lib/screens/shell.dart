@@ -6,6 +6,7 @@ import '../api.dart';
 import '../format.dart';
 import '../main.dart';
 import '../notify.dart';
+import '../ui.dart';
 import 'dashboard.dart';
 import 'debts.dart';
 import 'inbox.dart';
@@ -162,7 +163,7 @@ class _ShellState extends State<Shell> with WidgetsBindingObserver {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
               child: Row(children: [
-                Container(width: 46, height: 46, decoration: BoxDecoration(color: const Color(0xFF19574E), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.diamond_outlined, color: Color(0xFFE7CC95))),
+                const BrandMark(size: 46),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(app.storeName, style: const TextStyle(fontWeight: FontWeight.w700)),

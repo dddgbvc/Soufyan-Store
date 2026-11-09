@@ -111,7 +111,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (on) {
         final granted = await requestNotificationPermission();
         if (!granted) {
-          if (mounted) toast(context, 'اسمح بالإشعارات من إعدادات الهاتف ← التطبيقات ← ياقوت', error: true);
+          if (mounted) toast(context, 'اسمح بالإشعارات من إعدادات الهاتف ← التطبيقات ← متابعة مكتب سفيان', error: true);
           return;
         }
         await enableDeviceNotifications('Android • ${app.employeeName}');
@@ -200,7 +200,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
       ]),
       const SizedBox(height: 12),
-      Center(child: Text('ياقوت ERP • أندرويد 1.0', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline))),
+      Center(child: Text('متابعة مكتب سفيان للموبايل • أندرويد 1.0', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline))),
       const SizedBox(height: 24),
     ]);
   }

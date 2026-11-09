@@ -204,7 +204,7 @@ struct SubscriberProfile: View {
                     }
                 }
             } header: {
-                Label("الزبون الداخلي (ياقوت)", systemImage: "person.text.rectangle")
+                Label("الزبون الداخلي (حساب المحل)", systemImage: "person.text.rectangle")
             }
 
             SwiftUI.Section {

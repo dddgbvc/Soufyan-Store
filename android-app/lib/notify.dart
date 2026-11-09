@@ -12,14 +12,14 @@ final _plugin = FlutterLocalNotificationsPlugin();
 const _task = 'yaqoot-poll';
 
 const _channel = AndroidNotificationDetails(
-  'yaqoot_alerts', 'إشعارات ياقوت',
+  'yaqoot_alerts', 'إشعارات مكتب سفيان',
   channelDescription: 'الفواتير والديون والنواقص والصيانة والتقارير وحركات المحل',
   importance: Importance.high,
   priority: Priority.high,
   styleInformation: BigTextStyleInformation(''),
 );
 const _quiet = AndroidNotificationDetails(
-  'yaqoot_quiet', 'إشعارات ياقوت (هادئة)',
+  'yaqoot_quiet', 'إشعارات مكتب سفيان (هادئة)',
   channelDescription: 'تصل خلال ساعات الهدوء بدون صوت',
   importance: Importance.low,
   priority: Priority.low,
@@ -110,7 +110,7 @@ Future<int?> pollOnce() async {
     final n = Map<String, dynamic>.from(raw as Map);
     await _plugin.show(
       id: ((n['id'] as num?)?.toInt() ?? 0) % 2147483647,
-      title: '${n['title'] ?? 'ياقوت'}',
+      title: '${n['title'] ?? 'مكتب سفيان للموبايل'}',
       body: '${n['body'] ?? ''}',
       notificationDetails: NotificationDetails(android: quiet ? _quiet : _channel),
       payload: n['url']?.toString(),
