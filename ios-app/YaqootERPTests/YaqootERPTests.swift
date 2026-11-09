@@ -40,9 +40,9 @@ struct JSONTests {
 @Suite("Format")
 struct FormatTests {
     @Test func moneyGroupsThousands() {
-        #expect(Fmt.money(0) == "0")
-        #expect(Fmt.money(1250000) == "1,250,000")
-        #expect(Fmt.money(-35000) == "-35,000")
+        #expect(Fmt.money(0.0) == "0")
+        #expect(Fmt.money(1_250_000.0) == "1,250,000")
+        #expect(Fmt.money(-35_000.0) == "-35,000")
         #expect(Fmt.iqd(999.6) == "1,000 د.ع")
     }
 
