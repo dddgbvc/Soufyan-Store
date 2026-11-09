@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 /// ملف للمشاركة (PDF/CSV).
-struct ShareItem: Identifiable {
+nonisolated struct ShareItem: Identifiable {
     let id = UUID()
     let url: URL
 }
@@ -18,7 +18,7 @@ struct ShareSheet: UIViewControllerRepresentable {
 
 /// تقرير PDF بشعار المحل وجداول بسيطة (يُرسم من SwiftUI بنص متجهي قابل للنسخ والبحث).
 struct ReportDocument: View {
-    struct Part: Identifiable {
+    nonisolated struct Part: Identifiable, Sendable {
         let id = UUID()
         let title: String
         let rows: [[String]]

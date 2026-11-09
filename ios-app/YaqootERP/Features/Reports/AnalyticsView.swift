@@ -9,7 +9,7 @@ struct AnalyticsView: View {
     @State private var error: String?
     @State private var selected: Date?
 
-    struct Point: Identifiable {
+    nonisolated struct Point: Identifiable, Sendable {
         let date: Date
         var sales = 0.0, profit = 0.0, revenue = 0.0, cost = 0.0, collected = 0.0, paid = 0.0, expenses = 0.0, added = 0.0, invoices = 0.0
         var id: Date { date }

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// المساعد الذكي: أسئلة عن المحل بلغة طبيعية. يقرأ البيانات بصلاحياتك فقط ولا ينفّذ عمليات.
 struct AssistantView: View {
-    struct Bubble: Identifiable, Equatable {
+    nonisolated struct Bubble: Identifiable, Equatable, Sendable {
         let id = UUID()
         let role: String
         let text: String
