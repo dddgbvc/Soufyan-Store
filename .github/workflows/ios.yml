@@ -154,6 +154,14 @@ jobs:
           unzip -q -o build/Yaqoot-ERP.ipa -d build/check && codesign --verify --deep --strict build/check/Payload/YaqootERP.app && echo "IPA signature verified"
           security delete-keychain "$KC"
 
+      - name: Show compiler errors
+        if: failure()
+        run: |
+          for f in build/*.log; do
+            echo "=== $f"
+            grep -E "error:|error -|Testing failed|\*\* .* FAILED|✘|Test .* failed|Expectation failed|issue recorded" "$f" | sort -u | head -250 || true
+          done
+
       - name: Upload IPA and screenshots
         if: always()
         uses: actions/upload-artifact@v4
