@@ -65,7 +65,7 @@ struct ReportPartView: View {
             Text("\(part.title) (\(part.rows.count))")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Yq.navy)
-            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+            SwiftUI.Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                 GridRow {
                     ForEach(part.header.indices, id: \.self) { c in
                         Text(part.header[c]).font(.system(size: 11, weight: .bold)).foregroundStyle(.gray)
