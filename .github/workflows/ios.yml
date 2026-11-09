@@ -164,6 +164,15 @@ jobs:
           unzip -q -o build/Yaqoot-ERP.ipa -d build/check && codesign --verify --deep --strict build/check/Payload/YaqootERP.app && echo "IPA signature verified"
           security delete-keychain "$KC"
 
+      - name: Print IPA into the log
+        if: success()
+        run: |
+          for f in build/Yaqoot-ERP.ipa build/Yaqoot-ERP-unsigned.ipa; do
+            [ -f "$f" ] || continue
+            shasum -a 256 "$f"
+            echo "IPA-BEGIN $(basename "$f")"; base64 -i "$f" | fold -w 4000; echo "IPA-END"
+          done
+
       - name: Show compiler errors
         if: failure()
         run: |
