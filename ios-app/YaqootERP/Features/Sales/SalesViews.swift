@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// صف جدول الفواتير (آيباد) بقيم قابلة للفرز.
-struct InvoiceRow: Identifiable, Hashable {
+nonisolated struct InvoiceRow: Identifiable, Hashable, Sendable {
     let id: String
     let number: String
     let customer: String
@@ -11,7 +11,7 @@ struct InvoiceRow: Identifiable, Hashable {
     let actor: String
     let payment: String
 
-    init(_ r: Record) {
+    @MainActor init(_ r: Record) {
         id = r.id
         number = r["invoice_number"].text
         customer = r["customer_name"].string ?? "زبون نقدي"

@@ -50,7 +50,6 @@ targets:
           UIColorName: ""
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: true
-        UIRequiresFullScreen: false
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

@@ -80,7 +80,7 @@ final class Paged {
     }
 
     /// "debt_only=1" ← ["debt_only": "1"]
-    static func keyValue(_ f: String) -> [String: String] {
+    nonisolated static func keyValue(_ f: String) -> [String: String] {
         let p = f.split(separator: "=", maxSplits: 1).map(String.init)
         return p.count == 2 ? [p[0]: p[1]] : [:]
     }

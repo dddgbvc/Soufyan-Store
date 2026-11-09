@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ProductRow: Identifiable, Hashable {
+nonisolated struct ProductRow: Identifiable, Hashable, Sendable {
     let id: String
     let name: String
     let detail: String
@@ -10,7 +10,7 @@ struct ProductRow: Identifiable, Hashable {
     let low: Bool
     let service: Bool
 
-    init(_ r: Record) {
+    @MainActor init(_ r: Record) {
         id = r.id
         name = r["name"].text
         detail = [r["brand"].string, r["model"].string, r["category"].string].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " • ")
