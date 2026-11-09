@@ -51,6 +51,13 @@ final class AppState {
     // MARK: - دورة الدخول
 
     func boot() async {
+        #if DEBUG
+        if DemoData.enabled {
+            await refresh()
+            if let s = UserDefaults.standard.string(forKey: "YQDemoSection").flatMap(AppSection.init(rawValue:)) { selected = s }
+            return
+        }
+        #endif
         guard API.shared.hasBase else { phase = .setup; return }
         await refresh()
     }

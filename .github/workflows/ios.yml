@@ -73,25 +73,35 @@ jobs:
         run: |
           APP=$(find build/dd/Build/Products -name "YaqootERP.app" -path "*iphonesimulator*" | head -1)
           mkdir -p build/screens
+          shot() { # sim name appearance args...
+            local SIM=$1 NAME=$2 MODE=$3; shift 3
+            xcrun simctl ui "$SIM" appearance "$MODE"
+            xcrun simctl terminate "$SIM" iq.yaqoot.erp >/dev/null 2>&1 || true
+            xcrun simctl launch "$SIM" iq.yaqoot.erp "$@" >/dev/null
+            sleep 8
+            xcrun simctl io "$SIM" screenshot "build/screens/$NAME.png" >/dev/null
+          }
           for SIM in "$IPHONE_ID" "$IPAD_ID"; do
-            NAME=$( [ "$SIM" = "$IPHONE_ID" ] && echo iphone || echo ipad )
+            D=$( [ "$SIM" = "$IPHONE_ID" ] && echo iphone || echo ipad )
             xcrun simctl boot "$SIM" || true
             xcrun simctl bootstatus "$SIM" -b
-            xcrun simctl ui "$SIM" appearance light
             xcrun simctl install "$SIM" "$APP"
-            xcrun simctl launch "$SIM" iq.yaqoot.erp
-            sleep 9
-            xcrun simctl io "$SIM" screenshot "build/screens/$NAME-1-welcome.png"
-            xcrun simctl terminate "$SIM" iq.yaqoot.erp || true
-            xcrun simctl launch "$SIM" iq.yaqoot.erp -welcomed YES
-            sleep 7
-            xcrun simctl io "$SIM" screenshot "build/screens/$NAME-2-login.png"
-            xcrun simctl ui "$SIM" appearance dark
-            sleep 3
-            xcrun simctl io "$SIM" screenshot "build/screens/$NAME-3-login-dark.png"
+            shot "$SIM" "$D-01-welcome" light
+            shot "$SIM" "$D-02-login" light -welcomed YES
+            shot "$SIM" "$D-03-dashboard" light -welcomed YES -YQDemo YES -YQDemoSection dashboard
+            shot "$SIM" "$D-04-dashboard-dark" dark -welcomed YES -YQDemo YES -YQDemoSection dashboard
+            shot "$SIM" "$D-05-customers" light -welcomed YES -YQDemo YES -YQDemoSection customers
+            shot "$SIM" "$D-06-isp" light -welcomed YES -YQDemo YES -YQDemoSection isp
+            shot "$SIM" "$D-07-invoices" light -welcomed YES -YQDemo YES -YQDemoSection invoices
+            shot "$SIM" "$D-08-importer" dark -welcomed YES -YQDemo YES -YQDemoSection importer
             xcrun simctl shutdown "$SIM" || true
           done
           ls -la build/screens
+          # نسخ مصغّرة داخل السجل (للمراجعة عند تعذر تنزيل الملحقات)
+          for f in build/screens/*.png; do
+            sips -Z 760 -s format jpeg -s formatOptions 55 "$f" --out "${f%.png}.jpg" >/dev/null
+            echo "SHOT-BEGIN $(basename "${f%.png}")"; base64 -i "${f%.png}.jpg" | fold -w 4000; echo "SHOT-END"
+          done
 
       - name: Archive (device build, unsigned)
         run: |

@@ -111,6 +111,12 @@ final class API {
 
     func send(_ method: String, _ path: String, query: [String: String] = [:], body: JSON? = nil,
               headers: [String: String] = [:]) async throws -> Response {
+        #if DEBUG
+        if DemoData.enabled {
+            lastActivity = Date()
+            return Response(json: DemoData.response(path, query: query), status: 200)
+        }
+        #endif
         guard hasBase, var comps = URLComponents(string: baseURL + path) else { throw APIError.notConfigured }
         if !query.isEmpty { comps.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) } }
         guard let url = comps.url else { throw APIError.notConfigured }
