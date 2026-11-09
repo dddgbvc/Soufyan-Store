@@ -240,10 +240,11 @@ struct RenewSheet: View {
         defer { fetchingCost = false }
         do {
             // الربط المباشر أولاً (فوري)، وإلا عبر برنامج المكتب.
-            let direct = (try? await API.shared.sas4("status"))?["direct"].isTrue ?? false
+            let store = SASTowers.shared
+            if !store.loaded { await store.load() }
             let d: JSON
-            if direct {
-                d = try await API.shared.sas4("user", ["id": String(ext)])["activation"]
+            if store.hasTowers, let found = await findInTowers(ext) {
+                d = found
                 let need = d["n_required_amount"].double ?? Fmt.parseMoney(d["required_amount"].text)
                 if need > 0 {
                     cost = String(Int(need))
@@ -260,6 +261,18 @@ struct RenewSheet: View {
         } catch {
             costNote = error.localizedDescription
         }
+    }
+
+    /// بيانات التفعيل من البرج الذي يحوي هذا المشترك (يطابق اسم المستخدم).
+    private func findInTowers(_ ext: Int) async -> JSON? {
+        let store = SASTowers.shared
+        let ids = ([store.selectedID] + store.towers.map { $0["id"].string }).compactMap { $0 }
+        var seen = Set<String>()
+        for t in ids where seen.insert(t).inserted {
+            guard let r = try? await API.shared.sas4("user", ["id": String(ext), "tower": t]) else { continue }
+            if r["user"]["username"].text.lowercased() == subscriber["username"].text.lowercased() { return r["activation"] }
+        }
+        return nil
     }
 
     private func begin(_ sv: Double, _ cv: Double, _ pv: Double) async {
@@ -312,6 +325,7 @@ struct RenewConfirmForm: View {
     @State private var askSAS = false
     @State private var sas = SASSubmit("rn")
     @State private var sasDone = false
+    @State private var sasTower: String?
 
     @State private var receipt = ""
     @State private var until = Date()
@@ -383,22 +397,42 @@ struct RenewConfirmForm: View {
         .task { await loadSAS() }
     }
 
+    /// يبحث عن المشترك في الأبراج (البرج المختار أولاً) ويتأكد أن اسم المستخدم يطابق، حتى لا يُجدَّد مشترك آخر بنفس الرقم.
     private func loadSAS() async {
         guard let externalID else { return }
-        direct = (try? await API.shared.sas4("status"))?["direct"].isTrue ?? false
+        let store = SASTowers.shared
+        if !store.loaded { await store.load() }
+        direct = store.hasTowers
         guard direct else { return }
-        do { activation = try await API.shared.sas4("user", ["id": String(externalID)])["activation"] }
-        catch APIError.sessionExpired { AppState.shared.expire() }
-        catch { sasError = error.localizedDescription }
-        if activation.isNull && sasError == nil { sasError = "بيانات التفعيل غير متاحة من SAS4." }
+        sasError = nil
+        let ids = ([store.selectedID] + store.towers.map { $0["id"].string }).compactMap { $0 }
+        var seen = Set<String>()
+        for t in ids where seen.insert(t).inserted {
+            do {
+                let r = try await API.shared.sas4("user", ["id": String(externalID), "tower": t])
+                if r["user"]["username"].text.lowercased() == subscriber["username"].text.lowercased() {
+                    sasTower = t
+                    activation = r["activation"]
+                    if activation.isNull { sasError = "بيانات التفعيل غير متاحة من SAS4." }
+                    return
+                }
+            } catch APIError.sessionExpired {
+                AppState.shared.expire()
+                return
+            } catch {
+                continue
+            }
+        }
+        sasError = "لم يُعثر على \(subscriber["username"].text) برقم \(externalID) في أبراجك. فعّل يدوياً أو أضف البرج الصحيح."
     }
 
     /// تفعيل في SAS4 ثم ترحيل التجديد للدفتر. إن لم تتأكد نتيجة SAS4 لا يُرحَّل شيء.
     private func activateInSAS() async {
-        guard let externalID else { return }
+        guard let externalID, sasTower != nil else { return }
         let amount = activation["n_required_amount"].double ?? Fmt.parseMoney(activation["required_amount"].text)
         guard let r = await sas.run("renew", [
             "user_id": .int(externalID), "username": .string(subscriber["username"].text), "method": "credit",
+            "tower_id": .string(sasTower ?? ""),
             "expected_amount": .num(amount), "comments": .string("تجديد من تطبيق المحل"),
         ], prefix: "rn") else {
             if !sas.uncertain { await loadSAS() }

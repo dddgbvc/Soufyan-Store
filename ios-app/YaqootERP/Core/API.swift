@@ -234,9 +234,11 @@ final class API {
 
     // MARK: - SAS4 المباشر (قراءة فقط عبر الخادم)
 
+    /// قراءة من SAS4 على البرج المختار (أو برج محدد بـ "tower").
     func sas4(_ op: String, _ params: [String: String] = [:]) async throws -> JSON {
         var q = params.filter { !$0.value.isEmpty }
         q["op"] = op
+        if q["tower"] == nil, let t = SASTowers.shared.selectedID { q["tower"] = t }
         let r = try await send("GET", "/api/sas4", query: q)
         if r.status == 401 { throw APIError.sessionExpired }
         guard r.json["ok"].isTrue else { throw error(r, fallback: "تعذر الاتصال بـ SAS4.") }
@@ -248,6 +250,7 @@ final class API {
         var b = body
         b["op"] = .string(op)
         b["client_ref"] = .string(ref)
+        if b["tower_id"] == nil, let t = SASTowers.shared.selectedID { b["tower_id"] = .string(t) }
         let r = try await send("POST", "/api/sas4", body: .object(b))
         if r.status == 401 { throw APIError.sessionExpired }
         guard r.json["ok"].isTrue else { throw error(r, fallback: "تعذر تنفيذ العملية في SAS4.") }

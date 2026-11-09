@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// البحث في SAS4 بطريقتين، ولا يحمل الهاتف أي كلمة مرور للمزوّد في الحالتين:
-/// • مباشر: الخادم يتصل بـ SAS4 بحساب الموزع المحفوظ كسرّ في الخادم (‎/api/sas4‎، قراءة فقط).
+/// • مباشر بالأبراج: الخادم يتصل بـ SAS4 بدخول البرج المحفوظ (‎/api/sas4‎)، مع تبديل سريع بين الأبراج.
 /// • عبر البرنامج: طلب قراءة في طابور البرنامج (sas_remote_commands) ينفّذه وكيل SAS4 في برنامج المكتب.
 struct SASSearchView: View {
     @State private var status: JSON?
@@ -12,20 +12,40 @@ struct SASSearchView: View {
     @State private var error: String?
     @State private var direct = false
     @State private var creating = false
+    @State private var addingTower = false
+    @State private var towers = SASTowers.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             List {
-                SwiftUI.Section {
+                if direct {
+                    SwiftUI.Section {
+                        if let t = towers.current {
+                            LabeledContent("البرج") { Text(t["name"].text).bold() }
+                            if let e = t["last_error"].string {
+                                Label(e, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(Yq.red)
+                            } else {
+                                Label("متصل مباشرة بـ SAS4 • \(t["username"].text)", systemImage: "checkmark.circle.fill")
+                                    .font(.footnote).foregroundStyle(Yq.green)
+                            }
+                        }
+                    } footer: {
+                        if towers.towers.count > 1 { Text("بدّل البرج من الزر أعلى الشاشة.") }
+                    }
+                } else if towers.loaded && towers.canManage {
+                    SwiftUI.Section {
+                        Button { addingTower = true } label: { Label("أضف برجك الأول (دخول SAS4)", systemImage: "antenna.radiowaves.left.and.right") }
+                    } footer: {
+                        Text("سجّل دخول حساب الموزع مرة واحدة ويبقى محفوظاً. تقدر تضيف أكثر من برج وتبدّل بينها بسرعة.")
+                    }
+                }
+                if !direct { SwiftUI.Section {
                     if let accounts = status?["accounts"].array, !accounts.isEmpty {
                         Picker("حساب الموزع", selection: Binding(get: { account ?? accounts.first?["id"].string }, set: { account = $0 })) {
                             ForEach(accounts.records) { a in Text(a["name"].text).tag(Optional(a.id)) }
                         }
-                        if direct {
-                            Label("متصل مباشرة بـ SAS4 من الخادم", systemImage: "checkmark.circle.fill")
-                                .font(.footnote).foregroundStyle(Yq.green)
-                        } else if let a = accounts.first(where: { $0["id"].string == (account ?? accounts.first?["id"].string) }) {
+                        if let a = accounts.first(where: { $0["id"].string == (account ?? accounts.first?["id"].string) }) {
                             agentStatus(a)
                         }
                     } else if status != nil {
@@ -33,21 +53,21 @@ struct SASSearchView: View {
                     } else {
                         ProgressView()
                     }
-                }
+                } }
                 SwiftUI.Section {
                     HStack {
                         TextField("اسم المستخدم أو الاسم أو الهاتف", text: $q)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .onSubmit { Task { await search() } }
                         Button("بحث") { Task { await search() } }
-                            .disabled(waiting || q.trimmingCharacters(in: .whitespaces).count < 2 || account == nil)
+                            .disabled(waiting || q.trimmingCharacters(in: .whitespaces).count < 2 || (direct ? towers.selectedID == nil : account == nil))
                     }
                     if waiting {
                         HStack { ProgressView(); Text(direct ? "جارِ البحث في SAS4…" : "بانتظار برنامج المكتب…").foregroundStyle(.secondary) }
                     }
                     if let error { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(Yq.red).font(.footnote) }
                 } footer: {
-                    Text(direct ? "البحث يتم مباشرة من الخادم بحساب الموزع، للقراءة فقط."
+                    Text(direct ? "البحث يتم مباشرة في SAS4 على البرج المختار."
                          : "الطلب يُنفّذ عبر ربط SAS4 في برنامج المكتب، لذلك يجب أن يكون البرنامج مفتوحاً ومتصلاً.")
                 }
                 if !users.isEmpty {
@@ -75,6 +95,9 @@ struct SASSearchView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("تم") { dismiss() } }
+                if direct || towers.canManage {
+                    ToolbarItem(placement: .topBarLeading) { TowerSwitcher() }
+                }
                 if direct {
                     ToolbarItem(placement: .primaryAction) {
                         Button { creating = true } label: { Label("مشترك جديد", systemImage: "person.badge.plus") }
@@ -82,6 +105,9 @@ struct SASSearchView: View {
                 }
             }
             .sheet(isPresented: $creating) { SASCreateSheet() }
+            .sheet(isPresented: $addingTower) { TowerLoginSheet(tower: nil) }
+            .onChange(of: towers.selectedID) { users = []; error = nil }
+            .onChange(of: towers.towers.count) { direct = towers.hasTowers }
             .task { await loadStatus() }
         }
     }
@@ -102,8 +128,9 @@ struct SASSearchView: View {
 
     private func loadStatus() async {
         do {
+            await towers.load()
+            direct = towers.hasTowers
             let s = try await API.shared.get("sas_status")
-            direct = (try? await API.shared.sas4("status"))?["direct"].isTrue ?? false
             status = s
             if account == nil { account = s["accounts"][0]["id"].string }
         } catch APIError.sessionExpired {
