@@ -1,13 +1,13 @@
-import Anthropic from '@anthropic-ai/sdk';
 import {env} from 'cloudflare:workers';
 import {SESSION_COOKIE, ServerError, clearCookie, fail, json, sameOrigin, serviceRpc, sessionId} from '../../../lib/yaqoot/server';
 export const dynamic = 'force-dynamic';
 
 // المساعد الذكي: يجيب عن أسئلة المحل بأدوات قراءة فقط تمر عبر نفس دوال web_* في قاعدة البيانات،
 // فيرى الموظف ما تسمح به صلاحياته فقط. لا توجد أي أداة كتابة أو عملية مالية.
-// المفتاح ANTHROPIC_API_KEY سرّ في Cloudflare Worker ولا يصل للتطبيق.
+// النموذج عبر OpenRouter (Gemini افتراضياً). المفتاح OPENROUTER_API_KEY سرّ في Cloudflare Worker ولا يصل للتطبيق،
+// واسم النموذج قابل للتغيير بالمتغير OPENROUTER_MODEL دون تعديل الكود.
 
-const MODEL = 'claude-opus-5-5';
+const DEFAULT_MODEL = 'google/gemini-2.5-flash';
 
 type ToolDef = {fn: string; description: string; properties: Record<string, unknown>; map?: (i: Record<string, unknown>) => Record<string, unknown>};
 
@@ -37,13 +37,17 @@ const SYSTEM = `أنت «مساعد مكتب سفيان»، مساعد ذكي د
 - عند التحليل قدّم ملاحظة أو اقتراحاً مفيداً واحداً أو اثنين (مثل الزبائن الأعلى ديناً، الاشتراكات المنتهية، النواقص المهمة).
 - لا تكشف أرقام هواتف كاملة إلا إذا طُلبت صراحة.`;
 
-function toolList(): Anthropic.Beta.BetaTool[] {
+function toolList() {
   return Object.entries(TOOLS).map(([name, t]) => ({
-    name,
-    description: t.description,
-    input_schema: {type: 'object', properties: t.properties, additionalProperties: false},
+    type: 'function' as const,
+    function: {name, description: t.description, parameters: {type: 'object', properties: t.properties, additionalProperties: false}},
   }));
 }
+
+type OrMessage =
+  | {role: 'system' | 'user'; content: string}
+  | {role: 'assistant'; content: string | null; tool_calls?: {id: string; type: 'function'; function: {name: string; arguments: string}}[]}
+  | {role: 'tool'; tool_call_id: string; content: string};
 
 async function runTool(sid: string, name: string, input: unknown): Promise<string> {
   const t = TOOLS[name];
@@ -71,8 +75,10 @@ export async function POST(req: Request) {
   if (!sameOrigin(req)) return json({ok: false, reason: 'origin_not_allowed'}, 403);
   const sid = sessionId(req);
   if (!sid) return json({ok: false, reason: 'session_expired'}, 401);
-  const key = (env as unknown as {ANTHROPIC_API_KEY?: string}).ANTHROPIC_API_KEY;
-  if (!key) return json({ok: false, reason: 'assistant_not_configured', message: 'المساعد غير مفعّل: أضف المفتاح ANTHROPIC_API_KEY في إعدادات الخادم.'}, 503);
+  const e = env as unknown as {OPENROUTER_API_KEY?: string; OPENROUTER_MODEL?: string};
+  const key = e.OPENROUTER_API_KEY;
+  const model = (e.OPENROUTER_MODEL || DEFAULT_MODEL).trim();
+  if (!key) return json({ok: false, reason: 'assistant_not_configured', message: 'المساعد غير مفعّل: أضف المفتاح OPENROUTER_API_KEY في إعدادات الخادم.'}, 503);
 
   let body: {messages?: {role: string; content: string}[]};
   try {
@@ -89,48 +95,45 @@ export async function POST(req: Request) {
   if (!history.length || history[history.length - 1].role !== 'user') return json({ok: false, reason: 'invalid_input'}, 400);
   while (history.length && history[0].role !== 'user') history.shift();
 
-  const client = new Anthropic({apiKey: key});
-  const messages: Anthropic.Beta.BetaMessageParam[] = history;
+  const messages: OrMessage[] = [{role: 'system', content: SYSTEM}, ...history];
   const used: string[] = [];
   try {
     for (let step = 0; step < 8; step++) {
-      const response = await client.beta.messages.create({
-        model: MODEL,
-        max_tokens: 4000,
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default',
-        output_config: {effort: 'low'},
-        system: SYSTEM,
-        tools: toolList(),
-        messages,
-      });
-      if (response.stop_reason === 'refusal') {
-        return json({ok: true, reply: 'لا أستطيع المساعدة في هذا الطلب.', tools: used});
+      let res: Response;
+      try {
+        res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'X-Title': 'Sufyan Mobile Assistant'},
+          body: JSON.stringify({model, messages, tools: toolList(), tool_choice: 'auto', max_tokens: 2500, temperature: 0.3}),
+          signal: AbortSignal.timeout(60000),
+        });
+      } catch {
+        return json({ok: false, reason: 'assistant_unreachable', message: 'تعذر الوصول لخدمة المساعد.'}, 502);
       }
-      if (response.stop_reason === 'pause_turn') {
-        messages.push({role: 'assistant', content: response.content});
-        continue;
+      if (res.status === 401 || res.status === 403) return json({ok: false, reason: 'assistant_not_configured', message: 'مفتاح OpenRouter غير صالح.'}, 503);
+      if (res.status === 402) return json({ok: false, reason: 'assistant_credits', message: 'رصيد OpenRouter غير كافٍ.'}, 402);
+      if (res.status === 429) return json({ok: false, reason: 'rate_limited', message: 'المساعد مشغول. حاول بعد قليل.'}, 429);
+      const data = (await res.json().catch(() => null)) as {choices?: {message?: {content?: string | null; tool_calls?: {id: string; type: 'function'; function: {name: string; arguments: string}}[]}}[]; error?: {message?: string}} | null;
+      const msg = data?.choices?.[0]?.message;
+      if (!res.ok || !msg) {
+        return json({ok: false, reason: 'assistant_error', message: data?.error?.message ? `خطأ من المساعد: ${data.error.message}` : 'تعذر الحصول على إجابة من المساعد.'}, 502);
       }
-      const calls = response.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use');
-      if (response.stop_reason !== 'tool_use' || !calls.length) {
-        const reply = response.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text').map(b => b.text).join('\n').trim();
-        return json({ok: true, reply: reply || '—', tools: used});
-      }
-      messages.push({role: 'assistant', content: response.content});
+      const calls = msg.tool_calls || [];
+      if (!calls.length) return json({ok: true, reply: (msg.content || '').trim() || '—', tools: used});
+      messages.push({role: 'assistant', content: msg.content ?? null, tool_calls: calls});
       const results = await Promise.all(calls.map(async c => {
-        used.push(c.name);
-        return {type: 'tool_result' as const, tool_use_id: c.id, content: await runTool(sid, c.name, c.input)};
+        used.push(c.function.name);
+        let input: unknown = {};
+        try { input = c.function.arguments ? JSON.parse(c.function.arguments) : {}; } catch { input = {}; }
+        return {role: 'tool' as const, tool_call_id: c.id, content: await runTool(sid, c.function.name, input)};
       }));
-      messages.push({role: 'user', content: results});
+      messages.push(...results);
     }
     return json({ok: true, reply: 'السؤال يحتاج خطوات كثيرة. جرّب سؤالاً أدق.', tools: used});
   } catch (err) {
     if (err instanceof ServerError && err.code === 'session_expired') {
       return json({ok: false, reason: 'session_expired'}, 401, {'Set-Cookie': clearCookie(req, SESSION_COOKIE)});
     }
-    if (err instanceof Anthropic.RateLimitError) return json({ok: false, reason: 'rate_limited', message: 'المساعد مشغول. حاول بعد قليل.'}, 429);
-    if (err instanceof Anthropic.AuthenticationError) return json({ok: false, reason: 'assistant_not_configured', message: 'مفتاح المساعد غير صالح.'}, 503);
-    if (err instanceof Anthropic.APIError) return json({ok: false, reason: 'assistant_error', message: 'تعذر الحصول على إجابة من المساعد.'}, 502);
     return fail(err);
   }
 }
