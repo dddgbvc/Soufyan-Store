@@ -23,6 +23,7 @@ const RESOURCES: Record<string, {fn: string; params: string[]}> = {
   inbox: {fn: 'web_notify_inbox', params: ['limit', 'before', 'kind', 'unread_only']},
   notify_admin: {fn: 'web_notify_admin', params: []},
   isp: {fn: 'web_isp_overview', params: ['q', 'status', 'limit']},
+  activity: {fn: 'web_activity_feed', params: ['limit', 'before', 'actor']},
 };
 const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine', 'unread_only']);
 const INT = new Set(['limit', 'offset', 'before']);
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
     if (BOOL.has(key)) params[key] = raw === '1' || raw === 'true';
     else if (key === 'id') {
       if (UUID.test(raw)) params.id = raw;
-    } else if (key === 'before' && resource.fn !== 'web_notify_inbox') {
+    } else if (key === 'before' && resource.fn !== 'web_notify_inbox' && resource.fn !== 'web_activity_feed') {
       params.before = raw.slice(0, 40);
     } else if (INT.has(key)) {
       const n = Number(raw);
