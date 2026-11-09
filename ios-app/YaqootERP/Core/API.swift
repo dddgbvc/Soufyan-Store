@@ -243,6 +243,17 @@ final class API {
         return r.json
     }
 
+    /// عملية في SAS4 (تجديد، تمديد، تغيير باقة، تعديل، إعادة تسمية، إنشاء). client_ref ثابت لكل محاولة.
+    func sas4Do(_ op: String, ref: String, _ body: [String: JSON]) async throws -> JSON {
+        var b = body
+        b["op"] = .string(op)
+        b["client_ref"] = .string(ref)
+        let r = try await send("POST", "/api/sas4", body: .object(b))
+        if r.status == 401 { throw APIError.sessionExpired }
+        guard r.json["ok"].isTrue else { throw error(r, fallback: "تعذر تنفيذ العملية في SAS4.") }
+        return r.json
+    }
+
     // MARK: - المساعد الذكي
 
     struct ChatTurn: Sendable { let role: String; let content: String }

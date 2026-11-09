@@ -117,7 +117,7 @@ struct SubscriberProfile: View {
         .task(id: AppState.shared.refreshTick) { await load() }
         .sheet(isPresented: $renewing) { RenewSheet(subscriber: s, detail: detail) }
         .sheet(item: Binding(get: { confirming.map { Record($0) } }, set: { confirming = $0?.json })) { r in
-            RenewConfirmSheet(subscriber: s, renewal: r.json)
+            RenewConfirmSheet(subscriber: s, renewal: r.json, externalID: Int(detail?["subscriber"]["external_subscriber_id"].text ?? ""))
         }
         .toast($toast)
     }
@@ -163,7 +163,8 @@ struct RenewSheet: View {
         NavigationStack {
             Form {
                 if let started {
-                    RenewConfirmForm(subscriber: subscriber, renewal: started) { dismiss() }
+                    RenewConfirmForm(subscriber: subscriber, renewal: started,
+                                     externalID: Int(detail?["subscriber"]["external_subscriber_id"].text ?? "")) { dismiss() }
                 } else {
                     SwiftUI.Section {
                         LabeledContent("المشترك") { Text(subscriber["username"].text).monospaced() }
@@ -238,8 +239,20 @@ struct RenewSheet: View {
         fetchingCost = true
         defer { fetchingCost = false }
         do {
-            let r = try await SASCommand.run(account: account, type: "get_activation_data", payload: ["user_id": .int(ext)])
-            let d = r["data"]
+            // الربط المباشر أولاً (فوري)، وإلا عبر برنامج المكتب.
+            let direct = (try? await API.shared.sas4("status"))?["direct"].isTrue ?? false
+            let d: JSON
+            if direct {
+                d = try await API.shared.sas4("user", ["id": String(ext)])["activation"]
+                let need = d["n_required_amount"].double ?? Fmt.parseMoney(d["required_amount"].text)
+                if need > 0 {
+                    cost = String(Int(need))
+                    costNote = "من SAS4: \(d["profile_name"].text) • الكلفة \(d["required_amount"].text) • رصيد الموزع \(d["manager_balance"].text)"
+                    return
+                }
+            } else {
+                d = try await SASCommand.run(account: account, type: "get_activation_data", payload: ["user_id": .int(ext)])["data"]
+            }
             let unit = Fmt.parseMoney(d["unit_price"].text)
             let units = max(d["units"].num, 1)
             if unit > 0 { cost = String(Int(unit * units)) }
@@ -274,10 +287,11 @@ struct RenewSheet: View {
 struct RenewConfirmSheet: View {
     let subscriber: JSON
     let renewal: JSON
+    var externalID: Int? = nil
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
-            Form { RenewConfirmForm(subscriber: subscriber, renewal: renewal) { dismiss() } }
+            Form { RenewConfirmForm(subscriber: subscriber, renewal: renewal, externalID: externalID) { dismiss() } }
                 .navigationTitle("تأكيد التفعيل")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("إغلاق") { dismiss() } } }
@@ -289,7 +303,15 @@ struct RenewConfirmSheet: View {
 struct RenewConfirmForm: View {
     let subscriber: JSON
     let renewal: JSON
+    var externalID: Int? = nil
     let done: () -> Void
+
+    @State private var direct = false
+    @State private var activation: JSON = .null
+    @State private var sasError: String?
+    @State private var askSAS = false
+    @State private var sas = SASSubmit("rn")
+    @State private var sasDone = false
 
     @State private var receipt = ""
     @State private var until = Date()
@@ -301,7 +323,33 @@ struct RenewConfirmForm: View {
     var body: some View {
         SwiftUI.Section {
             Label("سُجّل طلب التجديد بسعر \(Fmt.iqd(renewal["sell_price_iqd"]))", systemImage: "checkmark.circle.fill").foregroundStyle(Yq.green)
-            Text("فعّل الاشتراك لدى المزوّد (من برنامج المكتب أو لوحة الموزع)، ثم سجّل النتيجة هنا ليُضاف الدين ويُقيَّد المقبوض.")
+        }
+        if direct, externalID != nil {
+            SwiftUI.Section {
+                if activation.isNull {
+                    if let sasError { Text(sasError).font(.footnote).foregroundStyle(Yq.red) } else { ProgressView() }
+                } else {
+                    LabeledContent("الباقة", value: activation["profile_name"].text)
+                    LabeledContent("الكلفة من رصيد الموزع", value: activation["required_amount"].text)
+                    LabeledContent("رصيد الموزع لدى الشركة", value: activation["manager_balance"].text)
+                    Button { askSAS = true } label: {
+                        HStack { Label("فعّل في SAS4 ورحّل للدفتر", systemImage: "bolt.circle.fill"); Spacer(); if sas.busy || busy { ProgressView() } }
+                    }
+                    .disabled(sas.busy || busy || sas.uncertain || sasDone)
+                }
+                if let e = sas.error {
+                    Label(e, systemImage: sas.uncertain ? "questionmark.diamond" : "exclamationmark.triangle")
+                        .foregroundStyle(sas.uncertain ? Yq.amber : Yq.red).font(.footnote)
+                }
+            } header: {
+                Text("التفعيل المباشر")
+            } footer: {
+                Text("يجدد في SAS4 من رصيد الموزع، ثم يسجل النتيجة ويضيف الدين ويقيد المقبوض في المحل بخطوة واحدة.")
+            }
+        }
+        SwiftUI.Section {
+            Text(direct && externalID != nil ? "أو فعّل يدوياً من البرنامج أو لوحة الموزع، ثم سجّل النتيجة أدناه."
+                 : "فعّل الاشتراك لدى المزوّد (من برنامج المكتب أو لوحة الموزع)، ثم سجّل النتيجة هنا ليُضاف الدين ويُقيَّد المقبوض.")
                 .font(.footnote).foregroundStyle(.secondary)
             Button { if let u = URL(string: "https://reseller.nbtel.iq/index.html") { openURL(u) } } label: {
                 Label("فتح لوحة الموزع", systemImage: "safari")
@@ -326,6 +374,40 @@ struct RenewConfirmForm: View {
         .confirmationDialog("تسجيل أن التفعيل لم يتم؟", isPresented: $confirmFail, titleVisibility: .visible) {
             Button("نعم، لم يتم", role: .destructive) { Task { await fail() } }
         } message: { Text("لن يُضاف أي دين على الزبون.") }
+        .alert("تفعيل في SAS4؟", isPresented: $askSAS) {
+            Button("إلغاء", role: .cancel) {}
+            Button("نعم، فعّل") { Task { await activateInSAS() } }
+        } message: {
+            Text("تجديد \(subscriber["username"].text) وخصم \(activation["required_amount"].text) من رصيد الموزع، ثم إضافة \(Fmt.iqd(renewal["sell_price_iqd"])) على حساب الزبون في المحل.")
+        }
+        .task { await loadSAS() }
+    }
+
+    private func loadSAS() async {
+        guard let externalID else { return }
+        direct = (try? await API.shared.sas4("status"))?["direct"].isTrue ?? false
+        guard direct else { return }
+        do { activation = try await API.shared.sas4("user", ["id": String(externalID)])["activation"] }
+        catch APIError.sessionExpired { AppState.shared.expire() }
+        catch { sasError = error.localizedDescription }
+        if activation.isNull && sasError == nil { sasError = "بيانات التفعيل غير متاحة من SAS4." }
+    }
+
+    /// تفعيل في SAS4 ثم ترحيل التجديد للدفتر. إن لم تتأكد نتيجة SAS4 لا يُرحَّل شيء.
+    private func activateInSAS() async {
+        guard let externalID else { return }
+        let amount = activation["n_required_amount"].double ?? Fmt.parseMoney(activation["required_amount"].text)
+        guard let r = await sas.run("renew", [
+            "user_id": .int(externalID), "username": .string(subscriber["username"].text), "method": "credit",
+            "expected_amount": .num(amount), "comments": .string("تجديد من تطبيق المحل"),
+        ], prefix: "rn") else {
+            if !sas.uncertain { await loadSAS() }
+            return
+        }
+        sasDone = true
+        if let d = Fmt.parse(r["result"]["expiration"].string) { until = d }
+        receipt = "SAS4 " + (r["transaction_id"].string ?? sas.ref)
+        await confirm()
     }
 
     private var renewalID: JSON { renewal["id"].isNull ? renewal["renewal_id"] : renewal["id"] }

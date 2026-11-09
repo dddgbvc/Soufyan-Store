@@ -11,6 +11,7 @@ struct SASSearchView: View {
     @State private var waiting = false
     @State private var error: String?
     @State private var direct = false
+    @State private var creating = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -53,7 +54,11 @@ struct SASSearchView: View {
                     SwiftUI.Section("النتائج (\(users.count))") {
                         ForEach(users.records) { u in
                             NavigationLink {
-                                SASUserView(accountID: account ?? "", user: u.json, direct: direct)
+                                if direct, let id = u["id"].int {
+                                    SASDirectUserView(userID: id, initial: u.json)
+                                } else {
+                                    SASUserView(accountID: account ?? "", user: u.json, direct: direct)
+                                }
                             } label: {
                                 RowView(icon: "person.wave.2", color: u["enabled"].isTrue ? Yq.green : .gray,
                                         title: u["username"].text,
@@ -68,7 +73,15 @@ struct SASSearchView: View {
             .yaqootBackground()
             .navigationTitle("بحث في SAS4")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("تم") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("تم") { dismiss() } }
+                if direct {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { creating = true } label: { Label("مشترك جديد", systemImage: "person.badge.plus") }
+                    }
+                }
+            }
+            .sheet(isPresented: $creating) { SASCreateSheet() }
             .task { await loadStatus() }
         }
     }
