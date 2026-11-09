@@ -17,36 +17,10 @@ struct MainShell: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            ForEach(primary) { s in
-                Tab(s.short, systemImage: s.icon, value: s.rawValue) {
-                    NavigationStack { SectionScreen(section: s) }
-                }
-            }
-
-            ForEach(groups, id: \.self) { group in
-                TabSection(group) {
-                    ForEach(secondary(in: group)) { s in
-                        Tab(s.title, systemImage: s.icon, value: s.rawValue) {
-                            NavigationStack { SectionScreen(section: s) }
-                        }
-                        .badge(s == .notifications ? app.unread : 0)
-                        .defaultVisibility(.hidden, for: .tabBar)
-                    }
-                }
-            }
-
-            Tab("المزيد", systemImage: "square.grid.3x3.fill", value: "more") {
-                NavigationStack(path: $morePath) {
-                    MoreView()
-                        .navigationDestination(for: AppSection.self) { s in SectionScreen(section: s) }
-                }
-            }
-            .badge(app.unread)
-            .defaultVisibility(.hidden, for: .sidebar)
-
-            Tab(value: "search", role: .search) {
-                NavigationStack { SearchView() }
-            }
+            primaryTabs
+            groupTabs
+            moreTab
+            searchTab
         }
         .tabViewStyle(.sidebarAdaptable)
         .tabBarMinimizeBehavior(.onScrollDown)
@@ -58,6 +32,47 @@ struct MainShell: View {
         }
         .onChange(of: app.searchTick) { tab = "search" }
         .onChange(of: size) { sync(app.selected) }
+    }
+
+    private func sectionTab(_ s: AppSection, title: String) -> some TabContent<String> {
+        Tab(title, systemImage: s.icon, value: s.rawValue) {
+            NavigationStack { SectionScreen(section: s) }
+        }
+    }
+
+    @TabContentBuilder<String> private var primaryTabs: some TabContent<String> {
+        ForEach(primary) { (s: AppSection) in
+            sectionTab(s, title: s.short)
+        }
+    }
+
+    @TabContentBuilder<String> private var groupTabs: some TabContent<String> {
+        ForEach(groups, id: \.self) { (group: String) in
+            TabSection(group) {
+                ForEach(secondary(in: group)) { (s: AppSection) in
+                    sectionTab(s, title: s.title)
+                        .badge(s == .notifications ? app.unread : 0)
+                        .defaultVisibility(.hidden, for: .tabBar)
+                }
+            }
+        }
+    }
+
+    @TabContentBuilder<String> private var moreTab: some TabContent<String> {
+        Tab("المزيد", systemImage: "square.grid.3x3.fill", value: "more") {
+            NavigationStack(path: $morePath) {
+                MoreView()
+                    .navigationDestination(for: AppSection.self) { s in SectionScreen(section: s) }
+            }
+        }
+        .badge(app.unread)
+        .defaultVisibility(.hidden, for: .sidebar)
+    }
+
+    @TabContentBuilder<String> private var searchTab: some TabContent<String> {
+        Tab(value: "search", role: .search) {
+            NavigationStack { SearchView() }
+        }
     }
 
     /// يفتح القسم: تبويب مباشر، أو عبر «المزيد» على الآيفون.
