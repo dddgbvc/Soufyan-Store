@@ -46,9 +46,7 @@ struct CustomersView: View {
         .navigationDestination(for: CustomerRef.self) { StatementView(customerID: $0.id) }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                ShareLink(item: CSVFile(name: "الزبائن", header: ["الاسم", "الهاتف", "الرصيد", "سقف الدين"],
-                                        rows: model.rows.map { [$0["name"].text, $0["phone"].text, Fmt.money($0["balance"]), Fmt.money($0["credit_limit"])] }),
-                          preview: SharePreview("الزبائن.csv")) {
+                ShareLink(item: csv, preview: SharePreview("الزبائن.csv")) {
                     Label("تصدير", systemImage: "square.and.arrow.up")
                 }
                 .disabled(model.rows.isEmpty)
@@ -68,13 +66,6 @@ struct CustomersView: View {
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
-        .task(id: AppState.shared.refreshTick) {
-            isp = try? await API.shared.get("isp_profile", ["customer_ref": customerID])
-            wa = try? await API.shared.get("whatsapp_customer", ["id": customerID])
-        }
-        .sheet(item: Binding(get: { editingPhone.map { Record($0) } }, set: { editingPhone = $0?.json })) { r in
-            PhoneEditSheet(customer: r.json)
-        }
         .sheet(item: $sheet) { s in
             switch s {
             case .add(let c): AddDebtSheet(customer: c)
@@ -82,6 +73,13 @@ struct CustomersView: View {
             case .new: NewCustomerSheet()
             }
         }
+    }
+
+    private var csv: CSVFile {
+        let rows: [[String]] = model.rows.map { r in
+            [r["name"].text, r["phone"].text, Fmt.money(r["balance"]), Fmt.money(r["credit_limit"])]
+        }
+        return CSVFile(name: "الزبائن", header: ["الاسم", "الهاتف", "الرصيد", "سقف الدين"], rows: rows)
     }
 
     private var list: some View {
@@ -186,6 +184,13 @@ struct StatementView: View {
             .yaqootBackground()
             .navigationTitle(c["name"].text)
             .refreshable { AppState.shared.refreshTick += 1 }
+        }
+        .task(id: AppState.shared.refreshTick) {
+            isp = try? await API.shared.get("isp_profile", ["customer_ref": customerID])
+            wa = try? await API.shared.get("whatsapp_customer", ["id": customerID])
+        }
+        .sheet(item: Binding(get: { editingPhone.map { Record($0) } }, set: { editingPhone = $0?.json })) { r in
+            PhoneEditSheet(customer: r.json)
         }
         .sheet(item: $sheet) { s in
             switch s {
