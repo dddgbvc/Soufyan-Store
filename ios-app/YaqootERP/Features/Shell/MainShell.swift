@@ -188,6 +188,7 @@ struct SectionScreen: View {
         case .isp: ISPView()
         case .network: NetworkView()
         case .importer: ImportView()
+        case .whatsapp: WhatsAppView()
         case .employees: EmployeesView()
         case .sessions: SessionsView()
         case .activity: ActivityView()

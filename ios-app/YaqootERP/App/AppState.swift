@@ -101,7 +101,7 @@ final class AppState {
     }
 
     func signOutStore() async {
-        await Notifier.shared.disable()
+        await Notifier.shared.unregister()
         Biometrics.disable()
         await API.shared.forgetStore()
         message = nil

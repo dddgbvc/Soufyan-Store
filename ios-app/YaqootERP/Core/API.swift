@@ -71,6 +71,7 @@ final class API {
         let built = (Bundle.main.object(forInfoDictionaryKey: "YQBaseURL") as? String ?? "").trimmingCharacters(in: .whitespaces)
         baseURL = Keychain.get("base_url") ?? (built.hasPrefix("https://") ? built : "")
         for name in Self.cookieNames { cookies[name] = Keychain.get(name) }
+        if !baseURL.isEmpty { SharedStore.baseURL = baseURL }
     }
 
     var hasBase: Bool { !baseURL.isEmpty }
@@ -84,6 +85,7 @@ final class API {
         }
         baseURL = u
         Keychain.set(u, for: "base_url")
+        SharedStore.baseURL = u
     }
 
     // MARK: - الإرسال

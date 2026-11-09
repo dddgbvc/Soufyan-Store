@@ -15,6 +15,8 @@ const ACTIONS: Record<string, string> = {
   notify_mark: 'web_notify_mark',
   notify_admin_set: 'web_notify_admin_set',
   notify_broadcast: 'web_notify_broadcast',
+  whatsapp_send: 'web_whatsapp_send',
+  whatsapp_consent: 'web_whatsapp_consent',
 };
 
 type Device = {id: string; endpoint: string; p256dh: string; auth: string};

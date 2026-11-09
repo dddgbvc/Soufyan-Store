@@ -4,7 +4,7 @@ import SwiftUI
 /// والخادم يرفض أي طلب خارج الصلاحية حتى لو ظهر القسم بالخطأ.
 enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
     case dashboard, invoices, products, shortages, customers, vault, expenses, purchases, suppliers
-    case repairs, returns, shipping, isp, network, importer, employees, sessions, activity, reports
+    case repairs, returns, shipping, isp, network, importer, whatsapp, employees, sessions, activity, reports
     case notifications, settings
 
     var id: String { rawValue }
@@ -26,6 +26,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .isp: "إدارة الإنترنت"
         case .network: "أجهزة الشبكة"
         case .importer: "استيراد الكشوفات"
+        case .whatsapp: "واتساب المحل"
         case .employees: "الموظفون والصلاحيات"
         case .sessions: "الجلسات والأجهزة"
         case .activity: "سجل العمليات"
@@ -62,6 +63,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .isp: "wifi"
         case .network: "point.3.connected.trianglepath.dotted"
         case .importer: "doc.viewfinder"
+        case .whatsapp: "bubble.left.and.text.bubble.right"
         case .employees: "person.badge.key"
         case .sessions: "macbook.and.iphone"
         case .activity: "clock.arrow.trianglehead.counterclockwise.rotate.90"
@@ -79,6 +81,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .expenses, .shortages: Yq.red
         case .products, .returns: Yq.amber
         case .isp, .network, .repairs, .shipping: Yq.blue
+        case .whatsapp: Yq.green
         default: Yq.teal
         }
     }
@@ -90,7 +93,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .invoices: ["pos"]
         case .products: ["inventory"]
         case .shortages: ["shortages"]
-        case .customers, .isp: ["customers"]
+        case .customers, .isp, .whatsapp: ["customers"]
         case .vault: ["vaults"]
         case .expenses: ["expenses"]
         case .purchases, .suppliers: ["purchase.view"]
@@ -111,7 +114,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .dashboard, .invoices, .customers, .vault, .expenses, .reports: "المال والمبيعات"
         case .products, .shortages, .purchases, .suppliers, .returns: "المخزون والمشتريات"
         case .isp, .network, .importer: "الإنترنت والشبكة"
-        case .repairs, .shipping: "العمليات"
+        case .repairs, .shipping, .whatsapp: "العمليات"
         case .employees, .sessions, .activity, .notifications, .settings: "الإدارة"
         }
     }

@@ -20,6 +20,8 @@ settings:
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
     # عنوان خادم ياقوت يُمرَّر وقت البناء (سرّ في GitHub) ولا يُحفظ في المستودع
     YQ_BASE_URL: ""
+    YQ_APP_PROFILE: ""
+    YQ_WIDGET_PROFILE: ""
 
 targets:
   YaqootERP:
@@ -27,6 +29,13 @@ targets:
     platform: iOS
     sources:
       - path: YaqootERP
+      - path: Shared
+    dependencies:
+      - target: YaqootWidgets
+    entitlements:
+      path: YaqootERP/YaqootERP.entitlements
+      properties:
+        com.apple.security.application-groups: [group.iq.yaqoot.erp]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: iq.yaqoot.erp
@@ -36,6 +45,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_STYLE: Automatic
         SUPPORTS_MACCATALYST: NO
+        PROVISIONING_PROFILE_SPECIFIER: $(YQ_APP_PROFILE)
     info:
       path: YaqootERP/Info.plist
       properties:
@@ -67,6 +77,42 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         YQBaseURL: $(YQ_BASE_URL)
+        YQAppGroup: group.iq.yaqoot.erp
+        NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLName: iq.yaqoot.erp
+            CFBundleURLSchemes: [sufyan]
+
+  # الودجت (الشاشة الرئيسية وشاشة القفل) والجزيرة الديناميكية
+  YaqootWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: YaqootWidgets
+      - path: Shared
+    entitlements:
+      path: YaqootWidgets/YaqootWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.iq.yaqoot.erp]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: iq.yaqoot.erp.widgets
+        PRODUCT_NAME: YaqootWidgets
+        INFOPLIST_FILE: YaqootWidgets/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
+        SKIP_INSTALL: YES
+        PROVISIONING_PROFILE_SPECIFIER: $(YQ_WIDGET_PROFILE)
+    info:
+      path: YaqootWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: مكتب سفيان
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        YQAppGroup: group.iq.yaqoot.erp
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   YaqootERPTests:
     type: bundle.unit-test

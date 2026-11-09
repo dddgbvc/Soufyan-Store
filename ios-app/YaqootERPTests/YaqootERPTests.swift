@@ -213,3 +213,37 @@ struct MiscTests {
         app.pendingRoute = nil
     }
 }
+
+@Suite("Widgets & Live Activity")
+struct WidgetTests {
+    @Test func parsesServerSummaryWithNumericStrings() throws {
+        let raw = #"{"ok":true,"store_name":"مكتب سفيان للموبايل","sales":{"today_total":"1845000.00","today_count":23},"collected_today":420000,"debts":{"total":110000.00,"debtors":2},"isp":{"expired":1,"soon":0,"total":1},"vault_balance":"221700.00","unread":3}"#
+        let s = try #require(ShopSummary(server: Data(raw.utf8)))
+        #expect(s.salesToday == 1_845_000)
+        #expect(s.invoicesToday == 23)
+        #expect(s.vault == 221_700)
+        #expect(s.debtors == 2)
+        #expect(s.ispExpired == 1)
+        #expect(s.unread == 3)
+        #expect(s.repairsReady == nil)   // لا صلاحية صيانة = لا يظهر
+    }
+
+    @Test func rejectsFailedSummary() {
+        #expect(ShopSummary(server: Data(#"{"ok":false,"reason":"unregistered"}"#.utf8)) == nil)
+    }
+
+    @Test func compactMoney() {
+        #expect(Compact.money(1_850_000) == "1.85م")
+        #expect(Compact.money(1_500_000) == "1.5م")
+        #expect(Compact.money(2_000_000) == "2م")
+        #expect(Compact.money(250_000) == "250ألف")
+        #expect(Compact.money(nil) == "—")
+        #expect(Compact.full(1_845_000) == "1,845,000")
+    }
+
+    @Test func liveActivityStateUsesSummary() {
+        let st = ShopActivityAttributes.ContentState(.placeholder)
+        #expect(st.salesToday == 1_845_000)
+        #expect(st.ispSoon == 14)
+    }
+}

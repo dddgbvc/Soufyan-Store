@@ -139,6 +139,7 @@ struct AddDebtSheet: View {
     @State private var amount = ""
     @State private var notes = ""
     @State private var cid = newClientID()
+    @State private var receipt = true
 
     var body: some View {
         let v = Fmt.parseMoney(amount)
@@ -149,13 +150,17 @@ struct AddDebtSheet: View {
             subtitle: customer.map { "الرصيد الحالي \(Fmt.iqd($0["balance"]))" },
             confirmTitle: "إضافة \(Fmt.iqd(v)) على \(customer?["name"].text ?? "")؟",
             confirmMessage: { "الرصيد سيصبح \(Fmt.iqd(bal + v)). تُسجَّل العملية باسمك." },
-            canSubmit: customer != nil && v > 0,
+            canSubmit: customer != nil && v > 0 && notes.trimmingCharacters(in: .whitespaces).count >= 2,
             submit: {
                 let r = try await API.shared.act("debt_add", [
                     "customer_id": customer!["id"], "amount": .num(v), "notes": .string(notes.trimmingCharacters(in: .whitespaces)),
                     "client_id": .string(cid),
                 ])
-                return "أُضيف الدين • الرصيد \(Fmt.iqd(r["remaining_debt"].isNull ? .num(bal + v) : r["remaining_debt"]))"
+                var done = "أُضيف الدين • الرصيد \(Fmt.iqd(r["remaining_debt"].isNull ? .num(bal + v) : r["remaining_debt"]))"
+                if receipt, let note = await sendWhatsAppReceipt(customerID: customer!["id"].text, operationID: cid) {
+                    done += " • لم يُرسل الإيصال: \(note)"
+                }
+                return done
             }
         ) {
             SwiftUI.Section("الزبون") { CustomerPicker(selected: $customer) }
@@ -165,8 +170,9 @@ struct AddDebtSheet: View {
                     Label("يتجاوز سقف الدين (\(Fmt.iqd(limit))). سيرفضه الخادم ما لم تملك الصلاحية.", systemImage: "exclamationmark.triangle")
                         .foregroundStyle(Yq.amber).font(.footnote)
                 }
-                TextField("ملاحظة (اختياري)", text: $notes, axis: .vertical)
+                TextField("سبب الدين (إلزامي)", text: $notes, axis: .vertical)
             }
+            SwiftUI.Section { ReceiptToggle(on: $receipt) }
         }
     }
 }
@@ -179,6 +185,7 @@ struct PayDebtSheet: View {
     @State private var reason = ""
     @State private var notes = ""
     @State private var cid = newClientID()
+    @State private var receipt = true
     private var canWaive: Bool { AppState.shared.can("customers.waiver") }
 
     var body: some View {
@@ -197,7 +204,11 @@ struct PayDebtSheet: View {
                     "customer_id": customer!["id"], "amount_paid": .num(p), "waived_amount": .num(w),
                     "waiver_reason": .string(reason), "notes": .string(notes), "client_id": .string(cid),
                 ])
-                return "قُبض \(Fmt.iqd(p)) • المتبقي \(Fmt.iqd(r["remaining_debt"].isNull ? .num(rest) : r["remaining_debt"]))"
+                var done = "قُبض \(Fmt.iqd(p)) • المتبقي \(Fmt.iqd(r["remaining_debt"].isNull ? .num(rest) : r["remaining_debt"]))"
+                if receipt, let note = await sendWhatsAppReceipt(customerID: customer!["id"].text, operationID: cid) {
+                    done += " • لم يُرسل الإيصال: \(note)"
+                }
+                return done
             }
         ) {
             SwiftUI.Section("الزبون") { CustomerPicker(selected: $customer) }
@@ -214,7 +225,10 @@ struct PayDebtSheet: View {
                     if w > 0 { TextField("سبب المسامحة (إلزامي)", text: $reason) }
                 }
             }
-            SwiftUI.Section { TextField("ملاحظة", text: $notes, axis: .vertical) }
+            SwiftUI.Section {
+                TextField("ملاحظة", text: $notes, axis: .vertical)
+                ReceiptToggle(on: $receipt)
+            }
         }
     }
 }
@@ -274,8 +288,24 @@ struct NewCustomerSheet: View {
     }
 }
 
-/// رسالة تذكير بالدين عبر واتساب.
+/// نص تذكير بالدين.
+func debtReminderText(_ c: JSON) -> String {
+    "مرحباً \(c["name"].text)،\nنود تذكيرك بأن رصيدك المستحق لدى \(AppState.shared.storeName) هو \(Fmt.money(c["balance"])) د.ع.\nشكراً لتعاملك معنا 🌷"
+}
+
+/// رابط تذكير بالدين عبر واتساب هذا الهاتف.
 func debtReminder(_ c: JSON) -> URL? {
-    Fmt.whatsapp(c["phone"].text,
-                 "مرحباً \(c["name"].text)،\nنود تذكيرك بأن رصيدك المستحق لدى \(AppState.shared.storeName) هو \(Fmt.money(c["balance"])) د.ع.\nشكراً لتعاملك معنا 🌷")
+    Fmt.whatsapp(c["phone"].text, debtReminderText(c))
+}
+
+/// خيار إرسال إيصال واتساب بعد العملية.
+struct ReceiptToggle: View {
+    @Binding var on: Bool
+    var body: some View {
+        if AppState.shared.can("customers") {
+            Toggle(isOn: $on) {
+                Label("إرسال إيصال للزبون من واتساب المحل", systemImage: "message.badge")
+            }
+        }
+    }
 }

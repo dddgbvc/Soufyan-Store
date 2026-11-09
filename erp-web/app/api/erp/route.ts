@@ -24,6 +24,8 @@ const RESOURCES: Record<string, {fn: string; params: string[]}> = {
   notify_admin: {fn: 'web_notify_admin', params: []},
   isp: {fn: 'web_isp_overview', params: ['q', 'status', 'limit']},
   activity: {fn: 'web_activity_feed', params: ['limit', 'before', 'actor']},
+  whatsapp: {fn: 'web_whatsapp_overview', params: ['limit']},
+  whatsapp_customer: {fn: 'web_whatsapp_customer', params: ['id']},
 };
 const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine', 'unread_only']);
 const INT = new Set(['limit', 'offset', 'before']);

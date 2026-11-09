@@ -6,6 +6,8 @@ struct SettingsView: View {
     @State private var app = AppState.shared
     @State private var notifier = Notifier.shared
     @State private var deviceOn = Notifier.shared.enabled
+    @State private var widgetsOn = Notifier.shared.widgetsEnabled
+    @State private var liveOn = LiveShop.isRunning
     @State private var bioOn = Biometrics.isEnabled
     @State private var busy = false
     @State private var toast: Toast?
@@ -29,6 +31,21 @@ struct SettingsView: View {
                 Text("الإشعارات")
             } footer: {
                 Text("يفحص التطبيق صندوقك كل دقيقة أثناء فتحه، وفي الخلفية حسب جدولة iOS. الإشعار الفوري والتطبيق مغلق يحتاج مفتاح APNs على الخادم.")
+            }
+
+            SwiftUI.Section {
+                Toggle(isOn: Binding(get: { widgetsOn }, set: { v in Task { await toggleWidgets(v) } })) {
+                    Label("تحديث الودجت في الخلفية", systemImage: "square.grid.2x2")
+                }
+                .disabled(busy)
+                Toggle(isOn: Binding(get: { liveOn }, set: { v in Task { await toggleLive(v) } })) {
+                    Label("متابعة مباشرة في الجزيرة الديناميكية", systemImage: "capsule.inset.filled")
+                }
+                .disabled(busy)
+            } header: {
+                Text("الودجت والجزيرة الديناميكية")
+            } footer: {
+                Text("أضف ودجت «مكتب سفيان» من الشاشة الرئيسية أو شاشة القفل (اضغط مطولاً ← تعديل ← إضافة ودجت). تعرض الأرقام حسب صلاحياتك وتتحدث كل 15 دقيقة تقريباً، والمتابعة المباشرة تتحدث كل دقيقة والتطبيق مفتوح.")
             }
 
             SwiftUI.Section {
@@ -122,6 +139,47 @@ struct SettingsView: View {
         } catch APIError.sessionExpired {
             app.expire()
         } catch {
+            toast = Toast(text: error.localizedDescription, error: true)
+        }
+    }
+
+    private func toggleWidgets(_ on: Bool) async {
+        busy = true
+        defer { busy = false }
+        do {
+            if on {
+                try await notifier.enableWidgets(deviceName: "\(UIDevice.current.model) • \(app.employeeName)")
+                toast = Toast(text: "تم تفعيل تحديث الودجت")
+            } else {
+                await notifier.disableWidgets()
+            }
+            widgetsOn = on
+        } catch APIError.sessionExpired {
+            app.expire()
+        } catch {
+            toast = Toast(text: error.localizedDescription, error: true)
+        }
+    }
+
+    private func toggleLive(_ on: Bool) async {
+        busy = true
+        defer { busy = false }
+        do {
+            if on {
+                if !notifier.widgetsEnabled {
+                    try await notifier.enableWidgets(deviceName: "\(UIDevice.current.model) • \(app.employeeName)")
+                    widgetsOn = true
+                }
+                try await LiveShop.start(store: app.storeName)
+                toast = Toast(text: "بدأت المتابعة المباشرة")
+            } else {
+                await LiveShop.stop()
+            }
+            liveOn = LiveShop.isRunning
+        } catch APIError.sessionExpired {
+            app.expire()
+        } catch {
+            liveOn = LiveShop.isRunning
             toast = Toast(text: error.localizedDescription, error: true)
         }
     }

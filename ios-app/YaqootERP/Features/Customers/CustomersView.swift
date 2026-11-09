@@ -196,8 +196,10 @@ struct StatementView: View {
                         Button { sheet = .add(c) } label: { Label("إضافة دين", systemImage: "plus") }
                             .buttonStyle(.glass)
                     }
-                    if bal > 0, let url = debtReminder(c) {
-                        Button { openURL(url) } label: { Label("تذكير واتساب", systemImage: "message.fill") }
+                    if !c["phone"].text.isEmpty {
+                        WhatsAppMenu(customerID: c["id"].string, customerName: c["name"].text, phone: c["phone"].text,
+                                     text: bal > 0 ? debtReminderText(c) : "مرحباً \(c["name"].text)، ",
+                                     title: bal > 0 ? "تذكير واتساب" : "واتساب")
                             .buttonStyle(.glass)
                     }
                     if let tel = Fmt.tel(c["phone"].text) {

@@ -14,53 +14,109 @@ final class Notifier {
 
     private let tokenKey = "notify_token"
     private let sinceKey = "notify_since"
+    private let notifyKey = "notify_on"
+    private let widgetsKey = "widgets_on"
 
-    var enabled: Bool { Keychain.get(tokenKey) != nil }
+    /// الجهاز مسجّل على الخادم (رمز سري) — يستعمله الإشعار والودجت والجزيرة الديناميكية.
+    var registered: Bool { token != nil }
+    /// إشعارات الجهاز مفعّلة (عرض إشعارات محلية).
+    var enabled: Bool { registered && UserDefaults.standard.object(forKey: notifyKey) as? Bool ?? true }
+    /// تحديث الودجت في الخلفية مفعّل.
+    var widgetsEnabled: Bool { registered && UserDefaults.standard.bool(forKey: widgetsKey) }
+
+    private var token: String? { SharedStore.token() ?? Keychain.get(tokenKey) }
+
+    private func storeToken(_ t: String?) {
+        Keychain.set(t, for: tokenKey)
+        SharedStore.setToken(t)
+    }
 
     func requestPermission() async -> Bool {
         (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])) ?? false
     }
 
-    /// تفعيل إشعارات هذا الجهاز للموظف الحالي (يتطلب جلسة PIN).
-    func enable(deviceName: String) async throws {
-        var token = Keychain.get(tokenKey)
-        if token == nil {
-            token = randomToken()
-            Keychain.set(token, for: tokenKey)
+    /// يسجّل الجهاز للموظف الحالي إن لم يكن مسجلاً (يتطلب جلسة PIN).
+    private func ensureRegistered(deviceName: String) async throws {
+        var t = token
+        if t == nil {
+            t = randomToken()
+            storeToken(t)
+        } else {
+            SharedStore.setToken(t)
         }
-        let last = try await API.shared.nativeRegister(token: token!, deviceName: deviceName)
-        UserDefaults.standard.set(last, forKey: sinceKey)
+        let last = try await API.shared.nativeRegister(token: t!, deviceName: deviceName)
+        if UserDefaults.standard.integer(forKey: sinceKey) == 0 { UserDefaults.standard.set(last, forKey: sinceKey) }
         scheduleBackgroundRefresh()
     }
 
+    /// تفعيل إشعارات هذا الجهاز للموظف الحالي.
+    func enable(deviceName: String) async throws {
+        try await ensureRegistered(deviceName: deviceName)
+        UserDefaults.standard.set(true, forKey: notifyKey)
+    }
+
     func disable() async {
-        if let token = Keychain.get(tokenKey) { await API.shared.nativeUnregister(token: token) }
-        Keychain.delete(tokenKey)
+        UserDefaults.standard.set(false, forKey: notifyKey)
+        if !UserDefaults.standard.bool(forKey: widgetsKey) { await unregister() }
+    }
+
+    /// الودجت والجزيرة الديناميكية: تسجيل الجهاز دون عرض إشعارات إن لم تكن مفعّلة.
+    func enableWidgets(deviceName: String) async throws {
+        if !registered { UserDefaults.standard.set(false, forKey: notifyKey) }
+        try await ensureRegistered(deviceName: deviceName)
+        UserDefaults.standard.set(true, forKey: widgetsKey)
+        await WidgetBridge.refresh()
+    }
+
+    func disableWidgets() async {
+        UserDefaults.standard.set(false, forKey: widgetsKey)
+        if !(UserDefaults.standard.object(forKey: notifyKey) as? Bool ?? true) { await unregister() }
+        WidgetBridge.reload()
+    }
+
+    /// عند الخروج من حساب المحل.
+    func unregister() async {
+        if let t = token { await API.shared.nativeUnregister(token: t) }
+        storeToken(nil)
         UserDefaults.standard.removeObject(forKey: sinceKey)
+        UserDefaults.standard.removeObject(forKey: widgetsKey)
+        UserDefaults.standard.removeObject(forKey: notifyKey)
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.refreshTaskID)
+        await LiveShop.stop()
+        WidgetBridge.reload()
     }
 
     func refreshIfEnabled() async {
-        guard enabled else { return }
-        _ = await pollOnce()
+        guard registered else { return }
+        // ترقية من نسخة سابقة: نسخ الرمز إلى Keychain المشترك حتى تقرأه الودجت.
+        if SharedStore.token() == nil, let t = Keychain.get(tokenKey) { SharedStore.setToken(t) }
+        if enabled { _ = await pollOnce() }
+        await WidgetBridge.refresh()
         scheduleBackgroundRefresh()
     }
 
     func scheduleBackgroundRefresh() {
-        guard enabled else { return }
+        guard registered else { return }
         let req = BGAppRefreshTaskRequest(identifier: Self.refreshTaskID)
         req.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
         try? BGTaskScheduler.shared.submit(req)
     }
 
+    /// مهمة الخلفية: الإشعارات + تحديث الودجت والجزيرة الديناميكية.
+    func backgroundRefresh() async {
+        if enabled { await pollOnce() }
+        await WidgetBridge.refresh()
+        scheduleBackgroundRefresh()
+    }
+
     /// يجلب الجديد ويعرضه كإشعارات محلية. يعيد عدد غير المقروء إن عُرف.
     @discardableResult
     func pollOnce() async -> Int? {
-        guard let token = Keychain.get(tokenKey), API.shared.hasBase else { return nil }
+        guard enabled, let token, API.shared.hasBase else { return nil }
         let since = UserDefaults.standard.integer(forKey: sinceKey)
         guard let r = try? await API.shared.nativePoll(token: token, since: since) else { return nil }
         guard r.json["ok"].isTrue else {
-            if r.json["reason"].string == "unregistered" { Keychain.delete(tokenKey) }
+            if r.json["reason"].string == "unregistered" { storeToken(nil) }
             return nil
         }
         let quiet = r.json["quiet"].isTrue

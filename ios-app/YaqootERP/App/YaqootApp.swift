@@ -16,8 +16,7 @@ struct YaqootApp: App {
         }
         .commands { YaqootCommands() }
         .backgroundTask(.appRefresh(Notifier.refreshTaskID)) {
-            await Notifier.shared.pollOnce()
-            await Notifier.shared.scheduleBackgroundRefresh()
+            await Notifier.shared.backgroundRefresh()
         }
 
         // نافذة مستقلة لفاتورة (آيباد: عدة نوافذ جنباً إلى جنب).
@@ -98,6 +97,11 @@ struct RootView: View {
         .environment(\.locale, Locale(identifier: "ar_IQ@numbers=latn"))
         .preferredColorScheme(app.appearance.scheme)
         .tint(Yq.teal)
+        .onOpenURL { url in
+            // روابط الودجت والجزيرة الديناميكية: sufyan://section/<القسم>
+            guard url.scheme == "sufyan", url.host() == "section" else { return }
+            app.route(fromURL: "/#" + url.lastPathComponent)
+        }
         .task {
             QuickAction.install()
             await app.boot()
@@ -110,6 +114,7 @@ struct RootView: View {
                 try? await Task.sleep(for: .seconds(60))
                 app.checkIdle()
                 if let n = await Notifier.shared.pollOnce() { app.unread = n }
+                await WidgetBridge.refresh()
             }
         }
     }

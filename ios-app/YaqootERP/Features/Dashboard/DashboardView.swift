@@ -1,11 +1,14 @@
 import Charts
 import SwiftUI
+import UIKit
 
 /// الرئيسية: مؤشرات اليوم والشهر على الزجاج، مخطط 7 أيام، ما يحتاج انتباهك، وآخر الفواتير.
 /// زر إجراءات سريعة زجاجي يتحول (morph) إلى قائمة إجراءات عبر GlassEffectContainer.
 struct DashboardView: View {
     @State private var app = AppState.shared
     @State private var sheet: QuickSheet?
+    @State private var live = LiveShop.isRunning
+    @State private var liveError: Toast?
 
     enum QuickSheet: String, Identifiable {
         case debt, pay, customer, expense
@@ -35,6 +38,18 @@ struct DashboardView: View {
         }
         .background { YaqootBackground() }
         .navigationDestination(for: InvoiceRef.self) { InvoiceDetailView(id: $0.id) }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    Task { await toggleLive() }
+                } label: {
+                    Image(systemName: live ? "capsule.inset.filled" : "capsule")
+                        .symbolEffect(.bounce, value: live)
+                }
+                .accessibilityLabel(live ? "إيقاف المتابعة في الجزيرة الديناميكية" : "متابعة أرقام اليوم في الجزيرة الديناميكية")
+            }
+        }
+        .toast($liveError)
         .overlay(alignment: .bottomLeading) {
             QuickActionsButton(actions: quickActions) { sheet = $0 }
                 .padding(20)
@@ -47,6 +62,25 @@ struct DashboardView: View {
             case .expense: NewExpenseSheet()
             }
         }
+    }
+
+    private func toggleLive() async {
+        do {
+            if live {
+                await LiveShop.stop()
+            } else {
+                if !Notifier.shared.widgetsEnabled {
+                    try await Notifier.shared.enableWidgets(deviceName: "\(UIDevice.current.model) • \(app.employeeName)")
+                }
+                try await LiveShop.start(store: app.storeName)
+                liveError = Toast(text: "أرقام اليوم الآن في الجزيرة الديناميكية وشاشة القفل")
+            }
+        } catch APIError.sessionExpired {
+            app.expire()
+        } catch {
+            liveError = Toast(text: error.localizedDescription, error: true)
+        }
+        live = LiveShop.isRunning
     }
 
     private var quickActions: [(QuickSheet, String, String)] {

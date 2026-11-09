@@ -48,10 +48,14 @@ func stateColor(_ s: String) -> Color {
 }
 
 func ispReminder(_ s: JSON) -> URL? {
+    Fmt.whatsapp(s["customer_phone"].text, ispReminderText(s))
+}
+
+func ispReminderText(_ s: JSON) -> String {
     let name = s["customer_name"].string ?? s["display_name"].text
     let date = Fmt.dateOnly(s["expires_at"])
     let store = AppState.shared.storeName
-    return Fmt.whatsapp(s["customer_phone"].text, s["state"].text == "expired"
+    return (s["state"].text == "expired"
         ? "مرحباً \(name)،\nانتهى اشتراك الإنترنت (\(s["username"].text)) بتاريخ \(date).\nللتجديد تواصل معنا — \(store) 🌐"
         : "مرحباً \(name)،\nاشتراك الإنترنت (\(s["username"].text)) ينتهي بتاريخ \(date).\nجدّد مبكراً حتى لا ينقطع الخط — \(store) 🌐")
 }
@@ -208,8 +212,10 @@ struct SubscriberProfile: View {
             }
 
             SwiftUI.Section {
-                if let url = ispReminder(s) {
-                    Button { openURL(url) } label: { Label(st == "expired" ? "إبلاغ بانتهاء الاشتراك" : "تذكير بالتجديد", systemImage: "message.fill") }
+                if !s["customer_phone"].text.isEmpty {
+                    WhatsAppMenu(customerID: s["customer_id"].string, customerName: s["customer_name"].string ?? s["display_name"].text,
+                                 phone: s["customer_phone"].text, text: ispReminderText(s),
+                                 title: st == "expired" ? "إبلاغ بانتهاء الاشتراك" : "تذكير بالتجديد")
                 }
                 if let tel = Fmt.tel(s["customer_phone"].text) {
                     Button { openURL(tel) } label: { Label("اتصال", systemImage: "phone.fill") }
