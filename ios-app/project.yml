@@ -1,0 +1,97 @@
+# مشروع Xcode يُولَّد بـ XcodeGen:  brew install xcodegen && xcodegen generate
+name: YaqootERP
+options:
+  bundleIdPrefix: iq.yaqoot
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: ar
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    # عنوان خادم ياقوت يُمرَّر وقت البناء (سرّ في GitHub) ولا يُحفظ في المستودع
+    YQ_BASE_URL: ""
+
+targets:
+  YaqootERP:
+    type: application
+    platform: iOS
+    sources:
+      - path: YaqootERP
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: iq.yaqoot.erp
+        PRODUCT_NAME: YaqootERP
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_FILE: YaqootERP/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        SUPPORTS_MACCATALYST: NO
+    info:
+      path: YaqootERP/Info.plist
+      properties:
+        CFBundleDisplayName: ياقوت
+        CFBundleDevelopmentRegion: ar
+        CFBundleLocalizations: [ar, en]
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIBackgroundModes: [fetch, processing]
+        BGTaskSchedulerPermittedIdentifiers: [iq.yaqoot.erp.refresh]
+        NSFaceIDUsageDescription: يستعمل ياقوت Face ID لفتح جلستك بسرعة بدل كتابة رمز PIN.
+        NSLocalNetworkUsageDescription: يتصل ياقوت بأجهزة MikroTik وUISP داخل شبكة المكتب أو عبر VPN لعرض حالتها وإدارتها.
+        NSCameraUsageDescription: لتصوير كشوفات المشتركين الورقية واستيرادها.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        YQBaseURL: $(YQ_BASE_URL)
+
+  YaqootERPTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: YaqootERPTests
+    dependencies:
+      - target: YaqootERP
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: iq.yaqoot.erp.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/YaqootERP.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/YaqootERP
+        BUNDLE_LOADER: $(TEST_HOST)
+
+schemes:
+  YaqootERP:
+    build:
+      targets:
+        YaqootERP: all
+        YaqootERPTests: [test]
+    test:
+      targets:
+        - YaqootERPTests
+      gatherCoverageData: true
+    archive:
+      config: Release

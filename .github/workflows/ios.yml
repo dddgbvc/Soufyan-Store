@@ -1,0 +1,176 @@
+name: iOS app
+
+on:
+  push:
+    branches: [main, 'claude/**']
+    paths: ['ios-app/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: ios-app
+    env:
+      HAS_SIGNING: ${{ secrets.IOS_CERT_P12_BASE64 != '' && secrets.IOS_PROFILE_BASE64 != '' }}
+      YQ_BASE_URL: ${{ secrets.YQ_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          XC=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+          xcrun simctl list runtimes | grep -i ios
+
+      - name: Generate project (XcodeGen)
+        run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          command -v xcbeautify >/dev/null || brew install xcbeautify
+          xcodegen generate
+          mkdir -p build
+
+      - name: Pick simulators
+        run: |
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json, subprocess
+          d = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
+          rts = sorted([k for k in d["devices"] if "iOS-26" in k], reverse=True)
+          phone = pad = None
+          for rt in rts:
+              for dev in d["devices"][rt]:
+                  if not phone and dev["name"].startswith("iPhone"): phone = dev
+                  if not pad and dev["name"].startswith("iPad Pro"): pad = dev
+              if phone and pad: break
+          print(f"IPHONE_ID={phone['udid']}\nIPHONE_NAME={phone['name']}\nIPAD_ID={pad['udid']}\nIPAD_NAME={pad['name']}")
+          PY
+          cat "$GITHUB_ENV" | grep -E "IPHONE|IPAD"
+
+      - name: Build and test on iPhone simulator
+        run: |
+          set -o pipefail
+          xcodebuild test -project YaqootERP.xcodeproj -scheme YaqootERP \
+            -destination "id=$IPHONE_ID" -derivedDataPath build/dd \
+            -resultBundlePath build/tests-iphone.xcresult \
+            CODE_SIGNING_ALLOWED=NO YQ_BASE_URL="$YQ_BASE_URL" 2>&1 | tee build/iphone.log | xcbeautify --renderer github-actions
+
+      - name: Test on iPad simulator
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building -project YaqootERP.xcodeproj -scheme YaqootERP \
+            -destination "id=$IPAD_ID" -derivedDataPath build/dd \
+            -resultBundlePath build/tests-ipad.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/ipad.log | xcbeautify --renderer github-actions
+
+      - name: Launch and screenshot (iPhone and iPad)
+        run: |
+          APP=$(find build/dd/Build/Products -name "YaqootERP.app" -path "*iphonesimulator*" | head -1)
+          mkdir -p build/screens
+          for SIM in "$IPHONE_ID" "$IPAD_ID"; do
+            NAME=$( [ "$SIM" = "$IPHONE_ID" ] && echo iphone || echo ipad )
+            xcrun simctl boot "$SIM" || true
+            xcrun simctl bootstatus "$SIM" -b
+            xcrun simctl ui "$SIM" appearance light
+            xcrun simctl install "$SIM" "$APP"
+            xcrun simctl launch "$SIM" iq.yaqoot.erp
+            sleep 9
+            xcrun simctl io "$SIM" screenshot "build/screens/$NAME-1-welcome.png"
+            xcrun simctl terminate "$SIM" iq.yaqoot.erp || true
+            xcrun simctl launch "$SIM" iq.yaqoot.erp -welcomed YES
+            sleep 7
+            xcrun simctl io "$SIM" screenshot "build/screens/$NAME-2-login.png"
+            xcrun simctl ui "$SIM" appearance dark
+            sleep 3
+            xcrun simctl io "$SIM" screenshot "build/screens/$NAME-3-login-dark.png"
+            xcrun simctl shutdown "$SIM" || true
+          done
+          ls -la build/screens
+
+      - name: Archive (device build, unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild archive -project YaqootERP.xcodeproj -scheme YaqootERP -configuration Release \
+            -destination "generic/platform=iOS" -archivePath build/YaqootERP-unsigned.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO YQ_BASE_URL="$YQ_BASE_URL" 2>&1 | tee build/archive.log | xcbeautify --renderer github-actions
+          mkdir -p build/unsigned/Payload
+          cp -R build/YaqootERP-unsigned.xcarchive/Products/Applications/YaqootERP.app build/unsigned/Payload/
+          (cd build/unsigned && zip -qry ../Yaqoot-ERP-unsigned.ipa Payload)
+          ls -la build/*.ipa
+
+      - name: Sign and export Ad Hoc IPA
+        if: env.HAS_SIGNING == 'true'
+        env:
+          P12: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          PROFILE: ${{ secrets.IOS_PROFILE_BASE64 }}
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          KC="$RUNNER_TEMP/signing.keychain-db"; KCPASS=$(uuidgen)
+          security create-keychain -p "$KCPASS" "$KC"
+          security set-keychain-settings -lut 3600 "$KC"
+          security unlock-keychain -p "$KCPASS" "$KC"
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -k "$KCPASS" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          echo "$PROFILE" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+          security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" > "$RUNNER_TEMP/profile.plist"
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$RUNNER_TEMP/profile.plist")
+          PNAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$RUNNER_TEMP/profile.plist")
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$RUNNER_TEMP/profile.mobileprovision" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".mobileprovision
+          /usr/libexec/PlistBuddy -c "Print ProvisionedDevices" "$RUNNER_TEMP/profile.plist" | sed 's/^/  device: /' || true
+
+          xcodebuild archive -project YaqootERP.xcodeproj -scheme YaqootERP -configuration Release \
+            -destination "generic/platform=iOS" -archivePath build/YaqootERP.xcarchive \
+            CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PNAME" OTHER_CODE_SIGN_FLAGS="--keychain $KC" YQ_BASE_URL="$YQ_BASE_URL" \
+            2>&1 | tee build/archive-signed.log | xcbeautify --renderer github-actions
+
+          cat > build/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>release-testing</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key><dict><key>iq.yaqoot.erp</key><string>$PNAME</string></dict>
+            <key>compileBitcode</key><false/>
+            <key>thinning</key><string>&lt;none&gt;</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath build/YaqootERP.xcarchive -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/export 2>&1 | tee build/export.log
+          cp build/export/*.ipa build/Yaqoot-ERP.ipa
+          codesign -dv --verbose=2 build/export/*.ipa 2>&1 || true
+          unzip -q -o build/Yaqoot-ERP.ipa -d build/check && codesign --verify --deep --strict build/check/Payload/YaqootERP.app && echo "IPA signature verified"
+          security delete-keychain "$KC"
+
+      - name: Upload IPA and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaqoot-ios-${{ github.run_number }}
+          path: |
+            ios-app/build/*.ipa
+            ios-app/build/screens/*.png
+            ios-app/build/*.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaqoot-ios-tests-${{ github.run_number }}
+          path: ios-app/build/*.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
