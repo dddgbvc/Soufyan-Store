@@ -1,9 +1,7 @@
 name: iOS app
 
+# البناء يدوي فقط (Actions ← iOS app ← Run workflow) حتى لا يُبنى التطبيق مع كل تعديل.
 on:
-  push:
-    branches: [main, 'claude/**']
-    paths: ['ios-app/**', '.github/workflows/ios.yml']
   workflow_dispatch:
 
 concurrency:
