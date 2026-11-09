@@ -224,7 +224,7 @@ struct ImportView: View {
                         Image(systemName: "doc.viewfinder").font(.system(size: 54)).foregroundStyle(Yq.teal)
                             .symbolEffect(.bounce, value: dropTargeted)
                         Text("استيراد كشف مشتركين أو ديون").font(.title2.bold())
-                        Text("PDF نصي أو ممسوح، Excel ‏(xlsx)، CSV، أو صورة. معاينة كاملة قبل أي حفظ، ولا يتكرر زبون أو دين عند رفع نفس الملف مرة ثانية.")
+                        Text("يقرأ ملفات PDF وExcel وCSV والصور، نصية كانت أو ممسوحة. تظهر معاينة كاملة قبل أي حفظ، ولا يتكرر زبون أو دين عند رفع نفس الملف مرة ثانية.")
                             .multilineTextAlignment(.center).foregroundStyle(.secondary)
                         if model.reading { ProgressView("جارٍ القراءة…") }
                         if let e = model.error { Label(e, systemImage: "exclamationmark.triangle").foregroundStyle(Yq.red) }

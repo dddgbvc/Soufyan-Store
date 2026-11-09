@@ -73,7 +73,7 @@ struct InvoicesView: View {
                     TableColumn("المتبقي", value: \.rest) { r in
                         Text(r.rest > 0 ? Fmt.money(r.rest) : "—").foregroundStyle(r.rest > 0 ? Yq.amber : .secondary).monospacedDigit()
                     }
-                    TableColumn("التاريخ", value: \.date) { Text(Fmt.when($0.date)) }
+                    TableColumn("التاريخ", value: \.date) { Text(Fmt.shortWhen($0.date)).monospacedDigit() }
                     TableColumn("الموظف", value: \.actor)
                 }
                 .contextMenu(forSelectionType: InvoiceRow.ID.self) { ids in

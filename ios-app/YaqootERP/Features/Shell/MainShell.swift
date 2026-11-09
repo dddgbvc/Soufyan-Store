@@ -10,7 +10,8 @@ struct MainShell: View {
     @Environment(\.horizontalSizeClass) private var size
 
     private var primary: [AppSection] { AppSection.phoneTabs.filter(app.allowed) }
-    private var groups: [String] { AppSection.groups.filter { !secondary(in: $0).isEmpty } }
+    /// على الآيفون لا نضيف تبويبات المجموعات (تظهر في «المزيد») حتى لا يُنشئ النظام تبويب More إضافياً.
+    private var groups: [String] { size == .compact ? [] : AppSection.groups.filter { !secondary(in: $0).isEmpty } }
     private func secondary(in group: String) -> [AppSection] {
         app.sections.filter { $0.group == group && !AppSection.phoneTabs.contains($0) }
     }
@@ -59,14 +60,15 @@ struct MainShell: View {
     }
 
     @TabContentBuilder<String> private var moreTab: some TabContent<String> {
-        Tab("المزيد", systemImage: "square.grid.3x3.fill", value: "more") {
-            NavigationStack(path: $morePath) {
-                MoreView()
-                    .navigationDestination(for: AppSection.self) { s in SectionScreen(section: s) }
+        ForEach(size == .compact ? ["more"] : [], id: \.self) { (_: String) in
+            Tab("المزيد", systemImage: "square.grid.3x3.fill", value: "more") {
+                NavigationStack(path: $morePath) {
+                    MoreView()
+                        .navigationDestination(for: AppSection.self) { s in SectionScreen(section: s) }
+                }
             }
+            .badge(app.unread)
         }
-        .badge(app.unread)
-        .defaultVisibility(.hidden, for: .sidebar)
     }
 
     @TabContentBuilder<String> private var searchTab: some TabContent<String> {

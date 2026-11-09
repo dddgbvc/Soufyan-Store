@@ -65,6 +65,13 @@ enum Fmt {
         return "\(c.day ?? 1) \(months[(c.month ?? 1) - 1]) • \(h):\(String(format: "%02d", c.minute ?? 0)) \(h24 < 12 ? "ص" : "م")"
     }
 
+    /// "9/11 8:12م" للجداول الضيقة.
+    static func shortWhen(_ d: Date) -> String {
+        let c = calendar.dateComponents([.day, .month, .hour, .minute], from: d)
+        let h24 = c.hour ?? 0
+        return "\(c.day ?? 1)/\(c.month ?? 1) \(h24 % 12 == 0 ? 12 : h24 % 12):\(String(format: "%02d", c.minute ?? 0))\(h24 < 12 ? "ص" : "م")"
+    }
+
     static func dateOnly(_ j: JSON) -> String {
         guard let d = parse(j.string) else { return "—" }
         let c = calendar.dateComponents([.day, .month, .year], from: d)

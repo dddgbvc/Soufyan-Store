@@ -119,5 +119,5 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
     static let groups = ["المال والمبيعات", "المخزون والمشتريات", "الإنترنت والشبكة", "العمليات", "الإدارة"]
 
     /// الأقسام الظاهرة في شريط تبويب الآيفون (الباقي في «المزيد» وفي الشريط الجانبي للآيباد).
-    static let phoneTabs: [AppSection] = [.dashboard, .invoices, .customers, .isp]
+    static let phoneTabs: [AppSection] = [.dashboard, .customers, .isp]
 }

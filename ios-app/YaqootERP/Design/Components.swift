@@ -9,7 +9,8 @@ struct YaqootBackground: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
+        ZStack {
+            Color(uiColor: .systemBackground)
             if reduceMotion {
                 mesh(phase: 0)
             } else {
