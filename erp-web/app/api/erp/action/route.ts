@@ -20,6 +20,11 @@ const ACTIONS: Record<string, string> = {
   shortage_add: 'web_shortage_add',
   shortages_report: 'web_shortages_report',
   sas_command: 'web_sas_command',
+  isp_renew_begin: 'isp_renewal_begin',
+  isp_renew_outcome: 'isp_renewal_record_outcome',
+  isp_renew_post: 'isp_renewal_post',
+  customer_phone: 'web_customer_set_phone',
+  whatsapp_auto_set: 'web_whatsapp_auto_set',
 };
 
 type Device = {id: string; endpoint: string; p256dh: string; auth: string};

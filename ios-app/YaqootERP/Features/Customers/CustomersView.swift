@@ -68,6 +68,13 @@ struct CustomersView: View {
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
+        .task(id: AppState.shared.refreshTick) {
+            isp = try? await API.shared.get("isp_profile", ["customer_ref": customerID])
+            wa = try? await API.shared.get("whatsapp_customer", ["id": customerID])
+        }
+        .sheet(item: Binding(get: { editingPhone.map { Record($0) } }, set: { editingPhone = $0?.json })) { r in
+            PhoneEditSheet(customer: r.json)
+        }
         .sheet(item: $sheet) { s in
             switch s {
             case .add(let c): AddDebtSheet(customer: c)
@@ -148,6 +155,9 @@ struct DebtSummary: View {
 struct StatementView: View {
     let customerID: String
     @State private var sheet: CustomersView.Sheet?
+    @State private var editingPhone: JSON?
+    @State private var isp: JSON?
+    @State private var wa: JSON?
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -166,7 +176,9 @@ struct StatementView: View {
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
 
-                SwiftUI.Section("الحركات (\(d["movements"].array.count))") {
+                CustomerExtras(isp: isp, wa: wa)
+
+                SwiftUI.Section("كل الحركات (\(d["movements"].array.count))") {
                     if d["movements"].array.isEmpty { Text("لا توجد حركات بعد").foregroundStyle(.secondary) }
                     ForEach(d["movements"].array.records) { m in MovementRow(m: m.json) }
                 }
@@ -201,6 +213,12 @@ struct StatementView: View {
                                      text: bal > 0 ? debtReminderText(c) : "مرحباً \(c["name"].text)، ",
                                      title: bal > 0 ? "تذكير واتساب" : "واتساب")
                             .buttonStyle(.glass)
+                    }
+                    if AppState.shared.can("customers.edit") {
+                        Button { editingPhone = c } label: {
+                            Label(c["phone"].text.isEmpty ? "إضافة هاتف" : "تعديل الهاتف", systemImage: "person.crop.circle.badge.plus")
+                        }
+                        .buttonStyle(.glass)
                     }
                     if let tel = Fmt.tel(c["phone"].text) {
                         Button { openURL(tel) } label: { Label("اتصال", systemImage: "phone.fill") }

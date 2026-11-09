@@ -44,7 +44,7 @@ struct SummaryProvider: TimelineProvider {
             let live = await SummaryLoader.fetch()
             let entry = SummaryEntry(date: Date(), summary: live ?? SharedStore.loadSummary(), fresh: live != nil)
             // iOS يحدد التوقيت الفعلي؛ نطلب تحديثاً كل 15 دقيقة تقريباً.
-            completion(Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(15 * 60))))
+            completion(Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(10 * 60))))
         }
     }
 }
@@ -104,7 +104,8 @@ struct ShopSummaryView: View {
     private var empty: some View {
         VStack(spacing: 6) {
             BrandGlyph(height: 22, onDark: scheme == .dark)
-            Text("افتح التطبيق وفعّل «تحديث الودجت» من الإعدادات")
+            Text(SharedStore.isAvailable ? "افتح التطبيق مرة واحدة ليبدأ التحديث"
+                 : "أداة التثبيت لم تفعّل مشاركة البيانات (App Groups) لهذا التطبيق")
                 .font(.caption2).multilineTextAlignment(.center).foregroundStyle(.secondary)
         }
     }

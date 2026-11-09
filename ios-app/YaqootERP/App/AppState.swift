@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// حالة التطبيق: الترحيب ← عنوان الخادم ← حساب المحل ← PIN ← الواجهة حسب الصلاحيات.
 @Observable
@@ -80,7 +81,13 @@ final class AppState {
             message = nil
             if !allowed(selected) { selected = sections.first ?? .settings }
             phase = .active
-            Task { await Notifier.shared.refreshIfEnabled() }
+            Task {
+                // الودجت والجزيرة الديناميكية تعمل تلقائياً بلا إعداد: يُسجَّل الجهاز مرة واحدة.
+                if !Notifier.shared.registered {
+                    try? await Notifier.shared.enableWidgets(deviceName: "\(UIDevice.current.model) • \(employeeName)")
+                }
+                await Notifier.shared.refreshIfEnabled()
+            }
         case "locked":
             phase = .locked
         default:

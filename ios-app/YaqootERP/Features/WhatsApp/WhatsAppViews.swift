@@ -22,6 +22,8 @@ struct WhatsAppView: View {
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
 
+                AutoSendSection()
+
                 SwiftUI.Section("آخر الرسائل") {
                     if d["items"].array.isEmpty { Text("لا توجد رسائل بعد").foregroundStyle(.secondary) }
                     ForEach(d["items"].array.records) { m in MessageRow(m: m.json, showCustomer: true) }
@@ -199,5 +201,76 @@ func sendWhatsAppReceipt(customerID: String, operationID: String) async -> Strin
         return nil
     } catch {
         return error.localizedDescription
+    }
+}
+
+
+/// الإرسال التلقائي لكل زبون موافق: إيصال كل حركة دين، قبل انتهاء الاشتراك، عند الانتهاء، وبعد التجديد.
+struct AutoSendSection: View {
+    @State private var enabled = false
+    @State private var s: [String: JSON] = [:]
+    @State private var loaded = false
+    @State private var busy = false
+    @State private var error: String?
+    private var canEdit: Bool { AppState.shared.can("customers.edit") }
+
+    var body: some View {
+        SwiftUI.Section {
+            Toggle(isOn: Binding(get: { enabled }, set: { v in save(enabled: v) })) {
+                Label("الإرسال التلقائي للزبائن", systemImage: "paperplane.circle.fill")
+            }
+            if enabled {
+                flag("receipts", "إيصال كل تسديد أو دين جديد", "المبلغ، من سدّد، والديون المتراكمة")
+                flag("isp_soon", "قبل انتهاء الاشتراك", "كم بقي من الاشتراك والديون المتراكمة")
+                if s["isp_soon"]?.isTrue ?? true {
+                    Stepper("قبل \(s["soon_days"]?.int ?? 3) أيام", value: Binding(get: { s["soon_days"]?.int ?? 3 }, set: { v in
+                        s["soon_days"] = .int(v); save(enabled: true)
+                    }), in: 1...10)
+                }
+                flag("isp_expired", "عند انتهاء الاشتراك", nil)
+                flag("isp_renewed", "بعد كل تجديد", "تاريخ الانتهاء الجديد والسعر والديون")
+            }
+            if let error { Text(error).foregroundStyle(Yq.red).font(.footnote) }
+        } header: {
+            Text("الإرسال التلقائي")
+        } footer: {
+            Text("للزبائن الموافقين على واتساب فقط، ومرة واحدة لكل حدث. تذكيرات الاشتراك تُرسل بين 10 صباحاً و8 مساءً ولبيانات مزامنة من المزوّد خلال يومين حتى لا يُبلَّغ زبون بانتهاء غير صحيح.")
+        }
+        .disabled(!canEdit || busy || !loaded)
+        .task { await load() }
+    }
+
+    private func flag(_ key: String, _ title: String, _ hint: String?) -> some View {
+        Toggle(isOn: Binding(get: { s[key]?.isTrue ?? true }, set: { v in s[key] = .bool(v); save(enabled: true) })) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                if let hint { Text(hint).font(.caption).foregroundStyle(.secondary) }
+            }
+        }
+    }
+
+    private func load() async {
+        if let r = try? await API.shared.get("whatsapp_auto") {
+            enabled = r["enabled"].isTrue
+            s = r["settings"].object
+        }
+        loaded = true
+    }
+
+    private func save(enabled on: Bool) {
+        busy = true
+        error = nil
+        var payload = s
+        payload["enabled"] = .bool(on)
+        Task {
+            defer { busy = false }
+            do {
+                let r = try await API.shared.act("whatsapp_auto_set", payload)
+                enabled = r["enabled"].isTrue
+                if case .object(let o) = r["settings"] { s = o }
+            } catch {
+                self.error = error.localizedDescription
+            }
+        }
     }
 }

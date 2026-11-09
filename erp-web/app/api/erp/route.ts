@@ -28,9 +28,13 @@ const RESOURCES: Record<string, {fn: string; params: string[]}> = {
   whatsapp_customer: {fn: 'web_whatsapp_customer', params: ['id']},
   sas_status: {fn: 'web_sas_status', params: []},
   sas_result: {fn: 'web_sas_command_result', params: ['id']},
+  isp_subscriber: {fn: 'web_isp_subscriber', params: ['id']},
+  isp_profile: {fn: 'isp_customer_profile', params: ['customer_ref']},
+  analytics: {fn: 'web_analytics', params: ['days']},
+  whatsapp_auto: {fn: 'web_whatsapp_auto_get', params: []},
 };
 const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine', 'unread_only']);
-const INT = new Set(['limit', 'offset', 'before']);
+const INT = new Set(['limit', 'offset', 'before', 'days']);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export async function GET(req: Request) {
@@ -57,6 +61,8 @@ export async function GET(req: Request) {
 
   try {
     const data = await serviceRpc(resource.fn, {p_session_id: sid, p_params: params});
+    // دوال البرنامج (isp_*) لا تضيف ok؛ نضيفها حتى تتعامل التطبيقات معها بنفس الطريقة.
+    if (data && typeof data === 'object' && !Array.isArray(data) && !('ok' in data)) return json({ok: true, ...data});
     return json(data);
   } catch (err) {
     if (err instanceof ServerError && err.code === 'session_expired') {

@@ -138,7 +138,24 @@ struct DashboardView: View {
         d["latest"] = try await inv["invoices"]
         d["low"] = try await low["products"]
         d["debtors"] = try await debtors["customers"]
+        feedWidget(.object(d))
         return .object(d)
+    }
+
+    /// الودجت تأخذ أرقام اليوم من الرئيسية أيضاً، فتتحدث فوراً كلما فُتح التطبيق.
+    private func feedWidget(_ d: JSON) {
+        let prev = SharedStore.loadSummary()
+        let s = d["sales"]
+        let snap = ShopSummary(
+            at: Date(), storeName: app.storeName,
+            salesToday: s.isNull ? d["my_sales"]["total"].double : s["today_total"].double,
+            invoicesToday: s.isNull ? d["my_sales"]["count"].int : s["today_count"].int,
+            collectedToday: d["collected"]["today"].double, vault: d["vault_balance"].double,
+            debts: d["debts"]["total"].double, debtors: d["debts"]["debtors"].int,
+            ispExpired: prev?.ispExpired, ispSoon: prev?.ispSoon,
+            repairsReady: d["repairs"]["ready"].int, unread: app.unread)
+        SharedStore.saveSummary(snap)
+        WidgetBridge.reload()
     }
 
     private func optional(_ allowed: Bool, _ resource: String, _ params: [String: String]) async throws -> JSON {
@@ -188,7 +205,11 @@ struct DashboardView: View {
         if !series.isEmpty {
             GlassPanel {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("مبيعات آخر 7 أيام").font(.headline)
+                    HStack {
+                        Text("مبيعات آخر 7 أيام").font(.headline)
+                        Spacer()
+                        Button("التحليلات") { app.go(.analytics) }.font(.subheadline)
+                    }
                     Chart(series.records) { x in
                         BarMark(x: .value("اليوم", Fmt.weekday(x["day"].text)), y: .value("المبيعات", x["total"].num))
                             .foregroundStyle(x["day"].text == d["today"].text ? Yq.deepGold.gradient : Yq.teal.gradient)
