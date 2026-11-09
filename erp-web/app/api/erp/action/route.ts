@@ -17,6 +17,9 @@ const ACTIONS: Record<string, string> = {
   notify_broadcast: 'web_notify_broadcast',
   whatsapp_send: 'web_whatsapp_send',
   whatsapp_consent: 'web_whatsapp_consent',
+  shortage_add: 'web_shortage_add',
+  shortages_report: 'web_shortages_report',
+  sas_command: 'web_sas_command',
 };
 
 type Device = {id: string; endpoint: string; p256dh: string; auth: string};
@@ -33,7 +36,7 @@ export async function POST(req: Request) {
     const result = await serviceRpc<Record<string, any>>(fn, {p_session_id: sid, p_payload: payload});
 
     // الإشعار المخصص يُرسل فوراً لأجهزة المستلمين.
-    if (body.action === 'notify_broadcast' && result?.item) {
+    if ((body.action === 'notify_broadcast' || body.action === 'shortages_report') && result?.item) {
       const item = result.item as {title: string; body: string; tag: string; url: string; devices: Device[]; recipients: number};
       const webDevices = (item.devices || []).filter(d => !d.endpoint.startsWith('native:'));
       const outcomes = await Promise.all(webDevices.map(d => deliver(d, {title: item.title, body: item.body, tag: item.tag, url: item.url})));

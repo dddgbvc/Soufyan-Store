@@ -1,5 +1,6 @@
 import BackgroundTasks
 import SwiftUI
+import UIKit
 
 @main
 struct YaqootApp: App {
@@ -107,14 +108,20 @@ struct RootView: View {
             await app.boot()
         }
         .task(id: app.phase) {
-            // فحص الخمول والإشعارات كل دقيقة أثناء فتح التطبيق.
+            // إشعارات لحظية والتطبيق مفتوح: فحص الصندوق كل 3 ثوانٍ (طلب خفيف بالرمز السري للجهاز)،
+            // والخمول والودجت كل دقيقة. الإشعار والتطبيق مغلق تماماً يحتاج APNs.
             guard app.phase == .active else { return }
             app.consumePendingRoute()
+            await UpdateChecker.shared.check()
+            var tick = 0
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(60))
-                app.checkIdle()
-                if let n = await Notifier.shared.pollOnce() { app.unread = n }
-                await WidgetBridge.refresh()
+                try? await Task.sleep(for: .seconds(3))
+                tick += 1
+                if UIApplication.shared.applicationState == .active, let n = await Notifier.shared.pollOnce() { app.unread = n }
+                if tick % 20 == 0 {
+                    app.checkIdle()
+                    await WidgetBridge.refresh()
+                }
             }
         }
     }

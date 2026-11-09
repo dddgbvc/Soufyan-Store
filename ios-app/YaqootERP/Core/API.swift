@@ -144,7 +144,8 @@ final class API {
         }
         guard let http = response as? HTTPURLResponse else { throw APIError.network }
         absorbCookies(http, url: url)
-        lastActivity = Date()
+        // الاستطلاع الآلي (الإشعارات والودجت) لا يُحسب نشاطاً حتى يعمل القفل بعد الخمول.
+        if !path.hasPrefix("/api/native") && path != "/app/ios.json" { lastActivity = Date() }
 
         let json = (try? JSONDecoder().decode(JSON.self, from: data)) ?? ["ok": false, "reason": "server_error"]
         return Response(json: json, status: http.statusCode)
@@ -229,6 +230,26 @@ final class API {
         if r.status == 401 { throw APIError.sessionExpired }
         guard case .object = r.json["prefs"] else { throw error(r, fallback: "تعذر حفظ الإعداد.") }
         return r.json["prefs"]
+    }
+
+    // MARK: - المساعد الذكي
+
+    struct ChatTurn: Sendable { let role: String; let content: String }
+
+    func assistant(_ turns: [ChatTurn]) async throws -> String {
+        let msgs: [JSON] = turns.map { ["role": .string($0.role), "content": .string($0.content)] }
+        let r = try await send("POST", "/api/assistant", body: ["messages": .array(msgs)])
+        if r.status == 401 { throw APIError.sessionExpired }
+        guard r.json["ok"].isTrue else { throw error(r, fallback: "تعذر الحصول على إجابة.") }
+        return r.json["reply"].text
+    }
+
+    // MARK: - التحديثات
+
+    /// ملف الإصدار المنشور على الخادم (‎/app/ios.json‎).
+    func latestRelease() async -> JSON? {
+        guard let r = try? await send("GET", "/app/ios.json"), r.status == 200, !r.json["build"].isNull else { return nil }
+        return r.json
     }
 
     // MARK: - إشعارات الجهاز (استطلاع بدون APNs)

@@ -44,3 +44,6 @@ yarn-error.log*
 
 # OS metadata
 .DS_Store
+
+# ملفات IPA تُنسخ هنا وقت النشر فقط (لا تُحفظ في Git)
+public/app/*.ipa

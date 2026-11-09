@@ -10,7 +10,7 @@ struct YaqootBackground: View {
 
     var body: some View {
         ZStack {
-            Color(uiColor: .systemBackground)
+            (scheme == .dark ? Color.black : Color.white)
             if reduceMotion {
                 mesh(phase: 0)
             } else {
@@ -26,11 +26,12 @@ struct YaqootBackground: View {
     private func mesh(phase t: Double) -> some View {
         let dx = Float(sin(t / 9) * 0.06)
         let dy = Float(cos(t / 11) * 0.05)
+        // أسود حقيقي في الداكن وأبيض نقي في الفاتح، مع لمسة خفيفة جداً من ألوان الشعار في الزوايا فقط.
         let dark = scheme == .dark
-        let base = dark ? Color(red: 0.04, green: 0.08, blue: 0.08) : Color(red: 0.96, green: 0.97, blue: 0.96)
-        let teal = dark ? Yq.teal.opacity(0.85) : Yq.teal.opacity(0.28)
-        let gold = dark ? Yq.deepGold.opacity(0.45) : Yq.gold.opacity(0.55)
-        let blue = dark ? Yq.blue.opacity(0.25) : Yq.blue.opacity(0.10)
+        let base = dark ? Color.black : Color.white
+        let teal = dark ? Yq.navy.opacity(0.55) : Yq.navy.opacity(0.06)
+        let gold = dark ? Yq.deepGold.opacity(0.14) : Yq.gold.opacity(0.16)
+        let blue = dark ? Color.black : Color.white
         return MeshGradient(
             width: 3, height: 3,
             points: [
@@ -85,7 +86,7 @@ struct KPITile: View {
                 Image(systemName: icon)
                     .font(.headline)
                     .foregroundStyle(color)
-                    .frame(width: 34, height: 34)
+                    .frame(width: 30, height: 30)
                     .background(color.opacity(0.14), in: .circle)
                 Spacer()
                 if action != nil {
@@ -95,7 +96,7 @@ struct KPITile: View {
             }
             Text(label).font(.subheadline).foregroundStyle(.secondary)
             Text(value)
-                .font(.title2.weight(.bold))
+                .font(.title3.weight(.bold))
                 .monospacedDigit()
                 .contentTransition(.numericText())
                 .lineLimit(1)
@@ -104,19 +105,19 @@ struct KPITile: View {
                 Text(hint).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, minHeight: 132, alignment: .topLeading)
+        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
         .contentShape(.rect(cornerRadius: 22))
 
         if let action {
             Button(action: action) { content }
                 .buttonStyle(.plain)
-                .glassEffect(.regular.tint(color.opacity(0.10)).interactive(), in: .rect(cornerRadius: 22))
+                .glassEffect(.regular.tint(color.opacity(0.06)).interactive(), in: .rect(cornerRadius: 20))
                 .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isButton)
         } else {
             content
-                .glassEffect(.regular.tint(color.opacity(0.10)), in: .rect(cornerRadius: 22))
+                .glassEffect(.regular.tint(color.opacity(0.06)), in: .rect(cornerRadius: 20))
                 .accessibilityElement(children: .combine)
         }
     }

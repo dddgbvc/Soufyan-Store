@@ -26,6 +26,8 @@ const RESOURCES: Record<string, {fn: string; params: string[]}> = {
   activity: {fn: 'web_activity_feed', params: ['limit', 'before', 'actor']},
   whatsapp: {fn: 'web_whatsapp_overview', params: ['limit']},
   whatsapp_customer: {fn: 'web_whatsapp_customer', params: ['id']},
+  sas_status: {fn: 'web_sas_status', params: []},
+  sas_result: {fn: 'web_sas_command_result', params: ['id']},
 };
 const BOOL = new Set(['debt_only', 'debtors_only', 'low_only', 'mine', 'unread_only']);
 const INT = new Set(['limit', 'offset', 'before']);

@@ -9,6 +9,7 @@ struct DashboardView: View {
     @State private var sheet: QuickSheet?
     @State private var live = LiveShop.isRunning
     @State private var liveError: Toast?
+    @State private var share: ShareItem?
 
     enum QuickSheet: String, Identifiable {
         case debt, pay, customer, expense
@@ -18,13 +19,18 @@ struct DashboardView: View {
     var body: some View {
         RemoteView(load: load) { d, remote in
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    HStack(spacing: 14) {
-                        BrandMark(size: 52)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("أهلاً \(app.employeeName)").font(.title.bold())
-                            Text("\(Fmt.todayLong()) • \(app.storeName)").foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 14) {
+                    UpdateBanner()
+                    HStack(spacing: 12) {
+                        BrandMark(size: 44)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("أهلاً \(app.employeeName)").font(.title3.bold())
+                            Text("\(Fmt.todayLong()) • \(app.storeName)").font(.subheadline).foregroundStyle(.secondary)
                         }
+                        Spacer()
+                        Button { dailyPDF(d) } label: { Image(systemName: "doc.richtext").font(.title3) }
+                            .buttonStyle(.glass).buttonBorderShape(.circle)
+                            .accessibilityLabel("تقرير اليوم PDF")
                     }
                     KPIGrid { tiles(d) }
                     chart(d)
@@ -40,6 +46,10 @@ struct DashboardView: View {
         .navigationDestination(for: InvoiceRef.self) { InvoiceDetailView(id: $0.id) }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
+                Button { app.go(.assistant) } label: { Image(systemName: "sparkles") }
+                    .accessibilityLabel("المساعد الذكي")
+            }
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
                     Task { await toggleLive() }
                 } label: {
@@ -50,6 +60,7 @@ struct DashboardView: View {
             }
         }
         .toast($liveError)
+        .sheet(item: $share) { ShareSheet(items: [$0.url]) }
         .overlay(alignment: .bottomLeading) {
             QuickActionsButton(actions: quickActions) { sheet = $0 }
                 .padding(20)
@@ -62,6 +73,30 @@ struct DashboardView: View {
             case .expense: NewExpenseSheet()
             }
         }
+    }
+
+    /// تقرير إغلاق اليوم PDF: المبيعات والمحصّل والمصروفات والخزنة والديون ومبيعات الأسبوع.
+    private func dailyPDF(_ d: JSON) {
+        var rows: [[String]] = []
+        let s = d["sales"]
+        if !s.isNull {
+            rows.append(["مبيعات اليوم", Fmt.iqd(s["today_total"]), "\(s["today_count"].text) فاتورة"])
+            rows.append(["المقبوض نقداً من المبيعات", Fmt.iqd(s["today_paid"]), ""])
+            rows.append(["مبيعات الشهر", Fmt.iqd(s["month_total"]), "\(s["month_count"].text) فاتورة"])
+        }
+        if d["collected"].isObject { rows.append(["تسديد ديون اليوم", Fmt.iqd(d["collected"]["today"]), "الشهر \(Fmt.money(d["collected"]["month"]))"]) }
+        if d["expenses"].isObject { rows.append(["مصروفات اليوم", Fmt.iqd(d["expenses"]["today"]), "الشهر \(Fmt.money(d["expenses"]["month"]))"]) }
+        if !d["profit"].isNull {
+            rows.append(["ربح اليوم", Fmt.iqd(d["profit"]["today_revenue"].num - d["profit"]["today_cost"].num), ""])
+        }
+        if !d["vault_balance"].isNull { rows.append(["رصيد الخزنة", Fmt.iqd(d["vault_balance"]), ""]) }
+        if d["debts"].isObject { rows.append(["ديون الزبائن", Fmt.iqd(d["debts"]["total"]), "\(d["debts"]["debtors"].text) زبون"]) }
+        let week = d["series"].array.map { [Fmt.weekday($0["day"].text), $0["day"].text, Fmt.iqd($0["total"])] }
+        let doc = ReportDocument(title: "تقرير اليوم", sections: [
+            .init(title: "الملخص", rows: rows, header: ["البند", "المبلغ", "ملاحظة"]),
+            .init(title: "مبيعات آخر 7 أيام", rows: week, header: ["اليوم", "التاريخ", "المبيعات"]),
+        ], subtitle: "أعدّه \(app.employeeName)")
+        if let url = PDFExport.render(doc, name: "تقرير-\(PDFExport.stamp)") { share = ShareItem(url: url) }
     }
 
     private func toggleLive() async {

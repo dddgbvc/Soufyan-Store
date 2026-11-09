@@ -4,7 +4,7 @@ import SwiftUI
 /// والخادم يرفض أي طلب خارج الصلاحية حتى لو ظهر القسم بالخطأ.
 enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
     case dashboard, invoices, products, shortages, customers, vault, expenses, purchases, suppliers
-    case repairs, returns, shipping, isp, network, importer, whatsapp, employees, sessions, activity, reports
+    case repairs, returns, shipping, isp, network, importer, whatsapp, assistant, employees, sessions, activity, reports
     case notifications, settings
 
     var id: String { rawValue }
@@ -27,6 +27,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .network: "أجهزة الشبكة"
         case .importer: "استيراد الكشوفات"
         case .whatsapp: "واتساب المحل"
+        case .assistant: "المساعد الذكي"
         case .employees: "الموظفون والصلاحيات"
         case .sessions: "الجلسات والأجهزة"
         case .activity: "سجل العمليات"
@@ -64,6 +65,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .network: "point.3.connected.trianglepath.dotted"
         case .importer: "doc.viewfinder"
         case .whatsapp: "bubble.left.and.text.bubble.right"
+        case .assistant: "sparkles"
         case .employees: "person.badge.key"
         case .sessions: "macbook.and.iphone"
         case .activity: "clock.arrow.trianglehead.counterclockwise.rotate.90"
@@ -82,6 +84,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .products, .returns: Yq.amber
         case .isp, .network, .repairs, .shipping: Yq.blue
         case .whatsapp: Yq.green
+        case .assistant: Yq.deepGold
         default: Yq.teal
         }
     }
@@ -105,13 +108,13 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .activity: ["employees.permissions"]
         case .network: ["network", "network.devices"]
         case .importer: ["customers.edit"]
-        case .notifications, .settings: []
+        case .notifications, .settings, .assistant: []
         }
     }
 
     var group: String {
         switch self {
-        case .dashboard, .invoices, .customers, .vault, .expenses, .reports: "المال والمبيعات"
+        case .dashboard, .invoices, .customers, .vault, .expenses, .reports, .assistant: "المال والمبيعات"
         case .products, .shortages, .purchases, .suppliers, .returns: "المخزون والمشتريات"
         case .isp, .network, .importer: "الإنترنت والشبكة"
         case .repairs, .shipping, .whatsapp: "العمليات"

@@ -8,6 +8,7 @@ import SwiftUI
 struct ISPView: View {
     @State private var model = Paged.erp("isp", listKey: "subscribers", pageSize: 300, filter: "status=all")
     @State private var profile: JSON?
+    @State private var sas = false
 
     var body: some View {
         PagedList(model: model, searchPrompt: "اسم المشترك، اسم المستخدم، أو الزبون…",
@@ -26,7 +27,9 @@ struct ISPView: View {
             NavigationStack { SubscriberProfile(s: r.json) }
                 .presentationDetents([.medium, .large])
         }
+        .sheet(isPresented: $sas) { SASSearchView() }
         .toolbar {
+            Button { sas = true } label: { Label("بحث في SAS4", systemImage: "antenna.radiowaves.left.and.right") }
             ShareLink(item: CSVFile(name: "مشتركو الإنترنت", header: ["المشترك", "اسم المستخدم", "الباقة", "الانتهاء", "الحالة", "الزبون", "دين الزبون"],
                                     rows: model.rows.map { r in
                                         [r["display_name"].text, r["username"].text, r["package_name"].text, Fmt.dateOnly(r["expires_at"]),
