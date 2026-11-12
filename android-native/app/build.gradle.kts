@@ -19,7 +19,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "iq.yaqoot.erp"
+        applicationId = "iq.sufyan.mobile"
         minSdk = 26
         targetSdk = 36
         versionCode = 3
