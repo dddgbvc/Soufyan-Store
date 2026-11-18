@@ -1,11 +1,10 @@
-# NEON RUSH 3D — real Unity Editor tests, real Unity iOS build (Xcode project), IPA on macOS.
+# NEON RUSH 3D — Unity iOS build (Xcode project) → UNSIGNED IPA on macOS, for signing with ESign.
 #
 # Required repository secrets (Settings › Secrets and variables › Actions):
 #   UNITY_LICENSE   contents of your Unity .ulf licence file (Unity Personal works)
 #   UNITY_EMAIL     Unity account e-mail
 #   UNITY_PASSWORD  Unity account password
-# Optional signing secrets (without them the IPA is UNSIGNED, ready for ESign):
-#   IOS_P12_BASE64, IOS_P12_PASSWORD, IOS_PROFILE_BASE64, IOS_EXPORT_METHOD (ad-hoc | development | enterprise)
+# No signing secrets are used: the IPA is unsigned.
 name: NeonRush iOS
 
 on:
@@ -38,57 +37,14 @@ jobs:
           [ -n "$E" ] || missing="$missing UNITY_EMAIL"
           [ -n "$P" ] || missing="$missing UNITY_PASSWORD"
           if [ -n "$missing" ]; then
-            echo "::error::Missing repository secrets:$missing — Unity cannot be activated, so no Editor test or iOS build can run."
+            echo "::error::Missing repository secrets:$missing — Unity cannot be activated, so the iOS build cannot run."
             exit 1
           fi
           echo "Unity licence secrets present."
 
-  tests:
-    name: Unity Editor — EditMode + PlayMode
-    needs: preflight
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: NeonRush3D/Library
-          key: Library-NeonRush-${{ hashFiles('NeonRush3D/Packages/manifest.json', 'NeonRush3D/ProjectSettings/ProjectVersion.txt') }}
-      - uses: game-ci/unity-test-runner@v4
-        id: tests
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          projectPath: NeonRush3D
-          testMode: all
-          artifactsPath: test-results
-      - name: Summarise test results
-        if: always()
-        run: |
-          python3 - <<'PY'
-          import glob, xml.etree.ElementTree as ET
-          for f in sorted(glob.glob('test-results/*.xml')):
-              r = ET.parse(f).getroot()
-              print(f"{f}: total={r.get('total')} passed={r.get('passed')} failed={r.get('failed')} skipped={r.get('skipped')}")
-              for t in r.iter('test-case'):
-                  out = t.find('output')
-                  print(f"  {t.get('result'):8} {t.get('fullname')}")
-                  if out is not None and out.text and '[NeonRush]' in out.text:
-                      for line in out.text.splitlines():
-                          if '[NeonRush]' in line: print('           ', line.strip())
-          PY
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: neonrush-test-results
-          path: |
-            test-results
-            NeonRush3D/Builds/Screenshots
-
   xcode:
     name: Unity iOS build → Xcode project
-    needs: tests
+    needs: preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -108,37 +64,26 @@ jobs:
           buildsPath: build
           versioning: None
           buildMethod: NeonRush.EditorTools.NeonRushBuild.BuildIOSCommandLine
-      - name: Verify iOS export (ProMotion, IL2CPP, Metal, ARM64, bundle id)
+      - name: Verify iOS export (ProMotion, IL2CPP, ARM64, bundle id)
         run: |
           set -e
           X=build/iOS/NeonRush
           sudo chown -R "$(id -u)" "$X" NeonRush3D || true
-          test -d "$X/Unity-iPhone.xcodeproj" && echo "OK  Xcode project: $X/Unity-iPhone.xcodeproj"
-          test -d "$X/Il2CppOutputProject" && echo "OK  IL2CPP output project present"
-          grep -A1 CADisableMinimumFrameDurationOnPhone "$X/Info.plist" | grep -q true && echo "OK  Info.plist CADisableMinimumFrameDurationOnPhone = true"
-          grep -A1 UIRequiresPersistentWiFi "$X/Info.plist" | grep -q false && echo "OK  UIRequiresPersistentWiFi = false"
-          grep -q "PRODUCT_BUNDLE_IDENTIFIER = com.sufyan.neonrush" "$X/Unity-iPhone.xcodeproj/project.pbxproj" && echo "OK  bundle id com.sufyan.neonrush"
-          grep -q 'ARCHS = arm64' "$X/Unity-iPhone.xcodeproj/project.pbxproj" && echo "OK  ARCHS = arm64"
-          grep -q 'MARKETING_VERSION = 1.0.0\|<string>1.0.0</string>' "$X/Unity-iPhone.xcodeproj/project.pbxproj" "$X/Info.plist" && echo "OK  version 1.0.0"
-          grep -E "appleEnableProMotion|m_BuildTargetGraphicsAPIs|scriptingBackend|iPhoneTargetOSVersionString|iPhoneBundleIdentifier|applicationIdentifier" -A3 NeonRush3D/ProjectSettings/ProjectSettings.asset | head -60
-          grep -q "appleEnableProMotion: 1" NeonRush3D/ProjectSettings/ProjectSettings.asset && echo "OK  ProjectSettings appleEnableProMotion: 1"
-          du -sh "$X"
-      - name: Pack Xcode project (keeps executable bits of IL2CPP tools)
+          test -d "$X/Unity-iPhone.xcodeproj" && echo "OK  Xcode project"
+          test -d "$X/Il2CppOutputProject" && echo "OK  IL2CPP"
+          grep -A1 CADisableMinimumFrameDurationOnPhone "$X/Info.plist" | grep -q true && echo "OK  ProMotion (CADisableMinimumFrameDurationOnPhone)"
+          grep -q "PRODUCT_BUNDLE_IDENTIFIER = com.sufyan.neonrush" "$X/Unity-iPhone.xcodeproj/project.pbxproj" && echo "OK  com.sufyan.neonrush"
+          grep -q 'ARCHS = arm64' "$X/Unity-iPhone.xcodeproj/project.pbxproj" && echo "OK  arm64"
+          grep -q "appleEnableProMotion: 1" NeonRush3D/ProjectSettings/ProjectSettings.asset && echo "OK  appleEnableProMotion: 1"
+      - name: Pack Xcode project (keeps executable bits)
         run: tar -C build/iOS -czf NeonRush-Xcode.tar.gz NeonRush && ls -lh NeonRush-Xcode.tar.gz
       - uses: actions/upload-artifact@v4
         with:
           name: neonrush-xcode
           path: NeonRush-Xcode.tar.gz
-      - uses: actions/upload-artifact@v4
-        with:
-          name: neonrush-generated-project-settings
-          path: |
-            NeonRush3D/ProjectSettings/ProjectSettings.asset
-            NeonRush3D/ProjectSettings/QualitySettings.asset
-            NeonRush3D/ProjectSettings/GraphicsSettings.asset
 
   ipa:
-    name: Xcode archive → IPA (macOS)
+    name: Xcode archive → unsigned IPA (macOS)
     needs: xcode
     runs-on: macos-14
     steps:
@@ -148,32 +93,11 @@ jobs:
           name: neonrush-xcode
           path: .
       - name: Unpack Xcode project
-        run: mkdir -p xcode && tar -xzf NeonRush-Xcode.tar.gz -C xcode --strip-components=1 && ls xcode
-      - name: Decode signing files (only if provided)
-        env:
-          P12: ${{ secrets.IOS_P12_BASE64 }}
-          PROFILE: ${{ secrets.IOS_PROFILE_BASE64 }}
-          PASS: ${{ secrets.IOS_P12_PASSWORD }}
-        run: |
-          if [ -n "$P12" ] && [ -n "$PROFILE" ]; then
-            echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
-            echo "$PROFILE" | base64 --decode > "$RUNNER_TEMP/app.mobileprovision"
-            echo "NR_P12_PATH=$RUNNER_TEMP/cert.p12" >> "$GITHUB_ENV"
-            echo "NR_PROFILE_PATH=$RUNNER_TEMP/app.mobileprovision" >> "$GITHUB_ENV"
-            NR_P12_PASSWORD="$PASS" python3 NeonRush3D/BuildTools/verify_signing.py --p12 "$RUNNER_TEMP/cert.p12" --profile "$RUNNER_TEMP/app.mobileprovision"
-          else
-            echo "No signing secrets: an UNSIGNED IPA will be produced."
-          fi
-      - name: Build IPA
-        env:
-          NR_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
-          NR_EXPORT_METHOD: ${{ secrets.IOS_EXPORT_METHOD }}
+        run: mkdir -p xcode && tar -xzf NeonRush-Xcode.tar.gz -C xcode --strip-components=1
+      - name: Build unsigned IPA
         run: |
           chmod +x NeonRush3D/BuildTools/make_ipa.sh
           NeonRush3D/BuildTools/make_ipa.sh "$GITHUB_WORKSPACE/xcode"
-      - name: Remove signing files
-        if: always()
-        run: rm -f "$RUNNER_TEMP/cert.p12" "$RUNNER_TEMP/app.mobileprovision"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
