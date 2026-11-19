@@ -150,6 +150,14 @@ namespace NeonRushLA.City
 
                     // Stop line across the incoming half (traffic arriving against axis drives on the left of across)
                     Vector3 stop = inter.Position + axis * (crossHw + 3.6f);
+                    int lanes = CityLayout.LanesPerDirection(roadLine);
+                    float median = CityLayout.MedianHalf(roadLine);
+                    for (int k = 0; k < lanes; k++)
+                    {
+                        Vector3 ap = inter.Position + axis * (crossHw + 9.5f) - across * (median + (k + 0.5f) * CityLayout.LaneWidth);
+                        if (Mathf.Abs(ap.x) < 398f && Mathf.Abs(ap.z) < 398f) CityMeshes.LaneArrow(ChunkAt(d, ap.x, ap.z).Detail, ap, -axis);
+                    }
+
                     for (float o = 0.3f; o < roadHw - 0.2f; o += 0.5f)
                     {
                         Vector3 p = stop + across * -o;
@@ -181,6 +189,12 @@ namespace NeonRushLA.City
                 Vector3 mid = (s + e) * 0.5f;
                 CityChunkData ch = ChunkAt(d, mid.x, mid.z);
                 float segLen = (e - s).magnitude;
+                if (segLen > 16f)
+                {
+                    float off = median + CityLayout.LaneWidth * (pi % 2 == 0 ? 0.5f : 1.5f);
+                    CityMeshes.Manhole(ch.Detail, mid + dir * 4f + side * (pi % 2 == 0 ? off : -off));
+                }
+
                 // Double yellow centre line
                 StripeQuad(ch.Detail[CityMeshes.LineYellow], mid + side * (median * 0.5f + 0.06f), dir, segLen, 0.12f);
                 StripeQuad(ch.Detail[CityMeshes.LineYellow], mid - side * (median * 0.5f + 0.06f), dir, segLen, 0.12f);
@@ -222,7 +236,7 @@ namespace NeonRushLA.City
             // Raised block: sidewalk ring + lot surface, curb faces.
             string lotMat = b.Kind == BlockKind.Downtown ? CityMeshes.Plaza : b.Kind == BlockKind.Parking ? CityMeshes.Asphalt
                 : b.Kind == BlockKind.Commercial ? CityMeshes.Plaza : CityMeshes.Grass;
-            AddRaised(ch.Base, fp, lot, top, lotMat);
+            AddRaised(ch.Base, ch.Detail, fp, lot, top, lotMat);
             d.Colliders.Add(new ColliderData { Center = new Vector3(fp.center.x, top * 0.5f, fp.center.y), Size = new Vector3(fp.width, top, fp.height), Layer = LALayers.Ground });
 
             StreetFurniture(d, b, rng);
@@ -247,21 +261,83 @@ namespace NeonRushLA.City
             }
         }
 
-        private static void AddRaised(PartSet set, Rect fp, Rect lot, float h, string lotMat)
+        public const float CornerRadius = 3f;
+
+        /// <summary>
+        /// Raised block: sidewalk ring with rounded street corners, curb faces, a concrete gutter pan on
+        /// the road along the curb, storm-drain inlets and the lot surface. Paving uses world-space UVs
+        /// so slab joints continue across pieces.
+        /// </summary>
+        private static void AddRaised(PartSet set, PartSet detail, Rect fp, Rect lot, float h, string lotMat)
         {
-            // Sidewalk ring (4 strips) + lot
             MeshData sw = set[CityMeshes.Sidewalk];
-            Quad(sw, fp.xMin, fp.yMin, fp.xMax, lot.yMin, h);
-            Quad(sw, fp.xMin, lot.yMax, fp.xMax, fp.yMax, h);
-            Quad(sw, fp.xMin, lot.yMin, lot.xMin, lot.yMax, h);
-            Quad(sw, lot.xMax, lot.yMin, fp.xMax, lot.yMax, h);
-            Quad(set[lotMat], lot.xMin, lot.yMin, lot.xMax, lot.yMax, h + 0.005f);
-            // Curb faces
             MeshData curb = set[CityMeshes.Curb];
-            curb.AddFlatQuad(new Vector3(fp.xMin, 0, fp.yMin), new Vector3(fp.xMax, 0, fp.yMin), new Vector3(fp.xMax, h, fp.yMin), new Vector3(fp.xMin, h, fp.yMin), Vector3.back);
-            curb.AddFlatQuad(new Vector3(fp.xMax, 0, fp.yMax), new Vector3(fp.xMin, 0, fp.yMax), new Vector3(fp.xMin, h, fp.yMax), new Vector3(fp.xMax, h, fp.yMax), Vector3.forward);
-            curb.AddFlatQuad(new Vector3(fp.xMin, 0, fp.yMax), new Vector3(fp.xMin, 0, fp.yMin), new Vector3(fp.xMin, h, fp.yMin), new Vector3(fp.xMin, h, fp.yMax), Vector3.left);
-            curb.AddFlatQuad(new Vector3(fp.xMax, 0, fp.yMin), new Vector3(fp.xMax, 0, fp.yMax), new Vector3(fp.xMax, h, fp.yMax), new Vector3(fp.xMax, h, fp.yMin), Vector3.right);
+            MeshData gutter = set[CityMeshes.Gutter];
+            MeshData asphalt = set[CityMeshes.Asphalt];
+            const float t = 0.25f, gw = 0.45f, gy = 0.004f;
+            float R = CornerRadius;
+            CityMeshes.GroundRect(sw, lot.xMin, fp.yMin, lot.xMax, lot.yMin, h, t);
+            CityMeshes.GroundRect(sw, lot.xMin, lot.yMax, lot.xMax, fp.yMax, h, t);
+            CityMeshes.GroundRect(sw, fp.xMin, lot.yMin, lot.xMin, lot.yMax, h, t);
+            CityMeshes.GroundRect(sw, lot.xMax, lot.yMin, fp.xMax, lot.yMax, h, t);
+            CityMeshes.GroundRect(set[lotMat], lot.xMin, lot.yMin, lot.xMax, lot.yMax, h + 0.005f, lotMat == CityMeshes.Asphalt ? 1f / 6f : t);
+
+            // Straight curb faces + gutters + storm drains
+            var edges = new[]
+            {
+                (new Vector3(fp.xMin + R, 0, fp.yMin), new Vector3(fp.xMax - R, 0, fp.yMin), Vector3.back),
+                (new Vector3(fp.xMax, 0, fp.yMin + R), new Vector3(fp.xMax, 0, fp.yMax - R), Vector3.right),
+                (new Vector3(fp.xMax - R, 0, fp.yMax), new Vector3(fp.xMin + R, 0, fp.yMax), Vector3.forward),
+                (new Vector3(fp.xMin, 0, fp.yMax - R), new Vector3(fp.xMin, 0, fp.yMin + R), Vector3.left),
+            };
+            foreach (var (a, b, n) in edges)
+            {
+                curb.AddFlatQuad(a, b, b + Vector3.up * h, a + Vector3.up * h, n, 0.25f);
+                Vector3 o = n * gw;
+                CityMeshes.QuadUV(gutter, a + o + Vector3.up * gy, b + o + Vector3.up * gy, b + Vector3.up * gy, a + Vector3.up * gy, Vector3.up,
+                    new Vector2(a.x + o.x, a.z + o.z) * t, new Vector2(b.x + o.x, b.z + o.z) * t, new Vector2(b.x, b.z) * t, new Vector2(a.x, a.z) * t);
+                Vector3 dir = (b - a).normalized;
+                float yaw = Mathf.Atan2(n.x, n.z) * Mathf.Rad2Deg;
+                foreach (Vector3 inlet in new[] { a + dir * 2.5f, b - dir * 2.5f })
+                {
+                    Shapes.Box(detail[CityMeshes.DarkMetal], Xform.Translate(inlet + n * 0.005f + Vector3.up * 0.07f) * Xform.RotateY(yaw), new Vector3(1.1f, 0.08f, 0.02f), 1f);
+                    Shapes.Box(detail[CityMeshes.DarkMetal], Xform.Translate(inlet + n * 0.25f + Vector3.up * gy * 2f) * Xform.RotateY(yaw), new Vector3(0.9f, 0.01f, 0.4f), 1f);
+                }
+            }
+
+            // Rounded corners: sidewalk fan, curb arc, gutter arc, asphalt fill outside the arc.
+            var corners = new[] { (-1, -1), (1, -1), (1, 1), (-1, 1) };
+            const int seg = 8;
+            foreach (var (sx, sz) in corners)
+            {
+                var fc = new Vector3(sx < 0 ? fp.xMin : fp.xMax, 0, sz < 0 ? fp.yMin : fp.yMax);
+                var lc = new Vector3(sx < 0 ? lot.xMin : lot.xMax, 0, sz < 0 ? lot.yMin : lot.yMax);
+                var ac = fc - new Vector3(sx * R, 0, sz * R);
+                float a0 = Mathf.Atan2(0f, sx), a1 = Mathf.Atan2(sz, 0f);
+                if (a1 - a0 > Mathf.PI) a1 -= 2f * Mathf.PI;
+                if (a0 - a1 > Mathf.PI) a1 += 2f * Mathf.PI;
+                var arc = new List<Vector3>();
+                for (int i = 0; i <= seg; i++)
+                {
+                    float ang = Mathf.Lerp(a0, a1, (float)i / seg);
+                    arc.Add(ac + new Vector3(Mathf.Cos(ang), 0, Mathf.Sin(ang)) * R);
+                }
+
+                var rim = new List<Vector3> { new Vector3(fc.x, h, lc.z) };
+                foreach (Vector3 p in arc) rim.Add(p + Vector3.up * h);
+                rim.Add(new Vector3(lc.x, h, fc.z));
+                CityMeshes.GroundFan(sw, new Vector3(lc.x, h, lc.z), rim, t);
+                CityMeshes.GroundFan(asphalt, fc, arc, 1f / 6f);
+                for (int i = 0; i < seg; i++)
+                {
+                    Vector3 p = arc[i], q = arc[i + 1];
+                    Vector3 n = ((p + q) * 0.5f - ac).normalized;
+                    curb.AddFlatQuad(p, q, q + Vector3.up * h, p + Vector3.up * h, n, 0.25f);
+                    Vector3 po = ac + (p - ac).normalized * (R + gw), qo = ac + (q - ac).normalized * (R + gw);
+                    CityMeshes.QuadUV(gutter, p + Vector3.up * gy, q + Vector3.up * gy, qo + Vector3.up * gy, po + Vector3.up * gy, Vector3.up,
+                        new Vector2(p.x, p.z) * t, new Vector2(q.x, q.z) * t, new Vector2(qo.x, qo.z) * t, new Vector2(po.x, po.z) * t);
+                }
+            }
         }
 
         private static void Quad(MeshData m, float x0, float z0, float x1, float z1, float y)
@@ -318,7 +394,7 @@ namespace NeonRushLA.City
             var inner = Rect.MinMaxRect(lot.xMin + depth + 4f, lot.yMin + depth + 4f, lot.xMax - depth - 4f, lot.yMax - depth - 4f);
             if (inner.width > 10f && inner.height > 10f)
             {
-                Quad(ch.Base[CityMeshes.Asphalt], inner.xMin, inner.yMin, inner.xMax, inner.yMax, g + 0.01f);
+                CityMeshes.GroundRect(ch.Base[CityMeshes.Asphalt], inner.xMin, inner.yMin, inner.xMax, inner.yMax, g + 0.01f, 1f / 6f);
                 ParkingLines(ch.Detail, inner, g + 0.02f);
             }
         }
@@ -334,7 +410,7 @@ namespace NeonRushLA.City
                 int floors = 1 + rng.Next(0, 4);
                 CityMeshes.Commercial(ch.Detail, r, floors, rng, g, street);
                 float h = 4.4f + (floors - 1) * 3.4f;
-                CityMeshes.FacadeBox(ch.Far, floors > 1 ? CityMeshes.FacadeBrick : CityMeshes.Storefront, new Vector3(r.xMin, g, r.yMin), new Vector3(r.xMax, g + h, r.yMax), 9f, 10.2f);
+                CityMeshes.FacadeBox(ch.Far, floors > 1 ? CityMeshes.FacadeBrick : CityMeshes.StorefrontSlot(0), new Vector3(r.xMin, g, r.yMin), new Vector3(r.xMax, g + h, r.yMax), 9f, 10.2f);
                 AddBuildingCollider(d, r, g, h + 1f);
                 pos += w + (rng.NextDouble() < 0.2 ? 6f : 0f);
             }
@@ -364,8 +440,10 @@ namespace NeonRushLA.City
                     float hw = 7f + (float)rng.NextDouble() * 3f, hd = 6f + (float)rng.NextDouble() * 2f;
                     var r = alongX ? new Rect(c.x - hw, c.y - hd, hw * 2f, hd * 2f) : new Rect(c.x - hd, c.y - hw, hd * 2f, hw * 2f);
                     int floors = rng.NextDouble() < 0.35 ? 2 : 1;
-                    CityMeshes.House(ch.Detail, r, floors, rng, g);
-                    CityMeshes.FacadeBox(ch.Far, CityMeshes.FacadeStucco, new Vector3(r.xMin, g, r.yMin), new Vector3(r.xMax, g + floors * 3.2f + 0.5f, r.yMax), 7f, 6.4f);
+                    float frontYard = setback + house * 0.5f - hd;
+                    int hs = rng.Next();
+                    CityMeshes.House(ch.Detail, r, floors, new System.Random(hs), g, street, frontYard);
+                    CityMeshes.House(ch.Far, r, floors, new System.Random(hs), g, street, frontYard, true);
                     AddBuildingCollider(d, r, g, floors * 3.2f + 0.6f);
                     // Front-yard palm or tree
                     var yard = new Vector3(c.x, g, c.y) + street * (setback * 0.5f + house * 0.5f);
@@ -442,13 +520,15 @@ namespace NeonRushLA.City
             Rect fp = b.Footprint;
             float edge = 1.0f; // from the curb
             float g = CityLayout.CurbHeight;
+            float inset = CornerRadius + 2f;
             var sides = new[]
             {
-                (new Vector3(fp.xMin + 10f, g, fp.yMin + edge), new Vector3(fp.xMax - 10f, g, fp.yMin + edge), Vector3.back),
-                (new Vector3(fp.xMin + 10f, g, fp.yMax - edge), new Vector3(fp.xMax - 10f, g, fp.yMax - edge), Vector3.forward),
-                (new Vector3(fp.xMin + edge, g, fp.yMin + 10f), new Vector3(fp.xMin + edge, g, fp.yMax - 10f), Vector3.left),
-                (new Vector3(fp.xMax - edge, g, fp.yMin + 10f), new Vector3(fp.xMax - edge, g, fp.yMax - 10f), Vector3.right),
+                (new Vector3(fp.xMin + inset, g, fp.yMin + edge), new Vector3(fp.xMax - inset, g, fp.yMin + edge), Vector3.back),
+                (new Vector3(fp.xMin + inset, g, fp.yMax - edge), new Vector3(fp.xMax - inset, g, fp.yMax - edge), Vector3.forward),
+                (new Vector3(fp.xMin + edge, g, fp.yMin + inset), new Vector3(fp.xMin + edge, g, fp.yMax - inset), Vector3.left),
+                (new Vector3(fp.xMax - edge, g, fp.yMin + inset), new Vector3(fp.xMax - edge, g, fp.yMax - inset), Vector3.right),
             };
+            bool shops = b.Kind == BlockKind.Commercial || b.Kind == BlockKind.Downtown;
             foreach (var (a, e, road) in sides)
             {
                 float len = (e - a).magnitude;
@@ -467,6 +547,60 @@ namespace NeonRushLA.City
                     else if (b.Kind != BlockKind.Downtown || rng.NextDouble() < 0.5)
                     {
                         AddPalm(d, ch, p, rng, false);
+                    }
+                }
+
+                // Fire hydrant near the curb, a few metres past a lamp/palm slot
+                {
+                    float t = 22f * Mathf.Floor(len * 0.4f / 22f) + 6f;
+                    Vector3 p = a + dir * t + road * 0.4f;
+                    CityMeshes.FireHydrant(ChunkAt(d, p.x, p.z).Detail, p);
+                    d.Colliders.Add(new ColliderData { Center = p + Vector3.up * 0.35f, Size = new Vector3(0.35f, 0.7f, 0.35f), Layer = LALayers.Environment });
+                }
+
+                if (shops)
+                {
+                    // Trash cans at both ends, a bus bench mid-block, parking meters along the curb
+                    foreach (float t in new[] { 2.5f, len - 2.5f })
+                    {
+                        Vector3 p = a + dir * t - road * 0.3f;
+                        CityMeshes.TrashCan(ChunkAt(d, p.x, p.z).Detail, p);
+                        d.Colliders.Add(new ColliderData { Center = p + Vector3.up * 0.5f, Size = new Vector3(0.6f, 1f, 0.6f), Layer = LALayers.Environment });
+                    }
+
+                    {
+                        Vector3 p = a + dir * 33f - road * 1.0f;
+                        CityMeshes.Bench(ChunkAt(d, p.x, p.z).Detail, p, road);
+                    }
+
+                    if (b.Kind == BlockKind.Commercial)
+                    {
+                        for (float t = 5f; t < len - 3f; t += 7f)
+                        {
+                            float m = t % 22f;
+                            if (m < 2.5f || m > 19.5f || Mathf.Abs(t - 33f) < 2f) continue;
+                            Vector3 p = a + dir * t + road * 0.45f;
+                            CityMeshes.ParkingMeter(ChunkAt(d, p.x, p.z).Detail, p);
+                        }
+                    }
+                }
+                else if (b.Kind == BlockKind.Residential)
+                {
+                    // Wooden utility poles with sagging lines (very LA)
+                    Vector3[] prev = null;
+                    for (float t = 11f; t <= len; t += 44f)
+                    {
+                        Vector3 p = a + dir * t + road * 0.55f;
+                        CityChunkData ch = ChunkAt(d, p.x, p.z);
+                        Vector3[] pts = CityMeshes.PowerPole(ch.Detail, p, dir, rng);
+                        AddPole(d, p);
+                        if (prev != null)
+                        {
+                            for (int k = 0; k < 3; k++) CityMeshes.WireSpan(ch.Detail, prev[k], pts[k], 0.55f);
+                            CityMeshes.WireSpan(ch.Detail, prev[0] + Vector3.down * 3.6f, pts[0] + Vector3.down * 3.6f, 0.4f, 0.022f); // phone/cable line
+                        }
+
+                        prev = pts;
                     }
                 }
             }
@@ -535,8 +669,8 @@ namespace NeonRushLA.City
             float z = CityLayout.FreewayZ, hw = CityLayout.FreewayHalfWidth, y = CityLayout.FreewayHeight;
             float x0 = CityLayout.FreewayDeckStart, x1 = CityLayout.FreewayDeckEnd, xr = CityLayout.FreewayRampEnd;
             // Deck (road surface + concrete underside)
-            Quad(f[CityMeshes.Asphalt], x0, z - hw, x1, z + hw, y);
-            Shapes.Box(f[CityMeshes.Concrete], new Vector3(0, y - 0.65f, z), new Vector3(x1 - x0, 1.3f, hw * 2f));
+            CityMeshes.GroundRect(f[CityMeshes.Asphalt], x0, z - hw, x1, z + hw, y, 1f / 6f);
+            Shapes.Box(f[CityMeshes.Concrete], new Vector3(0, y - 0.65f, z), new Vector3(x1 - x0, 1.3f, hw * 2f), 0.25f);
             d.Colliders.Add(new ColliderData { Center = new Vector3(0, y - 0.6f, z), Size = new Vector3(x1 - x0, 1.2f, hw * 2f), Layer = LALayers.Ground });
 
             // Ramps both ends
@@ -559,7 +693,7 @@ namespace NeonRushLA.City
                 {
                     var w0 = new Vector3(xa, y, z + side * hw);
                     var w1 = new Vector3(xb, g, z + side * hw);
-                    f[CityMeshes.Concrete].AddFlatQuad(w0 + Vector3.down * 6f, w1 + Vector3.down * 0.1f, w1 + Vector3.up * 1f, w0 + Vector3.up * 1f, new Vector3(0, 0, side));
+                    f[CityMeshes.Concrete].AddFlatQuad(w0 + Vector3.down * 6f, w1 + Vector3.down * 0.1f, w1 + Vector3.up * 1f, w0 + Vector3.up * 1f, new Vector3(0, 0, side), 0.25f);
                     d.Colliders.Add(new ColliderData { Center = (w0 + w1) * 0.5f + Vector3.up * 0.5f, Size = new Vector3(len, 1.4f, 0.4f), Euler = new Vector3(0, 0, s > 0 ? -pitch : pitch), Layer = LALayers.Environment });
                 }
             }
@@ -567,11 +701,11 @@ namespace NeonRushLA.City
             // Barriers along the deck
             for (int side = -1; side <= 1; side += 2)
             {
-                Shapes.Box(f[CityMeshes.Concrete], new Vector3(0, y + 0.5f, z + side * (hw - 0.2f)), new Vector3(x1 - x0, 1f, 0.4f));
+                Shapes.Box(f[CityMeshes.Concrete], new Vector3(0, y + 0.5f, z + side * (hw - 0.2f)), new Vector3(x1 - x0, 1f, 0.4f), 0.25f);
                 d.Colliders.Add(new ColliderData { Center = new Vector3(0, y + 0.6f, z + side * (hw - 0.2f)), Size = new Vector3(x1 - x0, 1.2f, 0.4f), Layer = LALayers.Environment });
             }
 
-            Shapes.Box(f[CityMeshes.Concrete], new Vector3(0, y + 0.45f, z), new Vector3(x1 - x0, 0.9f, 0.6f)); // centre divider
+            Shapes.Box(f[CityMeshes.Concrete], new Vector3(0, y + 0.45f, z), new Vector3(x1 - x0, 0.9f, 0.6f), 0.25f); // centre divider
             d.Colliders.Add(new ColliderData { Center = new Vector3(0, y + 0.45f, z), Size = new Vector3(x1 - x0, 0.9f, 0.6f), Layer = LALayers.Environment });
 
             // Lane markings
@@ -607,7 +741,7 @@ namespace NeonRushLA.City
                     d.Colliders.Add(new ColliderData { Center = p + Vector3.up * (y - 1.2f) * 0.5f, Size = new Vector3(2f, y - 1.2f, 2f), Layer = LALayers.Environment });
                 }
 
-                Shapes.Box(f[CityMeshes.Concrete], new Vector3(x, y - 1.6f, z), new Vector3(2.4f, 1.2f, hw * 2f - 2f));
+                Shapes.Box(f[CityMeshes.Concrete], new Vector3(x, y - 1.6f, z), new Vector3(2.4f, 1.2f, hw * 2f - 2f), 0.25f);
             }
 
             // Overhead freeway sign
@@ -623,8 +757,8 @@ namespace NeonRushLA.City
             {
                 d.Colliders.Add(new ColliderData { Center = new Vector3(side * e, 1.5f, 0), Size = new Vector3(1f, 3f, e * 2f), Layer = LALayers.Environment });
                 d.Colliders.Add(new ColliderData { Center = new Vector3(0, 1.5f, side * e), Size = new Vector3(e * 2f, 3f, 1f), Layer = LALayers.Environment });
-                Shapes.Box(d.Freeway[CityMeshes.Concrete], new Vector3(side * e, 0.6f, 0), new Vector3(0.8f, 1.2f, e * 2f));
-                Shapes.Box(d.Freeway[CityMeshes.Concrete], new Vector3(0, 0.6f, side * e), new Vector3(e * 2f, 1.2f, 0.8f));
+                Shapes.Box(d.Freeway[CityMeshes.Concrete], new Vector3(side * e, 0.6f, 0), new Vector3(0.8f, 1.2f, e * 2f), 0.25f);
+                Shapes.Box(d.Freeway[CityMeshes.Concrete], new Vector3(0, 0.6f, side * e), new Vector3(e * 2f, 1.2f, 0.8f), 0.25f);
             }
         }
     }

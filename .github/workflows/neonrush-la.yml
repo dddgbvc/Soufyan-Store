@@ -35,6 +35,8 @@ jobs:
         continue-on-error: true
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: |
           mkdir -p test-results
           LIC="$RUNNER_TEMP/Unity_lic.ulf"
@@ -43,14 +45,16 @@ jobs:
           set -u
           mkdir -p /root/.local/share/unity3d/Unity
           cp /lic/Unity_lic.ulf /root/.local/share/unity3d/Unity/Unity_lic.ulf
-          unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log -manualLicenseFile /lic/Unity_lic.ulf || true
+          # Same activation as game-ci/unity-builder: entitlement licence via the Unity account.
+          unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" || true
           for mode in EditMode PlayMode; do
             unity-editor -batchmode -nographics -projectPath /w/NeonRush3D -runTests -testPlatform "$mode" \
               -testResults "/w/test-results/$mode.xml" -logFile "/w/test-results/$mode.log"
             echo "$mode exit code: $?"
           done
+          unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log -returnlicense -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" || true
           SH
-          docker run --rm -v "$GITHUB_WORKSPACE:/w" -v "$RUNNER_TEMP:/lic:ro" -w /w \
+          docker run --rm -e UNITY_EMAIL -e UNITY_PASSWORD -v "$GITHUB_WORKSPACE:/w" -v "$RUNNER_TEMP:/lic:ro" -w /w \
             unityci/editor:ubuntu-2022.3.62f1-base-3 bash /lic/run-tests.sh
           rm -f "$LIC"
           sudo chown -R "$(id -u)" test-results NeonRush3D || true
@@ -61,8 +65,10 @@ jobs:
           for f in test-results/*.log; do echo "== $f (tail)"; tail -25 "$f"; done
       - name: Summarise test results
         if: always()
+        env:
+          MASK: ${{ secrets.UNITY_EMAIL }}
         run: |
-          python3 - <<'PY' | tee test-summary.txt
+          python3 - <<'PY' | sed "s/${MASK:-@@nomask@@}/***/g" | tee test-summary.txt
           import glob, xml.etree.ElementTree as ET
           files = sorted(glob.glob('test-results/*.xml'))
           if not files:
