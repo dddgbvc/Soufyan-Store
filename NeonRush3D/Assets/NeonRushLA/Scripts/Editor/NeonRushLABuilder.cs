@@ -58,7 +58,7 @@ namespace NeonRushLA.EditorTools
             NeonRushSceneBuilder.EnsureBuilt();
             SetupLayers();
 
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Scene scene = NeonRushSceneBuilder.BeginBuildScene(out Scene previous);
             UniversalRenderPipelineAsset urp = EnsurePipeline();
             MaterialLibrary lib = BuildMaterials();
             GameObject vortex = BuildVortexPrefab(lib);
@@ -67,6 +67,7 @@ namespace NeonRushLA.EditorTools
             BuildScene(scene, urp, lib, vortex, traffic, ped);
             ApplySettings();
             AssetDatabase.SaveAssets();
+            NeonRushSceneBuilder.EndBuildScene(scene, previous);
             Debug.Log("[NeonRushLA] Built " + ScenePath);
         }
 

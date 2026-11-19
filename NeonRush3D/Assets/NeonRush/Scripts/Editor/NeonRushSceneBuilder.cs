@@ -72,6 +72,34 @@ namespace NeonRush.EditorTools
             }
         }
 
+        /// <summary>
+        /// Opens an empty scene to build into. When the active scene is an unsaved scene with content
+        /// (the Test Runner's init scene during a PrebuildSetup), the new scene is opened additively so
+        /// that scene survives; otherwise it replaces the open scenes as before.
+        /// </summary>
+        public static Scene BeginBuildScene(out Scene previous)
+        {
+            previous = SceneManager.GetActiveScene();
+            bool keep = previous.IsValid() && previous.isLoaded && string.IsNullOrEmpty(previous.path) && previous.rootCount > 0;
+            if (!keep)
+            {
+                previous = default;
+                return EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            }
+
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            SceneManager.SetActiveScene(scene);
+            return scene;
+        }
+
+        /// <summary>Closes an additively opened build scene and re-activates the scene that was active before.</summary>
+        public static void EndBuildScene(Scene scene, Scene previous)
+        {
+            if (!previous.IsValid()) return;
+            SceneManager.SetActiveScene(previous);
+            EditorSceneManager.CloseScene(scene, true);
+        }
+
         /// <summary>Builds everything; returns validation issues (empty = OK).</summary>
         public static List<string> BuildAll()
         {
@@ -79,7 +107,7 @@ namespace NeonRush.EditorTools
 
             // Open the new scene FIRST: NewScene(Single) unloads unreferenced assets, which would
             // invalidate prefabs/materials created before it (MissingReferenceException in CI).
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Scene scene = BeginBuildScene(out Scene previous);
             ConfigureEnvironment();
 
             UniversalRenderPipelineAsset urp = NeonRushProjectSetup.EnsurePipeline();
@@ -227,6 +255,7 @@ namespace NeonRush.EditorTools
                 foreach (string i in issues) Debug.LogError("[NeonRush] " + i);
             }
 
+            EndBuildScene(scene, previous);
             return issues;
         }
 
