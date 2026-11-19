@@ -29,6 +29,7 @@ namespace NeonRush
         [SerializeField] private Text menuBestText;
         [SerializeField] private Button playButton;
         [SerializeField] private Button menuSettingsButton;
+        [SerializeField] private Button losAngelesButton;
 
         [Header("HUD")]
         [SerializeField] private Text scoreText;
@@ -102,6 +103,7 @@ namespace NeonRush
 
             playButton.onClick.AddListener(OnPlay);
             menuSettingsButton.onClick.AddListener(OpenSettings);
+            if (losAngelesButton != null) losAngelesButton.onClick.AddListener(OnLosAngeles);
             pauseButton.onClick.AddListener(OnPause);
             resumeButton.onClick.AddListener(OnResume);
             pauseRestartButton.onClick.AddListener(OnRestart);
@@ -141,6 +143,13 @@ namespace NeonRush
         }
 
         public void OnPlay() { Click(); game.StartRun(); }
+
+        public void OnLosAngeles()
+        {
+            Click();
+            Time.timeScale = 1f;
+            UnityEngine.SceneManagement.SceneManager.LoadScene("NeonRushLA");
+        }
         public void OnPause() { Click(); game.Pause(); }
         public void OnResume() { Click(); game.Resume(); }
         public void OnRestart() { Click(); _settingsOpen = false; game.Restart(); }

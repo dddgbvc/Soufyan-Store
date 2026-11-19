@@ -27,12 +27,11 @@ namespace NeonRush.Tests
         }
 
         [Test]
-        public void SceneIsInBuildSettingsFirst()
+        public void SceneIsInBuildSettings()
         {
             EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
             Assert.IsNotEmpty(scenes);
-            Assert.AreEqual(NeonRushSceneBuilder.ScenePath, scenes[0].path);
-            Assert.IsTrue(scenes[0].enabled);
+            Assert.IsTrue(System.Array.Exists(scenes, s => s.path == NeonRushSceneBuilder.ScenePath && s.enabled), "classic scene included");
         }
 
         [Test]
@@ -81,8 +80,9 @@ namespace NeonRush.Tests
             NamedBuildTarget ios = NamedBuildTarget.iOS;
             Assert.AreEqual("com.sufyan.neonrush", PlayerSettings.GetApplicationIdentifier(ios));
             Assert.AreEqual("Neon Rush", PlayerSettings.productName);
-            Assert.AreEqual("1.0.0", PlayerSettings.bundleVersion);
-            Assert.AreEqual("1", PlayerSettings.iOS.buildNumber);
+            // 1.0.0 (classic only) or 2.0.0 once the Los Angeles update is built.
+            CollectionAssert.Contains(new[] { "1.0.0", "2.0.0" }, PlayerSettings.bundleVersion);
+            CollectionAssert.Contains(new[] { "1", "2" }, PlayerSettings.iOS.buildNumber);
             Assert.AreEqual(ScriptingImplementation.IL2CPP, PlayerSettings.GetScriptingBackend(ios));
             Assert.AreEqual(1, PlayerSettings.GetArchitecture(ios), "ARM64");
             Assert.IsFalse(PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.iOS));

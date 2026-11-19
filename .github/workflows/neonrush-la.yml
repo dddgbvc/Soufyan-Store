@@ -1,0 +1,158 @@
+# NEON RUSH LA v2.0.0 — real Unity tests (EditMode + PlayMode: physics, traffic, pedestrians,
+# collisions), Unity iOS build → Xcode, Xcode archive → unsigned IPA on macOS.
+# Needs repository secrets UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD. No signing secrets used.
+name: NeonRush LA v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/ecstatic-planck-g7wzcy]
+    paths:
+      - 'NeonRush3D/**'
+      - '.github/workflows/neonrush-la.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: neonrush-la-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Unity tests (EditMode + PlayMode)
+    if: "!contains(github.event.head_commit.message, '[ci shots]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: NeonRush3D/Library
+          key: Library-NeonRushLA-tests-${{ hashFiles('NeonRush3D/Packages/manifest.json', 'NeonRush3D/ProjectSettings/ProjectVersion.txt') }}
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        continue-on-error: true
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: NeonRush3D
+          testMode: all
+          artifactsPath: test-results
+      - name: Summarise test results
+        if: always()
+        run: |
+          python3 - <<'PY' | tee test-summary.txt
+          import glob, xml.etree.ElementTree as ET
+          files = sorted(glob.glob('test-results/*.xml'))
+          if not files: print('NO TEST RESULTS PRODUCED')
+          for f in files:
+              r = ET.parse(f).getroot()
+              print(f"{f}: total={r.get('total')} passed={r.get('passed')} failed={r.get('failed')} skipped={r.get('skipped')}")
+              for t in r.iter('test-case'):
+                  print(f"  {t.get('result'):8} {t.get('fullname')}")
+                  out = t.find('output')
+                  if out is not None and out.text:
+                      for line in out.text.splitlines():
+                          if '[NeonRush' in line: print('            ', line.strip())
+                  msg = t.find('failure/message')
+                  if msg is not None and msg.text: print('            FAIL:', msg.text.strip().splitlines()[0][:300])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neonrush-la-test-results
+          path: |
+            test-results
+            test-summary.txt
+      - name: Commit test summary to the branch
+        if: always()
+        run: |
+          mkdir -p docs/neonrush-la
+          cp test-summary.txt docs/neonrush-la/test-summary.txt || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/neonrush-la/test-summary.txt
+          git commit -m "NeonRush LA test summary [ci shots]" || exit 0
+          for i in 1 2 3; do git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && break; sleep 5; done
+
+  xcode:
+    name: Unity iOS build v2.0.0 → Xcode
+    if: "!contains(github.event.head_commit.message, '[ci shots]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: NeonRush3D/Library
+          key: Library-NeonRushLA-iOS-${{ hashFiles('NeonRush3D/Packages/manifest.json', 'NeonRush3D/ProjectSettings/ProjectVersion.txt') }}
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: NeonRush3D
+          targetPlatform: iOS
+          buildName: NeonRushLA
+          buildsPath: build
+          versioning: None
+          buildMethod: NeonRushLA.EditorTools.NeonRushLABuild.BuildIOSCommandLine
+      - name: Verify iOS export
+        run: |
+          set -e
+          X=build/iOS/NeonRushLA
+          sudo chown -R "$(id -u)" "$X" NeonRush3D || true
+          test -d "$X/Unity-iPhone.xcodeproj" && echo "OK  Xcode project"
+          test -d "$X/Il2CppOutputProject" && echo "OK  IL2CPP"
+          grep -q "PRODUCT_BUNDLE_IDENTIFIER = com.sufyan.neonrush" "$X/Unity-iPhone.xcodeproj/project.pbxproj" && echo "OK  com.sufyan.neonrush"
+          grep -q 'ARCHS = arm64' "$X/Unity-iPhone.xcodeproj/project.pbxproj" && echo "OK  arm64"
+          grep -A1 CADisableMinimumFrameDurationOnPhone "$X/Info.plist" | grep -q true && echo "OK  ProMotion"
+          grep -A1 CFBundleShortVersionString "$X/Info.plist" | grep -q "2.0.0" && echo "OK  version 2.0.0"
+          grep -q "appleEnableProMotion: 1" NeonRush3D/ProjectSettings/ProjectSettings.asset && echo "OK  appleEnableProMotion"
+          ls "$X/Data" | head
+      - name: Pack Xcode project
+        run: tar -C build/iOS -czf NeonRushLA-Xcode.tar.gz NeonRushLA && ls -lh NeonRushLA-Xcode.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neonrush-la-xcode
+          path: NeonRushLA-Xcode.tar.gz
+
+  ipa:
+    name: Xcode archive → NeonRush-LA-v2.0.0.ipa (macOS)
+    needs: xcode
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: neonrush-la-xcode
+          path: .
+      - name: Unpack Xcode project
+        run: mkdir -p xcode && tar -xzf NeonRushLA-Xcode.tar.gz -C xcode --strip-components=1
+      - name: Build unsigned IPA
+        env:
+          NR_VERSION: "2.0.0"
+          NR_BUILD: "2"
+          NR_IPA_NAME: NeonRush-LA-v2.0.0.ipa
+        run: |
+          chmod +x NeonRush3D/BuildTools/make_ipa.sh
+          sw_vers; xcodebuild -version
+          NeonRush3D/BuildTools/make_ipa.sh "$GITHUB_WORKSPACE/xcode"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NeonRush-LA-v2.0.0
+          path: |
+            NeonRush3D/Builds/iOS/NeonRush-LA-v2.0.0.ipa
+            NeonRush3D/Builds/iOS/work/*.log
+      - name: Commit the unsigned IPA to dist/ (for local re-signing)
+        run: |
+          mkdir -p dist
+          cp NeonRush3D/Builds/iOS/NeonRush-LA-v2.0.0.ipa dist/NeonRush-LA-v2.0.0-unsigned.ipa
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/NeonRush-LA-v2.0.0-unsigned.ipa
+          git commit -m "Add unsigned NeonRush LA v2.0.0 IPA [ci shots]" || exit 0
+          for i in 1 2 3; do git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && break; sleep 5; done

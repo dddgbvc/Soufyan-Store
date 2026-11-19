@@ -600,7 +600,8 @@ namespace NeonRush.EditorTools
             Glow(title, Purple, 6f);
             Label(menu.transform, "Subtitle", "3D  •  ENDLESS NEON RUNNER", 40, new Color(0.75f, 0.8f, 1f), new Vector2(0f, 120f), new Vector2(1200f, 60f));
             Button play = MakeButton(menu.transform, "PlayButton", "PLAY", new Vector2(0f, -30f), new Vector2(540f, 140f), Cyan, 68, true);
-            Button menuSettings = MakeButton(menu.transform, "SettingsButton", "SETTINGS", new Vector2(0f, -195f), new Vector2(540f, 100f), new Color(0.2f, 0.1f, 0.38f, 0.95f), 42, false);
+            Button menuSettings = MakeButton(menu.transform, "SettingsButton", "SETTINGS", new Vector2(-285f, -195f), new Vector2(520f, 100f), new Color(0.2f, 0.1f, 0.38f, 0.95f), 42, false);
+            Button losAngeles = MakeButton(menu.transform, "LosAngelesButton", "LOS ANGELES", new Vector2(285f, -195f), new Vector2(520f, 100f), new Color(0.85f, 0.35f, 0.1f, 0.95f), 42, false);
             Text menuBest = Label(menu.transform, "Best", "BEST  0", 44, Pink, new Vector2(0f, -310f), new Vector2(900f, 70f), FontStyle.Bold);
             Text hint = Label(menu.transform, "Hint", "SWIPE OR TAP LEFT / RIGHT     •     KEYBOARD  A / D  OR  ARROWS     •     ESC  PAUSE", 28, new Color(0.65f, 0.65f, 0.85f), Vector2.zero, new Vector2(1700f, 50f));
             Anchor(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 70f));
@@ -610,6 +611,7 @@ namespace NeonRush.EditorTools
             Bind(ui, "menuBestText", menuBest);
             Bind(ui, "playButton", play);
             Bind(ui, "menuSettingsButton", menuSettings);
+            Bind(ui, "losAngelesButton", losAngeles);
 
             // ---------------- HUD
             CanvasGroup hud = Panel("HUDPanel", safe, new Color(0f, 0f, 0f, 0f));

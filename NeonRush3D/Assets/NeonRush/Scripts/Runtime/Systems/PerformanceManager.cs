@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace NeonRush
@@ -35,6 +36,8 @@ namespace NeonRush
         private float _cooldown;
         private float _stableTime;
         private bool _initialized;
+        private bool _swappedPipeline;
+        private RenderPipelineAsset _previousPipeline;
 
         public event Action StatsUpdated;
 
@@ -58,6 +61,14 @@ namespace NeonRush
             if (pipelineAsset != null)
             {
                 _originalRenderScale = pipelineAsset.renderScale;
+                // The project also hosts the LA scene with its own pipeline asset: make sure this
+                // scene renders with (and tunes) its own asset.
+                if (GraphicsSettings.currentRenderPipeline != pipelineAsset)
+                {
+                    _previousPipeline = QualitySettings.renderPipeline;
+                    QualitySettings.renderPipeline = pipelineAsset;
+                    _swappedPipeline = true;
+                }
             }
 
             if (mainCamera != null)
@@ -185,6 +196,7 @@ namespace NeonRush
 
         private void OnDestroy()
         {
+            if (_swappedPipeline) QualitySettings.renderPipeline = _previousPipeline;
 #if UNITY_EDITOR
             if (pipelineAsset != null && _originalRenderScale > 0f)
             {

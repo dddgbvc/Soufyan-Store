@@ -15,16 +15,16 @@
 # Output: Builds/iOS/NeonRush-iOS-v1.0.0.ipa
 set -euo pipefail
 
-BUNDLE_ID="com.sufyan.neonrush"
-VERSION="1.0.0"
-BUILD_NUMBER="1"
+BUNDLE_ID="${NR_BUNDLE_ID:-com.sufyan.neonrush}"
+VERSION="${NR_VERSION:-1.0.0}"
+BUILD_NUMBER="${NR_BUILD:-1}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$HERE/.." && pwd)"
 XCODE_DIR="${1:-$PROJECT_ROOT/Builds/iOS/Xcode}"
 OUT_DIR="$PROJECT_ROOT/Builds/iOS"
 WORK="$OUT_DIR/work"
 ARCHIVE="$WORK/NeonRush.xcarchive"
-IPA_NAME="NeonRush-iOS-v${VERSION}.ipa"
+IPA_NAME="${NR_IPA_NAME:-NeonRush-iOS-v${VERSION}.ipa}"
 IPA="$OUT_DIR/$IPA_NAME"
 
 die() { echo "ERROR: $*" >&2; exit 1; }

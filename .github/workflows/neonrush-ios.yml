@@ -7,13 +7,9 @@
 # No signing secrets are used: the IPA is unsigned.
 name: NeonRush iOS
 
+# v1.0.0 (classic only). Manual; the v2 Los Angeles build is neonrush-la.yml.
 on:
   workflow_dispatch:
-  push:
-    branches: [claude/ecstatic-planck-g7wzcy]
-    paths:
-      - 'NeonRush3D/**'
-      - '.github/workflows/neonrush-ios.yml'
 
 permissions:
   contents: read

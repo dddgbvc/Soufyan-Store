@@ -67,14 +67,9 @@ namespace NeonRush.EditorTools
         /// </summary>
         public static UniversalRenderPipelineAsset EnsurePipeline()
         {
-            var active = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
+            // The classic scene always binds its own asset (the project default may belong to the LA
+            // scene); the default pipeline is only assigned when the project has none.
             var ours = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
-
-            if (active != null && active != ours)
-            {
-                Debug.Log("[NeonRush] Project already uses URP asset '" + active.name + "'. Keeping it.");
-                return active;
-            }
 
             if (ours == null)
             {
@@ -129,7 +124,7 @@ namespace NeonRush.EditorTools
             }
 
             QualitySettings.SetQualityLevel(current, false);
-            return GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset ?? ours;
+            return ours;
         }
 
         private static void SetBool(SerializedObject so, string name, bool value)
