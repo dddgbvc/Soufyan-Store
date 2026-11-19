@@ -133,6 +133,7 @@ jobs:
           grep -A1 CADisableMinimumFrameDurationOnPhone "$X/Info.plist" | grep -q true && echo "OK  ProMotion"
           grep -A1 CFBundleShortVersionString "$X/Info.plist" | grep -q "2.0.0" && echo "OK  version 2.0.0"
           grep -q "appleEnableProMotion: 1" NeonRush3D/ProjectSettings/ProjectSettings.asset && echo "OK  appleEnableProMotion"
+          grep -A3 "m_BuildTarget: iOSSupport" NeonRush3D/ProjectSettings/ProjectSettings.asset | tr -d '\n' | grep -q "m_APIs: 10000000 *m_Automatic: 0" && echo "OK  iOS graphics API: Metal only" || echo "WARN iOS graphics API entry not found as expected"
           ls "$X/Data" | head
       - name: Pack Xcode project
         run: tar -C build/iOS -czf NeonRushLA-Xcode.tar.gz NeonRushLA && ls -lh NeonRushLA-Xcode.tar.gz

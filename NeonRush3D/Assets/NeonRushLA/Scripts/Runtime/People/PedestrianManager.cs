@@ -34,6 +34,7 @@ namespace NeonRushLA.People
             public float BaseSpeed;
             public float FleeTimer;
             public Vector3 FleeDir;
+            public bool Scripted;   // placed by a script/test: stands still and does not dodge
             public Vector3 Pos;
         }
 
@@ -135,7 +136,7 @@ namespace NeonRushLA.People
             Vector3 toPed = a.Pos - carPos;
             toPed.y = 0f;
             float speed = carVel.magnitude;
-            if (a.FleeTimer <= 0f && speed > 5f && toPed.magnitude < 16f)
+            if (!a.Scripted && a.FleeTimer <= 0f && speed > 5f && toPed.magnitude < 16f)
             {
                 Vector3 v = carVel / speed;
                 float ahead = Vector3.Dot(toPed, v);
@@ -268,7 +269,7 @@ namespace NeonRushLA.People
             _pool.Add(a.Ped);
         }
 
-        /// <summary>Places one walker at a position (tests / scripted moments).</summary>
+        /// <summary>Places one standing pedestrian at a position (tests / scripted moments); it does not dodge.</summary>
         public Pedestrian SpawnAt(Vector3 position)
         {
             if (_pool.Count == 0) return null;
@@ -290,7 +291,7 @@ namespace NeonRushLA.People
             ped.ResetPose();
             Dress(ped);
             var node = _layout.WalkNodes[nearest];
-            var agent = new Agent { Ped = ped, From = nearest, To = node.Links[0], BaseSpeed = 0f, Pos = position };
+            var agent = new Agent { Ped = ped, From = nearest, To = node.Links[0], BaseSpeed = 0f, Pos = position, Scripted = true };
             ped.transform.position = position;
             _active.Add(agent);
             return ped;

@@ -45,32 +45,45 @@ namespace NeonRush.Tests
             yield return null;
         }
 
-        private bool LaneBlocked(int lane, float ahead)
+        /// <summary>Distance to the nearest obstacle ahead in a lane (MaxValue when clear).</summary>
+        private float NearestBlock(int lane)
         {
             float z = _player.Position.z;
+            float best = float.MaxValue;
             foreach (Obstacle o in _game.Spawner.Active)
             {
                 float dz = o.transform.position.z - z;
-                if (o.Lane == lane && dz > -3.2f && dz < ahead) return true;
+                if (o.Lane == lane && dz > -3.2f && dz < best) best = dz;
             }
 
-            return false;
+            return best;
         }
 
-        /// <summary>Simple driver: if the current lane is blocked ahead, move to a free neighbour lane.</summary>
+        /// <summary>
+        /// Simple driver: when the current lane is blocked within the look-ahead, head for the lane whose
+        /// next obstacle is furthest away (one lane change at a time, two if the open lane is across the road),
+        /// as long as the lane it passes through is not blocked right next to the car.
+        /// </summary>
         private void Steer(float lookAhead)
         {
             int lane = _player.Lane;
-            if (!LaneBlocked(lane, lookAhead)) return;
-            int[] options = lane == 1 ? new[] { 0, 2 } : new[] { 1 };
-            foreach (int target in options)
+            float d = NearestBlock(lane);
+            if (d > lookAhead) return;
+            int target = lane;
+            float best = d + 3f;
+            for (int l = 0; l < PlayerController.LaneCount; l++)
             {
-                if (!LaneBlocked(target, lookAhead))
+                float n = NearestBlock(l);
+                if (l != lane && (n > best || (n == best && Mathf.Abs(l - lane) < Mathf.Abs(target - lane))))
                 {
-                    _player.RequestLane(target > lane ? 1 : -1);
-                    return;
+                    best = n;
+                    target = l;
                 }
             }
+
+            if (target == lane) return;
+            int step = target > lane ? 1 : -1;
+            if (NearestBlock(lane + step) > 2.5f) _player.RequestLane(step);
         }
 
         [UnityTest]
@@ -87,6 +100,7 @@ namespace NeonRush.Tests
                 yield return null;
             }
 
+            LogAssert.NoUnexpectedReceived();
             float seconds = Time.realtimeSinceStartup - start;
             Debug.Log("[NeonRush] Autopilot: state=" + _game.State + " time=" + seconds.ToString("0.0") + "s distance=" +
                       _game.Score.DistanceInt + "m score=" + _game.Score.ScoreInt + " speed=" + _game.SpeedKmh.ToString("0") +
@@ -97,7 +111,6 @@ namespace NeonRush.Tests
             Assert.Greater(lastRows, 10, "many obstacle rows were generated and passed");
             Assert.Greater(_game.Score.Distance, 400f);
             Assert.Greater(_game.Speed, _game.StartSpeed + 5f, "speed ramped up");
-            LogAssert.NoUnexpectedReceived();
         }
 
         [UnityTest]
@@ -142,9 +155,9 @@ namespace NeonRush.Tests
         [Timeout(60000)]
         public IEnumerator CaptureScreenshots()
         {
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null || Application.isBatchMode)
             {
-                Assert.Ignore("No graphics device (-nographics): screenshots skipped.");
+                Assert.Ignore("No presented frames in batch mode / -nographics: screenshots skipped.");
             }
 
             string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Builds", "Screenshots"));

@@ -85,8 +85,18 @@ namespace NeonRush.Tests
             CollectionAssert.Contains(new[] { "1", "2" }, PlayerSettings.iOS.buildNumber);
             Assert.AreEqual(ScriptingImplementation.IL2CPP, PlayerSettings.GetScriptingBackend(ios));
             Assert.AreEqual(1, PlayerSettings.GetArchitecture(ios), "ARM64");
-            Assert.IsFalse(PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.iOS));
-            CollectionAssert.AreEqual(new[] { GraphicsDeviceType.Metal }, PlayerSettings.GetGraphicsAPIs(BuildTarget.iOS));
+            // Graphics API settings for iOS only persist when the iOS module is installed (the iOS build
+            // job checks the exported project); the test-runner image has no iOS module.
+            if (BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.iOS, BuildTarget.iOS))
+            {
+                Assert.IsFalse(PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.iOS));
+                CollectionAssert.AreEqual(new[] { GraphicsDeviceType.Metal }, PlayerSettings.GetGraphicsAPIs(BuildTarget.iOS));
+            }
+            else
+            {
+                Debug.Log("[NeonRush] iOS module not installed here: Metal-only API check is done in the iOS build job.");
+            }
+
             Assert.IsTrue(PlayerSettings.allowedAutorotateToLandscapeLeft);
             Assert.IsTrue(PlayerSettings.allowedAutorotateToLandscapeRight);
             Assert.IsFalse(PlayerSettings.allowedAutorotateToPortrait);

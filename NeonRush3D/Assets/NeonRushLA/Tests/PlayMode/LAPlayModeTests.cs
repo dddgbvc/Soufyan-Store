@@ -100,8 +100,8 @@ namespace NeonRushLA.Tests
             yield return Seconds(3f);
             Assert.Greater(_boot.Traffic.ActiveCount, 3, "traffic spawned");
             Assert.Greater(_boot.Pedestrians.ActiveCount, 3, "pedestrians spawned");
-            Debug.Log("[NeonRushLA] Boot: city " + _boot.City.BuildMilliseconds.ToString("0") + " ms, traffic " + _boot.Traffic.ActiveCount + ", people " + _boot.Pedestrians.ActiveCount);
             LogAssert.NoUnexpectedReceived();
+            Debug.Log("[NeonRushLA] Boot: city " + _boot.City.BuildMilliseconds.ToString("0") + " ms, traffic " + _boot.Traffic.ActiveCount + ", people " + _boot.Pedestrians.ActiveCount);
         }
 
         [UnityTest, Timeout(180000)]
