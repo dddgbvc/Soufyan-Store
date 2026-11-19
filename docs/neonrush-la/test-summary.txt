@@ -1,1 +1,63 @@
 NO TEST RESULTS PRODUCED
+== test-results/EditMode.log
+    Batch mode:              YES
+    System name:             Linux
+    Distro version:          #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026
+    Kernel version:          7.0.0-1019-azure
+    Architecture:            x86_64
+    Available memory:        15983 MB
+    [Licensing::Module] Trying to connect to existing licensing client channel...
+    [Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
+    [Licensing::Module] Successfully launched the LicensingClient (PId: 79)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T07:49:42.477804Z"
+    [SignatureVerifier] Application signature verification not supported on this platform.
+    [Licensing::Client] Handshaking with LicensingClient:
+      Version:                 1.16.2+bdef8f5
+      Session Id:              069c0dbfe9cc422caeb1d2a452b797db
+      Correlation Id:          c13eadfa3524d52bbd4ba14be668389a
+      External correlation Id: 375128836827956747
+      Machine Id:              D7nTUnjNAmtsUMcnoyrqkgIbYdM=
+    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.57s, validation: 0.08s, handshake: 0.00s)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T07:49:42.555867Z"
+    [Licensing::Module] Connected to LicensingClient (PId: 79, launch time: 0.00, total connection time: 0.65s)
+    [Licensing::Module] Error: Access token is unavailable; failed to update
+    [Licensing::Client] Error: Code 500 while processing request (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
+    [Licensing::Client] Error: Code 500 while updating license in client (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
+    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+    [Licensing::Module] Error: 'com.unity.editor.headless' was not found.
+    Pro License: NO
+    Initialize udev device monitor.
+    CreateDirectory '/root/.cache/unity3d' failed:  (current dir: /w)
+    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+    No valid Unity Editor license found. Please activate your license.
+== test-results/PlayMode.log
+    Batch mode:              YES
+    System name:             Linux
+    Distro version:          #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026
+    Kernel version:          7.0.0-1019-azure
+    Architecture:            x86_64
+    Available memory:        15983 MB
+    [Licensing::Module] Trying to connect to existing licensing client channel...
+    [Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
+    [Licensing::Module] Successfully launched the LicensingClient (PId: 130)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T07:49:43.355842Z"
+    [SignatureVerifier] Application signature verification not supported on this platform.
+    [Licensing::Client] Handshaking with LicensingClient:
+      Version:                 1.16.2+bdef8f5
+      Session Id:              c47fc3bf48cd4297be2078d7b9bdaf57
+      Correlation Id:          e44de70f63c7dbf40e901640de66ff60
+      External correlation Id: 4956643716050367226
+      Machine Id:              D7nTUnjNAmtsUMcnoyrqkgIbYdM=
+    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.57s, validation: 0.07s, handshake: 0.00s)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T07:49:43.426287Z"
+    [Licensing::Module] Connected to LicensingClient (PId: 130, launch time: 0.00, total connection time: 0.64s)
+    [Licensing::Module] Error: Access token is unavailable; failed to update
+    [Licensing::Client] Error: Code 500 while processing request (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
+    [Licensing::Client] Error: Code 500 while updating license in client (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
+    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+    [Licensing::Module] Error: 'com.unity.editor.headless' was not found.
+    Pro License: NO
+    Initialize udev device monitor.
+    CreateDirectory '/root/.cache/unity3d' failed:  (current dir: /w)
+    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
+    No valid Unity Editor license found. Please activate your license.
