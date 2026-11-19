@@ -128,9 +128,13 @@ namespace NeonRushLA.People
             IsRagdoll = false;
             for (int i = 0; i < ragdollBodies.Length; i++)
             {
-                ragdollBodies[i].isKinematic = true;
-                ragdollBodies[i].velocity = Vector3.zero;
-                ragdollBodies[i].angularVelocity = Vector3.zero;
+                Rigidbody rb = ragdollBodies[i];
+                if (!rb.isKinematic)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                    rb.isKinematic = true;
+                }
             }
 
             for (int i = 0; i < ragdollColliders.Length; i++) ragdollColliders[i].enabled = false;

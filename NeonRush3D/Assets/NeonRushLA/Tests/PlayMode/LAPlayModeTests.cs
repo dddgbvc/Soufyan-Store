@@ -29,10 +29,15 @@ namespace NeonRushLA.Tests
         private LABootstrap _boot;
         private VehicleController _car;
         private VehicleInput _input;
+        private float _deadline;
+
+        /// <summary>Real-time guard so a stalled clock (timeScale 0, slow CI frames) can never hang the run.</summary>
+        private bool Alive => Time.realtimeSinceStartup < _deadline;
 
         [UnitySetUp]
         public IEnumerator Load()
         {
+            Debug.Log("[NeonRushLA] >> " + TestContext.CurrentContext.Test.Name + " (realtime " + Time.realtimeSinceStartup.ToString("0") + " s)");
             LASave.DeleteAll();
             yield return SceneManager.LoadSceneAsync("NeonRushLA", LoadSceneMode.Single);
             yield return null;
@@ -40,11 +45,13 @@ namespace NeonRushLA.Tests
             Assert.IsNotNull(_boot, "LABootstrap");
             _car = _boot.Player;
             _input = _car.GetComponent<VehicleInput>();
+            _deadline = Time.realtimeSinceStartup + 150f;
         }
 
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            Debug.Log("[NeonRushLA] << " + TestContext.CurrentContext.Test.Name + " " + TestContext.CurrentContext.Result.Outcome + " (realtime " + Time.realtimeSinceStartup.ToString("0") + " s)");
             Time.timeScale = 1f;
             LASave.DeleteAll();
             yield return null;
@@ -72,13 +79,13 @@ namespace NeonRushLA.Tests
             _input.OverrideHandbrake = hand;
         }
 
-        private static IEnumerator Seconds(float s)
+        private IEnumerator Seconds(float s)
         {
             float end = Time.time + s;
-            while (Time.time < end) yield return new WaitForFixedUpdate();
+            while ((Time.time < end) && Alive) yield return new WaitForFixedUpdate();
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator CityTrafficAndPeopleBootCleanly()
         {
             Assert.IsTrue(_boot.IsReady);
@@ -95,7 +102,7 @@ namespace NeonRushLA.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator CarRestsOnItsWheelsAndAcceleratesThroughGears()
         {
             QuietWorld();
@@ -109,7 +116,7 @@ namespace NeonRushLA.Tests
             Drive(1f, 0f, 0f, false);
             float t0 = Time.time;
             float t100 = -1f;
-            while (Time.time - t0 < 9f)
+            while ((Time.time - t0 < 9f) && Alive)
             {
                 if (t100 < 0f && _car.SpeedKmh >= 100f) t100 = Time.time - t0;
                 yield return new WaitForFixedUpdate();
@@ -121,33 +128,33 @@ namespace NeonRushLA.Tests
             Assert.Greater(Vector3.Dot(_car.transform.up, Vector3.up), 0.9f, "stays upright");
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator BrakesStopTheCar()
         {
             QuietWorld();
             PlaceOnBoulevard();
             Drive(1f, 0f, 0f, false);
             float t0 = Time.time;
-            while (_car.SpeedKmh < 90f && Time.time - t0 < 10f) yield return new WaitForFixedUpdate();
+            while ((_car.SpeedKmh < 90f && Time.time - t0 < 10f) && Alive) yield return new WaitForFixedUpdate();
             Vector3 start = _car.transform.position;
             float v0 = _car.SpeedKmh;
             Drive(0f, 1f, 0f, false);
             float tb = Time.time;
-            while (_car.SpeedKmh > 1f && Time.time - tb < 6f) yield return new WaitForFixedUpdate();
+            while ((_car.SpeedKmh > 1f && Time.time - tb < 6f) && Alive) yield return new WaitForFixedUpdate();
             float dist = (_car.transform.position - start).magnitude;
             Debug.Log("[NeonRushLA] Braking " + v0.ToString("0") + "→0 km/h in " + dist.ToString("0.0") + " m, " + (Time.time - tb).ToString("0.00") + " s");
             Assert.Less(_car.SpeedKmh, 2f);
             Assert.Less(dist, 70f);
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator SteeringTurnsTheCar()
         {
             QuietWorld();
             PlaceOnBoulevard();
             Drive(0.6f, 0f, 0f, false);
             float t0 = Time.time;
-            while (_car.SpeedKmh < 40f && Time.time - t0 < 6f) yield return new WaitForFixedUpdate();
+            while ((_car.SpeedKmh < 40f && Time.time - t0 < 6f) && Alive) yield return new WaitForFixedUpdate();
             float yaw0 = _car.transform.eulerAngles.y;
             Drive(0.3f, 0f, 1f, false);
             yield return Seconds(2f);
@@ -157,18 +164,18 @@ namespace NeonRushLA.Tests
             Assert.Greater(Vector3.Dot(_car.transform.up, Vector3.up), 0.85f, "no rollover");
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator HandbrakeTurnBreaksTheRearLoose()
         {
             QuietWorld();
             PlaceOnBoulevard(-360f);
             Drive(1f, 0f, 0f, false);
             float t0 = Time.time;
-            while (_car.SpeedKmh < 75f && Time.time - t0 < 8f) yield return new WaitForFixedUpdate();
+            while ((_car.SpeedKmh < 75f && Time.time - t0 < 8f) && Alive) yield return new WaitForFixedUpdate();
             Drive(0.4f, 0f, 1f, true);
             float maxSlip = 0f;
             float te = Time.time;
-            while (Time.time - te < 1.6f)
+            while ((Time.time - te < 1.6f) && Alive)
             {
                 maxSlip = Mathf.Max(maxSlip, _car.SlipAngle);
                 yield return new WaitForFixedUpdate();
@@ -178,7 +185,7 @@ namespace NeonRushLA.Tests
             Assert.Greater(maxSlip, 12f, "oversteer / drift");
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator FlippedCarRecoversOnItsOwn()
         {
             QuietWorld();
@@ -188,7 +195,7 @@ namespace NeonRushLA.Tests
             Assert.Greater(Vector3.Dot(_car.transform.up, Vector3.up), 0.9f, "auto reset after being upside down");
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator WallImpactDamagesAndStopsTheCar()
         {
             QuietWorld();
@@ -200,7 +207,7 @@ namespace NeonRushLA.Tests
             Drive(1f, 0f, 0f, false);
             float t0 = Time.time;
             float peak = 0f;
-            while (Time.time - t0 < 6f && damage.Impacts == 0)
+            while ((Time.time - t0 < 6f && damage.Impacts == 0) && Alive)
             {
                 peak = Mathf.Max(peak, _car.SpeedKmh);
                 yield return new WaitForFixedUpdate();
@@ -215,14 +222,14 @@ namespace NeonRushLA.Tests
             Object.Destroy(wall);
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator TrafficDrivesAndStopsAtRedLights()
         {
             _boot.Pedestrians.MaxPeople = 0;
             float t0 = Time.time;
             bool sawWaiting = false;
             float maxSpeed = 0f;
-            while (Time.time - t0 < 25f && !(sawWaiting && maxSpeed > 6f))
+            while ((Time.time - t0 < 25f && !(sawWaiting && maxSpeed > 6f)) && Alive)
             {
                 foreach (TrafficCar c in _boot.Traffic.Active)
                 {
@@ -238,7 +245,7 @@ namespace NeonRushLA.Tests
             Assert.IsTrue(sawWaiting, "traffic stops at red lights");
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator HittingAPedestrianTriggersRagdoll()
         {
             QuietWorld();
@@ -248,13 +255,13 @@ namespace NeonRushLA.Tests
             ped.transform.position = new Vector3(-320f, 0f, -134f);
             Drive(1f, 0f, 0f, false);
             float t0 = Time.time;
-            while (!ped.IsRagdoll && Time.time - t0 < 6f) yield return new WaitForFixedUpdate();
+            while ((!ped.IsRagdoll && Time.time - t0 < 6f) && Alive) yield return new WaitForFixedUpdate();
             Assert.IsTrue(ped.IsRagdoll, "ragdoll on impact");
             yield return Seconds(0.5f);
             Assert.Greater(ped.Hips.GetComponent<Rigidbody>().velocity.magnitude + (ped.Hips.position - new Vector3(-320f, 1f, -134f)).magnitude, 0.5f, "body is thrown physically");
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator CameraModesQualityAndNight()
         {
             VehicleCamera cam = _boot.CameraRig;
@@ -280,7 +287,7 @@ namespace NeonRushLA.Tests
             Assert.AreEqual(Application.targetFrameRate, _boot.Quality.TargetFps);
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator ChallengesStartAndTrackProgress()
         {
             QuietWorld();
@@ -297,7 +304,7 @@ namespace NeonRushLA.Tests
             Assert.IsFalse(_boot.Game.Running);
         }
 
-        [UnityTest]
+        [UnityTest, Timeout(180000)]
         public IEnumerator FreeRoamPerformanceSample()
         {
             Drive(0.7f, 0f, 0f, false);

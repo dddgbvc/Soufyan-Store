@@ -35,7 +35,7 @@ jobs:
       - name: Run Unity tests (EditMode + PlayMode)
         uses: game-ci/unity-test-runner@v4.3.1
         continue-on-error: true
-        timeout-minutes: 60
+        timeout-minutes: 45
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -58,9 +58,14 @@ jobs:
           files = sorted(glob.glob('test-results/*.xml'))
           if not files:
               print('NO TEST RESULTS PRODUCED')
-              for lg in sorted(glob.glob('test-results/*.log')):
-                  print('== ' + lg)
-                  for line in open(lg, errors='replace').read().splitlines()[-30:]: print('   ', line)
+          for lg in sorted(glob.glob('test-results/*.log')):
+              lines = open(lg, errors='replace').read().splitlines()
+              marks = [l.strip() for l in lines if l.startswith('[NeonRush') or 'error CS' in l or 'Exception:' in l]
+              print('== ' + lg + ' (' + str(len(lines)) + ' lines) — test progress / errors:')
+              for l in marks[-80:]: print('   ', l[:300])
+              if not files:
+                  print('== tail:')
+                  for l in lines[-30:]: print('   ', l)
           for f in files:
               r = ET.parse(f).getroot()
               print(f"{f}: total={r.get('total')} passed={r.get('passed')} failed={r.get('failed')} skipped={r.get('skipped')}")
@@ -89,7 +94,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/neonrush-la/test-summary.txt
           git commit -m "NeonRush LA test summary [ci shots]" || exit 0
-          for i in 1 2 3; do git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && break; sleep 5; done
+          for i in 1 2 3; do git pull --rebase --autostash origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && break; sleep 5; done
 
   xcode:
     name: Unity iOS build v2.0.0 → Xcode
