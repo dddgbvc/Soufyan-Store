@@ -76,6 +76,12 @@ namespace NeonRush.EditorTools
         public static List<string> BuildAll()
         {
             NeonRushProjectSetup.EnsureFolders();
+
+            // Open the new scene FIRST: NewScene(Single) unloads unreferenced assets, which would
+            // invalidate prefabs/materials created before it (MissingReferenceException in CI).
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            ConfigureEnvironment();
+
             UniversalRenderPipelineAsset urp = NeonRushProjectSetup.EnsurePipeline();
             NeonRushAssetFactory.Palette pal = NeonRushAssetFactory.CreatePalette();
 
@@ -88,9 +94,6 @@ namespace NeonRush.EditorTools
             };
             PlayerController carPrefab = BuildCarPrefab(pal);
             VolumeProfile postFx = BuildPostFxProfile();
-
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            ConfigureEnvironment();
 
             // ---------------------------------------------------------------- world
             var light = new GameObject("Directional Light").AddComponent<Light>();
