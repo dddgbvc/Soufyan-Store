@@ -4,13 +4,10 @@
 # the PNGs to docs/neonrush-screenshots on this branch.
 name: NeonRush screenshots
 
+# Manual only: under software OpenGL on GitHub runners the player is too slow to capture
+# within the timeout (two runs produced no frames). Kept for runners with a GPU.
 on:
   workflow_dispatch:
-  push:
-    branches: [claude/ecstatic-planck-g7wzcy]
-    paths:
-      - 'NeonRush3D/**'
-      - '.github/workflows/neonrush-screenshots.yml'
 
 permissions:
   contents: write
