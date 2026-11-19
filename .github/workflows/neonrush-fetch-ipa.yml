@@ -1,0 +1,36 @@
+# Copies the unsigned IPA artifact of a finished "NeonRush iOS" run into dist/ on this branch,
+# so it can be pulled with git (used for local re-signing).
+name: NeonRush fetch IPA
+
+on:
+  push:
+    branches: [claude/ecstatic-planck-g7wzcy]
+    paths:
+      - '.github/workflows/neonrush-fetch-ipa.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: NeonRush-iOS-v1.0.0
+          run-id: 44429472826
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: fetched
+      - name: Commit unsigned IPA
+        run: |
+          ls -la fetched
+          mkdir -p dist
+          cp fetched/NeonRush-iOS-v1.0.0.ipa dist/NeonRush-iOS-v1.0.0-unsigned.ipa
+          shasum -a 256 dist/NeonRush-iOS-v1.0.0-unsigned.ipa
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/NeonRush-iOS-v1.0.0-unsigned.ipa
+          git commit -m "Add unsigned NeonRush IPA from run 44429472826 [ci shots] [skip ipa]"
+          for i in 1 2 3; do git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && break; sleep 5; done
