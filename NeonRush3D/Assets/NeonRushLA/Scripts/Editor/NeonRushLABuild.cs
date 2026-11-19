@@ -35,6 +35,26 @@ namespace NeonRushLA.EditorTools
             EditorApplication.Exit(r != null && r.summary.result == BuildResult.Succeeded ? 0 : 1);
         }
 
+        /// <summary>
+        /// -executeMethod hook for the CI test run: generates both scenes and their assets up front, then
+        /// leaves an empty untitled scene open, so the Test Runner's PrebuildSetup never has to open scenes.
+        /// Does not quit (it runs alongside -runTests).
+        /// </summary>
+        public static void PrepareScenesCommandLine()
+        {
+            try
+            {
+                NeonRushLABuilder.EnsureBuilt();
+                AssetDatabase.SaveAssets();
+                UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.EmptyScene, UnityEditor.SceneManagement.NewSceneMode.Single);
+                Debug.Log("[NeonRushLA] Scenes prepared for tests: " + NeonRushLABuilder.ScenePath + ", " + NeonRush.EditorTools.NeonRushSceneBuilder.ScenePath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
         public static BuildReport Build(string path)
         {
             if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.iOS, BuildTarget.iOS))

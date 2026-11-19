@@ -45,6 +45,7 @@ jobs:
           unityVersion: 2022.3.62f1
           testMode: all
           artifactsPath: test-results
+          customParameters: -executeMethod NeonRushLA.EditorTools.NeonRushLABuild.PrepareScenesCommandLine
       - name: Fix permissions
         if: always()
         run: sudo chown -R "$(id -u)" test-results NeonRush3D 2>/dev/null || true; ls -la test-results || true
@@ -64,8 +65,10 @@ jobs:
               print('== ' + lg + ' (' + str(len(lines)) + ' lines) — test progress / errors:')
               for l in marks[-80:]: print('   ', l[:300])
               if not files:
-                  print('== tail:')
-                  for l in lines[-30:]: print('   ', l)
+                  noise = ('[Performance]', 'Start importing', '\t', ' ms', 'ms)', 'Refreshing native plugins', 'Preloading', 'Mono:', 'Registering precompiled', 'Native extension')
+                  keep = [l for l in lines if l.strip() and (l.startswith('[NeonRush') or not any(n in l for n in noise))]
+                  print('== last 120 meaningful lines:')
+                  for l in keep[-120:]: print('   ', l[:300])
           for f in files:
               r = ET.parse(f).getroot()
               print(f"{f}: total={r.get('total')} passed={r.get('passed')} failed={r.get('failed')} skipped={r.get('skipped')}")

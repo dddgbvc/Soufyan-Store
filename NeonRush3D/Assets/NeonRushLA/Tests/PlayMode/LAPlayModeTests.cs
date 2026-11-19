@@ -15,10 +15,12 @@ namespace NeonRushLA.Tests
     {
         public void Setup()
         {
+            Debug.Log("[NeonRushLA] PrebuildSetup: active scene '" + SceneManager.GetActiveScene().name + "', " + SceneManager.sceneCount + " open");
 #if UNITY_EDITOR
             System.Type t = System.Type.GetType("NeonRushLA.EditorTools.NeonRushLABuilder, NeonRushLA.Editor");
             t?.GetMethod("EnsureBuilt")?.Invoke(null, null);
 #endif
+            Debug.Log("[NeonRushLA] PrebuildSetup done: active scene '" + SceneManager.GetActiveScene().name + "', " + SceneManager.sceneCount + " open");
         }
     }
 
