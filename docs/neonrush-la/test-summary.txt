@@ -8,18 +8,18 @@ NO TEST RESULTS PRODUCED
     Available memory:        15983 MB
     [Licensing::Module] Trying to connect to existing licensing client channel...
     [Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
-    [Licensing::Module] Successfully launched the LicensingClient (PId: 79)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T07:49:42.477804Z"
+    [Licensing::Module] Successfully launched the LicensingClient (PId: 85)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T11:20:27.314251Z"
     [SignatureVerifier] Application signature verification not supported on this platform.
     [Licensing::Client] Handshaking with LicensingClient:
       Version:                 1.16.2+bdef8f5
-      Session Id:              069c0dbfe9cc422caeb1d2a452b797db
-      Correlation Id:          c13eadfa3524d52bbd4ba14be668389a
-      External correlation Id: 375128836827956747
+      Session Id:              3cdafed939ef4aae957161084aceb668
+      Correlation Id:          e761a8f9299aa12919dde3e5b57ad8d7
+      External correlation Id: 8637680677040984707
       Machine Id:              D7nTUnjNAmtsUMcnoyrqkgIbYdM=
-    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.57s, validation: 0.08s, handshake: 0.00s)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T07:49:42.555867Z"
-    [Licensing::Module] Connected to LicensingClient (PId: 79, launch time: 0.00, total connection time: 0.65s)
+    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.38s, validation: 0.05s, handshake: 0.00s)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T11:20:27.360237Z"
+    [Licensing::Module] Connected to LicensingClient (PId: 85, launch time: 0.00, total connection time: 0.42s)
     [Licensing::Module] Error: Access token is unavailable; failed to update
     [Licensing::Client] Error: Code 500 while processing request (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
     [Licensing::Client] Error: Code 500 while updating license in client (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
@@ -39,18 +39,18 @@ NO TEST RESULTS PRODUCED
     Available memory:        15983 MB
     [Licensing::Module] Trying to connect to existing licensing client channel...
     [Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
-    [Licensing::Module] Successfully launched the LicensingClient (PId: 130)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T07:49:43.355842Z"
+    [Licensing::Module] Successfully launched the LicensingClient (PId: 136)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T11:20:27.893076Z"
     [SignatureVerifier] Application signature verification not supported on this platform.
     [Licensing::Client] Handshaking with LicensingClient:
       Version:                 1.16.2+bdef8f5
-      Session Id:              c47fc3bf48cd4297be2078d7b9bdaf57
-      Correlation Id:          e44de70f63c7dbf40e901640de66ff60
-      External correlation Id: 4956643716050367226
+      Session Id:              1240442d63404ffc89e0a686c16b23b8
+      Correlation Id:          48a690680e95e6c8f4546e42899a0d7c
+      External correlation Id: 1251061830746125513
       Machine Id:              D7nTUnjNAmtsUMcnoyrqkgIbYdM=
-    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.57s, validation: 0.07s, handshake: 0.00s)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T07:49:43.426287Z"
-    [Licensing::Module] Connected to LicensingClient (PId: 130, launch time: 0.00, total connection time: 0.64s)
+    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.38s, validation: 0.04s, handshake: 0.00s)
+    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T11:20:27.935644Z"
+    [Licensing::Module] Connected to LicensingClient (PId: 136, launch time: 0.00, total connection time: 0.42s)
     [Licensing::Module] Error: Access token is unavailable; failed to update
     [Licensing::Client] Error: Code 500 while processing request (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
     [Licensing::Client] Error: Code 500 while updating license in client (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
