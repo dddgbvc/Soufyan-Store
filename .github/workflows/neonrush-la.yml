@@ -39,22 +39,30 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: |
           mkdir -p test-results
-          LIC="$RUNNER_TEMP/Unity_lic.ulf"
-          printf '%s' "$UNITY_LICENSE" > "$LIC"
+          # Serial from the licence file (as game-ci does); masked in the logs.
+          UNITY_SERIAL=$(python3 -c "import os,re,base64; m=re.search(r'<DeveloperData Value=\"([^\"]+)\"', os.environ['UNITY_LICENSE']); print(base64.b64decode(m.group(1))[4:].decode('latin1') if m else '')")
+          echo "::add-mask::$UNITY_SERIAL"
+          export UNITY_SERIAL
+          LIC="$RUNNER_TEMP/none"
           cat > "$RUNNER_TEMP/run-tests.sh" <<'SH'
           set -u
-          mkdir -p /root/.local/share/unity3d/Unity
-          cp /lic/Unity_lic.ulf /root/.local/share/unity3d/Unity/Unity_lic.ulf
-          # Same activation as game-ci/unity-builder: entitlement licence via the Unity account.
-          unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" || true
+          # Personal licences need a fresh machine id (game-ci entrypoint does the same).
+          dbus-uuidgen > /etc/machine-id && mkdir -p /var/lib/dbus && ln -sf /etc/machine-id /var/lib/dbus/machine-id
+          mkdir -p /BlankProject/Assets
+          for attempt in 1 2 3; do
+            unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log \
+              -serial "$UNITY_SERIAL" -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" -projectPath /BlankProject && { echo "Activation OK"; break; }
+            echo "Activation attempt $attempt failed"; sleep 20
+          done
           for mode in EditMode PlayMode; do
             unity-editor -batchmode -nographics -projectPath /w/NeonRush3D -runTests -testPlatform "$mode" \
               -testResults "/w/test-results/$mode.xml" -logFile "/w/test-results/$mode.log"
             echo "$mode exit code: $?"
           done
-          unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log -returnlicense -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" || true
+          unity-editor -batchmode -nographics -quit -logFile /w/test-results/return.log -returnlicense -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" || true
+          rm -f /w/test-results/return.log
           SH
-          docker run --rm -e UNITY_EMAIL -e UNITY_PASSWORD -v "$GITHUB_WORKSPACE:/w" -v "$RUNNER_TEMP:/lic:ro" -w /w \
+          docker run --rm -e UNITY_SERIAL -e UNITY_EMAIL -e UNITY_PASSWORD -v "$GITHUB_WORKSPACE:/w" -v "$RUNNER_TEMP:/lic:ro" -w /w \
             unityci/editor:ubuntu-2022.3.62f1-base-3 bash /lic/run-tests.sh
           rm -f "$LIC"
           sudo chown -R "$(id -u)" test-results NeonRush3D || true
