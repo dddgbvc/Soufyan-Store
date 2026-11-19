@@ -85,7 +85,7 @@ jobs:
   ipa:
     name: Xcode archive → unsigned IPA (macOS)
     needs: xcode
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -97,6 +97,7 @@ jobs:
       - name: Build unsigned IPA
         run: |
           chmod +x NeonRush3D/BuildTools/make_ipa.sh
+          sw_vers; xcodebuild -version
           NeonRush3D/BuildTools/make_ipa.sh "$GITHUB_WORKSPACE/xcode"
       - uses: actions/upload-artifact@v4
         if: always()
