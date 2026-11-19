@@ -21,6 +21,7 @@ concurrency:
 jobs:
   tests:
     name: Unity tests (EditMode + PlayMode)
+    timeout-minutes: 90
     if: "!contains(github.event.head_commit.message, '[ci shots]')"
     runs-on: ubuntu-latest
     steps:
@@ -29,48 +30,24 @@ jobs:
         with:
           path: NeonRush3D/Library
           key: Library-NeonRushLA-tests-${{ hashFiles('NeonRush3D/Packages/manifest.json', 'NeonRush3D/ProjectSettings/ProjectVersion.txt') }}
-      # Runs the Unity editor image directly (game-ci/unity-test-runner@v4 now downloads its CLI
-      # through the GitHub API, which returned 403 here, so no tests ran).
+      # Pinned to the docker-based release: newer v4 builds fetch a CLI through the GitHub API (403 here).
+      # Same licence handling as game-ci/unity-builder, which activates successfully in the xcode job.
       - name: Run Unity tests (EditMode + PlayMode)
+        uses: game-ci/unity-test-runner@v4.3.1
         continue-on-error: true
+        timeout-minutes: 60
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        run: |
-          mkdir -p test-results
-          # Serial from the licence file (as game-ci does); masked in the logs.
-          UNITY_SERIAL=$(python3 -c "import os,re,base64; m=re.search(r'<DeveloperData Value=\"([^\"]+)\"', os.environ['UNITY_LICENSE']); print(base64.b64decode(m.group(1))[4:].decode('latin1') if m else '')")
-          echo "::add-mask::$UNITY_SERIAL"
-          export UNITY_SERIAL
-          LIC="$RUNNER_TEMP/none"
-          cat > "$RUNNER_TEMP/run-tests.sh" <<'SH'
-          set -u
-          # Personal licences need a fresh machine id (game-ci entrypoint does the same).
-          dbus-uuidgen > /etc/machine-id && mkdir -p /var/lib/dbus && ln -sf /etc/machine-id /var/lib/dbus/machine-id
-          mkdir -p /BlankProject/Assets
-          for attempt in 1 2 3; do
-            unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log \
-              -serial "$UNITY_SERIAL" -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" -projectPath /BlankProject && { echo "Activation OK"; break; }
-            echo "Activation attempt $attempt failed"; sleep 20
-          done
-          for mode in EditMode PlayMode; do
-            unity-editor -batchmode -nographics -projectPath /w/NeonRush3D -runTests -testPlatform "$mode" \
-              -testResults "/w/test-results/$mode.xml" -logFile "/w/test-results/$mode.log"
-            echo "$mode exit code: $?"
-          done
-          unity-editor -batchmode -nographics -quit -logFile /w/test-results/return.log -returnlicense -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" || true
-          rm -f /w/test-results/return.log
-          SH
-          docker run --rm -e UNITY_SERIAL -e UNITY_EMAIL -e UNITY_PASSWORD -v "$GITHUB_WORKSPACE:/w" -v "$RUNNER_TEMP:/lic:ro" -w /w \
-            unityci/editor:ubuntu-2022.3.62f1-base-3 bash /lic/run-tests.sh
-          rm -f "$LIC"
-          sudo chown -R "$(id -u)" test-results NeonRush3D || true
-          # Keep only error lines of the activation log; never publish the full log.
-          grep -iE "licen[sc]e.*(error|fail|invalid)" test-results/activate.log | head -5 || true
-          rm -f test-results/activate.log
-          ls -la test-results
-          for f in test-results/*.log; do echo "== $f (tail)"; tail -25 "$f"; done
+        with:
+          projectPath: NeonRush3D
+          unityVersion: 2022.3.62f1
+          testMode: all
+          artifactsPath: test-results
+      - name: Fix permissions
+        if: always()
+        run: sudo chown -R "$(id -u)" test-results NeonRush3D 2>/dev/null || true; ls -la test-results || true
       - name: Summarise test results
         if: always()
         env:
