@@ -1,63 +1,42 @@
 NO TEST RESULTS PRODUCED
-== test-results/EditMode.log
-    Batch mode:              YES
-    System name:             Linux
-    Distro version:          #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026
-    Kernel version:          7.0.0-1019-azure
-    Architecture:            x86_64
-    Available memory:        15983 MB
-    [Licensing::Module] Trying to connect to existing licensing client channel...
-    [Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
-    [Licensing::Module] Successfully launched the LicensingClient (PId: 85)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T11:20:27.314251Z"
-    [SignatureVerifier] Application signature verification not supported on this platform.
-    [Licensing::Client] Handshaking with LicensingClient:
-      Version:                 1.16.2+bdef8f5
-      Session Id:              3cdafed939ef4aae957161084aceb668
-      Correlation Id:          e761a8f9299aa12919dde3e5b57ad8d7
-      External correlation Id: 8637680677040984707
-      Machine Id:              D7nTUnjNAmtsUMcnoyrqkgIbYdM=
-    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.38s, validation: 0.05s, handshake: 0.00s)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T11:20:27.360237Z"
-    [Licensing::Module] Connected to LicensingClient (PId: 85, launch time: 0.00, total connection time: 0.42s)
-    [Licensing::Module] Error: Access token is unavailable; failed to update
-    [Licensing::Client] Error: Code 500 while processing request (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
-    [Licensing::Client] Error: Code 500 while updating license in client (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
-    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
-    [Licensing::Module] Error: 'com.unity.editor.headless' was not found.
-    Pro License: NO
-    Initialize udev device monitor.
-    CreateDirectory '/root/.cache/unity3d' failed:  (current dir: /w)
-    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
-    No valid Unity Editor license found. Please activate your license.
-== test-results/PlayMode.log
-    Batch mode:              YES
-    System name:             Linux
-    Distro version:          #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026
-    Kernel version:          7.0.0-1019-azure
-    Architecture:            x86_64
-    Available memory:        15983 MB
-    [Licensing::Module] Trying to connect to existing licensing client channel...
-    [Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
-    [Licensing::Module] Successfully launched the LicensingClient (PId: 136)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root" at "2026-11-19T11:20:27.893076Z"
-    [SignatureVerifier] Application signature verification not supported on this platform.
-    [Licensing::Client] Handshaking with LicensingClient:
-      Version:                 1.16.2+bdef8f5
-      Session Id:              1240442d63404ffc89e0a686c16b23b8
-      Correlation Id:          48a690680e95e6c8f4546e42899a0d7c
-      External correlation Id: 1251061830746125513
-      Machine Id:              D7nTUnjNAmtsUMcnoyrqkgIbYdM=
-    [Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-root" (connect: 0.38s, validation: 0.04s, handshake: 0.00s)
-    [Licensing::IpcConnector] Successfully connected to: "LicenseClient-root-notifications" at "2026-11-19T11:20:27.935644Z"
-    [Licensing::Module] Connected to LicensingClient (PId: 136, launch time: 0.00, total connection time: 0.42s)
-    [Licensing::Module] Error: Access token is unavailable; failed to update
-    [Licensing::Client] Error: Code 500 while processing request (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
-    [Licensing::Client] Error: Code 500 while updating license in client (status: Unable to update licenses. Errors: Machine bindings don't match,Token not found in cache)
-    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
-    [Licensing::Module] Error: 'com.unity.editor.headless' was not found.
-    Pro License: NO
-    Initialize udev device monitor.
-    CreateDirectory '/root/.cache/unity3d' failed:  (current dir: /w)
-    [Licensing::Client] Error: Code 404 while processing request (status: Found 0 entitlement groups and 0 free entitlements matching requested entitlement ids)
-    No valid Unity Editor license found. Please activate your license.
+== test-results/playmode.log (3383 lines) — test progress / errors:
+    [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
+    [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
+    [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
+    [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
+    [NeonRush] Scene built and validated: Assets/NeonRush/Scenes/NeonRush.unity (0 missing references).
+    [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
+    [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
+    [NeonRushLA] Built Assets/NeonRushLA/Scenes/NeonRushLA.unity
+    [NeonRushLA] City built in 1908 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+== tail:
+    		CollectScriptTypesHashes: 0.483ms
+    		ReloadNativeAssets: 0.490ms
+    		UnloadImportedAssets: 0.434ms
+    		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.943ms
+    		InitializingProgressBar: 0.000ms
+    		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+    		OnDemandSchedulerStart: 1.506ms
+    	PostProcessAllAssets: 30.592ms
+    	GatherAllCurrentPrimaryArtifactRevisions: 0.288ms
+    	UnloadStreamsBegin: 1.232ms
+    	PersistCurrentRevisions: 0.117ms
+    	UnloadStreamsEnd: 0.007ms
+    	GenerateScriptTypeHashes: 2.343ms
+    	Untracked: 637.971ms
+    [PhysX] Initialized MultithreadedTaskDispatcher with 4 workers.
+    [NeonRushLA] City built in 1908 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:37)
+    UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+    UnityEngine.Logger:Log (UnityEngine.LogType,object)
+    UnityEngine.Debug:Log (object)
+    NeonRushLA.LABootstrap:Awake () (at Assets/NeonRushLA/Scripts/Runtime/Systems/LABootstrap.cs:116)
+    
+    (Filename: Assets/NeonRushLA/Scripts/Runtime/Systems/LABootstrap.cs Line: 116)
+    
+    Loaded scene 'Temp/__Backupscenes/0.backup'
+    	Deserialize:            5.757 ms
+    	Integration:            2259.414 ms
+    	Integration of assets:  0.004 ms
+    	Thread Wait Time:       0.010 ms
+    	Total Operation Time:   2265.185 ms
