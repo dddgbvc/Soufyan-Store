@@ -21,6 +21,13 @@ namespace NeonRushLA.City
         public int Chunk;
     }
 
+    /// <summary>A parked car slot (driveways, parking lots); facing = yaw in degrees.</summary>
+    public struct ParkedCarData
+    {
+        public Vector3 Position;
+        public float Yaw;
+    }
+
     public sealed class CityChunkData
     {
         public int Index;
@@ -38,6 +45,7 @@ namespace NeonRushLA.City
         public readonly List<SignalHeadData> Signals = new List<SignalHeadData>();
         public readonly PartSet Freeway = new PartSet();
         public readonly List<Vector3> ParkingSpots = new List<Vector3>();
+        public readonly List<ParkedCarData> Parked = new List<ParkedCarData>();
         public int BuildingCount, PalmCount, TreeCount, LampCount;
     }
 
@@ -395,7 +403,7 @@ namespace NeonRushLA.City
             if (inner.width > 10f && inner.height > 10f)
             {
                 CityMeshes.GroundRect(ch.Base[CityMeshes.Asphalt], inner.xMin, inner.yMin, inner.xMax, inner.yMax, g + 0.01f, 1f / 6f);
-                ParkingLines(ch.Detail, inner, g + 0.02f);
+                ParkingLines(ch.Detail, inner, g + 0.02f, d.Parked, rng, 0.3f);
             }
         }
 
@@ -442,7 +450,7 @@ namespace NeonRushLA.City
                     int floors = rng.NextDouble() < 0.35 ? 2 : 1;
                     float frontYard = setback + house * 0.5f - hd;
                     int hs = rng.Next();
-                    CityMeshes.House(ch.Detail, r, floors, new System.Random(hs), g, street, frontYard);
+                    CityMeshes.House(ch.Detail, r, floors, new System.Random(hs), g, street, frontYard, false, d.Parked);
                     CityMeshes.House(ch.Far, r, floors, new System.Random(hs), g, street, frontYard, true);
                     AddBuildingCollider(d, r, g, floors * 3.2f + 0.6f);
                     // Front-yard palm or tree
@@ -463,7 +471,7 @@ namespace NeonRushLA.City
 
         private static void ParkingLot(CityData d, CityChunkData ch, Rect lot, System.Random rng, float g)
         {
-            ParkingLines(ch.Detail, Rect.MinMaxRect(lot.xMin + 6f, lot.yMin + 6f, lot.xMax - 6f, lot.yMax - 6f), g + 0.02f);
+            ParkingLines(ch.Detail, Rect.MinMaxRect(lot.xMin + 6f, lot.yMin + 6f, lot.xMax - 6f, lot.yMax - 6f), g + 0.02f, d.Parked, rng, 0.22f);
             for (float x = lot.xMin + 15f; x < lot.xMax - 10f; x += 30f)
             {
                 for (float z = lot.yMin + 18f; z < lot.yMax - 10f; z += 36f)
@@ -484,7 +492,8 @@ namespace NeonRushLA.City
             }
         }
 
-        private static void ParkingLines(PartSet set, Rect area, float y)
+        /// <summary>Stall lines (5 m deep, 2.8 m wide); a fraction of the stalls gets a parked car.</summary>
+        private static void ParkingLines(PartSet set, Rect area, float y, List<ParkedCarData> parked, System.Random rng, float occupancy)
         {
             MeshData m = set[CityMeshes.LineWhite];
             for (float z = area.yMin; z <= area.yMax; z += 2.8f)
@@ -492,6 +501,11 @@ namespace NeonRushLA.City
                 for (float x = area.xMin; x < area.xMax - 5f; x += 18f)
                 {
                     m.AddFlatQuad(new Vector3(x, y, z - 0.06f), new Vector3(x, y, z + 0.06f), new Vector3(x + 5f, y, z + 0.06f), new Vector3(x + 5f, y, z - 0.06f), Vector3.up, 0.5f);
+                    if (z + 2.8f <= area.yMax && rng.NextDouble() < occupancy)
+                    {
+                        bool noseIn = rng.NextDouble() < 0.5;
+                        parked.Add(new ParkedCarData { Position = new Vector3(x + 2.6f, y, z + 1.4f), Yaw = noseIn ? 90f : -90f });
+                    }
                 }
             }
         }

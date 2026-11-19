@@ -92,6 +92,7 @@ namespace NeonRushLA
             player.ResetTo(spawn, rot);
 
             traffic.Init(city.Layout, player.transform);
+            traffic.SpawnParked(city.Data.Parked);
             pedestrians.Init(city.Layout, player.transform);
 
             vehicleCamera.Configure(player, mainCamera);

@@ -121,6 +121,14 @@ namespace NeonRushLA.Geometry
             }
 
             tmp.RecalculateNormals();
+            // Foliage-style soft normals: bend towards the radial direction so leaf masses shade
+            // as soft rounded clumps instead of faceted rocks.
+            for (int i = 0; i < tmp.Normals.Count; i++)
+            {
+                Vector3 radial = new Vector3((tmp.Vertices[i].x - center.x) / radii.x, (tmp.Vertices[i].y - center.y) / radii.y, (tmp.Vertices[i].z - center.z) / radii.z).normalized;
+                tmp.Normals[i] = Vector3.Lerp(tmp.Normals[i], radial, 0.85f).normalized;
+            }
+
             m.Append(tmp);
         }
 

@@ -289,9 +289,7 @@ namespace NeonRushLA.Art
                     float g = Hash(x, y, 32);
                     float streak = VNoiseXY(u * 3f, v * 1f, 3, 1, 33) * 0.5f + VNoiseXY(u * 24f, v * 2f, 24, 2, 34) * 0.5f;
                     float tone = 0.6f + 0.08f * (n - 0.5f) + 0.04f * (g - 0.5f) - 0.06f * Smooth(0.5f, 0.8f, streak);
-                    bool board = y % (S / 4) < 2;
-                    float h = 0.3f * n + 0.2f * g - (board ? 0.6f : 0f);
-                    if (board) tone -= 0.05f;
+                    float h = 0.3f * n + 0.2f * g;
                     c.Set(x, y, new Color(tone, tone * 0.99f, tone * 0.96f), h, 0f, 0.1f);
                 }
             }

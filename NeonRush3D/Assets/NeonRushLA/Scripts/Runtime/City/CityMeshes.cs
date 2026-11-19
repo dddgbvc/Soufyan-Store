@@ -350,7 +350,7 @@ namespace NeonRushLA.City
         /// LA single-family house: stucco walls (one of six colours), clay-tile hip roof or flat
         /// mid-century roof, front door with porch, garage door + driveway and a path to the sidewalk.
         /// </summary>
-        public static void House(PartSet set, Rect r, int floors, System.Random rng, float ground, Vector3 street, float frontYard, bool far = false)
+        public static void House(PartSet set, Rect r, int floors, System.Random rng, float ground, Vector3 street, float frontYard, bool far = false, List<ParkedCarData> parked = null)
         {
             float h = floors * 3.2f + 0.4f;
             string wall = Stucco(rng.Next(StuccoVariants));
@@ -393,6 +393,11 @@ namespace NeonRushLA.City
                     Shapes.Box(set[Trim], Xform.Translate(g + Vector3.up * (-1.1f + k * 0.55f) + n * 0.035f) * Xform.RotateY(yaw), new Vector3(gw - 0.04f, 0.025f, 0.01f), 1f);
                 }
                 Strip(set[Concrete], fc + along * gx + n * 0.05f + Vector3.up * 0.02f, fc + along * gx + n * frontYard + Vector3.up * 0.02f, 3.0f);
+                if (parked != null && frontYard > 6f && rng.NextDouble() < 0.55)
+                {
+                    // Car on the driveway, nose towards the garage.
+                    parked.Add(new ParkedCarData { Position = fc + along * gx + n * 3.4f + Vector3.up * 0.02f, Yaw = Mathf.Atan2(-n.x, -n.z) * Mathf.Rad2Deg });
+                }
             }
         }
 

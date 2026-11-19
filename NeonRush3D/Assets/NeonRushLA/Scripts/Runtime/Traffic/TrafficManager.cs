@@ -17,10 +17,12 @@ namespace NeonRushLA.Traffic
         [SerializeField] private float spawnMax = 220f;
         [SerializeField] private float despawn = 260f;
         [SerializeField] private float farDistance = 150f;
+        // Real-world colour mix (white, black, greys and silver dominate on US roads).
         [SerializeField] private Color[] paintVariety =
         {
-            new Color(0.75f, 0.75f, 0.78f), new Color(0.08f, 0.09f, 0.1f), new Color(0.6f, 0.05f, 0.05f), new Color(0.06f, 0.16f, 0.4f),
-            new Color(0.9f, 0.9f, 0.9f), new Color(0.25f, 0.3f, 0.28f), new Color(0.45f, 0.36f, 0.25f)
+            new Color(0.86f, 0.86f, 0.85f), new Color(0.92f, 0.91f, 0.88f), new Color(0.02f, 0.02f, 0.022f), new Color(0.03f, 0.03f, 0.035f),
+            new Color(0.55f, 0.56f, 0.58f), new Color(0.6f, 0.61f, 0.62f), new Color(0.24f, 0.25f, 0.26f), new Color(0.1f, 0.1f, 0.11f),
+            new Color(0.04f, 0.08f, 0.2f), new Color(0.45f, 0.03f, 0.03f), new Color(0.55f, 0.5f, 0.4f), new Color(0.05f, 0.12f, 0.08f),
         };
 
         private readonly List<TrafficCar> _active = new List<TrafficCar>(32);
@@ -174,6 +176,44 @@ namespace NeonRushLA.Traffic
         {
             if (car.Kind == Vehicles.CarKind.Taxi) return;
             Color c = paintVariety[Random.Range(0, paintVariety.Length)];
+            _mpb.SetColor("_BaseColor", c);
+            foreach (Renderer r in car.GetComponentsInChildren<Renderer>())
+            {
+                if (r.name.StartsWith("Body")) r.SetPropertyBlock(_mpb, 0);
+            }
+        }
+
+        /// <summary>
+        /// Static parked cars (driveways, parking lots): normal physics bodies left asleep, AI off, random
+        /// real-world colours. They sit on the ground until something hits them.
+        /// </summary>
+        public int SpawnParked(IList<City.ParkedCarData> spots, int max = 140)
+        {
+            if (prefabs.Length == 0 || spots == null) return 0;
+            var root = new GameObject("Parked").transform;
+            root.SetParent(transform, false);
+            if (_mpb == null) _mpb = new MaterialPropertyBlock();
+            var rng = new System.Random(4242);
+            int step = Mathf.Max(1, Mathf.CeilToInt(spots.Count / (float)max));
+            int n = 0;
+            for (int i = 0; i < spots.Count; i += step)
+            {
+                TrafficCar prefab = prefabs[rng.Next(prefabs.Length)];
+                if (prefab.Kind == Vehicles.CarKind.Taxi) prefab = prefabs[0];
+                TrafficCar car = Instantiate(prefab, spots[i].Position + Vector3.up * 0.05f, Quaternion.Euler(0f, spots[i].Yaw, 0f), root);
+                car.name = "Parked_" + n;
+                car.enabled = false;
+                var rb = car.GetComponent<Rigidbody>();
+                if (rb != null) rb.Sleep();
+                Repaint(car, paintVariety[rng.Next(paintVariety.Length)]);
+                n++;
+            }
+
+            return n;
+        }
+
+        private void Repaint(TrafficCar car, Color c)
+        {
             _mpb.SetColor("_BaseColor", c);
             foreach (Renderer r in car.GetComponentsInChildren<Renderer>())
             {
