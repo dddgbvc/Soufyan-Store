@@ -443,8 +443,8 @@ namespace NeonRushLA.City
                 set[PalmSkirt].Append(skirt, Xform.Translate(top));
             }
 
-            int fronds = canary ? 24 : 22;
-            if (detail <= 0.6f) fronds = canary ? 10 : 9;
+            int fronds = canary ? 20 : 18;
+            if (detail <= 0.6f) fronds = canary ? 9 : 8;
             float len = canary ? 4.8f : 3.5f;
             for (int f = 0; f < fronds; f++)
             {
@@ -452,7 +452,7 @@ namespace NeonRushLA.City
                 float rise = (float)(rng.NextDouble() * 0.6 - 0.1);
                 var dir = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang));
                 var side = new Vector3(-dir.z, 0f, dir.x);
-                int n = detail > 0.6f ? 10 : 5;
+                int n = detail > 0.6f ? 7 : 4;
                 var fp = new List<Vector3>();
                 var fw = new List<float>();
                 var fs = new List<Vector3>();
@@ -489,7 +489,7 @@ namespace NeonRushLA.City
 
             Vector3 crown = fork + Vector3.up * height * 0.28f;
             float cr = height * 0.34f;
-            int blobs = detail > 0.6f ? 11 : 3;
+            int blobs = detail > 0.6f ? 8 : 3;
             for (int i = 0; i < blobs; i++)
             {
                 // Points spread over an oblate crown, larger masses near the middle.
@@ -498,7 +498,7 @@ namespace NeonRushLA.City
                 float rr = i == 0 ? 0f : cr * (0.45f + 0.35f * (float)rng.NextDouble());
                 var c = crown + new Vector3(Mathf.Sin(v) * Mathf.Cos(u) * rr, Mathf.Cos(v) * rr * 0.6f, Mathf.Sin(v) * Mathf.Sin(u) * rr);
                 float sz = cr * (i == 0 ? 0.75f : 0.42f + 0.18f * (float)rng.NextDouble());
-                Shapes.Blob(set[Leaf], c, new Vector3(sz, sz * 0.78f, sz), rng, 0.32f, detail > 0.6f ? 12 : 7, detail > 0.6f ? 8 : 5);
+                Shapes.Blob(set[Leaf], c, new Vector3(sz, sz * 0.78f, sz), rng, 0.3f, detail > 0.6f ? 9 : 6, detail > 0.6f ? 6 : 4);
             }
         }
 

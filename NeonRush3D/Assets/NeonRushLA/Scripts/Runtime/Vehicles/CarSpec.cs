@@ -60,6 +60,7 @@ namespace NeonRushLA.Vehicles
         public bool PickupBed;
         public float PickupCabRear = -0.75f;
         public bool TaxiSign;
+        public bool SilverRims;
         public Color PaintColor = new Color(0.02f, 0.02f, 0.025f);
         public string Plate = "NEON 2.0";
 
@@ -88,7 +89,7 @@ namespace NeonRushLA.Vehicles
                         WheelRadius = 0.33f, RimRadius = 0.22f, TireWidth = 0.225f, ArchRadius = 0.40f, Sill = 0.28f, Belt = 0.95f, NoseTop = 0.76f,
                         TailTop = 0.86f, Roof = 1.46f, HoodBulge = 0.0f, Ducktail = 0.012f, WindshieldBase = 0.62f, RoofFront = 0.02f, RoofRear = -0.78f,
                         RearWindowBase = -1.30f, BPillar = -0.22f, CPillarStart = -0.86f, RacetrackTaillight = false, FullWidthDrl = false, HoodVents = false,
-                        DualExhaust = false, PaintColor = new Color(0.55f, 0.57f, 0.6f), Plate = "7LAX 214",
+                        DualExhaust = false, PaintColor = new Color(0.55f, 0.57f, 0.6f), Plate = "7LAX 214", SilverRims = true,
                     };
                 case CarKind.SUV:
                     return new CarSpec
@@ -98,7 +99,7 @@ namespace NeonRushLA.Vehicles
                         TailTop = 1.08f, Roof = 1.82f, HoodBulge = 0.02f, Ducktail = 0f, WindshieldBase = 0.70f, RoofFront = 0.08f, RoofRear = -1.78f,
                         RearWindowBase = -2.20f, BPillar = -0.25f, CPillarStart = -1.30f, GreenhouseBaseInset = 0.94f, GreenhouseTopInset = 0.84f,
                         RacetrackTaillight = false, FullWidthDrl = false, HoodVents = false, DualExhaust = false,
-                        PaintColor = new Color(0.08f, 0.18f, 0.32f), Plate = "8SUV 553",
+                        PaintColor = new Color(0.08f, 0.18f, 0.32f), Plate = "8SUV 553", SilverRims = true,
                     };
                 case CarKind.Pickup:
                     return new CarSpec
@@ -108,7 +109,7 @@ namespace NeonRushLA.Vehicles
                         TailTop = 1.20f, Roof = 1.90f, HoodBulge = 0.03f, Ducktail = 0f, WindshieldBase = 0.98f, RoofFront = 0.42f, RoofRear = -0.55f,
                         RearWindowBase = -0.68f, BPillar = -0.05f, CPillarStart = -0.62f, GreenhouseBaseInset = 0.93f, GreenhouseTopInset = 0.85f,
                         RacetrackTaillight = false, FullWidthDrl = false, HoodVents = false, DualExhaust = false, PickupBed = true, PickupCabRear = -0.78f,
-                        PaintColor = new Color(0.55f, 0.08f, 0.06f), Plate = "4TRK 778",
+                        PaintColor = new Color(0.55f, 0.08f, 0.06f), Plate = "4TRK 778", SilverRims = true,
                     };
                 case CarKind.Taxi:
                 {

@@ -37,10 +37,14 @@ namespace NeonRushLA.Vehicles
         public const string Taillight = "Taillight";
         public const string Plate = "Plate";
         public const string Sign = "Sign";
+        public const string Interior = "Interior";
+        public const string Seat = "Seat";
+        public const string Amber = "Amber";
+        public const string RimSilver = "RimSilver";
 
         public static readonly string[] AllMaterials =
         {
-            Paint, Glass, Chrome, Black, Seam, Tire, Rim, Disc, Caliper, Headlight, Taillight, Plate, Sign
+            Paint, Glass, Chrome, Black, Seam, Tire, Rim, RimSilver, Disc, Caliper, Headlight, Taillight, Amber, Plate, Sign, Interior, Seat
         };
 
         public static CarModel Build(CarSpec s, float detail = 1f)
@@ -362,6 +366,8 @@ namespace NeonRushLA.Vehicles
                 BuildFront();
                 BuildRear();
                 BuildExtras();
+                if (_detail >= 0.5f) BuildInterior(); // far LODs keep the tinted glass only
+                BuildMarkersAndWipers();
 
                 var model = new CarModel { Spec = _s, Body = _body };
                 BuildWheel(out PartSet wheel, out PartSet caliper);
@@ -885,7 +891,7 @@ namespace NeonRushLA.Vehicles
                     new Vector2(rr + 0.008f, hw - 0.022f), new Vector2(rr + 0.008f, hw - 0.006f), new Vector2(rr - 0.004f, hw - 0.012f),
                     new Vector2(rr - 0.016f, hw - 0.045f),
                 };
-                Shapes.Lathe(wheel[Rim], lip, seg);
+                Shapes.Lathe(wheel[_s.SilverRims ? RimSilver : Rim], lip, seg);
                 Shapes.Lathe(wheel[Black], new[] { new Vector2(rr - 0.012f, -hw + 0.02f), new Vector2(rr - 0.012f, hw - 0.04f) }, seg, -1f);
 
                 // Brake disc (spins) + caliper (fixed)
@@ -902,6 +908,7 @@ namespace NeonRushLA.Vehicles
 
                 // Spokes: 5 split spokes, concave (outer ends sit further out than the hub).
                 float faceY = hw - 0.055f;
+                string rimSlot = _s.SilverRims ? RimSilver : Rim;
                 float r0 = 0.065f, r1 = rr - 0.01f;
                 float rc = (r0 + r1) * 0.5f;
                 float len = r1 - r0;
@@ -914,15 +921,127 @@ namespace NeonRushLA.Vehicles
                         var spoke = new MeshData();
                         Shapes.RoundedBox(spoke, Vector3.zero, new Vector3(len, 0.03f, 0.044f), 0.013f, 2);
                         Xform x = Xform.RotateY(-ang) * Xform.Translate(new Vector3(rc, faceY, 0)) * Xform.RotateZ(9f);
-                        wheel[Rim].Append(spoke, x);
+                        wheel[rimSlot].Append(spoke, x);
                     }
                 }
 
                 // Hub + centre cap
                 var hub = new MeshData();
                 Shapes.Cylinder(hub, r0 + 0.012f, 0.05f, 16);
-                wheel[Rim].Append(hub, Xform.Translate(new Vector3(0, faceY - 0.015f, 0)));
+                wheel[rimSlot].Append(hub, Xform.Translate(new Vector3(0, faceY - 0.015f, 0)));
                 Shapes.Lathe(wheel[Chrome], new[] { new Vector2(0.045f, faceY + 0.01f), new Vector2(0.04f, faceY + 0.022f), new Vector2(0.0f, faceY + 0.028f) }, 16);
+            }
+
+            // ------------------------------------------------------------------ interior
+
+            /// <summary>Cabin seen through the glass: floor, door trims, headliner, dashboard, steering wheel, seats.</summary>
+            private void BuildInterior()
+            {
+                MeshData trim = _body[Interior], seat = _body[Seat];
+                float floor = _s.Sill + 0.13f;
+                float zF = _s.WindshieldBase - 0.05f;
+                float zR = _s.PickupBed ? _s.PickupCabRear + 0.04f : _s.RearWindowBase + 0.12f;
+                if (zR >= zF - 0.5f) return;
+
+                // Door trims (facing inwards) and the floor
+                int n = 10;
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    for (int i = 0; i < n; i++)
+                    {
+                        float z0 = Mathf.Lerp(zR, zF, (float)i / n), z1 = Mathf.Lerp(zR, zF, (i + 1f) / n);
+                        float x0 = side * (HalfW(z0) - 0.11f), x1 = side * (HalfW(z1) - 0.11f);
+                        float top = _s.Belt - 0.01f;
+                        trim.AddFlatQuad(new Vector3(x0, floor, z0), new Vector3(x1, floor, z1), new Vector3(x1, top, z1), new Vector3(x0, top, z0), new Vector3(-side, 0f, 0f), 1f);
+                    }
+                }
+
+                float fw = HalfW((zF + zR) * 0.5f) - 0.11f;
+                trim.AddFlatQuad(new Vector3(-fw, floor, zR), new Vector3(fw, floor, zR), new Vector3(fw, floor, zF), new Vector3(-fw, floor, zF), Vector3.up, 1f);
+                // Rear bulkhead / parcel shelf and front firewall close the cabin box.
+                trim.AddFlatQuad(new Vector3(-fw, floor, zR), new Vector3(fw, floor, zR), new Vector3(fw, _s.Belt, zR), new Vector3(-fw, _s.Belt, zR), Vector3.forward, 1f);
+                trim.AddFlatQuad(new Vector3(-fw, floor, zF), new Vector3(fw, floor, zF), new Vector3(fw, _s.Belt, zF), new Vector3(-fw, _s.Belt, zF), Vector3.back, 1f);
+
+                // Headliner under the roof
+                float hy = _s.Roof - 0.07f;
+                float hwz = HalfW((_s.RoofFront + _s.RoofRear) * 0.5f) * _s.GreenhouseTopInset * 0.95f;
+                trim.AddFlatQuad(new Vector3(-hwz, hy, _s.RoofRear), new Vector3(hwz, hy, _s.RoofRear), new Vector3(hwz, hy, _s.RoofFront), new Vector3(-hwz, hy, _s.RoofFront), Vector3.down, 1f);
+
+                // Dashboard with instrument binnacle (left-hand drive)
+                float dz = zF - 0.28f;
+                Shapes.RoundedBox(trim, new Vector3(0f, _s.Belt - 0.04f, dz), new Vector3(fw * 2f - 0.04f, 0.2f, 0.46f), 0.06f, 2);
+                Shapes.RoundedBox(trim, new Vector3(-0.38f, _s.Belt + 0.07f, dz - 0.12f), new Vector3(0.42f, 0.1f, 0.2f), 0.04f, 2);
+                Shapes.RoundedBox(trim, new Vector3(0f, floor + 0.2f, (zF + _s.BPillar) * 0.5f), new Vector3(0.22f, 0.3f, Mathf.Max(0.3f, zF - _s.BPillar - 0.2f)), 0.05f, 2); // console
+
+                // Steering wheel: ring + column, tilted towards the driver
+                var ring = new List<Vector3>();
+                var rad = new List<float>();
+                Vector3 wc = new Vector3(-0.38f, _s.Belt + 0.03f, dz - 0.36f);
+                float tilt = 25f * Mathf.Deg2Rad;
+                Vector3 up = new Vector3(0f, Mathf.Cos(tilt), Mathf.Sin(tilt));
+                for (int i = 0; i <= 24; i++)
+                {
+                    float a = i / 24f * Mathf.PI * 2f;
+                    ring.Add(wc + Vector3.right * (Mathf.Cos(a) * 0.185f) + up * (Mathf.Sin(a) * 0.185f));
+                    rad.Add(0.017f);
+                }
+
+                Shapes.Tube(_body[Black], ring, rad, 6, false);
+                Shapes.CylinderBetween(_body[Black], wc, wc + new Vector3(0f, -0.06f, 0.3f), 0.035f, 8, true);
+                Shapes.CylinderBetween(_body[Black], wc + Vector3.left * 0.17f, wc + Vector3.right * 0.17f, 0.012f, 5, true);
+
+                // Front bucket seats
+                float zb = Mathf.Min(_s.BPillar + 0.1f, zF - 0.9f);
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    float x = side * 0.38f;
+                    Shapes.RoundedBox(seat, new Vector3(x, floor + 0.22f, zb + 0.08f), new Vector3(0.5f, 0.14f, 0.5f), 0.06f, 2);
+                    var back = new MeshData();
+                    Shapes.RoundedBox(back, Vector3.zero, new Vector3(0.5f, 0.62f, 0.14f), 0.06f, 2);
+                    seat.Append(back, Xform.Translate(new Vector3(x, floor + 0.6f, zb - 0.2f)) * Xform.RotateX(-14f));
+                    float headY = Mathf.Min(floor + 1.0f, _s.Roof - 0.2f);
+                    Shapes.RoundedBox(seat, new Vector3(x, headY, zb - 0.3f), new Vector3(0.26f, 0.18f, 0.1f), 0.045f, 2);
+                }
+
+                // Rear bench when there is room
+                float zrb = zb - 0.85f;
+                if (!_s.PickupBed && zrb - 0.45f > zR)
+                {
+                    float bw = HalfW(zrb) - 0.2f;
+                    Shapes.RoundedBox(seat, new Vector3(0f, floor + 0.22f, zrb + 0.05f), new Vector3(bw * 2f, 0.14f, 0.48f), 0.06f, 2);
+                    var back = new MeshData();
+                    Shapes.RoundedBox(back, Vector3.zero, new Vector3(bw * 2f, 0.58f, 0.14f), 0.06f, 2);
+                    seat.Append(back, Xform.Translate(new Vector3(0f, floor + 0.58f, zrb - 0.22f)) * Xform.RotateX(-16f));
+                }
+
+                // Interior mirror
+                Shapes.RoundedBox(_body[Black], new Vector3(0f, _s.Roof - 0.16f, Mathf.Lerp(_s.RoofFront, zF, 0.35f)), new Vector3(0.24f, 0.06f, 0.03f), 0.012f, 2);
+            }
+
+            /// <summary>Amber/red side markers, third brake light and windscreen wipers.</summary>
+            private void BuildMarkersAndWipers()
+            {
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    foreach (var (z, slot) in new[] { (_s.FrontZ - 0.32f, Amber), (_s.RearZ + 0.3f, Taillight) })
+                    {
+                        float y = Mathf.Min(_s.Belt, Deck(z)) - 0.16f;
+                        Vector3 p = SidePoint(z, y, 0.004f);
+                        Shapes.RoundedPlate(_body[slot], new Vector3(side * Mathf.Abs(p.x), y, z), new Vector2(0.11f, 0.035f), 0.01f, 0.017f, 3, Xform.RotateY(90f));
+                    }
+                }
+
+                if (!_s.PickupBed)
+                {
+                    Shapes.RoundedPlate(_body[Taillight], new Vector3(0f, _s.Roof - 0.025f, _s.RoofRear - 0.02f), new Vector2(0.42f, 0.03f), 0.015f, 0.0149f, 3, Xform.RotateX(-20f));
+                }
+
+                // Wipers parked at the base of the windscreen
+                float wy = _s.Belt + 0.025f, wz = _s.WindshieldBase - 0.04f;
+                foreach (float x in new[] { -0.32f, 0.22f })
+                {
+                    Shapes.Box(_body[Black], Xform.Translate(new Vector3(x, wy, wz)) * Xform.RotateY(4f) * Xform.RotateZ(3f), new Vector3(0.58f, 0.014f, 0.022f), 1f);
+                }
             }
 
             private static float Sq(float v) => v * v;

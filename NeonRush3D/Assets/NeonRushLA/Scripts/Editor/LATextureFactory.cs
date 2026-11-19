@@ -33,6 +33,29 @@ namespace NeonRushLA.EditorTools
             return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
+        /// <summary>Saves a generated <see cref="NeonRushLA.Art.TexData"/> as a PNG asset with the right importer settings.</summary>
+        public static Texture2D Save(NeonRushLA.Art.TexData t)
+        {
+            var tex = new Texture2D(t.W, t.H, TextureFormat.RGBA32, false, t.Linear);
+            tex.SetPixels32(t.Px);
+            tex.Apply();
+            string path = Folder + "/" + t.Name + ".png";
+            File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(Application.dataPath), path), tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+            imp.textureType = t.IsNormal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            imp.sRGBTexture = !t.Linear;
+            imp.mipmapEnabled = true;
+            imp.wrapMode = t.Clamp ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+            imp.anisoLevel = t.IsNormal ? 2 : 6;
+            imp.filterMode = FilterMode.Trilinear;
+            imp.maxTextureSize = t.MaxSize;
+            imp.textureCompression = TextureImporterCompression.Compressed;
+            imp.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
         private static Color32 C(float r, float g, float b) => new Color32((byte)(Mathf.Clamp01(r) * 255), (byte)(Mathf.Clamp01(g) * 255), (byte)(Mathf.Clamp01(b) * 255), 255);
 
         private static float Hash(int x, int y, int seed)

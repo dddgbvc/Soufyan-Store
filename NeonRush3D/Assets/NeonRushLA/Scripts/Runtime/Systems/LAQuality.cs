@@ -23,6 +23,15 @@ namespace NeonRushLA
     /// </summary>
     public sealed class LAQuality : MonoBehaviour
     {
+        // Daylight (afternoon Los Angeles) lighting, shared with the Editor scene builder.
+        public static readonly Color DaySunColor = new Color(1f, 0.93f, 0.82f);
+        public const float DaySunIntensity = 1.65f;
+        public const float DaySkyExposure = 1.3f;
+        public static readonly Color DayAmbientSky = new Color(0.5f, 0.58f, 0.72f);
+        public static readonly Color DayAmbientEquator = new Color(0.56f, 0.55f, 0.52f);
+        public static readonly Color DayAmbientGround = new Color(0.26f, 0.24f, 0.21f);
+        public static readonly Color DayFog = new Color(0.74f, 0.78f, 0.83f);
+
         [SerializeField] private UniversalRenderPipelineAsset pipeline;
         [SerializeField] private Camera cam;
         [SerializeField] private Light sun;
@@ -46,6 +55,13 @@ namespace NeonRushLA
         private float _origScale = -1f, _origShadow = -1f;
         private int _origMsaa = -1;
         private bool _night;
+        [SerializeField] private ScriptableRendererFeature ambientOcclusion;
+
+        /// <summary>URP SSAO renderer feature (enabled in Quality mode only).</summary>
+        public void SetAmbientOcclusion(ScriptableRendererFeature f)
+        {
+            ambientOcclusion = f;
+        }
 
         public float Fps { get; private set; }
         public float AvgMs { get; private set; }
@@ -100,15 +116,17 @@ namespace NeonRushLA
             switch (m)
             {
                 case LAQualityMode.Performance:
-                    Apply(0.75f, 2, 0f, false, 300f, 0.6f, 12, 10, 150f, 380f);
+                    Apply(0.75f, 2, 30f, false, 300f, 0.6f, 12, 10, 150f, 380f);
                     break;
                 case LAQualityMode.Balanced:
-                    Apply(0.85f, 2, 45f, true, 420f, 1.0f, 22, 16, 190f, 480f);
+                    Apply(0.85f, 2, 55f, true, 420f, 1.0f, 22, 16, 190f, 480f);
                     break;
                 default:
-                    Apply(1.0f, 4, 75f, true, 520f, 1.6f, 30, 22, 230f, 600f);
+                    Apply(1.0f, 4, 80f, true, 520f, 1.6f, 30, 22, 230f, 600f);
                     break;
             }
+
+            if (ambientOcclusion != null) ambientOcclusion.SetActive(m == LAQualityMode.Quality);
         }
 
         private void Apply(float scale, int msaa, float shadowDist, bool post, float far, float lodBias, int peds, int cars, float detailDist, float farDist)
@@ -149,21 +167,23 @@ namespace NeonRushLA
             _night = night;
             if (sun != null)
             {
-                sun.intensity = night ? 0.12f : 1.25f;
-                sun.color = night ? new Color(0.55f, 0.62f, 0.9f) : new Color(1f, 0.72f, 0.48f);
+                sun.intensity = night ? 0.12f : DaySunIntensity;
+                sun.color = night ? new Color(0.55f, 0.62f, 0.9f) : DaySunColor;
             }
 
-            if (skybox != null && skybox.HasProperty("_Exposure")) skybox.SetFloat("_Exposure", night ? 0.18f : 1.25f);
-            RenderSettings.ambientSkyColor = night ? new Color(0.05f, 0.06f, 0.12f) : new Color(0.55f, 0.48f, 0.55f);
-            RenderSettings.ambientEquatorColor = night ? new Color(0.06f, 0.05f, 0.08f) : new Color(0.62f, 0.45f, 0.36f);
-            RenderSettings.ambientGroundColor = night ? new Color(0.02f, 0.02f, 0.03f) : new Color(0.2f, 0.17f, 0.15f);
-            RenderSettings.fogColor = night ? new Color(0.03f, 0.035f, 0.07f) : new Color(0.78f, 0.55f, 0.45f);
+            if (skybox != null && skybox.HasProperty("_Exposure")) skybox.SetFloat("_Exposure", night ? 0.18f : DaySkyExposure);
+            RenderSettings.ambientSkyColor = night ? new Color(0.05f, 0.06f, 0.12f) : DayAmbientSky;
+            RenderSettings.ambientEquatorColor = night ? new Color(0.06f, 0.05f, 0.08f) : DayAmbientEquator;
+            RenderSettings.ambientGroundColor = night ? new Color(0.02f, 0.02f, 0.03f) : DayAmbientGround;
+            RenderSettings.fogColor = night ? new Color(0.03f, 0.035f, 0.07f) : DayFog;
             if (cam != null) cam.backgroundColor = RenderSettings.fogColor;
             SetEmission("LampHead", night ? 6f : 0.2f, new Color(1f, 0.82f, 0.55f));
             SetEmission("FacadeGlass", night ? 1.4f : 0f, new Color(1f, 0.85f, 0.6f));
             SetEmission("FacadeOffice", night ? 1.2f : 0f, new Color(1f, 0.85f, 0.6f));
-            SetEmission("FacadeStucco", night ? 0.9f : 0f, new Color(1f, 0.8f, 0.55f));
+            for (int i = 0; i < CityMeshes.StuccoVariants; i++) SetEmission(CityMeshes.Stucco(i), night ? 0.9f : 0f, new Color(1f, 0.8f, 0.55f));
+            for (int i = 0; i < CityMeshes.StorefrontVariants; i++) SetEmission(CityMeshes.StorefrontSlot(i), night ? 1.6f : 0.3f, new Color(1f, 0.87f, 0.68f));
             SetEmission("FacadeBrick", night ? 0.9f : 0f, new Color(1f, 0.8f, 0.55f));
+            SetEmission(CityMeshes.ShopSign, night ? 2.5f : 0f, Color.white);
             SetEmission("NeonSign", night ? 4f : 1.2f, new Color(1f, 0.25f, 0.8f));
         }
 
@@ -236,6 +256,7 @@ namespace NeonRushLA
 
         private void OnDestroy()
         {
+            if (ambientOcclusion != null) ambientOcclusion.SetActive(false);
 #if UNITY_EDITOR
             if (pipeline != null && _origScale > 0f)
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NeonRush.EditorTools;
+using NeonRushLA.Art;
 using NeonRushLA.CameraRig;
 using NeonRushLA.City;
 using NeonRushLA.Gameplay;
@@ -85,7 +86,7 @@ namespace NeonRushLA.EditorTools
         private static void EnsureFolders()
         {
             if (!AssetDatabase.IsValidFolder(Root)) AssetDatabase.CreateFolder("Assets", "NeonRushLA");
-            foreach (string f in new[] { "Materials", "Prefabs", "Meshes", "Scenes", "Settings", "Textures" })
+            foreach (string f in new[] { "Materials", "Prefabs", "Meshes", "Scenes", "Settings", "Textures", "ImportedCars" })
             {
                 if (!AssetDatabase.IsValidFolder(Root + "/" + f)) AssetDatabase.CreateFolder(Root, f);
             }
@@ -126,7 +127,7 @@ namespace NeonRushLA.EditorTools
             asset.supportsHDR = true;
             asset.msaaSampleCount = 2;
             asset.renderScale = 1f;
-            asset.shadowDistance = 60f;
+            asset.shadowDistance = 70f;
             asset.supportsCameraDepthTexture = false;
             asset.supportsCameraOpaqueTexture = false;
             asset.useSRPBatcher = true;
@@ -140,10 +141,70 @@ namespace NeonRushLA.EditorTools
             Set(so, "m_UseFastSRGBLinearConversion", true);
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
+            _ssao = EnsureSsao(asset);
             // LA is the main game now: its asset is the project default (so shadow variants are kept);
             // the classic scene switches to its own asset at runtime.
             GraphicsSettings.defaultRenderPipeline = asset;
             return asset;
+        }
+
+        private static ScriptableRendererFeature _ssao;
+
+        /// <summary>
+        /// Adds URP's Screen Space Ambient Occlusion feature (internal type in URP 14, hence reflection):
+        /// depth-only source, half resolution, low sample count. LAQuality enables it in Quality mode only.
+        /// </summary>
+        private static ScriptableRendererFeature EnsureSsao(UniversalRenderPipelineAsset asset)
+        {
+            try
+            {
+                var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(Settings + "/NeonRushLA_Renderer.asset");
+                if (data == null) return null;
+                foreach (ScriptableRendererFeature f in data.rendererFeatures)
+                {
+                    if (f != null && f.GetType().Name == "ScreenSpaceAmbientOcclusion") return f;
+                }
+
+                Type t = typeof(ScriptableRendererFeature).Assembly.GetType("UnityEngine.Rendering.Universal.ScreenSpaceAmbientOcclusion");
+                if (t == null) return null;
+                var feature = (ScriptableRendererFeature)ScriptableObject.CreateInstance(t);
+                feature.name = "SSAO";
+                AssetDatabase.AddObjectToAsset(feature, data);
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(feature, out _, out long localId);
+                var so = new SerializedObject(data);
+                SerializedProperty list = so.FindProperty("m_RendererFeatures");
+                SerializedProperty map = so.FindProperty("m_RendererFeatureMap");
+                list.arraySize++;
+                list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = feature;
+                map.arraySize++;
+                map.GetArrayElementAtIndex(map.arraySize - 1).longValue = localId;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                var fs = new SerializedObject(feature);
+                SetInt(fs, "m_Settings.Source", 0);       // Depth
+                SetInt(fs, "m_Settings.NormalSamples", 0); // Low
+                Set(fs, "m_Settings.Downsample", true);
+                SetFloat(fs, "m_Settings.Intensity", 1.6f);
+                SetFloat(fs, "m_Settings.DirectLightingStrength", 0.2f);
+                SetFloat(fs, "m_Settings.Radius", 0.5f);
+                SetInt(fs, "m_Settings.Samples", 2);       // Low
+                fs.ApplyModifiedPropertiesWithoutUndo();
+                feature.SetActive(false);
+                EditorUtility.SetDirty(feature);
+                EditorUtility.SetDirty(data);
+                AssetDatabase.SaveAssets();
+                return feature;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[NeonRushLA] SSAO feature not added: " + e.Message);
+                return null;
+            }
+        }
+
+        private static void SetFloat(SerializedObject so, string name, float v)
+        {
+            SerializedProperty p = so.FindProperty(name);
+            if (p != null) p.floatValue = v;
         }
 
         private static void Set(SerializedObject so, string name, bool v)
@@ -195,6 +256,55 @@ namespace NeonRushLA.EditorTools
             return m;
         }
 
+        /// <summary>URP Lit material from a <see cref="MatSpec"/>: normal map, metallic/smoothness mask (R/A), emission map.</summary>
+        private static Material SpecMat(MatSpec spec, Texture2D albedo, Texture2D normal, Texture2D mask, Texture2D emission)
+        {
+            bool emissive = emission != null || spec.Emission.maxColorComponent > 0f;
+            Material m = MakeMat(spec.Key, "Universal Render Pipeline/Lit", spec.Color, spec.Metallic, spec.Smoothness, albedo, emission,
+                emissive ? spec.Emission : (Color?)null, spec.DoubleSided);
+            if (normal != null)
+            {
+                m.SetTexture("_BumpMap", normal);
+                m.SetFloat("_BumpScale", spec.NormalScale);
+                m.EnableKeyword("_NORMALMAP");
+            }
+
+            if (mask != null)
+            {
+                // Metallic from R, smoothness from A (× _Smoothness): glass reflects, walls stay matte.
+                m.SetTexture("_MetallicGlossMap", mask);
+                m.SetFloat("_SmoothnessTextureChannel", 0f);
+                m.EnableKeyword("_METALLICSPECGLOSSMAP");
+            }
+
+            if (emission != null && spec.Emission.maxColorComponent <= 0f)
+            {
+                // Emission map present but dark by day; LAQuality turns it up at night.
+                m.EnableKeyword("_EMISSION");
+                m.SetColor("_EmissionColor", Color.black);
+            }
+
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
+        /// <summary>Alpha-blended surface (car glass) that keeps its specular reflections.</summary>
+        private static Material Transparent(Material m)
+        {
+            m.SetFloat("_Surface", 1f);
+            m.SetFloat("_Blend", 0f);
+            m.SetFloat("_BlendModePreserveSpecular", 1f);
+            m.SetFloat("_SrcBlend", (float)BlendMode.One);
+            m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            m.SetFloat("_ZWrite", 0f);
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            m.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
         private static Material Particle(string key, Color color, bool additive)
         {
             string path = Mat + "/LA_" + key + ".mat";
@@ -227,8 +337,12 @@ namespace NeonRushLA.EditorTools
             void Add(string k, Material m) => e.Add(new MaterialLibrary.Entry { key = k, material = m });
 
             // Car
-            Add(CarGenerator.Paint, MakeMat("Paint", Lit, new Color(0.02f, 0.02f, 0.025f), 0.85f, 0.88f));
-            Add(CarGenerator.Glass, MakeMat("Glass", Lit, new Color(0.02f, 0.03f, 0.045f), 0.1f, 0.96f));
+            Add(CarGenerator.Paint, MakeMat("Paint", Lit, new Color(0.02f, 0.02f, 0.025f), 0.6f, 0.88f));
+            Add(CarGenerator.Glass, Transparent(MakeMat("Glass", Lit, new Color(0.015f, 0.02f, 0.025f, 0.6f), 0.1f, 0.96f)));
+            Add(CarGenerator.Interior, MakeMat("Interior", Lit, new Color(0.06f, 0.055f, 0.05f), 0f, 0.25f));
+            Add(CarGenerator.Seat, MakeMat("Seat", Lit, new Color(0.09f, 0.08f, 0.075f), 0f, 0.3f));
+            Add(CarGenerator.Amber, MakeMat("Amber", Lit, new Color(0.9f, 0.45f, 0.05f), 0f, 0.9f, null, null, new Color(0.6f, 0.25f, 0.02f)));
+            Add(CarGenerator.RimSilver, MakeMat("RimSilver", Lit, new Color(0.72f, 0.73f, 0.75f), 1f, 0.8f));
             Add(CarGenerator.Chrome, MakeMat("Chrome", Lit, new Color(0.92f, 0.92f, 0.94f), 1f, 0.94f));
             Add(CarGenerator.Black, MakeMat("Black", Lit, new Color(0.03f, 0.03f, 0.035f), 0f, 0.4f));
             Add(CarGenerator.Seam, MakeMat("Seam", Lit, new Color(0.004f, 0.004f, 0.004f), 0f, 0.1f));
@@ -242,39 +356,28 @@ namespace NeonRushLA.EditorTools
             Add(CarGenerator.Sign, MakeMat("Sign", Lit, new Color(1f, 0.9f, 0.4f), 0f, 0.5f, LATextureFactory.Sign("TaxiSign", "TAXI", new Color32(255, 215, 60, 255), new Color32(20, 20, 20, 255)), null, new Color(0.8f, 0.7f, 0.3f)));
             Add("LightBroken", MakeMat("LightBroken", Lit, new Color(0.08f, 0.08f, 0.09f), 0.2f, 0.3f));
 
-            // City
-            Texture2D asphalt = LATextureFactory.Asphalt();
-            Add(CityMeshes.Asphalt, MakeMat("Asphalt", Lit, Color.white, 0f, 0.22f, asphalt));
-            Add(CityMeshes.LineWhite, MakeMat("LineWhite", Lit, new Color(0.9f, 0.9f, 0.88f), 0f, 0.3f));
-            Add(CityMeshes.LineYellow, MakeMat("LineYellow", Lit, new Color(0.95f, 0.72f, 0.08f), 0f, 0.3f));
-            Add(CityMeshes.Sidewalk, MakeMat("Sidewalk", Lit, Color.white, 0f, 0.15f, LATextureFactory.Sidewalk()));
-            Add(CityMeshes.Curb, MakeMat("Curb", Lit, new Color(0.72f, 0.71f, 0.68f), 0f, 0.1f));
-            Add(CityMeshes.Grass, MakeMat("Grass", Lit, Color.white, 0f, 0.05f, LATextureFactory.Grass()));
-            Add(CityMeshes.Plaza, MakeMat("Plaza", Lit, Color.white, 0f, 0.2f, LATextureFactory.Plaza()));
-            LATextureFactory.Facade("FacadeGlass", 0, 4, 4, out Texture2D fg, out Texture2D fge);
-            LATextureFactory.Facade("FacadeOffice", 1, 4, 4, out Texture2D fo, out Texture2D foe);
-            LATextureFactory.Facade("FacadeStucco", 2, 2, 2, out Texture2D fs, out Texture2D fse);
-            LATextureFactory.Facade("FacadeBrick", 3, 3, 3, out Texture2D fb, out Texture2D fbe);
-            LATextureFactory.Facade("Storefront", 4, 2, 1, out Texture2D sf, out Texture2D sfe);
-            Add(CityMeshes.FacadeGlass, MakeMat("FacadeGlass", Lit, Color.white, 0.55f, 0.88f, fg, fge, Color.black));
-            Add(CityMeshes.FacadeOffice, MakeMat("FacadeOffice", Lit, Color.white, 0.1f, 0.35f, fo, foe, Color.black));
-            Add(CityMeshes.FacadeStucco, MakeMat("FacadeStucco", Lit, Color.white, 0f, 0.15f, fs, fse, Color.black));
-            Add(CityMeshes.FacadeBrick, MakeMat("FacadeBrick", Lit, Color.white, 0f, 0.15f, fb, fbe, Color.black));
-            Add(CityMeshes.Storefront, MakeMat("Storefront", Lit, Color.white, 0.3f, 0.85f, sf, sfe, new Color(0.4f, 0.33f, 0.22f)));
-            Add(CityMeshes.Roof, MakeMat("Roof", Lit, new Color(0.3f, 0.3f, 0.32f), 0f, 0.1f));
-            Add(CityMeshes.Awning, MakeMat("Awning", Lit, new Color(0.62f, 0.1f, 0.1f), 0f, 0.2f));
-            Add(CityMeshes.NeonSign, MakeMat("NeonSign", Lit, new Color(1f, 0.25f, 0.75f), 0f, 0.5f, null, null, new Color(1.2f, 0.3f, 0.95f)));
-            Add(CityMeshes.PalmTrunk, MakeMat("PalmTrunk", Lit, new Color(0.47f, 0.39f, 0.3f), 0f, 0.1f));
-            Add(CityMeshes.PalmLeaf, MakeMat("PalmLeaf", Lit, new Color(0.24f, 0.44f, 0.14f), 0f, 0.25f, null, null, null, true));
-            Add(CityMeshes.PalmSkirt, MakeMat("PalmSkirt", Lit, new Color(0.5f, 0.38f, 0.22f), 0f, 0.05f, null, null, null, true));
-            Add(CityMeshes.Bark, MakeMat("Bark", Lit, new Color(0.33f, 0.24f, 0.16f), 0f, 0.1f));
-            Add(CityMeshes.Leaf, MakeMat("Leaf", Lit, new Color(0.17f, 0.4f, 0.14f), 0f, 0.15f));
-            Add(CityMeshes.Metal, MakeMat("Metal", Lit, new Color(0.38f, 0.39f, 0.41f), 0.7f, 0.5f));
-            Add(CityMeshes.LampHead, MakeMat("LampHead", Lit, new Color(1f, 0.92f, 0.75f), 0f, 0.6f, null, null, new Color(0.2f, 0.17f, 0.12f)));
-            Add(CityMeshes.SignalHousing, MakeMat("SignalHousing", Lit, new Color(0.12f, 0.12f, 0.08f), 0f, 0.3f));
-            Add(CityMeshes.SignGreen, MakeMat("SignGreen", Lit, new Color(0.05f, 0.42f, 0.18f), 0f, 0.4f));
-            Add(CityMeshes.SignWhite, MakeMat("SignWhite", Lit, new Color(0.92f, 0.92f, 0.92f), 0f, 0.3f));
-            Add(CityMeshes.Concrete, MakeMat("Concrete", Lit, new Color(0.62f, 0.61f, 0.58f), 0f, 0.12f));
+            // City: generated textures (albedo + normal + metallic/smoothness mask + emission) and the shared specs.
+            var sets = new Dictionary<string, TexSet>();
+            foreach (TexSet set in CityTextures.All()) sets[set.Albedo.Name] = set;
+            var saved = new Dictionary<string, Texture2D>();
+            Texture2D Tex(TexData d)
+            {
+                if (d == null) return null;
+                if (!saved.TryGetValue(d.Name, out Texture2D t))
+                {
+                    t = LATextureFactory.Save(d);
+                    saved[d.Name] = t;
+                }
+
+                return t;
+            }
+
+            foreach (MatSpec spec in MaterialSpecs.City())
+            {
+                sets.TryGetValue(spec.Texture ?? "", out TexSet ts);
+                Add(spec.Key, SpecMat(spec, ts == null ? null : Tex(ts.Albedo), ts == null ? null : Tex(ts.Normal), ts == null ? null : Tex(ts.Mask), ts == null ? null : Tex(ts.Emission)));
+            }
+
             Add("SignalRed", MakeMat("SignalRed", Unlit, new Color(4f, 0.15f, 0.1f), 0f, 0f));
             Add("SignalYellow", MakeMat("SignalYellow", Unlit, new Color(4f, 2.6f, 0.2f), 0f, 0f));
             Add("SignalGreen", MakeMat("SignalGreen", Unlit, new Color(0.2f, 3.5f, 1.4f), 0f, 0f));
@@ -308,12 +411,13 @@ namespace NeonRushLA.EditorTools
                 AssetDatabase.CreateAsset(sky, Mat + "/LA_Sky.mat");
             }
 
-            sky.SetFloat("_SunSize", 0.05f);
-            sky.SetFloat("_SunSizeConvergence", 4f);
-            sky.SetFloat("_AtmosphereThickness", 1.35f);
-            sky.SetColor("_SkyTint", new Color(0.55f, 0.48f, 0.6f));
-            sky.SetColor("_GroundColor", new Color(0.32f, 0.27f, 0.25f));
-            sky.SetFloat("_Exposure", 1.25f);
+            // Hazy Southern California daylight sky.
+            sky.SetFloat("_SunSize", 0.035f);
+            sky.SetFloat("_SunSizeConvergence", 6f);
+            sky.SetFloat("_AtmosphereThickness", 1.1f);
+            sky.SetColor("_SkyTint", new Color(0.5f, 0.52f, 0.56f));
+            sky.SetColor("_GroundColor", new Color(0.38f, 0.36f, 0.34f));
+            sky.SetFloat("_Exposure", LAQuality.DaySkyExposure);
             Add("Sky", sky);
 
             string libPath = Settings + "/LA_MaterialLibrary.asset";
@@ -356,11 +460,73 @@ namespace NeonRushLA.EditorTools
 
         private static GameObject BuildVortexPrefab(MaterialLibrary lib)
         {
-            CarAssembler.Result r = CarAssembler.BuildPlayer(CarSpec.Create(CarKind.VortexGT), lib);
+            CarSpec gt = CarSpec.Create(CarKind.VortexGT);
+            CarAssembler.Result r = CarAssembler.BuildPlayer(gt, lib);
             SaveMeshes("VortexGT", r);
+            ApplyImportedModel(r.Root, gt);
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(r.Root, Prefabs + "/VortexGT.prefab");
             Object.DestroyImmediate(r.Root);
             return prefab;
+        }
+
+        public const string ImportedCarsFolder = Root + "/ImportedCars";
+
+        /// <summary>
+        /// Optional: a licensed 3D model placed in Assets/NeonRushLA/ImportedCars named after the car
+        /// (VortexGT, Sedan, SUV, Pickup, Taxi, Sports; .prefab, .fbx, .obj or .blend) replaces the procedural
+        /// body. It is scaled to the car's length, sat on the ground and centred; physics, AI and wheel
+        /// colliders stay the same. The procedural body is hidden (kept for damage bookkeeping).
+        /// </summary>
+        private static bool ApplyImportedModel(GameObject root, CarSpec spec)
+        {
+            string baseName = ImportedCarsFolder + "/" + spec.Name.Replace(" ", "");
+            GameObject model = null;
+            foreach (string ext in new[] { ".prefab", ".fbx", ".obj", ".blend" })
+            {
+                model = AssetDatabase.LoadAssetAtPath<GameObject>(baseName + ext);
+                if (model != null) break;
+            }
+
+            if (model == null) return false;
+            var inst = (GameObject)Object.Instantiate(model);
+            inst.name = "ImportedModel";
+            inst.transform.SetParent(root.transform, false);
+            Renderer[] rs = inst.GetComponentsInChildren<Renderer>();
+            if (rs.Length == 0)
+            {
+                Object.DestroyImmediate(inst);
+                return false;
+            }
+
+            Bounds b = rs[0].bounds;
+            foreach (Renderer rr in rs) b.Encapsulate(rr.bounds);
+            // Long axis → Z
+            if (b.size.x > b.size.z * 1.2f)
+            {
+                inst.transform.localRotation = Quaternion.Euler(0f, 90f, 0f) * inst.transform.localRotation;
+                b = rs[0].bounds;
+                foreach (Renderer rr in rs) b.Encapsulate(rr.bounds);
+            }
+
+            float scale = spec.Length / Mathf.Max(0.01f, b.size.z);
+            inst.transform.localScale *= scale;
+            b = rs[0].bounds;
+            foreach (Renderer rr in rs) b.Encapsulate(rr.bounds);
+            Vector3 local = root.transform.InverseTransformPoint(b.center);
+            float bottom = root.transform.InverseTransformPoint(new Vector3(b.center.x, b.min.y, b.center.z)).y;
+            inst.transform.localPosition += new Vector3(-local.x, -bottom, (spec.FrontZ + spec.RearZ) * 0.5f - local.z);
+            foreach (Renderer rr in root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (rr.transform.IsChildOf(inst.transform)) continue;
+                if (rr.name.StartsWith("Body") || rr.name.StartsWith("Wheel") || rr.name.StartsWith("Caliper")) rr.enabled = false;
+                rr.gameObject.layer = root.layer;
+            }
+
+            foreach (Transform t in inst.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = root.layer;
+            var lod = root.GetComponent<LODGroup>();
+            if (lod != null) lod.SetLODs(new[] { new LOD(0.01f, rs) });
+            Debug.Log("[NeonRushLA] Using imported model for " + spec.Name + ": " + AssetDatabase.GetAssetPath(model));
+            return true;
         }
 
         private static TrafficCar[] BuildTrafficPrefabs(MaterialLibrary lib)
@@ -369,9 +535,10 @@ namespace NeonRushLA.EditorTools
             foreach (CarKind k in new[] { CarKind.Sedan, CarKind.SUV, CarKind.Pickup, CarKind.Taxi, CarKind.Sports })
             {
                 CarSpec spec = CarSpec.Create(k);
-                Material paint = MakeMat("Paint_" + spec.Name, "Universal Render Pipeline/Lit", spec.PaintColor, 0.6f, 0.75f);
+                Material paint = MakeMat("Paint_" + spec.Name, "Universal Render Pipeline/Lit", spec.PaintColor, 0.55f, 0.84f);
                 CarAssembler.Result r = CarAssembler.BuildTraffic(spec, lib, paint);
                 SaveMeshes("Traffic_" + spec.Name, r);
+                ApplyImportedModel(r.Root, spec);
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(r.Root, Prefabs + "/Traffic_" + spec.Name + ".prefab");
                 Object.DestroyImmediate(r.Root);
                 list.Add(prefab.GetComponent<TrafficCar>());
@@ -406,21 +573,23 @@ namespace NeonRushLA.EditorTools
             var sunGo = new GameObject("Sun");
             var sun = sunGo.AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.color = new Color(1f, 0.72f, 0.48f);
-            sun.intensity = 1.25f;
+            sun.color = LAQuality.DaySunColor;
+            sun.intensity = LAQuality.DaySunIntensity;
             sun.shadows = LightShadows.Soft;
-            sun.shadowStrength = 0.8f;
-            sunGo.transform.rotation = Quaternion.Euler(13f, -38f, 0f);
+            sun.shadowStrength = 0.92f;
+            sun.shadowNormalBias = 0.6f;
+            sun.shadowBias = 0.04f;
+            sunGo.transform.rotation = Quaternion.Euler(40f, -32f, 0f); // mid-afternoon, shadows across the grid
             Material sky = lib.Get("Sky");
             RenderSettings.skybox = sky;
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.55f, 0.48f, 0.55f);
-            RenderSettings.ambientEquatorColor = new Color(0.62f, 0.45f, 0.36f);
-            RenderSettings.ambientGroundColor = new Color(0.2f, 0.17f, 0.15f);
+            RenderSettings.ambientSkyColor = LAQuality.DayAmbientSky;
+            RenderSettings.ambientEquatorColor = LAQuality.DayAmbientEquator;
+            RenderSettings.ambientGroundColor = LAQuality.DayAmbientGround;
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogColor = new Color(0.78f, 0.55f, 0.45f);
+            RenderSettings.fogColor = LAQuality.DayFog;
             RenderSettings.fogStartDistance = 150f;
             RenderSettings.fogEndDistance = 400f;
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
@@ -486,6 +655,7 @@ namespace NeonRushLA.EditorTools
             var game = systems.AddComponent<LAGame>();
             var quality = systems.AddComponent<LAQuality>();
             quality.Configure(urp, cam, sun, vol, sky, lib);
+            quality.SetAmbientOcclusion(_ssao);
             var uiGo = new GameObject("UI");
             var ui = uiGo.AddComponent<LAUI>();
 
@@ -503,18 +673,22 @@ namespace NeonRushLA.EditorTools
             var profile = ScriptableObject.CreateInstance<VolumeProfile>();
             AssetDatabase.CreateAsset(profile, path);
             var bloom = profile.Add<Bloom>(true);
-            bloom.threshold.Override(1.0f);
-            bloom.intensity.Override(0.7f);
-            bloom.scatter.Override(0.65f);
+            bloom.threshold.Override(1.1f);
+            bloom.intensity.Override(0.35f);
+            bloom.scatter.Override(0.6f);
             bloom.highQualityFiltering.Override(false);
             var tone = profile.Add<Tonemapping>(true);
             tone.mode.Override(TonemappingMode.ACES);
             var color = profile.Add<ColorAdjustments>(true);
-            color.postExposure.Override(0.25f);
-            color.contrast.Override(10f);
-            color.saturation.Override(12f);
+            color.postExposure.Override(0.15f);
+            color.contrast.Override(8f);
+            color.saturation.Override(4f);
+            var wb = profile.Add<WhiteBalance>(true);
+            wb.temperature.Override(6f); // slightly warm Southern California light
+            var smh = profile.Add<ShadowsMidtonesHighlights>(true);
+            smh.shadows.Override(new Vector4(0.97f, 0.99f, 1.04f, 0f)); // cool sky-lit shadows
             var vig = profile.Add<Vignette>(true);
-            vig.intensity.Override(0.22f);
+            vig.intensity.Override(0.16f);
             foreach (VolumeComponent c in profile.components) AssetDatabase.AddObjectToAsset(c, profile);
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
