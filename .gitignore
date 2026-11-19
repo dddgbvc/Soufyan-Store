@@ -1,0 +1,3 @@
+
+# Signed builds carry the owner's provisioning profile: never commit them
+dist/*-signed.ipa
