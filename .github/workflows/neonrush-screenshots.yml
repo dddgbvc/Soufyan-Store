@@ -1,0 +1,73 @@
+# NEON RUSH 3D — real screenshots: builds a Linux player of the same project, runs it on a
+# virtual 2532x1170 display (iPhone landscape) with software OpenGL, lets the in-game
+# ScreenshotDirector play through menu / gameplay / pause / settings / game over, and commits
+# the PNGs to docs/neonrush-screenshots on this branch.
+name: NeonRush screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/ecstatic-planck-g7wzcy]
+    paths:
+      - 'NeonRush3D/**'
+      - '.github/workflows/neonrush-screenshots.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: neonrush-shots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    if: "!contains(github.event.head_commit.message, '[ci shots]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: NeonRush3D/Library
+          key: Library-NeonRush-Linux-${{ hashFiles('NeonRush3D/Packages/manifest.json', 'NeonRush3D/ProjectSettings/ProjectVersion.txt') }}
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: NeonRush3D
+          targetPlatform: StandaloneLinux64
+          buildName: NeonRush
+          buildsPath: build
+          versioning: None
+          buildMethod: NeonRush.EditorTools.NeonRushBuild.BuildLinuxScreenshotPlayerCommandLine
+      - name: Install virtual display + software OpenGL
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglu1-mesa mesa-utils > /dev/null
+      - name: Play the game and capture screenshots
+        run: |
+          sudo chown -R "$(id -u)" build || true
+          EXE=$(find build -name 'NeonRush.x86_64' -type f | head -1)
+          echo "Player: $EXE"
+          chmod +x "$EXE"
+          mkdir -p shots
+          export LIBGL_ALWAYS_SOFTWARE=1
+          timeout 300 xvfb-run -a -s "-screen 0 2532x1170x24" "$EXE" -force-glcore \
+            -screen-width 2532 -screen-height 1170 -screen-fullscreen 0 \
+            -nrScreenshots "$PWD/shots" -logFile "$PWD/shots/player.log" || true
+          grep -E "\[NeonRush\]|Exception|Error" shots/player.log | head -60 || true
+          ls -la shots
+      - name: Commit screenshots to this branch
+        run: |
+          ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots were produced"; exit 1; }
+          mkdir -p docs/neonrush-screenshots
+          cp shots/*.png shots/player.log docs/neonrush-screenshots/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/neonrush-screenshots
+          git commit -m "NeonRush screenshots from Linux player run [ci shots]" || exit 0
+          git push origin HEAD:${{ github.ref_name }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neonrush-screenshots
+          path: shots

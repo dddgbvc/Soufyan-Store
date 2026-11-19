@@ -45,6 +45,7 @@ jobs:
   xcode:
     name: Unity iOS build → Xcode project
     needs: preflight
+    if: "!contains(github.event.head_commit.message, '[skip ipa]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

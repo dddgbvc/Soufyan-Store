@@ -43,6 +43,12 @@ namespace NeonRush
             game.Initialize();
             ui.Init();
             IsReady = true;
+
+            string shots = ScreenshotDirector.RequestedDirectory();
+            if (!string.IsNullOrEmpty(shots))
+            {
+                gameObject.AddComponent<ScreenshotDirector>().Begin(game, ui, shots);
+            }
         }
 
         private static void ConfigureRuntime()

@@ -67,6 +67,42 @@ namespace NeonRush.EditorTools
             EditorApplication.Exit(code);
         }
 
+        /// <summary>
+        /// Batch mode: Linux desktop player used only to capture screenshots of the real game
+        /// (run with -nrScreenshots &lt;dir&gt;). Mono backend for a fast build.
+        /// </summary>
+        public static void BuildLinuxScreenshotPlayerCommandLine()
+        {
+            bool ok = false;
+            try
+            {
+                string dir = ArgValue("-customBuildPath") ?? "Builds/Linux/NeonRush";
+                NeonRushProjectSetup.Configure();
+                NeonRushSceneBuilder.EnsureBuilt();
+                PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+                PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+                PlayerSettings.resizableWindow = true;
+                Directory.CreateDirectory(dir);
+                var options = new BuildPlayerOptions
+                {
+                    scenes = new[] { NeonRushSceneBuilder.ScenePath },
+                    locationPathName = Path.Combine(dir, "NeonRush.x86_64"),
+                    target = BuildTarget.StandaloneLinux64,
+                    targetGroup = BuildTargetGroup.Standalone,
+                    options = BuildOptions.None,
+                };
+                BuildReport report = BuildPipeline.BuildPlayer(options);
+                Debug.Log("[NeonRush] Linux screenshot player " + report.summary.result + " → " + options.locationPathName);
+                ok = report.summary.result == BuildResult.Succeeded;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            EditorApplication.Exit(ok ? 0 : 1);
+        }
+
         public static BuildReport BuildIOS(string outputPath)
         {
             if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.iOS, BuildTarget.iOS))
