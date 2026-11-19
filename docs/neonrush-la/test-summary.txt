@@ -5,7 +5,7 @@
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
     [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
     [NeonRush] iOS module not installed here: Metal-only API check is done in the iOS build job.
-== test-results/playmode.log (5167 lines) — test progress / errors:
+== test-results/playmode.log (5165 lines) — test progress / errors:
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
     [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
@@ -15,54 +15,54 @@
     [NeonRushLA] Scenes prepared for tests: Assets/NeonRushLA/Scenes/NeonRushLA.unity, Assets/NeonRush/Scenes/NeonRush.unity
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
     [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
-    [NeonRushLA] PrebuildSetup: active scene 'InitTestScene639307044030795520', 1 open
-    [NeonRushLA] PrebuildSetup done: active scene 'InitTestScene639307044030795520', 1 open
-    [NeonRush] PlayMode perf sample: 60.0 FPS, avg 16.67 ms, worst 16.71 ms, target 60 (display 60 Hz)
-    [NeonRush] Autopilot: state=GameOver time=22.0s distance=597m score=621 speed=0km/h rows=23 originShifts=0 fps=60.0 avgMs=16.67
-    [NeonRushLA] >> BrakesStopTheCar (realtime 46 s)
-    [NeonRushLA] City built in 2247 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] PrebuildSetup: active scene 'InitTestScene639307050089542710', 1 open
+    [NeonRushLA] PrebuildSetup done: active scene 'InitTestScene639307050089542710', 1 open
+    [NeonRush] PlayMode perf sample: 60.0 FPS, avg 16.67 ms, worst 16.70 ms, target 60 (display 60 Hz)
+    [NeonRush] Autopilot: state=Playing time=25.0s distance=700m score=750 speed=127km/h rows=26 originShifts=0 fps=60.0 avgMs=16.67
+    [NeonRushLA] >> BrakesStopTheCar (realtime 48 s)
+    [NeonRushLA] City built in 1855 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     [NeonRushLA] Braking 90→0 km/h in 26.7 m, 2.33 s
     [NeonRushLA] << BrakesStopTheCar Passed (realtime 60 s)
     [NeonRushLA] >> CameraModesQualityAndNight (realtime 60 s)
-    [NeonRushLA] City built in 2082 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] City built in 1779 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     [NeonRushLA] << CameraModesQualityAndNight Passed (realtime 63 s)
     [NeonRushLA] >> CarRestsOnItsWheelsAndAcceleratesThroughGears (realtime 63 s)
-    [NeonRushLA] City built in 2064 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] City built in 1721 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     [NeonRushLA] 0-100 km/h: 4.5 s, 9 s speed 151 km/h, gear 3, rpm 6117
-    [NeonRushLA] << CarRestsOnItsWheelsAndAcceleratesThroughGears Passed (realtime 77 s)
-    [NeonRushLA] >> ChallengesStartAndTrackProgress (realtime 77 s)
-    [NeonRushLA] City built in 2029 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-    [NeonRushLA] << ChallengesStartAndTrackProgress Passed (realtime 80 s)
-    [NeonRushLA] >> CityTrafficAndPeopleBootCleanly (realtime 80 s)
-    [NeonRushLA] City built in 2159 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-    [NeonRushLA] Boot: city 2159 ms, traffic 22, people 9
-    [NeonRushLA] << CityTrafficAndPeopleBootCleanly Passed (realtime 86 s)
-    [NeonRushLA] >> FlippedCarRecoversOnItsOwn (realtime 86 s)
-    [NeonRushLA] City built in 2022 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-    [NeonRushLA] << FlippedCarRecoversOnItsOwn Passed (realtime 94 s)
-    [NeonRushLA] >> FreeRoamPerformanceSample (realtime 94 s)
-    [NeonRushLA] City built in 2006 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-    [NeonRushLA] Perf sample (CI, no GPU): 60 FPS, avg 16.7 ms, target 60, traffic 22, people 12, detail chunks 20
-    [NeonRushLA] << FreeRoamPerformanceSample Passed (realtime 102 s)
-    [NeonRushLA] >> HandbrakeTurnBreaksTheRearLoose (realtime 102 s)
-    [NeonRushLA] City built in 2042 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] << CarRestsOnItsWheelsAndAcceleratesThroughGears Passed (realtime 76 s)
+    [NeonRushLA] >> ChallengesStartAndTrackProgress (realtime 76 s)
+    [NeonRushLA] City built in 1693 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] << ChallengesStartAndTrackProgress Passed (realtime 78 s)
+    [NeonRushLA] >> CityTrafficAndPeopleBootCleanly (realtime 78 s)
+    [NeonRushLA] City built in 1690 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] Boot: city 1690 ms, traffic 22, people 10
+    [NeonRushLA] << CityTrafficAndPeopleBootCleanly Passed (realtime 84 s)
+    [NeonRushLA] >> FlippedCarRecoversOnItsOwn (realtime 84 s)
+    [NeonRushLA] City built in 1849 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] << FlippedCarRecoversOnItsOwn Passed (realtime 91 s)
+    [NeonRushLA] >> FreeRoamPerformanceSample (realtime 91 s)
+    [NeonRushLA] City built in 1685 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] Perf sample (CI, no GPU): 60 FPS, avg 16.7 ms, target 60, traffic 21, people 14, detail chunks 20
+    [NeonRushLA] << FreeRoamPerformanceSample Passed (realtime 99 s)
+    [NeonRushLA] >> HandbrakeTurnBreaksTheRearLoose (realtime 99 s)
+    [NeonRushLA] City built in 1704 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     [NeonRushLA] Handbrake drift: max slip angle 141°
-    [NeonRushLA] << HandbrakeTurnBreaksTheRearLoose Passed (realtime 110 s)
-    [NeonRushLA] >> HittingAPedestrianTriggersRagdoll (realtime 111 s)
-    [NeonRushLA] City built in 2000 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-    [NeonRushLA] << HittingAPedestrianTriggersRagdoll Passed (realtime 117 s)
-    [NeonRushLA] >> SteeringTurnsTheCar (realtime 117 s)
-    [NeonRushLA] City built in 2026 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] << HandbrakeTurnBreaksTheRearLoose Passed (realtime 107 s)
+    [NeonRushLA] >> HittingAPedestrianTriggersRagdoll (realtime 107 s)
+    [NeonRushLA] City built in 1699 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] << HittingAPedestrianTriggersRagdoll Passed (realtime 114 s)
+    [NeonRushLA] >> SteeringTurnsTheCar (realtime 114 s)
+    [NeonRushLA] City built in 1713 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     [NeonRushLA] 2 s full right lock at ~40 km/h → yaw change 155°
-    [NeonRushLA] << SteeringTurnsTheCar Passed (realtime 125 s)
-    [NeonRushLA] >> TrafficDrivesAndStopsAtRedLights (realtime 125 s)
-    [NeonRushLA] City built in 2193 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-    [NeonRushLA] Traffic: 22 cars, max speed 55 km/h, stopped at red: True
-    [NeonRushLA] << TrafficDrivesAndStopsAtRedLights Passed (realtime 130 s)
-    [NeonRushLA] >> WallImpactDamagesAndStopsTheCar (realtime 130 s)
-    [NeonRushLA] City built in 2037 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] << SteeringTurnsTheCar Passed (realtime 121 s)
+    [NeonRushLA] >> TrafficDrivesAndStopsAtRedLights (realtime 121 s)
+    [NeonRushLA] City built in 1686 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] Traffic: 21 cars, max speed 61 km/h, stopped at red: True
+    [NeonRushLA] << TrafficDrivesAndStopsAtRedLights Passed (realtime 126 s)
+    [NeonRushLA] >> WallImpactDamagesAndStopsTheCar (realtime 126 s)
+    [NeonRushLA] City built in 1834 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     [NeonRushLA] Wall hit at 92 km/h → impact 26.2 m/s, damage 42%, speed after 0 km/h
-    [NeonRushLA] << WallImpactDamagesAndStopsTheCar Passed (realtime 138 s)
+    [NeonRushLA] << WallImpactDamagesAndStopsTheCar Passed (realtime 133 s)
 test-results/editmode-results.xml: total=34 passed=34 failed=0 skipped=0
   Passed   NeonRush.Tests.FrameRatePolicyTests.FrameBudget
   Passed   NeonRush.Tests.FrameRatePolicyTests.LowPowerModeCapsAt60
@@ -99,7 +99,7 @@ test-results/editmode-results.xml: total=34 passed=34 failed=0 skipped=0
   Passed   NeonRush.Tests.ScoreAndSaveTests.MultiplierStepsEvery500MetresAndCaps
   Passed   NeonRush.Tests.ScoreAndSaveTests.ScoreAccumulatesWithDistance
   Passed   NeonRush.Tests.ScoreAndSaveTests.SettingsRoundTripAndClamp
-test-results/playmode-results.xml: total=27 passed=25 failed=1 skipped=1
+test-results/playmode-results.xml: total=27 passed=26 failed=0 skipped=1
   Passed   NeonRush.Tests.GameplayPlayModeTests.BootsIntoMenuWithNoErrors
   Passed   NeonRush.Tests.GameplayPlayModeTests.CollisionEndsRunAndSavesHighScore
   Passed   NeonRush.Tests.GameplayPlayModeTests.DodgingAvoidsCollision
@@ -108,69 +108,68 @@ test-results/playmode-results.xml: total=27 passed=25 failed=1 skipped=1
   Passed   NeonRush.Tests.GameplayPlayModeTests.ObstaclesSpawnAndAlwaysLeaveAnOpenLane
   Passed   NeonRush.Tests.GameplayPlayModeTests.PauseFreezesAndResumeContinues
   Passed   NeonRush.Tests.GameplayPlayModeTests.PerformanceManagerReportsRealFrameTimes
-             [NeonRush] PlayMode perf sample: 60.0 FPS, avg 16.67 ms, worst 16.71 ms, target 60 (display 60 Hz)
+             [NeonRush] PlayMode perf sample: 60.0 FPS, avg 16.67 ms, worst 16.70 ms, target 60 (display 60 Hz)
   Passed   NeonRush.Tests.GameplayPlayModeTests.QualityAndFpsSettingsApplyImmediately
   Passed   NeonRush.Tests.GameplayPlayModeTests.RestartIsInstantAndDoesNotLeak
   Passed   NeonRush.Tests.GameplayPlayModeTests.RunMovesCarAccumulatesScoreAndAccelerates
   Passed   NeonRush.Tests.GameplayPlayModeTests.UiFollowsGameState
-  Failed   NeonRush.Tests.RealPlayTests.AutopilotPlaysThroughTrafficWithCleanConsole
-             [NeonRush] Autopilot: state=GameOver time=22.0s distance=597m score=621 speed=0km/h rows=23 originShifts=0 fps=60.0 avgMs=16.67
-            FAIL: autopilot survived 25 s of generated obstacles
+  Passed   NeonRush.Tests.RealPlayTests.AutopilotPlaysThroughTrafficWithCleanConsole
+             [NeonRush] Autopilot: state=Playing time=25.0s distance=700m score=750 speed=127km/h rows=26 originShifts=0 fps=60.0 avgMs=16.67
   Skipped  NeonRush.Tests.RealPlayTests.CaptureScreenshots
   Passed   NeonRush.Tests.RealPlayTests.CarRoadObstaclesAndUiAreInView
   Passed   NeonRushLA.Tests.LAPlayModeTests.BrakesStopTheCar
-             [NeonRushLA] >> BrakesStopTheCar (realtime 46 s)
-             [NeonRushLA] City built in 2247 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] >> BrakesStopTheCar (realtime 48 s)
+             [NeonRushLA] City built in 1855 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
              [NeonRushLA] Braking 90→0 km/h in 26.7 m, 2.33 s
              [NeonRushLA] << BrakesStopTheCar Passed (realtime 60 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.CameraModesQualityAndNight
              [NeonRushLA] >> CameraModesQualityAndNight (realtime 60 s)
-             [NeonRushLA] City built in 2082 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] City built in 1779 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
              [NeonRushLA] << CameraModesQualityAndNight Passed (realtime 63 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.CarRestsOnItsWheelsAndAcceleratesThroughGears
              [NeonRushLA] >> CarRestsOnItsWheelsAndAcceleratesThroughGears (realtime 63 s)
-             [NeonRushLA] City built in 2064 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] City built in 1721 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
              [NeonRushLA] 0-100 km/h: 4.5 s, 9 s speed 151 km/h, gear 3, rpm 6117
-             [NeonRushLA] << CarRestsOnItsWheelsAndAcceleratesThroughGears Passed (realtime 77 s)
+             [NeonRushLA] << CarRestsOnItsWheelsAndAcceleratesThroughGears Passed (realtime 76 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.ChallengesStartAndTrackProgress
-             [NeonRushLA] >> ChallengesStartAndTrackProgress (realtime 77 s)
-             [NeonRushLA] City built in 2029 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-             [NeonRushLA] << ChallengesStartAndTrackProgress Passed (realtime 80 s)
+             [NeonRushLA] >> ChallengesStartAndTrackProgress (realtime 76 s)
+             [NeonRushLA] City built in 1693 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] << ChallengesStartAndTrackProgress Passed (realtime 78 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.CityTrafficAndPeopleBootCleanly
-             [NeonRushLA] >> CityTrafficAndPeopleBootCleanly (realtime 80 s)
-             [NeonRushLA] City built in 2159 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-             [NeonRushLA] Boot: city 2159 ms, traffic 22, people 9
-             [NeonRushLA] << CityTrafficAndPeopleBootCleanly Passed (realtime 86 s)
+             [NeonRushLA] >> CityTrafficAndPeopleBootCleanly (realtime 78 s)
+             [NeonRushLA] City built in 1690 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] Boot: city 1690 ms, traffic 22, people 10
+             [NeonRushLA] << CityTrafficAndPeopleBootCleanly Passed (realtime 84 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.FlippedCarRecoversOnItsOwn
-             [NeonRushLA] >> FlippedCarRecoversOnItsOwn (realtime 86 s)
-             [NeonRushLA] City built in 2022 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-             [NeonRushLA] << FlippedCarRecoversOnItsOwn Passed (realtime 94 s)
+             [NeonRushLA] >> FlippedCarRecoversOnItsOwn (realtime 84 s)
+             [NeonRushLA] City built in 1849 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] << FlippedCarRecoversOnItsOwn Passed (realtime 91 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.FreeRoamPerformanceSample
-             [NeonRushLA] >> FreeRoamPerformanceSample (realtime 94 s)
-             [NeonRushLA] City built in 2006 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-             [NeonRushLA] Perf sample (CI, no GPU): 60 FPS, avg 16.7 ms, target 60, traffic 22, people 12, detail chunks 20
-             [NeonRushLA] << FreeRoamPerformanceSample Passed (realtime 102 s)
+             [NeonRushLA] >> FreeRoamPerformanceSample (realtime 91 s)
+             [NeonRushLA] City built in 1685 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] Perf sample (CI, no GPU): 60 FPS, avg 16.7 ms, target 60, traffic 21, people 14, detail chunks 20
+             [NeonRushLA] << FreeRoamPerformanceSample Passed (realtime 99 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.HandbrakeTurnBreaksTheRearLoose
-             [NeonRushLA] >> HandbrakeTurnBreaksTheRearLoose (realtime 102 s)
-             [NeonRushLA] City built in 2042 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] >> HandbrakeTurnBreaksTheRearLoose (realtime 99 s)
+             [NeonRushLA] City built in 1704 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
              [NeonRushLA] Handbrake drift: max slip angle 141°
-             [NeonRushLA] << HandbrakeTurnBreaksTheRearLoose Passed (realtime 110 s)
+             [NeonRushLA] << HandbrakeTurnBreaksTheRearLoose Passed (realtime 107 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.HittingAPedestrianTriggersRagdoll
-             [NeonRushLA] >> HittingAPedestrianTriggersRagdoll (realtime 111 s)
-             [NeonRushLA] City built in 2000 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-             [NeonRushLA] << HittingAPedestrianTriggersRagdoll Passed (realtime 117 s)
+             [NeonRushLA] >> HittingAPedestrianTriggersRagdoll (realtime 107 s)
+             [NeonRushLA] City built in 1699 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] << HittingAPedestrianTriggersRagdoll Passed (realtime 114 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.SteeringTurnsTheCar
-             [NeonRushLA] >> SteeringTurnsTheCar (realtime 117 s)
-             [NeonRushLA] City built in 2026 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] >> SteeringTurnsTheCar (realtime 114 s)
+             [NeonRushLA] City built in 1713 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
              [NeonRushLA] 2 s full right lock at ~40 km/h → yaw change 155°
-             [NeonRushLA] << SteeringTurnsTheCar Passed (realtime 125 s)
+             [NeonRushLA] << SteeringTurnsTheCar Passed (realtime 121 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.TrafficDrivesAndStopsAtRedLights
-             [NeonRushLA] >> TrafficDrivesAndStopsAtRedLights (realtime 125 s)
-             [NeonRushLA] City built in 2193 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
-             [NeonRushLA] Traffic: 22 cars, max speed 55 km/h, stopped at red: True
-             [NeonRushLA] << TrafficDrivesAndStopsAtRedLights Passed (realtime 130 s)
+             [NeonRushLA] >> TrafficDrivesAndStopsAtRedLights (realtime 121 s)
+             [NeonRushLA] City built in 1686 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] Traffic: 21 cars, max speed 61 km/h, stopped at red: True
+             [NeonRushLA] << TrafficDrivesAndStopsAtRedLights Passed (realtime 126 s)
   Passed   NeonRushLA.Tests.LAPlayModeTests.WallImpactDamagesAndStopsTheCar
-             [NeonRushLA] >> WallImpactDamagesAndStopsTheCar (realtime 130 s)
-             [NeonRushLA] City built in 2037 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+             [NeonRushLA] >> WallImpactDamagesAndStopsTheCar (realtime 126 s)
+             [NeonRushLA] City built in 1834 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
              [NeonRushLA] Wall hit at 92 km/h → impact 26.2 m/s, damage 42%, speed after 0 km/h
-             [NeonRushLA] << WallImpactDamagesAndStopsTheCar Passed (realtime 138 s)
+             [NeonRushLA] << WallImpactDamagesAndStopsTheCar Passed (realtime 133 s)
