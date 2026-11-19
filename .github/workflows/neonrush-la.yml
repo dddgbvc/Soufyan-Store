@@ -29,24 +29,47 @@ jobs:
         with:
           path: NeonRush3D/Library
           key: Library-NeonRushLA-tests-${{ hashFiles('NeonRush3D/Packages/manifest.json', 'NeonRush3D/ProjectSettings/ProjectVersion.txt') }}
-      - uses: game-ci/unity-test-runner@v4
-        id: tests
+      # Runs the Unity editor image directly (game-ci/unity-test-runner@v4 now downloads its CLI
+      # through the GitHub API, which returned 403 here, so no tests ran).
+      - name: Run Unity tests (EditMode + PlayMode)
         continue-on-error: true
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          projectPath: NeonRush3D
-          testMode: all
-          artifactsPath: test-results
+        run: |
+          mkdir -p test-results
+          LIC="$RUNNER_TEMP/Unity_lic.ulf"
+          printf '%s' "$UNITY_LICENSE" > "$LIC"
+          cat > "$RUNNER_TEMP/run-tests.sh" <<'SH'
+          set -u
+          mkdir -p /root/.local/share/unity3d/Unity
+          cp /lic/Unity_lic.ulf /root/.local/share/unity3d/Unity/Unity_lic.ulf
+          unity-editor -batchmode -nographics -quit -logFile /w/test-results/activate.log -manualLicenseFile /lic/Unity_lic.ulf || true
+          for mode in EditMode PlayMode; do
+            unity-editor -batchmode -nographics -projectPath /w/NeonRush3D -runTests -testPlatform "$mode" \
+              -testResults "/w/test-results/$mode.xml" -logFile "/w/test-results/$mode.log"
+            echo "$mode exit code: $?"
+          done
+          SH
+          docker run --rm -v "$GITHUB_WORKSPACE:/w" -v "$RUNNER_TEMP:/lic:ro" -w /w \
+            unityci/editor:ubuntu-2022.3.62f1-base-3 bash /lic/run-tests.sh
+          rm -f "$LIC"
+          sudo chown -R "$(id -u)" test-results NeonRush3D || true
+          # Keep only error lines of the activation log; never publish the full log.
+          grep -iE "licen[sc]e.*(error|fail|invalid)" test-results/activate.log | head -5 || true
+          rm -f test-results/activate.log
+          ls -la test-results
+          for f in test-results/*.log; do echo "== $f (tail)"; tail -25 "$f"; done
       - name: Summarise test results
         if: always()
         run: |
           python3 - <<'PY' | tee test-summary.txt
           import glob, xml.etree.ElementTree as ET
           files = sorted(glob.glob('test-results/*.xml'))
-          if not files: print('NO TEST RESULTS PRODUCED')
+          if not files:
+              print('NO TEST RESULTS PRODUCED')
+              for lg in sorted(glob.glob('test-results/*.log')):
+                  print('== ' + lg)
+                  for line in open(lg, errors='replace').read().splitlines()[-30:]: print('   ', line)
           for f in files:
               r = ET.parse(f).getroot()
               print(f"{f}: total={r.get('total')} passed={r.get('passed')} failed={r.get('failed')} skipped={r.get('skipped')}")

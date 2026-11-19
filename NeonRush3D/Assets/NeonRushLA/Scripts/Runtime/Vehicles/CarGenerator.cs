@@ -160,37 +160,101 @@ namespace NeonRushLA.Vehicles
                 return d + crown + bulge;
             }
 
-            // Side shape: fraction of height → fraction of half width.
-            private static readonly float[] SideT = { 0f, 0.12f, 0.30f, 0.50f, 0.66f, 0.80f, 0.90f };
-            private static readonly float[] SideF = { 0.955f, 0.99f, 1.0f, 1.0f, 0.995f, 0.975f, 0.95f };
-            private const int TopSamples = 6;
+            // Side shape (bottom tuck → flank), as fraction of the flank height → fraction of half width.
+            // Dense at the bottom so the tuck-under is round, not a crease.
+            private static readonly float[] SideT = { 0f, 0.04f, 0.11f, 0.20f, 0.32f, 0.46f, 0.60f, 0.74f, 0.87f, 1f };
+            private static readonly float[] SideF = { 0.915f, 0.950f, 0.975f, 0.991f, 0.999f, 1.0f, 1.0f, 0.998f, 0.994f, 0.99f };
+            private const int ShoulderSamples = 7; // circular shoulder arc (flank → top), excl. its start
+            private const int TopSamples = 7;      // crown samples from the arc end to the centre line
 
-            /// <summary>Body cross-section ring: left bottom → over the top → right bottom.</summary>
+            // Radius of the rounded nose / tail edges (fillet between the flanks/deck and the end panels).
+            private float EndRadius => Mathf.Clamp(_s.Length * 0.026f, 0.08f, 0.13f);
+
+            /// <summary>How far the surface is pulled in near the nose and tail (quarter-circle fillet).</summary>
+            private float EndInset(float z)
+            {
+                float r = EndRadius;
+                float u = 0f;
+                if (z > _s.FrontZ - r) u = (z - (_s.FrontZ - r)) / r;
+                else if (z < _s.RearZ + r) u = ((_s.RearZ + r) - z) / r;
+                u = Mathf.Clamp01(u);
+                return r * (1f - Mathf.Sqrt(Mathf.Max(0f, 1f - u * u)));
+            }
+
+            private static float SideFraction(float t)
+            {
+                if (t <= SideT[0]) return SideF[0];
+                for (int i = 0; i < SideT.Length - 1; i++)
+                {
+                    if (t <= SideT[i + 1]) return Mathf.Lerp(SideF[i], SideF[i + 1], (t - SideT[i]) / (SideT[i + 1] - SideT[i]));
+                }
+
+                return SideF[SideF.Length - 1];
+            }
+
+            /// <summary>
+            /// Outward hint for orienting body faces: away from the car's core, but towards the wheel
+            /// inside an arch cut-out, so the cut edges face the tyre (no back faces seen in the well).
+            /// </summary>
+            private Vector3 BodyOutward(Vector3 p)
+            {
+                var o = new Vector3(p.x, p.y - 0.55f * _s.Belt, p.z * 0.15f);
+                foreach (float az in new[] { _s.FrontAxleZ, _s.RearAxleZ })
+                {
+                    float dy = p.y - _s.WheelRadius, dz = p.z - az;
+                    float dist = Mathf.Sqrt(dy * dy + dz * dz);
+                    if (dist < _s.ArchRadius + 0.015f && p.y < Deck(p.z) - 0.05f)
+                    {
+                        o = new Vector3(p.x, -dy * 3f, -dz * 3f);
+                    }
+                }
+
+                return o;
+            }
+
+            private float ShoulderRadius(float b, float d) => Mathf.Clamp((d - b) * 0.30f, 0.05f, 0.19f);
+
+            /// <summary>Body cross-section ring: left bottom → over the top → right bottom. No hard creases.</summary>
             private Vector3[] Section(float z)
             {
-                float w = HalfW(z);
-                float b = Bottom(z);
-                float d = Deck(z);
+                float inset = EndInset(z);
+                float w = HalfW(z) - inset;
+                float b = Bottom(z) + inset * 0.55f;
                 float arch = ArchY(z);
+                float rs = ShoulderRadius(b, Deck(z) - inset);
+                float edgeX = w * SideF[SideF.Length - 1];
+                // Shoulder arc centre; its top meets the crown at the same height and with a flat tangent.
+                float cx = -(edgeX - rs);
+                float topAtArc = TopY(cx, z) - inset;
+                float cy = topAtArc - rs;
+
+                // Over a wheel arch the flank starts at the arch edge: points below it collapse onto
+                // the flank there (no horizontal ledge inside the wheel well).
+                float archT = arch > b ? Mathf.Clamp01((arch - b) / Mathf.Max(1e-4f, cy - b)) : 0f;
+                float archF = SideFraction(archT);
                 var left = new List<Vector3>();
                 for (int i = 0; i < SideT.Length; i++)
                 {
-                    float y = b + (d - b) * SideT[i];
-                    y = Mathf.Max(y, arch);
-                    y = Mathf.Min(y, d - 0.03f);
-                    left.Add(new Vector3(-w * SideF[i], y, z));
+                    float t = Mathf.Max(SideT[i], archT);
+                    float y = Mathf.Min(b + (cy - b) * t, cy);
+                    float f = SideT[i] < archT ? archF : SideF[i];
+                    left.Add(new Vector3(-w * f, y, z));
                 }
 
-                left.Add(new Vector3(-w * 0.925f, d - 0.022f, z));
-                left.Add(new Vector3(-w * 0.88f, TopY(-w * 0.88f, z) - 0.004f, z));
+                for (int k = 1; k <= ShoulderSamples; k++)
+                {
+                    float a = Mathf.PI - 0.5f * Mathf.PI * k / ShoulderSamples; // 180° → 90°
+                    left.Add(new Vector3(cx + Mathf.Cos(a) * rs, cy + Mathf.Sin(a) * rs, z));
+                }
+
                 for (int k = TopSamples - 1; k >= 1; k--)
                 {
-                    float x = -w * 0.88f * k / TopSamples;
-                    left.Add(new Vector3(x, TopY(x, z), z));
+                    float x = cx * k / TopSamples;
+                    left.Add(new Vector3(x, TopY(x, z) - inset, z));
                 }
 
                 var ring = new List<Vector3>(left);
-                ring.Add(new Vector3(0f, TopY(0f, z), z));
+                ring.Add(new Vector3(0f, TopY(0f, z) - inset, z));
                 for (int i = left.Count - 1; i >= 0; i--)
                 {
                     Vector3 p = left[i];
@@ -200,14 +264,35 @@ namespace NeonRushLA.Vehicles
                 return ring.ToArray();
             }
 
-            private int SideCount => SideT.Length;              // side points per half
-            private int HalfCount => SideT.Length + 2 + (TopSamples - 1); // points per half (excl. centre)
+            /// <summary>Height of the body's upper surface (shoulder arc + crown) at lateral position x.</summary>
+            private float BodyTopY(float x, float z)
+            {
+                Vector3[] ring = Section(z);
+                float ax = -Mathf.Abs(x);
+                int start = SideCount - 1;
+                int centre = HalfCount;
+                if (ax <= ring[start].x) return ring[start].y;
+                for (int i = start; i < centre; i++)
+                {
+                    Vector3 a = ring[i], b = ring[i + 1];
+                    if (ax >= a.x && ax <= b.x && b.x - a.x > 1e-6f)
+                    {
+                        return Mathf.Lerp(a.y, b.y, (ax - a.x) / (b.x - a.x));
+                    }
+                }
+
+                return ring[centre].y;
+            }
+
+            private int SideCount => SideT.Length;                                   // flank points per half
+            private int ShoulderTopIndex => SideT.Length + ShoulderSamples - 1;       // last arc point (top of shoulder)
+            private int HalfCount => SideT.Length + ShoulderSamples + (TopSamples - 1); // points per half (excl. centre)
 
             /// <summary>Point on the left body side at height y (x negative), lifted slightly outward.</summary>
             private Vector3 SidePoint(float z, float y, float lift = 0.002f)
             {
                 Vector3[] ring = Section(z);
-                for (int i = 0; i < SideCount; i++)
+                for (int i = 0; i < ShoulderTopIndex; i++)
                 {
                     Vector3 a = ring[i], b = ring[i + 1];
                     if (y >= a.y - 1e-4f && y <= b.y + 1e-4f && b.y - a.y > 1e-5f)
@@ -223,21 +308,47 @@ namespace NeonRushLA.Vehicles
 
             private List<float> Stations(float z0, float z1, float baseStep)
             {
+                float r = EndRadius;
+                int endSteps = Mathf.Max(5, Mathf.RoundToInt(8 * _detail));
                 var list = new List<float>();
+                // Tail fillet: stations spaced evenly in angle so the rounded edge stays smooth.
+                for (int k = endSteps; k >= 1; k--)
+                {
+                    float a = 0.5f * Mathf.PI * k / endSteps;
+                    list.Add(z0 + r - r * Mathf.Sin(a));
+                }
+
                 float step = baseStep / _detail;
-                float z = z0;
+                float z = z0 + r;
                 list.Add(z);
-                while (z < z1 - 1e-4f)
+                float zEnd = z1 - r;
+                while (z < zEnd - 1e-4f)
                 {
                     // Dense sampling through the wheel arches for a round cut-out.
                     bool nearArch = Mathf.Abs(z - _s.FrontAxleZ) < _s.ArchRadius + 0.05f || Mathf.Abs(z - _s.RearAxleZ) < _s.ArchRadius + 0.05f;
-                    bool nearEnd = z < _s.RearZ + 0.25f || z > _s.FrontZ - 0.25f;
+                    bool nearEnd = z < _s.RearZ + 0.45f || z > _s.FrontZ - 0.45f;
                     float st = nearArch ? step * 0.35f : nearEnd ? step * 0.5f : step;
-                    z = Mathf.Min(z1, z + st);
+                    z = Mathf.Min(zEnd, z + st);
                     list.Add(z);
                 }
 
+                // Nose fillet.
+                for (int k = 1; k <= endSteps; k++)
+                {
+                    float a = 0.5f * Mathf.PI * k / endSteps;
+                    list.Add(zEnd + r * Mathf.Sin(a));
+                }
+
                 return list;
+            }
+
+            /// <summary>Flat end-panel extents left after the fillet (where lamps, grille and plates sit).</summary>
+            private void EndFace(float zEnd, out float bottom, out float top, out float halfW)
+            {
+                float r = EndRadius;
+                bottom = Bottom(zEnd) + r * 0.55f;
+                top = Deck(zEnd) - r;
+                halfW = HalfW(zEnd) - r;
             }
 
             // ------------------------------------------------------------------ build
@@ -271,22 +382,22 @@ namespace NeonRushLA.Vehicles
                 List<float> zs = Stations(_s.RearZ, _s.FrontZ, 0.12f);
                 var rings = new List<Vector3[]>(zs.Count);
                 foreach (float z in zs) rings.Add(Section(z));
-                int half = HalfCount;
+                int topStart = ShoulderTopIndex;
                 int segCount = rings[0].Length - 1;
 
                 Shapes.Loft(_body, rings, false, (r, seg) =>
                 {
-                    // Lower rocker strip in black plastic.
-                    if (seg == 0 || seg == segCount - 1) return Black;
+                    // Lower rocker strip (rounded tuck-under) in black plastic.
+                    if (seg <= 1 || seg >= segCount - 2) return Black;
                     if (_s.PickupBed)
                     {
                         float z = zs[r];
-                        bool topSeg = seg >= half && seg < segCount - half;
+                        bool topSeg = seg >= topStart && seg < segCount - topStart;
                         if (topSeg && z < _s.PickupCabRear && z > _s.RearZ + 0.05f) return null; // open bed
                     }
 
                     return Paint;
-                }, p => new Vector3(p.x, p.y - 0.55f * _s.Belt, p.z * 0.15f));
+                }, BodyOutward);
 
                 // Nose and tail panels.
                 Shapes.Cap(_body[Paint], rings[rings.Count - 1], Vector3.forward);
@@ -304,7 +415,8 @@ namespace NeonRushLA.Vehicles
             {
                 float zBack = _s.RearZ + 0.06f;
                 float zFront = _s.PickupCabRear - 0.02f;
-                float w = HalfW((zBack + zFront) * 0.5f) * 0.86f;
+                // Bed walls meet the inner edge of the rounded shoulder (no open edge to look under).
+                float w = Mathf.Abs(Section((zBack + zFront) * 0.5f)[ShoulderTopIndex].x) - 0.005f;
                 float floor = _s.Belt - 0.48f;
                 float len = zFront - zBack;
                 float cz = (zBack + zFront) * 0.5f;
@@ -312,10 +424,15 @@ namespace NeonRushLA.Vehicles
                 Shapes.Box(_body[Black], new Vector3(-w, (floor + _s.Belt) * 0.5f, cz), new Vector3(0.02f, _s.Belt - floor, len));
                 Shapes.Box(_body[Black], new Vector3(w, (floor + _s.Belt) * 0.5f, cz), new Vector3(0.02f, _s.Belt - floor, len));
                 Shapes.Box(_body[Black], new Vector3(0f, (floor + _s.Belt) * 0.5f, zFront), new Vector3(w * 2f, _s.Belt - floor, 0.02f));
-                Shapes.Box(_body[Paint], new Vector3(0f, (floor + _s.Belt) * 0.5f, zBack), new Vector3(w * 2f + 0.06f, _s.Belt - floor, 0.04f));
-                // Bed rail caps
-                Shapes.Box(_body[Black], new Vector3(-w - 0.04f, _s.Belt + 0.012f, cz), new Vector3(0.11f, 0.025f, len));
-                Shapes.Box(_body[Black], new Vector3(w + 0.04f, _s.Belt + 0.012f, cz), new Vector3(0.11f, 0.025f, len));
+                // Tailgate with rounded edges.
+                Shapes.RoundedBox(_body[Paint], new Vector3(0f, (floor + _s.Belt) * 0.5f, zBack), new Vector3(w * 2f + 0.06f, _s.Belt - floor, 0.05f), 0.024f, 3);
+                // Bed rail caps (rounded tubes)
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    float x = side * (w + 0.01f);
+                    var rail = new List<Vector3> { new Vector3(x, _s.Belt + 0.012f, zBack + 0.03f), new Vector3(x, _s.Belt + 0.012f, zFront) };
+                    Shapes.Tube(_body[Black], rail, new List<float> { 0.028f, 0.028f }, 10, true, true);
+                }
             }
 
             // ------------------------------------------------------------------ greenhouse
@@ -343,19 +460,43 @@ namespace NeonRushLA.Vehicles
                 float h = _s.Belt + (_s.Roof - _s.Belt) * e;
                 float wb = HalfW(z) * _s.GreenhouseBaseInset;
                 float wt = Mathf.Lerp(wb, HalfW(z) * _s.GreenhouseTopInset, e);
-                float baseY = _s.Belt - 0.005f;
-                var left = new[]
+                // The glass starts on the body surface itself (which curves over the shoulder), so no gap.
+                float baseY = Mathf.Min(_s.Belt, BodyTopY(-wb, z)) - 0.006f;
+                // Window flank, then a quadratic-Bezier roof corner (no crease between glass and roof).
+                float rc = 0.075f * e;
+                var s0 = new Vector2(-wt, h - rc);
+                var c0 = new Vector2(-wt - 0.006f * e, h + 0.006f * e);
+                var e0 = new Vector2(-wt + rc * 1.3f, h + 0.012f * e);
+                var left = new List<Vector3>
                 {
                     new Vector3(-wb, baseY, z),
-                    new Vector3(-Mathf.Lerp(wb, wt, 0.5f) - 0.01f * e, baseY + (h - baseY) * 0.55f, z),
-                    new Vector3(-wt, h - 0.035f * e, z),
-                    new Vector3(-wt * 0.82f, h - 0.006f * e, z),
-                    new Vector3(-wt * 0.45f, h + 0.012f * e, z),
+                    new Vector3(-Mathf.Lerp(wb, wt, 0.5f) - 0.01f * e, baseY + (h - rc - baseY) * 0.55f, z),
+                    new Vector3(s0.x, s0.y, z),
                 };
+                for (int k = 1; k <= GhCornerSamples; k++)
+                {
+                    float t = (float)k / GhCornerSamples;
+                    Vector2 p = (1 - t) * (1 - t) * s0 + 2 * t * (1 - t) * c0 + t * t * e0;
+                    left.Add(new Vector3(p.x, p.y, z));
+                }
+
+                left.Add(new Vector3(-wt * 0.40f, h + 0.017f * e, z));
                 var ring = new List<Vector3>(left);
-                ring.Add(new Vector3(0f, h + 0.018f * e, z));
-                for (int i = left.Length - 1; i >= 0; i--) ring.Add(new Vector3(-left[i].x, left[i].y, z));
+                ring.Add(new Vector3(0f, h + 0.020f * e, z));
+                for (int i = left.Count - 1; i >= 0; i--) ring.Add(new Vector3(-left[i].x, left[i].y, z));
                 return ring.ToArray();
+            }
+
+            private const int GhCornerSamples = 5;
+            private const int GhCornerStart = 2; // index of the first corner point (top of the side window)
+
+            /// <summary>0 = side window, 1 = roof corner, 2 = roof top, for a greenhouse ring segment.</summary>
+            private static int GreenhouseSegKind(int seg, int segs)
+            {
+                int li = seg < segs / 2 ? seg : segs - 1 - seg;
+                if (li < GhCornerStart) return 0;
+                if (li < GhCornerStart + GhCornerSamples) return 1;
+                return 2;
             }
 
             private void BuildGreenhouse()
@@ -372,14 +513,15 @@ namespace NeonRushLA.Vehicles
                 zs.Sort();
                 var rings = new List<Vector3[]>();
                 foreach (float z in zs) rings.Add(GreenhouseSection(z));
-                int segs = rings[0].Length - 1; // 10
+                int segs = rings[0].Length - 1;
 
                 Shapes.Loft(_body, rings, false, (r, seg) =>
                 {
                     float zMid = (zs[r] + zs[r + 1]) * 0.5f;
-                    bool side = seg <= 1 || seg >= segs - 2;
-                    bool rail = seg == 2 || seg == segs - 3;
-                    bool top = !side && !rail;
+                    int kind = GreenhouseSegKind(seg, segs);
+                    bool side = kind == 0;
+                    bool rail = kind == 1;
+                    bool top = kind == 2;
                     bool roofZone = zMid < _s.RoofFront - 0.03f && zMid > _s.RoofRear + 0.03f;
                     if (top && roofZone) return Paint;
                     if (rail && roofZone) return Paint;
@@ -387,6 +529,10 @@ namespace NeonRushLA.Vehicles
                     if (side && Mathf.Abs(zMid - _s.BPillar) < 0.045f) return Black;
                     return Glass;
                 }, p => new Vector3(p.x, p.y - (_s.Belt - 0.2f), 0f));
+
+                // Close the thin slivers where the glass meets the body at both ends.
+                Shapes.Cap(_body[Black], rings[rings.Count - 1], Vector3.forward);
+                Shapes.Cap(_body[Black], rings[0], Vector3.back);
 
                 // A-pillars, drip rails and belt chrome.
                 for (int side = -1; side <= 1; side += 2)
@@ -396,7 +542,7 @@ namespace NeonRushLA.Vehicles
                     for (int i = 0; i <= 8; i++)
                     {
                         float z = Mathf.Lerp(_s.WindshieldBase, _s.RoofFront, i / 8f);
-                        Vector3 p = GreenhouseSection(z)[2];
+                        Vector3 p = GreenhouseSection(z)[GhCornerStart + 1];
                         aPath.Add(new Vector3(p.x * -side * -1f, p.y + 0.004f, z));
                         aR.Add(0.026f);
                     }
@@ -410,7 +556,7 @@ namespace NeonRushLA.Vehicles
                     {
                         float z = Mathf.Lerp(_s.CPillarStart, _s.WindshieldBase - 0.04f, i / 10f);
                         float x = HalfW(z) * _s.GreenhouseBaseInset + 0.004f;
-                        belt.Add(new Vector3(side * x, _s.Belt + 0.004f, z));
+                        belt.Add(new Vector3(side * x, Mathf.Min(_s.Belt, BodyTopY(-x, z)) + 0.004f, z));
                         beltR.Add(0.007f);
                     }
 
@@ -540,94 +686,91 @@ namespace NeonRushLA.Vehicles
             private void BuildFront()
             {
                 float zF = _s.FrontZ;
-                float fb = Bottom(zF);
-                float ft = Deck(zF);
+                EndFace(zF, out float fb, out float ft, out float w);
                 float H = ft - fb;
-                float w = HalfW(zF);
                 MeshData black = _body[Black];
 
-                // Grille opening + slats
-                float gy0 = fb + 0.36f * H, gy1 = fb + 0.78f * H, gw = 0.60f * w;
-                Shapes.Box(black, new Vector3(0, (gy0 + gy1) * 0.5f, zF + 0.004f), new Vector3(gw * 2f, gy1 - gy0, 0.012f));
+                // Grille opening + slats (all rounded rectangles)
+                float gy0 = fb + 0.30f * H, gy1 = fb + 0.80f * H, gw = 0.60f * w;
+                float gr = (gy1 - gy0) * 0.30f;
+                Shapes.RoundedPlate(black, new Vector3(0, (gy0 + gy1) * 0.5f, zF + 0.004f), new Vector2(gw * 2f, gy1 - gy0), 0.012f, gr);
                 MeshData slat = _s.Kind == CarKind.VortexGT || _s.Kind == CarKind.Sports ? _body[Seam] : _body[Chrome];
                 for (int i = 1; i <= 4; i++)
                 {
                     float y = Mathf.Lerp(gy0, gy1, i / 5f);
-                    Shapes.Box(slat, new Vector3(0, y, zF + 0.013f), new Vector3(gw * 2f - 0.04f, 0.012f, 0.01f));
+                    float inset = gr * (1f - Mathf.Sqrt(Mathf.Clamp01(1f - Sq(Mathf.Max(0f, Mathf.Abs(y - (gy0 + gy1) * 0.5f) - ((gy1 - gy0) * 0.5f - gr)) / gr))));
+                    Shapes.RoundedPlate(slat, new Vector3(0, y, zF + 0.012f), new Vector2(gw * 2f - 0.05f - 2f * inset, 0.012f), 0.008f, 0.006f, 2);
                 }
 
                 if (_s.Kind != CarKind.VortexGT && _s.Kind != CarKind.Sports)
                 {
-                    // Chrome surround
-                    Shapes.Box(_body[Chrome], new Vector3(0, gy1 + 0.008f, zF + 0.014f), new Vector3(gw * 2f + 0.03f, 0.016f, 0.014f));
-                    Shapes.Box(_body[Chrome], new Vector3(0, gy0 - 0.008f, zF + 0.014f), new Vector3(gw * 2f + 0.03f, 0.016f, 0.014f));
-                    Shapes.Box(_body[Chrome], new Vector3(-gw - 0.008f, (gy0 + gy1) * 0.5f, zF + 0.014f), new Vector3(0.016f, gy1 - gy0 + 0.03f, 0.014f));
-                    Shapes.Box(_body[Chrome], new Vector3(gw + 0.008f, (gy0 + gy1) * 0.5f, zF + 0.014f), new Vector3(0.016f, gy1 - gy0 + 0.03f, 0.014f));
+                    // Chrome surround: a rounded frame (outer rounded plate behind the black opening).
+                    Shapes.RoundedPlate(_body[Chrome], new Vector3(0, (gy0 + gy1) * 0.5f, zF + 0.001f), new Vector2(gw * 2f + 0.04f, gy1 - gy0 + 0.04f), 0.012f, gr + 0.02f);
                 }
 
-                // Headlights: dark housing + LED lens
-                float hy0 = fb + 0.70f * H, hy1 = fb + 0.86f * H;
-                float hx0 = 0.63f * w, hx1 = 0.93f * w;
+                // Headlights: dark rounded housing + rounded LED lenses
+                float hy0 = fb + 0.68f * H, hy1 = fb + 0.90f * H;
+                float hx0 = 0.60f * w, hx1 = 0.95f * w;
+                float hh = hy1 - hy0;
                 for (int side = -1; side <= 1; side += 2)
                 {
                     float cx = side * (hx0 + hx1) * 0.5f;
-                    Shapes.Box(black, new Vector3(cx, (hy0 + hy1) * 0.5f, zF + 0.004f), new Vector3(hx1 - hx0 + 0.02f, hy1 - hy0 + 0.02f, 0.012f));
-                    Shapes.Box(_body[Headlight], new Vector3(cx, hy1 - (hy1 - hy0) * 0.3f, zF + 0.013f), new Vector3(hx1 - hx0, (hy1 - hy0) * 0.35f, 0.01f));
-                    Shapes.Box(_body[Headlight], new Vector3(cx + side * 0.03f, hy0 + (hy1 - hy0) * 0.28f, zF + 0.013f), new Vector3((hx1 - hx0) * 0.55f, (hy1 - hy0) * 0.22f, 0.01f));
+                    Shapes.RoundedPlate(black, new Vector3(cx, (hy0 + hy1) * 0.5f, zF + 0.004f), new Vector2(hx1 - hx0 + 0.02f, hh + 0.02f), 0.012f, (hh + 0.02f) * 0.45f);
+                    Shapes.RoundedPlate(_body[Headlight], new Vector3(cx, hy1 - hh * 0.3f, zF + 0.012f), new Vector2(hx1 - hx0 - 0.01f, hh * 0.36f), 0.008f, hh * 0.17f);
+                    Shapes.RoundedPlate(_body[Headlight], new Vector3(cx + side * 0.03f, hy0 + hh * 0.28f, zF + 0.012f), new Vector2((hx1 - hx0) * 0.55f, hh * 0.22f), 0.008f, hh * 0.105f);
                 }
 
                 if (_s.FullWidthDrl)
                 {
-                    Shapes.Box(_body[Headlight], new Vector3(0, ft - 0.035f, zF + 0.008f), new Vector3(hx1 * 2f, 0.012f, 0.012f));
+                    Shapes.RoundedPlate(_body[Headlight], new Vector3(0, ft - 0.03f, zF + 0.008f), new Vector2(hx1 * 2f, 0.014f), 0.01f, 0.0069f, 2);
                 }
 
                 // Lower intake, splitter, fog lamps
-                Shapes.Box(black, new Vector3(0, fb + 0.19f * H, zF + 0.004f), new Vector3(0.72f * w * 2f, 0.22f * H, 0.012f));
-                Shapes.Box(black, new Vector3(0, fb + 0.005f, zF - 0.10f), new Vector3(w * 1.94f, 0.04f, 0.3f));
+                float iy = fb + 0.13f * H, ih = 0.20f * H;
+                Shapes.RoundedPlate(black, new Vector3(0, iy, zF + 0.004f), new Vector2(0.70f * w * 2f, ih), 0.012f, ih * 0.45f);
+                Shapes.RoundedBox(black, new Vector3(0, Bottom(zF) + 0.03f, zF - 0.10f), new Vector3(w * 1.9f + 0.1f, 0.045f, 0.3f), 0.022f, 3);
                 for (int side = -1; side <= 1; side += 2)
                 {
-                    Shapes.Box(_body[Headlight], new Vector3(side * 0.80f * w, fb + 0.20f * H, zF + 0.012f), new Vector3(0.10f, 0.025f, 0.01f));
+                    Shapes.RoundedPlate(_body[Headlight], new Vector3(side * 0.82f * w, iy, zF + 0.012f), new Vector2(0.11f, 0.03f), 0.008f, 0.0149f, 3);
                 }
 
-                PlateQuad(new Vector3(0, fb + 0.20f * H, zF + 0.022f), true);
+                PlateQuad(new Vector3(0, iy, zF + 0.022f), true);
             }
 
             private void BuildRear()
             {
                 float zR = _s.RearZ;
-                float rb = Bottom(zR);
-                float rt = Deck(zR);
+                EndFace(zR, out float rb, out float rt, out float w);
                 float H = rt - rb;
-                float w = HalfW(zR);
                 MeshData black = _body[Black];
                 float z = zR - 0.006f;
 
                 if (_s.RacetrackTaillight)
                 {
-                    float y1 = rt - 0.045f, y0 = rt - 0.13f;
-                    float x = 0.93f * w;
-                    Shapes.Box(black, new Vector3(0, (y0 + y1) * 0.5f, z + 0.002f), new Vector3(x * 2f, y1 - y0, 0.01f));
-                    Shapes.Box(_body[Taillight], new Vector3(0, y1, z - 0.004f), new Vector3(x * 2f, 0.022f, 0.012f));
-                    Shapes.Box(_body[Taillight], new Vector3(0, y0, z - 0.004f), new Vector3(x * 2f, 0.022f, 0.012f));
-                    Shapes.Box(_body[Taillight], new Vector3(-x, (y0 + y1) * 0.5f, z - 0.004f), new Vector3(0.022f, y1 - y0 + 0.022f, 0.012f));
-                    Shapes.Box(_body[Taillight], new Vector3(x, (y0 + y1) * 0.5f, z - 0.004f), new Vector3(0.022f, y1 - y0 + 0.022f, 0.012f));
+                    // One continuous racetrack loop: a red rounded ring around a dark rounded centre.
+                    float y1 = rt - 0.035f, y0 = rt - 0.135f;
+                    float x = 0.95f * w;
+                    float lh = y1 - y0;
+                    Shapes.RoundedPlate(_body[Taillight], new Vector3(0, (y0 + y1) * 0.5f, z + 0.002f), new Vector2(x * 2f + 0.03f, lh + 0.03f), 0.01f, (lh + 0.03f) * 0.49f, 6);
+                    Shapes.RoundedPlate(black, new Vector3(0, (y0 + y1) * 0.5f, z - 0.004f), new Vector2(x * 2f - 0.02f, lh - 0.02f), 0.008f, (lh - 0.02f) * 0.49f, 6);
                 }
                 else
                 {
-                    float y1 = rt - 0.04f, y0 = rt - 0.20f;
+                    float y1 = rt - 0.035f, y0 = rt - 0.20f;
                     for (int side = -1; side <= 1; side += 2)
                     {
-                        float x0 = 0.52f * w, x1 = 0.95f * w;
+                        float x0 = 0.50f * w, x1 = 0.96f * w;
                         float cx = side * (x0 + x1) * 0.5f;
-                        Shapes.Box(black, new Vector3(cx, (y0 + y1) * 0.5f, z + 0.002f), new Vector3(x1 - x0 + 0.02f, y1 - y0 + 0.02f, 0.01f));
-                        Shapes.Box(_body[Taillight], new Vector3(cx, (y0 + y1) * 0.5f + 0.02f, z - 0.004f), new Vector3(x1 - x0, (y1 - y0) * 0.55f, 0.012f));
+                        float lh = y1 - y0;
+                        Shapes.RoundedPlate(black, new Vector3(cx, (y0 + y1) * 0.5f, z + 0.002f), new Vector2(x1 - x0 + 0.02f, lh + 0.02f), 0.01f, (lh + 0.02f) * 0.35f);
+                        Shapes.RoundedPlate(_body[Taillight], new Vector3(cx, (y0 + y1) * 0.5f + 0.02f, z - 0.004f), new Vector2(x1 - x0, lh * 0.55f), 0.012f, lh * 0.25f);
                     }
                 }
 
-                PlateQuad(new Vector3(0, rb + 0.42f * H, z - 0.006f), false);
+                PlateQuad(new Vector3(0, rb + 0.40f * H, z - 0.006f), false);
 
-                // Diffuser / bumper
-                Shapes.Box(black, new Vector3(0, rb + 0.06f, zR + 0.05f), new Vector3(w * 1.75f, 0.15f, 0.16f));
+                // Diffuser / bumper (rounded)
+                Shapes.RoundedBox(black, new Vector3(0, Bottom(zR) + 0.07f, zR + 0.07f), new Vector3(w * 1.9f, 0.14f, 0.16f), 0.05f, 3);
 
                 // Exhaust tips
                 int tips = _s.DualExhaust ? 2 : 1;
@@ -670,7 +813,7 @@ namespace NeonRushLA.Vehicles
                 int ic = m.AddVertex(c, n, new Vector2(1, 1));
                 int id = m.AddVertex(d, n, new Vector2(0, 1));
                 m.AddQuadFacing(ia, ib, ic, id, n);
-                Shapes.Box(_body[Black], center - n * 0.004f, new Vector3(hw * 2f + 0.03f, hh * 2f + 0.03f, 0.006f));
+                Shapes.RoundedPlate(_body[Black], center - n * 0.004f, new Vector2(hw * 2f + 0.03f, hh * 2f + 0.03f), 0.006f, 0.025f);
             }
 
             private void BuildExtras()
@@ -682,7 +825,8 @@ namespace NeonRushLA.Vehicles
                     for (int side = -1; side <= 1; side += 2)
                     {
                         float x = side * 0.36f;
-                        Shapes.Box(_body[Seam], new Vector3(x, TopY(x, z) + 0.004f, z), new Vector3(0.07f, 0.012f, 0.32f));
+                        // Rounded slot lying on the hood (plate rotated to face up).
+                        Shapes.RoundedPlate(_body[Seam], new Vector3(x, TopY(x, z) + 0.004f, z), new Vector2(0.07f, 0.32f), 0.012f, 0.034f, 4, Xform.RotateX(90f));
                     }
                 }
 
@@ -690,17 +834,18 @@ namespace NeonRushLA.Vehicles
                 {
                     float z = _s.RearZ + 0.18f;
                     float y = Deck(z) + 0.17f;
-                    Shapes.Box(_body[Black], new Vector3(0, y, z), new Vector3(_s.HalfWidth * 1.75f, 0.03f, 0.28f));
+                    // Airfoil-like wing: a flattened rounded box (fully rounded leading/trailing edges).
+                    Shapes.RoundedBox(_body[Black], new Vector3(0, y, z), new Vector3(_s.HalfWidth * 1.75f, 0.04f, 0.28f), 0.0199f, 3);
                     for (int side = -1; side <= 1; side += 2)
                     {
-                        Shapes.Box(_body[Black], new Vector3(side * 0.45f, (y + Deck(z)) * 0.5f, z + 0.02f), new Vector3(0.03f, y - Deck(z), 0.12f));
+                        Shapes.RoundedBox(_body[Black], new Vector3(side * 0.45f, (y + Deck(z)) * 0.5f, z + 0.02f), new Vector3(0.035f, y - Deck(z), 0.12f), 0.017f, 2);
                     }
                 }
 
                 if (_s.TaxiSign)
                 {
                     float z = (_s.RoofFront + _s.RoofRear) * 0.5f;
-                    Shapes.Box(_body[Black], new Vector3(0, _s.Roof + 0.035f, z), new Vector3(0.12f, 0.04f, 0.3f));
+                    Shapes.RoundedBox(_body[Black], new Vector3(0, _s.Roof + 0.035f, z), new Vector3(0.12f, 0.04f, 0.3f), 0.019f, 2);
                     Shapes.RoundedBox(_body[Sign], new Vector3(0, _s.Roof + 0.13f, z), new Vector3(0.62f, 0.16f, 0.22f), 0.03f, 2);
                 }
 
@@ -767,7 +912,7 @@ namespace NeonRushLA.Vehicles
                     {
                         float ang = baseAng + k * 7f;
                         var spoke = new MeshData();
-                        Shapes.Box(spoke, Vector3.zero, new Vector3(len, 0.03f, 0.044f));
+                        Shapes.RoundedBox(spoke, Vector3.zero, new Vector3(len, 0.03f, 0.044f), 0.013f, 2);
                         Xform x = Xform.RotateY(-ang) * Xform.Translate(new Vector3(rc, faceY, 0)) * Xform.RotateZ(9f);
                         wheel[Rim].Append(spoke, x);
                     }

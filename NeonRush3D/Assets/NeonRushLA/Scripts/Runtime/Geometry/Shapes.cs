@@ -423,6 +423,41 @@ namespace NeonRushLA.Geometry
         }
 
         /// <summary>Extrudes a closed 2D outline (in XY) along Z from z0 to z1, with caps.</summary>
+        /// <summary>Rounded-rectangle outline (counter-clockwise), corner radius clamped to the size.</summary>
+        public static List<Vector2> RoundedRectOutline(Vector2 size, float radius, int cornerSegments = 4)
+        {
+            float hw = size.x * 0.5f, hh = size.y * 0.5f;
+            radius = Mathf.Clamp(radius, 0f, Mathf.Min(hw, hh) * 0.999f);
+            int cs = Mathf.Max(1, cornerSegments);
+            var pts = new List<Vector2>();
+            var centres = new[]
+            {
+                new Vector2(hw - radius, hh - radius), new Vector2(-hw + radius, hh - radius),
+                new Vector2(-hw + radius, -hh + radius), new Vector2(hw - radius, -hh + radius),
+            };
+            for (int c = 0; c < 4; c++)
+            {
+                for (int i = 0; i <= cs; i++)
+                {
+                    float a = (c * 90f + 90f * i / cs) * Mathf.Deg2Rad;
+                    pts.Add(centres[c] + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius);
+                }
+            }
+
+            return pts;
+        }
+
+        /// <summary>
+        /// Thin plate with rounded corners in its own plane (local XY, thickness along Z), placed at
+        /// <paramref name="center"/> and rotated by <paramref name="orient"/>. Used for lamps, grilles, vents.
+        /// </summary>
+        public static void RoundedPlate(MeshData m, Vector3 center, Vector2 size, float thickness, float radius, int cornerSegments = 4, Xform? orient = null)
+        {
+            var tmp = new MeshData();
+            Extrude(tmp, RoundedRectOutline(size, radius, cornerSegments), -thickness * 0.5f, thickness * 0.5f, true);
+            m.Append(tmp, Xform.Translate(center) * (orient ?? Xform.Identity));
+        }
+
         public static void Extrude(MeshData m, IList<Vector2> outline, float z0, float z1, bool caps = true)
         {
             int n = outline.Count;
