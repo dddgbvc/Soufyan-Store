@@ -17,6 +17,21 @@ namespace NeonRush
         private UIManager _ui;
         private string _dir;
 
+        /// <summary>Output = window size × this (e.g. 1266x585 → 2532x1170, iPhone landscape).</summary>
+        private static int SuperSize
+        {
+            get
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                for (int i = 0; i < args.Length - 1; i++)
+                {
+                    if (args[i] == "-nrSuperSize" && int.TryParse(args[i + 1], out int v)) return Mathf.Clamp(v, 1, 4);
+                }
+
+                return 1;
+            }
+        }
+
         public static string RequestedDirectory()
         {
             string[] args = Environment.GetCommandLineArgs();
@@ -41,7 +56,9 @@ namespace NeonRush
 
         private IEnumerator Run()
         {
-            yield return new WaitForSecondsRealtime(3f);
+            // Let the first frames (shader warm-up) finish before the first capture.
+            for (int i = 0; i < 30; i++) yield return null;
+            yield return new WaitForSecondsRealtime(2f);
             yield return Shot("1_menu.png");
 
             _game.StartRun();
@@ -77,8 +94,10 @@ namespace NeonRush
         private IEnumerator Shot(string file)
         {
             string path = Path.Combine(_dir, file);
-            ScreenCapture.CaptureScreenshot(path);
-            float end = Time.realtimeSinceStartup + 3f;
+            Debug.Log("[NeonRush] Capturing " + file + " | frame " + Time.frameCount + " | t=" + Time.realtimeSinceStartup.ToString("0.0") +
+                      "s | fps~" + (1f / Mathf.Max(0.0001f, Time.unscaledDeltaTime)).ToString("0.0"));
+            ScreenCapture.CaptureScreenshot(path, SuperSize);
+            float end = Time.realtimeSinceStartup + 60f;
             while (!File.Exists(path) && Time.realtimeSinceStartup < end) yield return null;
             yield return null;
             Debug.Log("[NeonRush] Captured " + path + (File.Exists(path) ? "" : " (MISSING)"));

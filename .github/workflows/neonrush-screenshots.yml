@@ -51,21 +51,22 @@ jobs:
           chmod +x "$EXE"
           mkdir -p shots
           export LIBGL_ALWAYS_SOFTWARE=1
-          timeout 300 xvfb-run -a -s "-screen 0 2532x1170x24" "$EXE" -force-glcore \
-            -screen-width 2532 -screen-height 1170 -screen-fullscreen 0 \
-            -nrScreenshots "$PWD/shots" -logFile "$PWD/shots/player.log" || true
+          # Rendered at half iPhone resolution, captured at 2x supersize → 2532x1170 PNGs.
+          timeout 900 xvfb-run -a -s "-screen 0 1266x585x24" "$EXE" -force-glcore \
+            -screen-width 1266 -screen-height 585 -screen-fullscreen 0 \
+            -nrScreenshots "$PWD/shots" -nrSuperSize 2 -logFile "$PWD/shots/player.log" || true
           grep -E "\[NeonRush\]|Exception|Error" shots/player.log | head -60 || true
           ls -la shots
       - name: Commit screenshots to this branch
         run: |
-          ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots were produced"; exit 1; }
           mkdir -p docs/neonrush-screenshots
-          cp shots/*.png shots/player.log docs/neonrush-screenshots/
+          cp shots/* docs/neonrush-screenshots/ || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/neonrush-screenshots
           git commit -m "NeonRush screenshots from Linux player run [ci shots]" || exit 0
-          git push origin HEAD:${{ github.ref_name }}
+          for i in 1 2 3; do git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && break; sleep 5; done
+          ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots were produced (player.log committed for diagnosis)"; exit 1; }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
