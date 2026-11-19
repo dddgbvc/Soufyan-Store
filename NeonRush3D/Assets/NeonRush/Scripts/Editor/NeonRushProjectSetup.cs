@@ -182,7 +182,7 @@ namespace NeonRush.EditorTools
             PlayerSettings.iOS.hideHomeButton = false;
             PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All; // swipes near edges reach the game first
             PlayerSettings.iOS.appleEnableAutomaticSigning = false;   // signing is handled by BuildTools/make_ipa.sh
-            PlayerSettings.iOS.allowHTTPDownload = false;
+            PlayerSettings.insecureHttpOption = InsecureHttpOption.NotAllowed;
 
             SetProMotion(true);
             Debug.Log("[NeonRush] iOS settings: " + BundleId + " v" + Version + " (" + BuildNumber + "), IL2CPP, ARM64, Metal, iOS " + MinIOSVersion + "+, landscape, ProMotion on.");
