@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
@@ -45,45 +46,80 @@ namespace NeonRush.Tests
             yield return null;
         }
 
-        /// <summary>Distance to the nearest obstacle ahead in a lane (MaxValue when clear).</summary>
-        private float NearestBlock(int lane)
+        private readonly List<float> _rowZ = new List<float>(16);
+
+        /// <summary>True when an obstacle in the lane overlaps the car's z-range [from, to] (relative to the car).</summary>
+        private bool Blocked(int lane, float from, float to)
         {
             float z = _player.Position.z;
-            float best = float.MaxValue;
             foreach (Obstacle o in _game.Spawner.Active)
             {
                 float dz = o.transform.position.z - z;
-                if (o.Lane == lane && dz > -3.2f && dz < best) best = dz;
+                if (o.Lane == lane && dz > from && dz < to) return true;
             }
 
-            return best;
+            return false;
+        }
+
+        /// <summary>Free lanes of the obstacle row starting at relative z (rows are clustered within 2 m).</summary>
+        private bool LaneFreeInRow(int lane, float rowDz)
+        {
+            return !Blocked(lane, rowDz - 0.5f, rowDz + 2.5f);
         }
 
         /// <summary>
-        /// Simple driver: when the current lane is blocked within the look-ahead, head for the lane whose
-        /// next obstacle is furthest away (one lane change at a time, two if the open lane is across the road),
-        /// as long as the lane it passes through is not blocked right next to the car.
+        /// Driver that plans like a player: as soon as a row is passed it looks at the next two rows and heads
+        /// for the open lane of the next row that is closest to an open lane of the row after, one lane change
+        /// at a time, never moving into a lane that is occupied right next to the car.
         /// </summary>
-        private void Steer(float lookAhead)
+        private void Steer()
         {
+            float z = _player.Position.z;
+            _rowZ.Clear();
+            foreach (Obstacle o in _game.Spawner.Active)
+            {
+                float dz = o.transform.position.z - z;
+                if (dz > 2.0f) _rowZ.Add(dz);
+            }
+
+            if (_rowZ.Count == 0) return;
+            _rowZ.Sort();
+            float row0 = _rowZ[0];
+            float row1 = -1f;
+            foreach (float r in _rowZ)
+            {
+                if (r > row0 + 3f)
+                {
+                    row1 = r;
+                    break;
+                }
+            }
+
             int lane = _player.Lane;
-            float d = NearestBlock(lane);
-            if (d > lookAhead) return;
             int target = lane;
-            float best = d + 3f;
+            float bestCost = float.MaxValue;
             for (int l = 0; l < PlayerController.LaneCount; l++)
             {
-                float n = NearestBlock(l);
-                if (l != lane && (n > best || (n == best && Mathf.Abs(l - lane) < Mathf.Abs(target - lane))))
+                if (!LaneFreeInRow(l, row0)) continue;
+                float cost = Mathf.Abs(l - lane);
+                if (row1 > 0f)
                 {
-                    best = n;
+                    int nearest = 99;
+                    for (int m = 0; m < PlayerController.LaneCount; m++)
+                        if (LaneFreeInRow(m, row1)) nearest = Mathf.Min(nearest, Mathf.Abs(m - l));
+                    cost += 0.5f * nearest;
+                }
+
+                if (cost < bestCost)
+                {
+                    bestCost = cost;
                     target = l;
                 }
             }
 
             if (target == lane) return;
             int step = target > lane ? 1 : -1;
-            if (NearestBlock(lane + step) > 2.5f) _player.RequestLane(step);
+            if (!Blocked(lane + step, -3.4f, 3.6f)) _player.RequestLane(step);
         }
 
         [UnityTest]
@@ -95,7 +131,7 @@ namespace NeonRush.Tests
             int lastRows = 0;
             while (_game.State == GameState.Playing && Time.realtimeSinceStartup - start < 25f)
             {
-                Steer(Mathf.Max(24f, _game.Speed * 1.1f));
+                Steer();
                 lastRows = _game.Spawner.RowsSpawned;
                 yield return null;
             }
@@ -168,7 +204,7 @@ namespace NeonRush.Tests
 
             _game.StartRun();
             float t = Time.realtimeSinceStartup;
-            while (Time.realtimeSinceStartup - t < 3f) { Steer(26f); yield return null; }
+            while (Time.realtimeSinceStartup - t < 3f) { Steer(); yield return null; }
             yield return Shot(dir, "2_gameplay.png");
 
             _game.Pause();
