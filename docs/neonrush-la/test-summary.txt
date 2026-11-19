@@ -1,5 +1,5 @@
 NO TEST RESULTS PRODUCED
-== test-results/playmode.log (3383 lines) — test progress / errors:
+== test-results/playmode.log (3426 lines) — test progress / errors:
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
     [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
@@ -8,24 +8,24 @@ NO TEST RESULTS PRODUCED
     [NeonRush] iOS settings: com.sufyan.neonrush v1.0.0 (1), IL2CPP, ARM64, Metal, iOS 13.0+, landscape, ProMotion on.
     [NeonRush] Project configured. URP asset: Assets/NeonRush/Settings/NeonRush_URP.asset
     [NeonRushLA] Built Assets/NeonRushLA/Scenes/NeonRushLA.unity
-    [NeonRushLA] City built in 1908 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] City built in 1886 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
 == tail:
-    		CollectScriptTypesHashes: 0.483ms
-    		ReloadNativeAssets: 0.490ms
-    		UnloadImportedAssets: 0.434ms
-    		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.943ms
+    		CollectScriptTypesHashes: 0.504ms
+    		ReloadNativeAssets: 0.532ms
+    		UnloadImportedAssets: 0.423ms
+    		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.827ms
     		InitializingProgressBar: 0.000ms
     		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
-    		OnDemandSchedulerStart: 1.506ms
-    	PostProcessAllAssets: 30.592ms
-    	GatherAllCurrentPrimaryArtifactRevisions: 0.288ms
-    	UnloadStreamsBegin: 1.232ms
-    	PersistCurrentRevisions: 0.117ms
-    	UnloadStreamsEnd: 0.007ms
-    	GenerateScriptTypeHashes: 2.343ms
-    	Untracked: 637.971ms
+    		OnDemandSchedulerStart: 1.407ms
+    	PostProcessAllAssets: 22.975ms
+    	GatherAllCurrentPrimaryArtifactRevisions: 0.185ms
+    	UnloadStreamsBegin: 1.153ms
+    	PersistCurrentRevisions: 0.144ms
+    	UnloadStreamsEnd: 0.027ms
+    	GenerateScriptTypeHashes: 2.347ms
+    	Untracked: 518.550ms
     [PhysX] Initialized MultithreadedTaskDispatcher with 4 workers.
-    [NeonRushLA] City built in 1908 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
+    [NeonRushLA] City built in 1886 ms: 36 chunks, 2044 colliders, 297 buildings, 457 palms, 180 trees, 438 lamps, 168 signal heads, 408 lanes, 144 walk nodes.
     UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:37)
     UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
     UnityEngine.Logger:Log (UnityEngine.LogType,object)
@@ -35,8 +35,8 @@ NO TEST RESULTS PRODUCED
     (Filename: Assets/NeonRushLA/Scripts/Runtime/Systems/LABootstrap.cs Line: 116)
     
     Loaded scene 'Temp/__Backupscenes/0.backup'
-    	Deserialize:            5.757 ms
-    	Integration:            2259.414 ms
+    	Deserialize:            5.265 ms
+    	Integration:            2194.932 ms
     	Integration of assets:  0.004 ms
-    	Thread Wait Time:       0.010 ms
-    	Total Operation Time:   2265.185 ms
+    	Thread Wait Time:       0.179 ms
+    	Total Operation Time:   2200.381 ms
