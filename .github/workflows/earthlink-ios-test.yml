@@ -1,0 +1,43 @@
+name: Earthlink iOS QuickTest unsigned IPA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ios/earthlink-quicktest/**'
+      - '.github/workflows/earthlink-ios-test.yml'
+  workflow_dispatch:
+jobs:
+  build-ipa:
+    runs-on: macos-15
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode tools
+        run: xcodebuild -version && xcrun --sdk iphoneos --show-sdk-version
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: cd ios/earthlink-quicktest && xcodegen generate
+      - name: Build for physical iPhone without signing
+        run: |
+          xcodebuild -project ios/earthlink-quicktest/YaqootEarthlinkTest.xcodeproj \
+            -scheme YaqootEarthlinkTest -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/yaqoot-build" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          mkdir -p dist/Payload
+          cp -R "$RUNNER_TEMP/yaqoot-build/Build/Products/Release-iphoneos/YaqootEarthlinkTest.app" dist/Payload/
+          (cd dist && zip -q -r Yaqoot-Earthlink-QuickTest-UNSIGNED.ipa Payload)
+          unzip -tq dist/Yaqoot-Earthlink-QuickTest-UNSIGNED.ipa
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Yaqoot-Earthlink-QuickTest-UNSIGNED
+          path: dist/Yaqoot-Earthlink-QuickTest-UNSIGNED.ipa
+          if-no-files-found: error
+          retention-days: 7
