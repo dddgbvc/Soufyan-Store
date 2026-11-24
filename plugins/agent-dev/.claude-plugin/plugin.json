@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "agent-dev",
+  "displayName": "Agent Dev",
+  "version": "1.0.0",
+  "description": "Software engineering workflow skills: specs, planning, TDD, review, security, performance, CI/CD, shipping and docs.",
+  "repository": "https://github.com/dddgbvc/Soufyan-Store",
+  "keywords": [
+    "workflow",
+    "tdd",
+    "code-review",
+    "security",
+    "performance",
+    "ci-cd",
+    "planning"
+  ],
+  "skills": "./skills/"
+}

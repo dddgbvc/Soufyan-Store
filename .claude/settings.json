@@ -1,0 +1,12 @@
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "soufyan-store",
+      "url": "https://github.com/dddgbvc/Soufyan-Store",
+      "type": "git"
+    }
+  ],
+  "enabledPlugins": {
+    "agent-dev@soufyan-store": true
+  }
+}
