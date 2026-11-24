@@ -1,0 +1,107 @@
+/* ============================================================
+   الحركة — الدخول، الظهور، واحترام تفضيل تقليل الحركة
+   المشاهد المرتبطة بالتمرير يقودها GSAP ScrollTrigger.
+   ============================================================ */
+
+/* عناصر تنتظر GSAP: مخفية مبدئيًا بلا وميض */
+[data-anim] {
+  will-change: transform, opacity;
+}
+
+.js [data-anim="up"],
+.js [data-anim="fade"],
+.js [data-anim="scale"] {
+  opacity: 0;
+}
+
+/* سطور العنوان تصعد من خلف قناع */
+.rise > span {
+  display: block;
+  transform: translateY(115%);
+}
+
+/* الستارة الافتتاحية */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  background: #000;
+  transition: opacity 0.7s var(--e-apple), visibility 0s linear 0.7s;
+}
+.boot.done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.boot__mark {
+  width: 3.4rem;
+  animation: bootBeat 1.5s var(--e-soft) infinite;
+}
+@keyframes bootBeat {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* انتقال الثيم الدائري */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+html.vt::view-transition-new(root) {
+  animation: themeSweep 0.75s var(--e-out);
+}
+@keyframes themeSweep {
+  from {
+    clip-path: circle(0% at var(--vtx, 50%) var(--vty, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--vtx, 50%) var(--vty, 50%));
+  }
+}
+
+/* حركة احتياطية إن غاب GSAP */
+.no-gsap [data-anim] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+.no-gsap .rise > span {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-anim],
+  .js [data-anim] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .rise > span {
+    transform: none !important;
+  }
+  #lgCanvas {
+    display: none;
+  }
+}
